@@ -1,10 +1,10 @@
 ---
 name: ice-ideas
-description: "Workflow of Ice Motion Director for ideas without a render: concept sets with at least two unexpected directions, hooks and first-3-second openers, open loops, scripts, storyboards and animatic specs with frame sketches, treatments, and campaign series with platform variants, ending in a hand-off note for the workflow that would build it. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-ideas. Other Ice workflows also call it by name for its concept and script rules."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Workflow of Ice Motion Director for ideas without a render: concept sets with at least two unexpected directions, hooks and first-3-second openers, open loops, scripts, storyboards and animatic specs with frame sketches, treatments, and campaign series with platform variants, ending in a hand-off note for the workflow that would build it. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-ideas. Other Ice workflows also call it by name for its concept and script rules."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-ideas

@@ -1,10 +1,10 @@
 ---
 name: ice-arabic
-description: "Arabic and right-to-left rules for motion and video: letterforms and dots in motion, kashida, bidi isolation, numerals, line breaking, Arabic captions, platform safe zones for Arabic text, cover text sizes, Arabic font selection and per-language font checks, dialect as a setting for scripts and voiceover, ASR used for timing only, and Arabic failure lessons. Called by Ice Motion Director workflows; use only when called by name."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Arabic and right-to-left rules for motion and video: letterforms and dots in motion, kashida, bidi isolation, numerals, line breaking, Arabic captions, platform safe zones for Arabic text, cover text sizes, Arabic font selection and per-language font checks, dialect as a setting for scripts and voiceover, ASR used for timing only, and Arabic failure lessons. Called by Ice Motion Director workflows; use only when called by name."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-arabic

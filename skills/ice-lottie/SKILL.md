@@ -1,10 +1,10 @@
 ---
 name: ice-lottie
-description: "Workflow of Ice Motion Director for motion that ships inside a product: Lottie JSON scenes and assets (icons, loaders, state icons, micro-interactions, lower thirds, logo reveals and loops, kinetic type, data and diagram scenes), a raster logo turned into clean SVG and animated with numeric checks, animated SVG, motion tokens shared with product code, previews and a developer handoff. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-lottie."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Workflow of Ice Motion Director for motion that ships inside a product: Lottie JSON scenes and assets (icons, loaders, state icons, micro-interactions, lower thirds, logo reveals and loops, kinetic type, data and diagram scenes), a raster logo turned into clean SVG and animated with numeric checks, animated SVG, motion tokens shared with product code, previews and a developer handoff. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-lottie."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # Ice Lottie

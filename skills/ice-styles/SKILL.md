@@ -1,6 +1,7 @@
 ---
 name: ice-styles
 description: >-
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Style catalogs for motion films: 51 film styles, 15 motion design styles, 32 drawing styles (hands),
   36 implemented art-history styles plus 17 research recipes, 9 narration grammars for voiceover-led
   explainers, 10 opener style directions and 6 explainer looks, and a credited index of the community
@@ -9,7 +10,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-styles

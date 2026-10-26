@@ -296,6 +296,8 @@ Everything lives in an `ice/` folder in your project, so any session can resume 
 
 ## Skills
 
+You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`, `/ice-style`, `/ice-01-brief` to `/ice-10-deliver`); the router starts on its own or with `/ice`. Your agent's `/` menu may list the other skills too, because the Agent Skills format has no portable way to hide them: their descriptions start with "Internal part of Ice Motion Director, not a command: start with /ice." The director opens them for you.
+
 | Tier | Skill | What it owns |
 |---|---|---|
 | Router | [`ice-motion-director`](skills/ice-motion-director) | Project state, classification, the ten-stage spine, the stops |

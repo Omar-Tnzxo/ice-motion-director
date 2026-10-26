@@ -1,6 +1,7 @@
 ---
 name: ice-direction
 description: >
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Creative direction and decision system of Ice Motion Director: the brief and the stage 01 intake
   (supplied material, the researched business brief, the industry and platform ad rules, the
   four-choice stage 01 questions), dated research built only from brief slots, the pitch and direction rounds,
@@ -10,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-direction

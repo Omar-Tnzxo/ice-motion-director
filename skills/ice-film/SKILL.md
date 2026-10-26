@@ -1,10 +1,10 @@
 ---
 name: ice-film
-description: "Workflow of Ice Motion Director for motion films made from scratch: product launch films, app ads, brand films, logo stings, kinetic type, data stories, social shorts, hype promos, UI walkthroughs, music videos, art films and industry spots. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-film."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Workflow of Ice Motion Director for motion films made from scratch: product launch films, app ads, brand films, logo stings, kinetic type, data stories, social shorts, hype promos, UI walkthroughs, music videos, art films and industry spots. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-film."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-film

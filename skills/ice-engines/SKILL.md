@@ -1,6 +1,7 @@
 ---
 name: ice-engines
 description: >
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Render engine domain skill of Ice Motion Director. Chooses the engine for a
   film (HyperFrames, Remotion, HTML canvas with Playwright and FFmpeg, Three.js,
   Lottie playback, FFmpeg only, p5 and Canvas 2D) by film type, needs, render
@@ -13,7 +14,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # Ice Engines

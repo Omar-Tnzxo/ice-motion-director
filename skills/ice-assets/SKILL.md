@@ -1,10 +1,10 @@
 ---
 name: ice-assets
-description: "Asset sourcing and truth for Ice Motion Director films: the truth sheet and facts.json claims ledger (names, prices, numbers, quotes rendered exactly from approved text, required disclaimers from the compliance note), brand asset authenticity (official logos, real logo on the final frame, text-set wordmark for a brand with no logo, asset manifest gate), real brand material (live site captures and a brand sheet of colors and fonts at the film's aspect ratios, official kits, UI rebuilds at 90 percent fidelity, the unofficial-concept label), license checks and a credits record for fonts, footage, images, icons, 3D, music and SFX, screen recordings and product UI capture, the AI-generated media policy, asset folders and naming, and what never to use. Called by Ice Motion Director workflows; use only when called by name."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Asset sourcing and truth for Ice Motion Director films: the truth sheet and facts.json claims ledger (names, prices, numbers, quotes rendered exactly from approved text, required disclaimers from the compliance note), brand asset authenticity (official logos, real logo on the final frame, text-set wordmark for a brand with no logo, asset manifest gate), real brand material (live site captures and a brand sheet of colors and fonts at the film's aspect ratios, official kits, UI rebuilds at 90 percent fidelity, the unofficial-concept label), license checks and a credits record for fonts, footage, images, icons, 3D, music and SFX, screen recordings and product UI capture, the AI-generated media policy, asset folders and naming, and what never to use. Called by Ice Motion Director workflows; use only when called by name."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-assets

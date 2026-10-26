@@ -2,6 +2,13 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.1 - 2026-10-26
+
+### Changed
+
+- The 15 internal skills (the six workflows and the nine domain skills) now start their description with "Internal part of Ice Motion Director, not a command: start with /ice.", so the `/` menu marks them and points to the right command. Only the 13 commands are meant to be typed. The frontmatter stays portable (Agent Skills keys only).
+- The README says to start the first message with `/ice-motion-director:ice` in Claude Code, so the director loads for sure even when other video skills are installed, and it describes the stage 01 questions as they run: four options per question, at most four per message, none when the prompt covers everything or you say "don't ask".
+
 ## 0.2.0 - 2026-10-26
 
 The first public version.

@@ -1,10 +1,10 @@
 ---
 name: ice-remake
-description: "Workflow of Ice Motion Director for new films made in the style of a reference the user supplies (a video file, a saved website or app, or an image set) with the user's own content: measured reference analysis, fidelity contract, shot mapping, mixes of several references, frame-locked remakes, a climax duel against the reference and re-timed variants. Copies style and technique, never someone else's footage, logos, people or music. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-remake."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Workflow of Ice Motion Director for new films made in the style of a reference the user supplies (a video file, a saved website or app, or an image set) with the user's own content: measured reference analysis, fidelity contract, shot mapping, mixes of several references, frame-locked remakes, a climax duel against the reference and re-timed variants. Copies style and technique, never someone else's footage, logos, people or music. Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-remake."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-remake: a new film in the style of a reference

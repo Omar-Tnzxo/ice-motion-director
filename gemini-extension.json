@@ -1,6 +1,6 @@
 {
   "name": "ice-motion-director",
   "description": "Motion design and video editing director: films from scratch, explainers, edits of your footage, reference remakes, Lottie and UI motion.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "contextFileName": "GEMINI.md"
 }

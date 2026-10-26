@@ -1,10 +1,10 @@
 ---
 name: ice-explainer
-description: "Workflow of Ice Motion Director for narrated explainer films where the voiceover leads: a researched script, the voice and its word timing, word-timed segments and a verified explainer (collage, whiteboard, pen, concept transform, kinetic, card based, code or UI walkthrough, long-form chaptered film). Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-explainer."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Workflow of Ice Motion Director for narrated explainer films where the voiceover leads: a researched script, the voice and its word timing, word-timed segments and a verified explainer (collage, whiteboard, pen, concept transform, kinetic, card based, code or UI walkthrough, long-form chaptered film). Started by the Ice Motion Director router (ice-motion-director), which creates the project first; use only when the router hands off or the user names ice-explainer."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # Ice Explainer

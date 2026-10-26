@@ -1,6 +1,7 @@
 ---
 name: ice-type
 description: >
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Typography in motion for Ice Motion Director films and edits: kinetic typography techniques,
   text hierarchy and density per film type, font sizes per aspect ratio, reading-time formulas
   and readability gates, caption and subtitle systems (drop, rail, embed, word-by-word, 3D depth
@@ -10,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-type

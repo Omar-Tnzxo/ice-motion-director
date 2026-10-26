@@ -1,10 +1,10 @@
 ---
 name: ice-qa
-description: "Quality gates and the independent critic loop for Ice Motion Director films and edits: storyboard lint, pre-render lint, contact sheet before render, frame and seam checks, slop and PowerPoint-look scans, motion density and dead air, the blue-purple default-look gate, template distance and fingerprint checks, captions and sync validators, loudness and spec checks on the exported file, a climax duel against a reference, the compliance gate for required disclaimers and restricted claims, the cold-viewer clarity gate, render approval, the delivery report with measured numbers, the case study export and the run log share file. Called by Ice Motion Director workflows; use only when called by name."
+description: "Internal part of Ice Motion Director, not a command: start with /ice. Quality gates and the independent critic loop for Ice Motion Director films and edits: storyboard lint, pre-render lint, contact sheet before render, frame and seam checks, slop and PowerPoint-look scans, motion density and dead air, the blue-purple default-look gate, template distance and fingerprint checks, captions and sync validators, loudness and spec checks on the exported file, a climax duel against a reference, the compliance gate for required disclaimers and restricted claims, the cold-viewer clarity gate, render approval, the delivery report with measured numbers, the case study export and the run log share file. Called by Ice Motion Director workflows; use only when called by name."
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # ice-qa

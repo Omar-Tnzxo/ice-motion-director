@@ -1,6 +1,7 @@
 ---
 name: ice-edit
 description: >-
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Workflow of Ice Motion Director for editing real footage: long-form and
   course edits, podcast episodes and clips, talking-head ads, shorts and
   reels, B-roll and motion overlays timed to words, and showreels cut on a
@@ -11,7 +12,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # Ice Edit: editing real footage

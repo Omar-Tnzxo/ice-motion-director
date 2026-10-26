@@ -1,6 +1,7 @@
 ---
 name: ice-motion
 description: >
+  Internal part of Ice Motion Director, not a command: start with /ice.
   Motion craft for every Ice Motion Director film and edit: motion grammar and movement jobs,
   measured timing and easing curves, closed-form spring formulas, hold and stillness policies,
   the cut and transition catalog with exact numbers, seam continuity and the carry principle,
@@ -11,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.0
+  version: 0.2.1
 ---
 
 # Ice Motion: motion craft
