@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 10 Deliver"
+  short_description: "Stage 10: deliver the film"
+  default_prompt: "$ice-10-deliver"
+policy:
+  allow_implicit_invocation: false

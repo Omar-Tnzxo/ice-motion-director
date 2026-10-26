@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Direction"
+  short_description: "Briefs, pitches, color, type"
+policy:
+  allow_implicit_invocation: false

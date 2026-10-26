@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice Motion Director"
+  short_description: "Motion design video director"
+  default_prompt: "$ice-motion-director: Make a 20-second launch film for my product"
+policy:
+  allow_implicit_invocation: true

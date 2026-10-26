@@ -1,0 +1,125 @@
+# The delivery report (`ice/review/NOTE.md`)
+
+Never claim "verified", "clean" or "done" without this file, and never write the numbers from memory: every number is copied from a script output written during this session, with the script and file it came from. Describe what was checked; never certify the film as good: only the user decides taste. Sources: motionmaxxing (Apache), huashu-art-motion (MIT), product-launch-motion (MIT), herk-edit-kit (MIT), anidoodle, motion-video-kit (MIT), explainroo, mg-styles-15 (MIT), hyperframes (Apache), founder skills.
+
+## 1. Rules
+
+- Facts come from scripts; the builder only writes the production notes. Copy gate outputs verbatim (`ice/review/look/gates.json`, `film_gate.py --json`, lint and seam-gate output, loudness), with the file hash they were measured on. If the file changes after measuring, measure again (huashu, herk-edit-kit).
+- A green check is a claim: re-run it on the delivered file before quoting it (anidoodle).
+- Do not claim a pass from code inspection, file existence or an empty validator result (herk-edit-kit).
+- G1 and G4 are by eye: say so and give your own measurements (motionmaxxing).
+- Every yellow light gets one sentence explaining why it is acceptable for this film; a red is never explained, it is fixed (huashu, motionmaxxing).
+- Holds are declared, never absorbed: list each intended still range with its reason; an accepted wait is written as "approved as shipped" with the user's words (anidoodle).
+- Say how each claim was checked: by eye, by numbers, or not at all. Audio was measured, not heard, unless a person listened. Sampled review is not exhaustive review. Name what could not be checked (doubtful words, removed lines, substituted tools, unavailable review modalities) (product-launch-motion, founder skills).
+- List what is real (captured UI, copy, footage) and what is illustrative or generated, and every permission a brand owner or rights holder would need before publication, in the "Permissions" table (motionmaxxing, product-launch-motion).
+- Auto mode: every question the run absorbed is reported here instead of asked (the router's stops table (`ice-motion-director/SKILL.md` section 5, "Stops")): the defaults taken, the decisions the roles made, items left `unresolved`, and official files downloaded under the default with where each came from. The user can overturn any of them in one reply.
+- End with a written list of what you would fix next: a film with a stated defect list is in a better state than a film declared finished (product-launch-motion). Also write the honest self-critique: strongest, weakest, what more time would change (mg-styles-15).
+- Status words are limited to: technical green, creative candidate, technical green creative rejected, reviewer approved (founder skills). "Review candidate" stays until the user approves (step mode) or the approver role passes 09 (auto mode, where `reviewer approved` is the highest status before the user's own verdict); the builder never approves its own film.
+
+## 2. Template
+
+```markdown
+# <project name>: delivery report (<runtime date>)
+
+Status: <technical green | creative candidate | technical green creative rejected | reviewer approved>
+File: <path>  sha256 <hash>  <width>x<height>  <fps> fps  <duration> s  <video codec> / <audio codec>
+Other deliverables: <ratios, subtitles, chapters, cover, poster, loop, with paths>
+
+## The idea
+<the one idea and why it belongs to this brand or subject, one or two sentences>
+Strongest frame: <timecode, one sentence>
+Structure fingerprint: <the structure line> ; differs from the nearest template on <n> of 6 axes
+Next version: <one alternative direction in one sentence>
+
+## Beats
+| # | Time | What it buys | Real or illustrative |
+|---|---|---|---|
+
+## Gates (copied from script output)
+| Gate | Result | Numbers | Tool and file |
+|---|---|---|---|
+| Cold-viewer clarity | | each read (1, 2, 3, cutdowns) with PASS or FAIL, its round, and the viewer's one-line idea quoted; "not independent" when no sub-agent ran it | `ice/review/clarity/` reports and the approver's match (`clarity-gate.md`) |
+| Brand test and competitor swap | | each run (02, 04-05, 09) with PASS or FAIL, its round, the competitor named, frames named as the brand / masked frames | `ice/review/identity/` reports (`identity-tests.md`) |
+| Studio benchmark | | max and mean gap, the capped axes in plain words, the user's answer or the default taken | `ice/review/benchmark/` (`studio-benchmark.md`) |
+| Storyboard lint | | reds, yellows | storyboard_lint.py |
+| Engine lint and check | | errors, warnings | <engine command> |
+| G0 render exists | | duration, picture content, motion, audio | look.py |
+| G1 proof readable | by eye | <text height, object width you measured> | sheet + stills |
+| G2 no empty frame | | flat runs | look.py |
+| G3 end hold, CTA share | | end hold s, final shot share, type limit used | look.py |
+| G4 one hero per frame | by eye | <panels counted> | sheet |
+| G5 no page chrome | | rule hits | lint.mjs |
+| Film gate | | fast ratio, blank run, blue-purple share, yellows | film_gate.py |
+| Richness floor | | hero_share, frame_fill, empty_half, in_shot_motion, longest_still against the type's floor (file named by the script); depth_layers from the page marks (an unmarked page fails); surface_detail, light_events, real_material counted by the critic on the stills, with the counts. Any measure of the type's floor left unmeasured is a FAIL, never n/a | film_gate.py, lint.mjs, critic |
+| Motion and freezes | | freezes, blacks, flashes | motion_check.py, frozen-time.mjs |
+| Seams | | seams passed / total, warnings | seam-gate.mjs or strips |
+| Captions and sync | | ASR diff, beat slack range, cut-onset share | validators |
+| Loudness | | I LUFS, LRA, true peak, target used | loudness.mjs |
+| Spec | | resolution, fps, duration vs plan | probe-mp4.mjs |
+| Template distance | | axes differing / 6, nearest template | anti-sameness check |
+| Fingerprint | | closest previous record, matching axes | fingerprints.jsonl (or "off by user choice") |
+| Climax duel | | verdict | strip paths |
+
+## Frame descriptions
+<one sentence per contact-sheet frame: what is on screen, what is the hero, slide or picture>
+
+## Yellows and declared holds
+- <metric or range>: <reason it is acceptable for this film>
+
+## Review
+Critics: <how many, fresh context yes or no, rounds>, final verdict <SHIP | ONE MORE PASS>
+Fix ledger: <path to fixes.json with before and after crops>
+Not independently reviewed: <components whose last round was not re-verified, or "none">
+
+## How things were checked
+By numbers: <list>. By eye: <list>. Heard by a person: <yes or no>. Not checked: <list>.
+
+## Real and illustrative
+Real: <captured UI, copy, footage>. Illustrative or generated: <list>.
+
+## Permissions a brand owner or rights holder would need before publishing
+| Item | Whose permission | Why it is needed | Status (cleared by the user / not cleared / not needed) |
+|---|---|---|---|
+| Logo and trademark use (unofficial concept or not) | <brand> | <...> | <...> |
+| Captured or rebuilt screens of the brand's UI | <brand> | <...> | <...> |
+| Brand fonts (embedded, or the free substitute used) | <foundry or brand> | <...> | <...> |
+| Other rights holders' content left in screens (`third_party_content`) | <artists, users, other brands> | <...> | <...> |
+| Music sync and master rights (media, territory, term) | <publisher, label, library> | <...> | <...> |
+| People's likeness and voice: the user's responsibility (`ice-assets` skill, `references/ai-media-policy.md` section 9) | <person> | <...> | <...> |
+| Regulated claims and disclaimer wording still `draft, owner to approve` (`ice/research/COMPLIANCE.md`) | <brand or its legal advisor> | <...> | <...> |
+| Official files downloaded under the default (URL, size, SHA-256) | <brand> | <...> | <...> |
+
+## Decided for you (auto mode)
+- <D-NN: the question it replaced, the choice, the reason in one line; defaults taken; items left unresolved>
+
+## What a yes would add
+- <each consent item the run skipped (an install, a download, a paid tool, an account) and what it would change, or "none">
+
+## Next fixes
+1. <what you would still improve>
+
+## User verdict
+<added after delivery (section 3): the date, the film, the user's words, what they reacted to, the narrowest lesson>
+```
+
+## 3. After delivery
+
+- The delivery message invites the user's verdict (it is not a stop: the run is over). When it comes, record it under the `## User verdict` heading at the end of `ice/review/NOTE.md`: the date, the film, their words, what they reacted to and the narrowest lesson. This heading is the one place for the user's verdict and the lessons from it; a verdict that changes a decision also gets a superseding entry in `ice/DIRECTION.md`.
+- Append the fingerprint line for an approved film (`anti-sameness-gates.md` section 3). Never for an unapproved or abandoned render.
+- Turn every note into a rule, a check or a script change in the owning skill, so the next film starts from it (herk-edit-kit).
+
+## 4. Case study export and run log (stage 10)
+
+Run it at every delivery, after `NOTE.md` is written and the final film is sent: it writes the run log share file every user gets. The case study card in the same output matters for portfolio pieces and is always used for the gallery demos.
+
+```
+node <ice-qa skill>/scripts/export-case-study.mjs --project <folder that holds ice/>
+```
+
+- It writes `ice/case-study/case-study.json` and `ice/case-study/media/` (stills as WebP when ffmpeg is on PATH, otherwise PNG or JPEG copies; the animatic as a short 540 px MP4; stills taken from the final film; never a full-resolution master). `--out <folder>` writes elsewhere, `--no-media` writes the JSON and a run log without images or video.
+- It writes `ice/case-study/run-log.html`, ONE small self-contained file to share: no scripts, no network requests, inline CSS, every message marked `dir="auto"` so Arabic reads right. In order: the header (title, brand, the prompt verbatim, dates, route and film type, final length and file name, a poster still and a compressed preview of the final film), the conversation from the run log (the user's words in full, the agent's summaries, references to their files), then the images in this priority: the final result; every image attached in the log, in either direction and in log order (a logged video gives its middle frame), each linked from its conversation line; then the other style frames, contact sheets and draft stills. Images are deduped by path, WebP at 960 px at most, 24 at most; the preview (H.264 about 640 px wide, AAC 64 kbps) is embedded only at 4 MB or less; the target is 8 MB in total, and the exporter prints the size. Without ffmpeg it embeds PNG or JPEG files under 300 KB as they are and notes each one skipped. Tell the user the file's path and size in the delivery message; it stays on their machine.
+- Raw UI-fidelity sheets stay local (`ice-assets` brand-authenticity.md section 11.1): a fidelity `sheet` named in `ice/assets/manifest.json`, anything in `temp/fidelity/` or `ice/review/ui-fidelity/`, and `*_raw` images in a `fidelity/` folder are never copied, embedded or linked; only the masked `share_sheet` copies are. A conversation attachment that points at one becomes the line "raw fidelity sheet kept local", and each one excluded gets a note.
+- Masking, in the export only: keys and tokens, email addresses, phone numbers and absolute paths (cut to a project-relative path or a file name) are masked in `case-study.json` and `run-log.html`, and the count goes to `notes`. `ice/log/conversation.jsonl` stays verbatim.
+- It reads only the run files: `ice/state.json`, `ice/BRIEF.md`, `ice/DIRECTION.md`, `ice/research/`, `ice/plan/`, `ice/review/` (critic rounds, gate outputs, `NOTE.md`), `ice/renders/` and the run log in `ice/log/` (written with the router's `ice-state log`, `references/state.md` "Run log"), never an agent transcript. A run without a log still exports, with a note saying so. It never fills a value from memory: whatever it cannot find stays empty and gets a line in the top-level `notes` list. Read that list and tell the user what is missing; fix a gap only by completing the run file, never by editing the JSON.
+- So the export is complete, every stage writes into `ice/state.json` under `stages.<id>` a one-line `notes` (the stage summary), `minutes` (a number, when the agent can measure it) and `roles` (the plain role names that worked on it, for example several of researcher, director, critic, consultant, approver, builder), at the moment it runs; these keys and `questions` are defined only in the router's `references/state.md` (write them with its state tool). Supplied material is read from the "Supplied material" table of `BRIEF.md`; questions from a `questions` list in `ice/state.json`, else from "Open questions" in `BRIEF.md`.
+- The export never blocks delivery and is never published or uploaded without the user's explicit yes.

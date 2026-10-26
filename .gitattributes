@@ -1,0 +1,18 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.gif binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+# License and notice texts stay byte-identical to their sources
+LICENSE -text
+LICENSE.* -text
+LICENSE-* -text
+NOTICE -text
+NOTICE-* -text
+LICENSES/** -text
+**/LICENSE -text
+**/LICENSE-* -text
+**/NOTICE-* -text

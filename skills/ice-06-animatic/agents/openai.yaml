@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 06 Animatic"
+  short_description: "Stage 06: the animatic"
+  default_prompt: "$ice-06-animatic"
+policy:
+  allow_implicit_invocation: false

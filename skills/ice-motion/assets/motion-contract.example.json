@@ -1,0 +1,65 @@
+{
+  "_notice": "From the founder's commercial-motion-design skill (Omar-Tnzxo, Apache-2.0 in this repo). Changes: this notice key added (ignored by the validator). Field shapes only: every value is illustration, never content to reuse.",
+  "project": "example-commercial",
+  "fps": 60,
+  "durationFrames": 600,
+  "voiceover": false,
+  "maxVisibleSemanticGroups": 3,
+  "approvalStatus": "creative candidate",
+  "journey": {
+    "protagonistSemanticId": "product-journey",
+    "openingState": "raw sequence with removable gaps",
+    "closingState": "clean result resolved into CTA lockup",
+    "closureType": "cta-resolve",
+    "closureEvidence": {"artifact": "qa/closure/opening-to-cta.json", "openingSemanticId": "raw-sequence", "closingSemanticId": "cta-lockup", "inheritedChannels": ["contained-content", "exact-center", "semantic-result"], "relationship": "the clean result retains its content and center while unfolding into the outcome and docking into the CTA"},
+    "stateChain": [
+      {"sceneId": "s01", "semanticId": "raw-sequence", "rootSemanticId": "product-journey", "role": "problem carrier", "state": "raw gaps", "inheritsFrom": "origin", "handoffMethod": "direct introduction", "visibleProof": "preproduction/styleframes/s01-raw.png"},
+      {"sceneId": "s01", "semanticId": "clean-result", "rootSemanticId": "product-journey", "role": "approved result", "state": "clean sequence", "inheritsFrom": "raw-sequence", "handoffMethod": "ripple compression", "visibleProof": "preproduction/styleframes/s01-result.png"},
+      {"sceneId": "s02", "semanticId": "product-outcome", "rootSemanticId": "product-journey", "role": "product proof", "state": "unfolded outcome", "inheritsFrom": "clean-result", "handoffMethod": "shared-object unfold", "visibleProof": "preproduction/styleframes/s02-outcome.png"},
+      {"sceneId": "s02", "semanticId": "cta-lockup", "rootSemanticId": "product-journey", "role": "action anchor", "state": "resolved lockup", "inheritsFrom": "product-outcome", "handoffMethod": "dock and resolve", "visibleProof": "preproduction/styleframes/s02-cta.png"}
+    ]
+  },
+  "hardCuts": [],
+  "references": [
+    {"source": "https://motionographer.com/2016/08/11/an-homage-to-the-games/", "role": "narrative-transitions", "lesson": "The Olympic ring remains the action centerpiece and preserves momentum between sports", "doNotCopy": "artwork, characters, ring choreography, music, or exact sequence", "decompositionArtifact": "preproduction/reference-olympia.md"},
+    {"source": "https://motionographer.com/2023/07/04/song-exploder-wait-for-it-technical-breakdown-2/", "role": "typography-composition", "lesson": "Typography and other material are blocked on a timeline according to the song's rhythm and narrative need", "doNotCopy": "lyrics, footage, layouts, typography treatment, or exact edit", "decompositionArtifact": "preproduction/reference-song-exploder.md"},
+    {"source": "https://schoolofmotion.com/blog/making-giants-sound-design", "role": "music-sound", "lesson": "Music and cause-specific effects form an audio arc that supports the visual film", "doNotCopy": "music, recordings, effects, or mix", "decompositionArtifact": "preproduction/reference-making-giants.md"}
+  ],
+  "music": {
+    "file": "assets/music/master.wav",
+    "analysisArtifact": "preproduction/music-map.md",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "phrases": [{"startFrame": 0, "endFrame": 300, "role": "build"}, {"startFrame": 300, "endFrame": 600, "role": "resolve"}],
+    "energyZones": [{"startFrame": 0, "endFrame": 270, "energy": "medium", "role": "mechanism progression", "evidence": "preproduction/music-map.md", "derivedFromSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "storyPermission": "compression and reveal"}, {"startFrame": 270, "endFrame": 300, "energy": "rest", "role": "reading space", "evidence": "preproduction/music-map.md", "derivedFromSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "storyPermission": "settled result hold"}, {"startFrame": 300, "endFrame": 600, "energy": "medium-high", "role": "outcome and resolve", "evidence": "preproduction/music-map.md", "derivedFromSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "storyPermission": "unfold then CTA settle"}],
+    "rests": [{"startFrame": 270, "endFrame": 300}],
+    "cues": [{"frame": 120, "strength": "primary", "role": "decisive-action"}]
+  },
+  "scenes": [
+    {
+      "id": "s01", "startFrame": 0, "endFrame": 300, "claim": "Raw problems become a clean result", "compositionModel": "single-focal-transformation",
+      "entry": {"semanticId": "raw-sequence", "transform": {"center": [960, 540], "scale": 1, "rotation": 0}},
+      "primaryMotion": {"verb": "compress", "cause": "approval", "stateA": "raw gaps", "stateB": "clean sequence", "causesNext": "clean sequence becomes result card"},
+      "focalOwnership": [{"startFrame": 0, "endFrame": 120, "owner": "problem-copy"}, {"startFrame": 120, "endFrame": 300, "owner": "timeline-result"}],
+      "progressiveDisclosure": [{"startFrame": 0, "endFrame": 120, "focalOwner": "problem-copy", "visibleSemanticGroups": ["copy", "raw-sequence"]}, {"startFrame": 120, "endFrame": 300, "focalOwner": "timeline-result", "visibleSemanticGroups": ["clean-sequence", "result-label"]}],
+      "textUnits": [{"text": "Short copy", "locale": "en", "enterFrame": 0, "apexFrame": 18, "dwellEndFrame": 105, "exitFrame": 130, "proofOwner": "timeline-result", "nextTarget": "timeline-result", "bbox": [600, 180, 720, 120], "eventVerb": "compress", "attachment": "the copy is carried by the selected timeline gaps", "attachmentTargetSemanticId": "clean-result", "stateA": "separate claim", "stateB": "label embedded in the clean result", "renderedProof": "qa/text/s01-text-event.png", "readingEvidence": {"method": "native-reader-timed", "measuredReadFrames": 42, "settleFrames": 15, "lineCount": 1}}],
+      "phases": {"anticipation": [0, 96], "action": [96, 151], "dwell": [151, 261], "exit": [261, 300]},
+      "transition": {"owner": "timeline-result", "destinationScene": "s02", "destinationAnchor": "result-card", "method": "shared-object", "boundaryType": "transformation", "continuityChannel": "semantic content plus exact transform", "semanticId": "clean-result", "endTransform": {"center": [960, 540], "scale": 0.7, "rotation": 0}},
+      "camera": {"mode": "locked", "reason": "none", "target": "timeline-result"},
+      "depth": {"mode": "flat", "semanticPurpose": "timeline readability is clearer without depth"},
+      "soundCues": [{"source": "assets/sfx/approval-click.wav", "provenance": "licensed library", "license": "commercial", "visibleCause": "approval press", "contactFrame": 120, "tailEndFrame": 138, "role": "contact", "processing": "trim and light EQ", "mixPriority": "primary"}]
+    },
+    {
+      "id": "s02", "startFrame": 300, "endFrame": 600, "claim": "The result becomes the product outcome", "compositionModel": "shared-object-reveal",
+      "entry": {"semanticId": "clean-result", "transform": {"center": [960, 540], "scale": 0.7, "rotation": 0}},
+      "primaryMotion": {"verb": "unfold", "cause": "carried result", "stateA": "result card", "stateB": "product outcome", "causesNext": "CTA lockup"},
+      "focalOwnership": [{"startFrame": 300, "endFrame": 600, "owner": "product-outcome"}],
+      "progressiveDisclosure": [{"startFrame": 300, "endFrame": 420, "focalOwner": "carried-result", "visibleSemanticGroups": ["result-card"]}, {"startFrame": 420, "endFrame": 600, "focalOwner": "product-outcome", "visibleSemanticGroups": ["product-outcome", "result-copy"]}],
+      "textUnits": [{"text": "Result", "locale": "en", "enterFrame": 330, "apexFrame": 348, "dwellEndFrame": 510, "exitFrame": 560, "proofOwner": "product-outcome", "nextTarget": "cta-lockup", "bbox": [720, 170, 480, 110], "eventVerb": "dock", "attachment": "the result label is attached to the unfolding outcome and docks with it", "attachmentTargetSemanticId": "cta-lockup", "stateA": "outcome label", "stateB": "CTA lockup label", "renderedProof": "qa/text/s02-text-event.png", "readingEvidence": {"method": "native-reader-timed", "measuredReadFrames": 30, "settleFrames": 18, "lineCount": 1}}],
+      "phases": {"anticipation": [300, 330], "action": [330, 391], "dwell": [391, 541], "exit": [541, 600]},
+      "transition": {"owner": "product-outcome", "destinationScene": "END", "destinationAnchor": "cta-lockup", "method": "lockup", "boundaryType": "resolution", "continuityChannel": "contained result and exact center", "semanticId": "cta-lockup", "endTransform": {"center": [960, 540], "scale": 1, "rotation": 0}},
+      "camera": {"mode": "move", "reason": "detail-inspection", "target": "product-outcome"},
+      "depth": {"mode": "functional-2.5d", "semanticPurpose": "separate product layers to explain how the clean result becomes the outcome", "layers": [{"name": "result-label", "role": "foreground", "z": 120}, {"name": "result-card", "role": "midground", "z": 0}, {"name": "product-plane", "role": "background", "z": -140}], "cameraPointOfInterest": "result-card", "perspective": "35mm-equivalent with coherent vanishing direction", "parallaxEvidence": "qa/depth/s02-parallax.json", "occlusionOrder": ["result-label", "result-card", "product-plane"], "lightDirection": "upper-left key", "shadowBehavior": "contact shadow remains attached during separation", "recombineFrame": 540, "recombineTransform": {"center": [960, 540], "scale": 1, "rotation": 0}, "nextOwner": "cta-lockup"},
+      "soundCues": [{"source": "assets/sfx/unfold.wav", "provenance": "licensed library", "license": "commercial", "visibleCause": "result unfolds", "contactFrame": 390, "tailEndFrame": 430, "role": "material", "processing": "trim, pan, and EQ", "mixPriority": "secondary"}]
+    }
+  ]
+}

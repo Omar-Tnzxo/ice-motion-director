@@ -1,0 +1,20 @@
+{
+  "name": "ice-motion-director",
+  "interface": {
+    "displayName": "Ice Motion Director"
+  },
+  "plugins": [
+    {
+      "name": "ice-motion-director",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creativity"
+    }
+  ]
+}

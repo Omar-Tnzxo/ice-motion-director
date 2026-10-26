@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 05 Look"
+  short_description: "Stage 05: the look"
+  default_prompt: "$ice-05-look"
+policy:
+  allow_implicit_invocation: false

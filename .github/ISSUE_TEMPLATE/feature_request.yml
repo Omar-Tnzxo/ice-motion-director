@@ -1,0 +1,42 @@
+name: Feature or style request
+description: Ask for a new capability, film type, edit type or visual style.
+title: "request: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of request
+      options:
+        - A new feature or workflow
+        - A new visual style
+        - A new film type or edit type
+        - Better support for an agent, platform or operating system
+        - Language or RTL support
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: What you want to make and why
+      description: The kind of video or job you want Ice to handle, and what it does today instead.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References (optional)
+      description: For a style, links to public examples of the look and a few words on what defines it (palette, type, motion, sound). Links only, no uploaded copies of other people's videos.
+  - type: textarea
+    id: existing
+    attributes:
+      label: Closest thing Ice has now (optional)
+      description: A style, film type or skill that comes close, and what is missing from it.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and the style catalog (skills/ice-styles/references/catalog-index.md) for this.
+          required: true

@@ -1,0 +1,36 @@
+Ice Motion Director
+Copyright 2026 Omar-Tnzxo
+
+This product includes material from third-party open-source projects.
+Each one is credited in CREDITS.md and its license text is kept in LICENSES/.
+Folders named noncommercial/ and vendor/hypit/ keep their own licenses and are
+not covered by the Apache License 2.0 of this repository.
+
+Apache License 2.0 sources
+
+This product includes material from the following Apache-2.0 projects.
+
+- HyperFrames (https://github.com/heygen-com/hyperframes)
+  Copyright 2026 HeyGen, Inc.
+  License: LICENSES/heygen-com__hyperframes.txt
+  (no NOTICE file upstream)
+
+- HyperFrames community skills (https://github.com/heygen-com/hyperframes-community-skills)
+  License: LICENSES/heygen-com__hyperframes-community-skills.txt
+  (no NOTICE file upstream)
+
+- anidoodle (https://github.com/alexgreensh/anidoodle)
+  Copyright 2026 Alex Greenshpun
+  License: LICENSES/alexgreensh__anidoodle.txt
+  NOTICE: LICENSES/alexgreensh__anidoodle.NOTICE.txt
+  (a copy also travels with skills/ice-assets/scripts/NOTICE-anidoodle.txt)
+
+- motionmaxxing (https://github.com/Tejashmakwana/motionmaxxing)
+  Made by Tejas Makwana
+  License: LICENSES/Tejashmakwana__motionmaxxing.txt
+  NOTICE: LICENSES/Tejashmakwana__motionmaxxing.NOTICE.txt
+  (copies also travel with skills/ice-qa/scripts/NOTICE-motionmaxxing.txt
+  and skills/ice-motion/scripts/NOTICE-motionmaxxing.txt)
+
+The NOTICE files listed above are reproduced unchanged, as section 4(d) of
+the Apache License 2.0 requires, and must be kept in any redistribution.

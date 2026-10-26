@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Styles"
+  short_description: "Style and grammar catalogs"
+policy:
+  allow_implicit_invocation: false

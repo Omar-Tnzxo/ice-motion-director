@@ -1,0 +1,107 @@
+name: Bug report
+description: Something in Ice went wrong, broke a run or gave a wrong result.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. A security problem goes through SECURITY.md (private reporting), not here.
+        Please remove keys, tokens and private details from anything you paste.
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and its version
+      description: The coding agent you ran Ice in, its version, and the model if you know it.
+      placeholder: "<agent name> <version>, model <model>"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows (PowerShell or cmd)
+        - Windows (WSL)
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install method
+      description: How Ice was installed.
+      options:
+        - Universal installer (npx skills add)
+        - Claude Code plugin
+        - Claude.ai or Claude Desktop upload
+        - Codex plugin
+        - Cursor plugin
+        - Gemini CLI extension
+        - Manual copy of the skills folder
+        - Other (say which below)
+    validations:
+      required: true
+  - type: input
+    id: ice-version
+    attributes:
+      label: Ice version
+      description: The version in the installed plugin manifest, or metadata.version in any of its SKILL.md files.
+      placeholder: "<major>.<minor>.<patch>"
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: The prompt
+      description: The prompt you gave, word for word, and your answers to the stage 01 questions if there were any.
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage it failed at
+      options:
+        - Before any stage (install, router, first reply)
+        - 01 brief
+        - 02 concept
+        - 03 script
+        - 04 storyboard
+        - 05 look
+        - 06 animatic
+        - 07 build
+        - 08 sound
+        - 09 review
+        - 10 deliver
+        - Not a stage (editing, remake, style recipe, other)
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened and what you expected
+      description: The error message or the wrong result, and what should have happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: gates
+    attributes:
+      label: Output of node scripts/gates.mjs
+      description: Run it in a clone of this repo (or the folder where Ice is installed) and paste the summary. Write "not run" if you could not run it.
+      render: text
+  - type: textarea
+    id: run-log
+    attributes:
+      label: Run log share file (optional)
+      description: If you are willing, attach ice/case-study/run-log.html from your project. It masks keys, contacts and paths; look through it before you attach it.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I am on the latest Ice release, or I named the version I use above.
+          required: true
+        - label: I removed keys, tokens and private details from everything I pasted.
+          required: true

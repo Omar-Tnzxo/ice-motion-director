@@ -1,0 +1,7 @@
+description = "Ice Motion Director, step by step: run the next part of stage 08 (sound) and stop for your review"
+prompt = """
+Use the ice-motion-director skill from the Ice Motion Director extension. Open its references/step-mode.md and run stage 08 (sound) through the dispatcher in section 2, exactly as written. It starts with the state check, run from the project folder: node <ice-motion-director skill folder>/scripts/ice-state.mjs check 08. It names the part to run: 08a (score, sound effects, voice) or 08b (mix and master on the draft). If it refuses, say its sentence and stop; otherwise run only that part, then stop with the review card.
+The text the user typed after the command is below. It is extra direction for this stage, and it may be empty.
+
+{{args}}
+"""

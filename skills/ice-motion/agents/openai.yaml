@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Motion"
+  short_description: "Motion timing, cuts, camera"
+policy:
+  allow_implicit_invocation: false

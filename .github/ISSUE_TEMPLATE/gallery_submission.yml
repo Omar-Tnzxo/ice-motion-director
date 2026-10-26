@@ -1,0 +1,54 @@
+name: Gallery submission
+description: Share a video you made with Ice for the gallery.
+title: "gallery: "
+labels: ["gallery"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing. The maintainers pick gallery videos by hand. Link to the video; video files never go into the repo.
+  - type: input
+    id: video
+    attributes:
+      label: Link to the video
+      description: A GitHub user-attachment (drag the file into a comment box to get one) or a public video page.
+    validations:
+      required: true
+  - type: input
+    id: kind
+    attributes:
+      label: Kind of video
+      description: Film type or edit type, industry, language and aspect ratio.
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and model
+    validations:
+      required: true
+  - type: input
+    id: ice-version
+    attributes:
+      label: Ice version
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: The prompt and your answers
+      description: The prompt you gave, word for word, and your answers to the stage 01 questions.
+    validations:
+      required: true
+  - type: textarea
+    id: run-log
+    attributes:
+      label: Run log share file (optional)
+      description: If you are willing, attach ice/case-study/run-log.html. It masks keys, contacts and paths; look through it before you attach it.
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Rights
+      options:
+        - label: I have the rights to share this video and everything in it (brands, people, music, footage), and I agree it may be shown in the README and on the project website with credit to me.
+          required: true

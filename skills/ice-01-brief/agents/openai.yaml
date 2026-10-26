@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 01 Brief"
+  short_description: "Stage 01: the brief"
+  default_prompt: "$ice-01-brief"
+policy:
+  allow_implicit_invocation: false

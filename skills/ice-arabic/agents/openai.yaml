@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Arabic"
+  short_description: "Arabic and RTL video rules"
+policy:
+  allow_implicit_invocation: false

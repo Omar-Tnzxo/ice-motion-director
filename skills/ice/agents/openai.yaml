@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice Auto Mode"
+  short_description: "Run the whole film, auto mode"
+  default_prompt: "$ice"
+policy:
+  allow_implicit_invocation: false

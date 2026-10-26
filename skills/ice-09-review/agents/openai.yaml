@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 09 Review"
+  short_description: "Stage 09: review and fix"
+  default_prompt: "$ice-09-review"
+policy:
+  allow_implicit_invocation: false

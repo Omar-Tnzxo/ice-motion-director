@@ -1,0 +1,7 @@
+description = "Ice Motion Director, step by step: run stage 03 (script) and stop for your review"
+prompt = """
+Use the ice-motion-director skill from the Ice Motion Director extension. Open its references/step-mode.md and run stage 03 (script) through the dispatcher in section 2, exactly as written. It starts with the state check, run from the project folder: node <ice-motion-director skill folder>/scripts/ice-state.mjs check 03. If it refuses, say its sentence and stop; otherwise run only this stage, then stop with the review card.
+The text the user typed after the command is below. It is extra direction for this stage, and it may be empty.
+
+{{args}}
+"""

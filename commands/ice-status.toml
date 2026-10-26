@@ -1,0 +1,7 @@
+description = "Ice Motion Director: show every stage, its status and what comes next"
+prompt = """
+Use the ice-motion-director skill from the Ice Motion Director extension. Open its references/step-mode.md and show the status view from section 6 exactly as written: run node <ice-motion-director skill folder>/scripts/ice-state.mjs show from the project folder and present its output in the user's language. Change nothing in the project.
+The text the user typed after the command is below; it may be empty.
+
+{{args}}
+"""

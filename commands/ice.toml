@@ -1,0 +1,6 @@
+description = "Ice Motion Director: run or resume the whole production from one prompt"
+prompt = """
+Use the ice-motion-director skill from the Ice Motion Director extension and follow it exactly in auto mode, stopping only where the "Stops" table of its SKILL.md (section 5) allows. If ice/state.json exists, run node <ice-motion-director skill folder>/scripts/ice-state.mjs set mode auto from the project folder and resume from the first stage that is not ready; otherwise start a new project with the text below as the request. If the text is empty and there is no project, ask in one plain sentence what the film is for.
+
+{{args}}
+"""

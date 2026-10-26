@@ -1,0 +1,28 @@
+[
+  { "query": "make a 15 second ad for my coffee shop's ordering app, vertical, for instagram reels. logo and screenshots are in ./brand", "should_trigger": true, "lang": "en" },
+  { "query": "cut this 40 minute podcast recording (episodes/ep12.mp4) into three vertical shorts with burned-in captions", "should_trigger": true, "lang": "en" },
+  { "query": "I need a launch film for our B2B scheduling tool in the same style as this reference video I saved at refs/launch.mp4, about 30s", "should_trigger": true, "lang": "en" },
+  { "query": "give me five ad concepts and a script for a real estate open day this friday, no video yet, just ideas", "should_trigger": true, "lang": "en" },
+  { "query": "using hyperframes, make a 20 second promo for our bakery's new winter menu with kinetic text", "should_trigger": true, "lang": "en" },
+  { "query": "animate our logo as a lottie loader for the app splash screen, the svg is assets/logo.svg", "should_trigger": true, "lang": "en" },
+  { "query": "we need a 60 second narrated explainer on how our refund process works, for new customers", "should_trigger": true, "lang": "en" },
+  { "query": "continue the video project in this folder, where did we stop?", "should_trigger": true, "lang": "en" },
+  { "query": "اعمل إعلان لسبوتيفاي", "should_trigger": true, "lang": "ar-EG" },
+  { "query": "عايز فيديو موشن جرافيك 30 ثانية للمطعم بتاعي، يتنزل ريلز على انستجرام", "should_trigger": true, "lang": "ar-EG" },
+  { "query": "اعملي مونتاج للفيديو ده وطلع منه 3 ريلز بترجمة عربي", "should_trigger": true, "lang": "ar-EG" },
+  { "query": "عايز شورتس من حلقة البودكاست اللي في فولدر recordings", "should_trigger": true, "lang": "ar-EG" },
+  { "query": "أريد فيديو إعلانيًا قصيرًا لتطبيق التوصيل الخاص بشركتنا بالعربية والإنجليزية", "should_trigger": true, "lang": "ar" },
+  { "query": "صمم مقدمة متحركة مدتها خمس ثوانٍ لقناتي على يوتيوب", "should_trigger": true, "lang": "ar" },
+
+  { "query": "my hyperframes composition fails to render with 'timeline not found', here is the error log, can you fix the project config?", "should_trigger": false, "lang": "en" },
+  { "query": "convert recording.mp4 to a gif with ffmpeg, max 5 MB", "should_trigger": false, "lang": "en" },
+  { "query": "the scroll animation on my react navbar is janky on mobile, fix the framer motion code in Navbar.tsx", "should_trigger": false, "lang": "en" },
+  { "query": "summarize the transcript of this youtube talk into five bullet points", "should_trigger": false, "lang": "en" },
+  { "query": "what is the best free video editing software for a mac in 2026?", "should_trigger": false, "lang": "en" },
+  { "query": "write a blog post about motion design trends for our agency website", "should_trigger": false, "lang": "en" },
+  { "query": "add a video upload field with a progress bar to my django form", "should_trigger": false, "lang": "en" },
+  { "query": "لخصلي الفيديو ده في كام سطر", "should_trigger": false, "lang": "ar-EG" },
+  { "query": "اكتبلي بوست فيسبوك عن عرض الخصم الجديد في المحل", "should_trigger": false, "lang": "ar-EG" },
+  { "query": "ظبطلي إعدادات OBS عشان البث المباشر يبقى أوضح", "should_trigger": false, "lang": "ar-EG" },
+  { "query": "اشرح لي الفرق بين معدل الإطارات ومعدل البت في ملفات الفيديو", "should_trigger": false, "lang": "ar" }
+]

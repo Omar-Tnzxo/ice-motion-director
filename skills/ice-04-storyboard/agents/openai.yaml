@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 04 Storyboard"
+  short_description: "Stage 04: storyboard"
+  default_prompt: "$ice-04-storyboard"
+policy:
+  allow_implicit_invocation: false

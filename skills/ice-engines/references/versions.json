@@ -1,0 +1,193 @@
+{
+  "about": "Single source of truth for every pinned tool version that Ice Motion Director skills and scripts use. Skills and scripts read this file instead of repeating numbers. tests/metadata.test.mjs keeps requirements.txt files, script pins and exact pins written in skill text (name@x.y.z, name==x.y.z) in sync with it. .github/workflows/freshness.yml (scripts/freshness.mjs) compares it with the npm registry and PyPI every week, opens a pull request with the bump (never merged automatically) and opens an issue for any platform spec not verified within max_age_days. An entry with a hold field is never bumped.",
+  "last_verified": "2026-10-19",
+  "runtimes": {
+    "node": {
+      "minimum": "22.20.0",
+      "why": "hyperframes 0.8.174 declares engines node >=22; the skills installer (npm package skills 1.7.2) needs 22.20.0; _cdp.mjs and seam-gate.mjs use the global WebSocket of Node 22"
+    },
+    "python": {
+      "minimum": "3.11",
+      "why": "numpy 2.4.6 and scipy 1.16.3 require Python 3.11 or newer; Python 3.10 reached end of life in October 2026"
+    },
+    "ffmpeg": {
+      "minimum": "7.0",
+      "why": "engine-choice.md and render-html.mjs require FFmpeg 7 or newer (ffprobe ships with it)"
+    },
+    "chrome": {
+      "pinned_by": "the engine: npx hyperframes browser ensure (HyperFrames, a download the user approves); HTML capture uses the installed Chrome, Chromium or Edge (render-html.mjs logs its version) or, when none exists, npx playwright-core install chromium from the project's pinned copy (a download the user approves)",
+      "notes": "Remotion HtmlInCanvas preview needs Chrome 149 or newer with the canvas draw-element flag (157 or newer for nesting)"
+    }
+  },
+  "npm": {
+    "hyperframes": {
+      "version": "0.8.174",
+      "use": "HyperFrames CLI, installed in the film project as an exact dev dependency"
+    },
+    "remotion": {
+      "version": "4.0.536",
+      "use": "Remotion; every remotion and @remotion/* package in a project uses this same exact version"
+    },
+    "playwright-core": {
+      "version": "1.58.2",
+      "use": "optional driver for skills/ice-engines/scripts/render-html.mjs (it has a built-in driver when this is not installed)"
+    },
+    "playwright": {
+      "version": "1.49.1",
+      "use": "driver for skills/ice-edit/scripts/motion-broll (beats.js, render.js)"
+    },
+    "gsap": {
+      "version": "3.14.2",
+      "use": "animation library loaded by compositions"
+    },
+    "three": {
+      "version": "0.186.1",
+      "use": "3D library loaded by compositions"
+    },
+    "animejs": {
+      "version": "4.5.0",
+      "use": "animation library loaded by compositions"
+    },
+    "lottie-web": {
+      "version": "5.12.2",
+      "use": "Lottie player inside HyperFrames or an HTML capture page"
+    },
+    "canvaskit-wasm": {
+      "version": "0.41.1",
+      "use": "Skottie player for standalone Lottie previews and exports (full build)"
+    },
+    "@tailwindcss/browser": {
+      "version": "4.2.4",
+      "use": "Tailwind runtime in HyperFrames compositions"
+    },
+    "maplibre-gl": {
+      "version": "5.24.0",
+      "use": "maps in compositions"
+    },
+    "p5": {
+      "version": "2.3.3",
+      "use": "painted styles on the HTML capture route (LGPL-2.1: load it, do not vendor a modified copy)"
+    },
+    "p5.brush": {
+      "version": "2.2.3",
+      "use": "painted styles with p5"
+    },
+    "skills": {
+      "version": "1.7.2",
+      "use": "universal installer named in the README (npx skills add)"
+    }
+  },
+  "pip": {
+    "numpy": {
+      "version": "2.4.6",
+      "skills": ["ice-assets", "ice-audio", "ice-edit", "ice-lottie", "ice-motion", "ice-qa", "ice-remake"]
+    },
+    "scipy": {
+      "version": "1.16.3",
+      "skills": ["ice-audio"]
+    },
+    "soundfile": {
+      "version": "0.14.0",
+      "skills": ["ice-audio"]
+    },
+    "numba": {
+      "version": "0.66.0",
+      "skills": ["ice-audio"]
+    },
+    "pedalboard": {
+      "version": "0.9.26",
+      "skills": ["ice-audio"],
+      "note": "0.9.25 Linux x86_64 wheels use AVX-512 and die with SIGILL on CPUs without it; 0.9.26 targets the AVX baseline (spotify/pedalboard PR 511). the local gate imports every pin, one process per package (node scripts/gates.mjs --python)"
+    },
+    "pyloudnorm": {
+      "version": "0.2.0",
+      "skills": ["ice-audio"]
+    },
+    "matplotlib": {
+      "version": "3.10.9",
+      "skills": ["ice-audio"],
+      "note": "3.9.1 (the source pin) has no Windows wheels"
+    },
+    "librosa": {
+      "version": "0.11.0",
+      "skills": ["ice-audio", "ice-remake"]
+    },
+    "opencv-python-headless": {
+      "version": "4.10.0.84",
+      "skills": ["ice-assets", "ice-motion", "ice-qa", "ice-remake"]
+    },
+    "pillow": {
+      "version": "12.3.0",
+      "skills": ["ice-edit", "ice-lottie", "ice-remake"]
+    },
+    "playwright": {
+      "version": "1.58.0",
+      "skills": ["ice-lottie"],
+      "note": "then python -m playwright install chromium, a browser download the user approves"
+    },
+    "scenedetect": {
+      "version": "0.6.7",
+      "skills": ["ice-remake"],
+      "hold": "0.7.x depends on opencv-python (with GUI), which clashes with opencv-python-headless"
+    },
+    "vtracer": {
+      "version": "0.6.15",
+      "skills": ["ice-assets"],
+      "note": "MIT (visioncortex); binary wheels for CPython 3.10 to 3.14 on Windows, macOS and Linux; used by vectorize.py (rung 3 of the ladder of art sources)"
+    }
+  },
+  "models": {
+    "whisper": {
+      "family": "multilingual models only; .en models translate non-English audio into English",
+      "cpu_default": "base",
+      "gpu_default": "turbo",
+      "noisy_or_dialect_minimum": "medium",
+      "arabic_preferred": "large-v3 or large-v3-turbo, or a dialect fine-tune when one exists",
+      "download": "local model files are downloaded only after the user agrees",
+      "sources": ["skills/ice-type/references/caption-timing-and-truth.md", "skills/ice-arabic/references/asr-timing.md"]
+    }
+  },
+  "platform_specs": {
+    "source": "skills/ice-engines/references/platform-specs.md",
+    "max_age_days": 90,
+    "note": "last_verified is the date the platform's live specs were last checked against its official help pages; null means the values were recorded from merged sources and never checked live.",
+    "platforms": {
+      "instagram-reels": {
+        "last_verified": "2026-10-01",
+        "covers": "9:16 size, duration, safe zones, cover crop"
+      },
+      "instagram-feed": {
+        "last_verified": null,
+        "covers": "4:5 and 1:1 sizes"
+      },
+      "facebook": {
+        "last_verified": null,
+        "covers": "Reels and feed sizes, safe zones"
+      },
+      "tiktok": {
+        "last_verified": null,
+        "covers": "9:16 size, duration, safe zones"
+      },
+      "youtube": {
+        "last_verified": null,
+        "covers": "16:9 sizes, chapters, thumbnail"
+      },
+      "youtube-shorts": {
+        "last_verified": "2026-10-01",
+        "covers": "9:16 size, duration, safe zones"
+      },
+      "x": {
+        "last_verified": null,
+        "covers": "sizes, duration, file size"
+      },
+      "linkedin": {
+        "last_verified": null,
+        "covers": "feed size, duration, file size"
+      },
+      "snapchat": {
+        "last_verified": null,
+        "covers": "9:16 size, safe zones"
+      }
+    }
+  }
+}

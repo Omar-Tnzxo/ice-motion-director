@@ -1,0 +1,15 @@
+{
+  "name": "ice-motion-director",
+  "displayName": "Ice Motion Director",
+  "description": "Motion design and video editing director: films from scratch, explainers, edits of your footage, reference remakes, Lottie and UI motion.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Omar-Tnzxo",
+    "url": "https://github.com/Omar-Tnzxo"
+  },
+  "homepage": "https://github.com/Omar-Tnzxo/ice-motion-director",
+  "repository": "https://github.com/Omar-Tnzxo/ice-motion-director",
+  "license": "Apache-2.0",
+  "keywords": ["motion-design", "video", "animation", "lottie", "arabic"],
+  "skills": "./skills/"
+}

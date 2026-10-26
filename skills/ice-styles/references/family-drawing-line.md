@@ -1,0 +1,230 @@
+# Family: drawing and line
+
+Pencil, pen, chalk, marker and single-line looks. The film is usually the drawing being made, or a drawn world the camera travels. Read `style-method.md` first. Every entry's examples are illustration only.
+
+
+## Shared rules for this family
+
+- The order of marks is half the style: construction, contour, tone, details, accents, in the medium's real order. A pen cannot take a mark back, so contours come before tone in ink; pencil can be erased; charcoal is erased and redrawn.
+- Lines are seen being made: a stroke grows along its path at a hand's pace (long strokes fast, fiddly ones slow, a fixed cost per lift); finished passes rest for a short beat; nothing fades in or scales in.
+- Line weight is constant for the whole film unless the medium itself varies it (flexible nib, burin, brush pen). Hold one width system and record it in the style lock.
+- When the drawing travels (a camera over a big board or page), the camera move is the transition and the finished whole is revealed at the end.
+- Every object, character or scene this family draws in code follows `code-illustration-craft.md` (three tones under one light, cast and contact shadows, a texture layer, one line policy, named groups); section 8 there says how this family renders each rule.
+
+## One continuous line (merged: three sources)
+
+One unbroken line carries the whole film: shapes morph instead of cutting, the tail of one figure is the start of the next.
+- **Use when:** brand stories, milestones, minimal ads, logo reveals, luxury, finance, architecture.
+- **Do not use when:** dense information, many simultaneous subjects, data.
+- **Scoped variants:** a thin constant-width line on dark with a camera following the pen tip and a line-to-fill logo ending (motion-design variant) suits 10-30 s brand and logo pieces; an ink one-line on paper with scenes morphing (film variant) suits 30-60 s stories; a single engraved line whose width carries tone (print variant) suits posters and portrait reveals.
+
+### Line Art / Line Animation (`02-line-art`)
+- **Look:** Thin monochrome lines as the only form language; one line draws itself, extends, turns and becomes the next shape, so the whole film is one continuous stroke. Minimal and premium.
+- **Medium-specific moves:** constant line width for the whole film (2-4px); one or two colors with large negative space; draw-on via trim paths 0 -> 100% or SVG stroke-dasharray/dashoffset; drawing slows slightly at corners with easeInOut cubic-bezier(0.65,0,0.35,1); one-stroke narrative: the tail of the previous shape is the start of the next (paths pre-joined); line-to-fill: after the outline closes, a fill of the same path expands from an anchor; round line caps and tiny path jitter for a hand-drawn feel; a virtual camera follows the pen tip.
+- **Technical route:** SVG paths + stroke-dashoffset (getTotalLength) + GSAP, camera transform tracking the pen tip.
+- **Palette:** dark ground with one light or metallic line color, optional second accent; example seed palette (replace per brief): #0B1320, #E9D7A5.
+- **Sound:** sparse ambient piano, recipe `ambient` flavor piano 72 BPM, E major, Imaj9 vi9 IVmaj9 V6/9; SFX: pen or pencil strokes synced to draw-on, soft shimmer hit, chime on the line-to-fill moment.
+- **Use when:** luxury, finance, architecture or premium brand films, logo reveals, calm process stories.
+- **Do not use when:** the message needs dense data or many simultaneous elements; the tone is loud or comedic; color blocks are core to the brand.
+- **Common mistakes:** line width changes between shapes -> lock one width 2-4px; constant draw speed -> ease into corners; disconnected shapes cut together -> join paths so each tail starts the next; flat square ends -> round caps.
+- **Source:** Vincentwei1021/mg-styles-15 `prompts/02-line-art.md` (MIT).
+
+### One-line Drawing (`one-line`)
+- **Look:** A single warm-black ink line (about #1D1A17) that never leaves warm white paper (about #F4EFE4); everything (characters, places, objects, time) is that one line being drawn, scenes do not cut but morph, and the pen is present only as a soft shadow. No fills, shading, second line weight or background art. Not a whiteboard explainer (no hand, marker, erasing or text-heavy boards), not ink wash, not multi-stroke line animation with cuts.
+- **Medium-specific moves:** everything on ones (24 fps), stepping breaks the continuous act; ink is a filled polygon around the path, width = base width x pressure x ±8 % noise with pressure from speed 0.66 + 0.8 x exp(-v/300) (fast thin, slow fat); ink bleed at ~20 %, pooling dots where speed drops, tremble and dry-brush gaps for age, fear or fatigue; a stop leaves a sagging teardrop blot with a dark tide line; line character can change along the path, blended over a short stretch; timing by chapter windows weighted by curvature (1 + K x turn), travelling lines ~300-700 units/s, details ~50-150, the most important stroke usually slowest; beats pinned to arc-length marks; retracing is legal and invisible; screen-space minimum width clamps weight on pull-backs; path designed like an Euler path with tangent-continuous connectors; no cuts, transitions are morphs (last stroke of one image is the first of the next).
+  - Camera: one continuous move with a follow weight (0 composed, 1 locked to the nib), the follow point averaging the nib over roughly -0.55 to +0.4 s with a soft clamp keeping it in the central ~70 %; moves: follow the nib; composed frame with low follow; macro on the nib; hold with slow push-in; mirrored framing (rhyme across time); continuous pull-back (everything was one picture); lateral scroll with the line running ahead; roll with the line.
+- **Palette:** ink on paper only; one accent at most, used once, on a stretch of line that means something (red for love or danger, blue for water or cold, gold for money or a prize), returning to ink afterwards and staying visible in the final picture; never a second accent.
+- **Type and captions:** subtitles written like the line in a handwriting face (Caveat), ink ~84 %, no box, centred near the bottom, written on left to right (~0.2 s + ~17 ms per character) behind a soft paper halo, fade out ~0.45 s; hold >= max(1.8 s, speech + 0.6 s). Titles in a monoline connected script (Sacramento) written in empty paper away from the drawing, gone before the camera moves into them.
+- **Sound:** one solo instrument playing one unbroken melodic line (cello, violin, viola, harp, clarinet, flute, bassoon, hummed voice, single guitar), a second colour only as a rare accent, no pads; score written to the drawing (key notes on marks and corners, fast line = short notes, stopped line = one long fading note, highest note on the most important touch); the pen on paper is the most important sound, synthesised from pen speed (band-passed noise brighter when fast, fibre ticks with density proportional to speed, amplitude proportional to the square root of speed, panned with the nib), plus a wooden tap on first touch, a wet swell for a blot, a rub for a handoff; literal silence (music bus and reverb tails to zero, room tone dropped). Mix: music ducks ~5 dB and pen ~4 dB under voice, -14 LUFS, no added grain; warm voice, few short lines.
+- **Use when:** continuous journeys and processes, transformations (seed to product, sketch to object), timelines, life stories, scale reveals where vignettes form one final picture, minimalist brand or logo stories.
+- **Do not use when:** content needs colour coding, fills, data tables or lots of on-screen text; many simultaneous subjects must be shown; the brief wants hard cuts, high energy montage or photographic realism.
+- **Common mistakes:**
+  - Stray connectors read as wrinkles, beards or masks in the reveal -> fix topology (where each chapter enters and leaves), plan like an Euler path, draw each region exactly once.
+  - Reveal problems found late -> render the whole path at final scale after every change.
+  - Lines too close braid together -> keep a gap; thin lines at wide zoom -> clamp the width zoom.
+  - A round blot reads as a mole -> a sagging teardrop.
+  - Titles collide with the moving drawing, hand shadows double-darken -> check every frame of a title window; one shadow layer per hand.
+- **Variation slots:** (illustration only)
+  - Structure: a line that is a graph, each peak and trough becoming a scene; two lines from opposite corners drawn in alternation until they meet; a loop that retraces back to a start that now means something else.
+  - Opening: mid-line at speed; a finished drawing whose line unravels into the story; a word in script whose last letter becomes the first scene.
+  - Ending: the line runs off the edge of the paper; the ink runs out into dry scratches; the pen stops in mid-air before the last stroke.
+- **Source:** lemomo-ai/lemo-opuscar `styles/one-line/STYLE.md` (MIT; demo media CC BY 4.0 LemoLab).
+
+### Single-line engraving (`mellan`, hand)
+- **Look:** one unbroken engraved line, usually a spiral, whose width follows a tone field: the whole picture is a single stroke.
+- **Medium-specific moves:** the film unspools the line from its start; width swells in dark areas and thins to a hair in light; nothing else is drawn.
+- **Palette:** one ink on one paper.
+- **Sound:** a single sustained tone or a burin scratch.
+- **Use when:** posters, covers, portraits, luxury or banknote-like seriousness, a reveal of one image.
+- **Do not use when:** multiple subjects or text; fast cutting.
+- **Common mistakes:** breaking the line -> one stroke for the whole picture.
+- **Source:** alexgreensh/anidoodle `references/styles.md`, `references/styles/INDEX.md` (Apache-2.0).
+
+## Boards: whiteboard and chalkboard
+
+The narration rules for whiteboard explainers (writing speed, hand, sync with speech) are in `narration-grammars-1.md` (y3). The entries below hold the look.
+
+### Whiteboard Explainer (`whiteboard`)
+- **Look:** An explainer drawn live on one glossy dry-erase board in real stroke-by-stroke handwriting, with floating markers (no hands), magnets that move, an eraser that rewinds, and a camera that travels across the board as a map instead of cutting; real marker texture (pooling, dry streaks, overshoot, ghosts of old lessons, a drifting window sheen). Suits 60-120 s explainers. Not a blueprint, not a crayon picture book, not kinetic type (text is never animated as blocks), never a hand, arm or cursor.
+- **Medium-specific moves:** every stroke follows a slow-fast-slow curve (u - sin(2 pi u)/(2 pi) x 0.8), scheduled into a time window so writing finishes on time; a label ~0.3-0.8 s, a title ~3 s, faster than real hands but stroke order always readable; ink alpha ~0.94 composited multiply, width 6-11 px drawing and ~13 % of cap height lettering; wobble plus fine tremor, chisel width by direction, circles overlap past closure, rectangles as four strokes with corner overshoot, pooled dot inside long-stroke starts; dry-marker speckle locked to board space; glossy window sheen at 10-16 % moving ~0.35x the camera; pens hop between strokes with lift proportional to distance and park off-frame on long gaps; magnets drop with a shrinking shadow, slide with a small lift; eraser at constant speed, ~90 % strength leaving a ghost; writing finishes on the spoken word; camera on ones with sub-frame motion blur (<= 4 px apart) above ~14 px per frame.
+  - Camera: 2D over a large board (e.g. 8000 x 4500), zoom interpolated in 1/z so pushes feel like dollies, a little roll; moves: pull back from a tiny drawing (scale); ride the line the pen draws; hold still (read now); whip to a new region (a "but"); return to an earlier region (callback); split view of two regions; slow push into one symbol; track along a long diagram; pull back past the board edge to the wall. No cuts on the board; if one is needed it is a whip.
+- **Palette:** three marker colours at most with fixed meanings (dark ink for things and structure, one for signals or process, one accent for what matters, one accent per region); monochrome variant with a single accent element; ghosts and board neutral; accent on props only on its own cap and the hero magnet. Example sets: #23262c / #2a5cb3 / #d97757; black / #2e8b57 / #c8363a; #1f2a44 / #1f8a8a / #7a4fb3.
+- **Type and captions:** handwriting only: a single-line font (EMS Tech, OFL) written in stroke order with glyph jitter, titles ~120-200 px cap height, labels 30-70 px; title and end card written on the board. Burned subtitles on an off-white rounded label (~90 %) in a handwriting-like face (Architects Daughter ~44 px), dark text, short accent marker dash, split at clauses, <= 44 characters per line, bottom ~12 % kept free; hold >= max(1.8 s, speech + 0.6 s). A label is fully in or fully out of every shot.
+- **Sound:** every stroke sounds (felt-on-gloss band-passed noise: hiss ~2-7.5 kHz + body ~0.5-1.5 kHz, enveloped by the stroke's speed, nib tick at start, stick-slip grains, occasional dry-erase squeak as a 1.5-2.6 kHz sine with 7-13 Hz vibrato), each colour slightly different, panned by screen x, louder closer; props (magnet click + metal modes + board thump, eraser felt rub, cap off/on, tray bounce); low room tone with a single diegetic ticker that can own a silence. Music options: solo piano figure, brushed jazz trio, plucked strings and kalimba, synth arpeggio for tech, clockwork minimalism (marimba, pizzicato, woodblock, glockenspiel); techniques: one instrument added per mechanism step, a key change when the frame of reference changes, a full stop into silence before a surprise, the previous cue reversed for a rewind, two copies of one figure at two tempi (phasing) snapping to unison when resolved. Mix: voice on top, foley ~11 dB under voice, -14 LUFS.
+- **Use when:** science and "how does X work" explainers, formulas built term by term, mechanisms and processes, comparisons of two quantities, timelines, proofs and arguments, onboarding and training.
+- **Do not use when:** the content is emotional storytelling, luxury or brand mood; real photographic evidence is required; the piece is much longer than about two minutes or text-heavy beyond short labels.
+- **Common mistakes:**
+  - One pen given too many jobs drifts late -> give each drawing a deadline window and send overlapping jobs to another pen.
+  - Dashed lines take seconds due to minimum stroke duration -> give dashes their own floor.
+  - Pooled-ink dots bigger than the stroke start leave halos -> keep them inside; punctuation vanishing -> render sub-width strokes as dots.
+  - Labels half-cut by a push-in, strobing text from too few blur sub-frames, eraser paths crossing labels to keep -> check framing, raise sub-frames, route the eraser.
+  - Voice and phoneme set mismatch mispronounces -> match language code to the voice and ASR-check.
+- **Variation slots:** (illustration only)
+  - Structure: a proof filling the board downward, each step boxed when proven; a debate with two pens on two halves meeting in the middle; a timeline ridden left to right with events hanging off it.
+  - Opening: a huge question mark that shrinks into a dot in the first diagram; an erased board with the ghost of a wrong answer; a magnet dropping onto an empty board with a clack.
+  - Ending: the answer circled twice and the pen capped; the board wiped except one surviving line; a push into the smallest symbol, which becomes the title.
+- **Source:** lemomo-ai/lemo-opuscar `styles/whiteboard/STYLE.md` (MIT; demo media CC BY 4.0 LemoLab).
+
+### Chalkboard (`moonPhases`, hand)
+- **Look:** side-of-the-chalk scumble on a slate board, lit areas worked twice, every stroke broken by the board's tooth with dust either side, ghosts of old lessons.
+- **Medium-specific moves:** frame 0 is the board as the teacher finds it (yesterday's lesson still on it); the felt eraser sweeps it off and leaves ghosts and haze arcs; then title underlined twice, diagrams scumbled drag by drag (the last drag part-way), lines growing with their dust, letters written stroke by stroke, labels written under each figure before the next starts, smudges with a finger, dots and joins last. One cue table on a fixed frame grid.
+- **Palette:** slate with white chalk and 2-3 coloured chalks (yellow, blue, pink) for meaning.
+- **Sound:** chalk tap and drag, eraser felt, classroom room tone.
+- **Use when:** lessons, explainers, school and science content, nostalgic teaching.
+- **Do not use when:** luxury or corporate polish; dense data.
+- **Common mistakes:** a clean empty board -> start with yesterday's ghosts; perfect lines -> broken by tooth with dust.
+- **Source:** alexgreensh/anidoodle `references/styles/moonPhasesDraw.md` (Apache-2.0).
+
+## Blueprint (merged: two sources)
+
+White ruled line on Prussian blue in drafting order. Both sources agree: no light, no cast shadow, nothing fades; lines are ruled, circles are compass-true. The film variant adds a camera that travels the sheet; the hand variant is a drafting time-lapse with no camera moves.
+
+### Blueprint (`blueprint`)
+- **Look:** Engineering drawings coming alive on one sheet of cyanotype paper on a dark drafting table: pale blue-white technical line work on uneven Prussian blue (coating streaks, fibres, fold creases, bleached edges), centre lines, outlines, hatching, dimension lines, numbered part balloons, a title block and a notes column; orthographic and oblique/isometric projection only. Not a glowing 3D hologram HUD, not whiteboard marker, not copperplate tonal hatching; never 3D rendering.
+- **Medium-specific moves:** camera and draw-on on ones (24 fps); continuous moves within a section, hard cuts on downbeats between sections, tiny bumps only for physical impacts (paper slap, stamp); draw-on by arc length with a glowing nib, items staggered, each layer starting on a beat; drafting order: centre lines, outlines, detail, hatching, dimensions, balloons, labels; exploded views leave on beat subdivisions and return one per beat-group with a click; mechanisms step like an escapement (a gear advances one tooth per subdivision with short ease-out, teeth truly interlock); machine acting via angles, droops and gauge needles (failure winds down over ~1.5 s, joy snaps upright with needle overshoot); four line weights (e.g. 3.2 / 2.0 / 1.25 / 0.9 sheet units), screen width = sheet width x zoom^0.65; dash conventions scaled with zoom; painter's-order paper fill before outlines for occlusion; hatching at 45 deg, spacing 8-14 units; water drops bloom deeper blue with pale tide lines; at most once, a symbol becomes a "real thing" with soft volume, glow and a shadow across the lines.
+- Camera list: whole sheet on the table (rare); medium on a figure at ~80 % height with sky on one side; track along a path of force (chain, pipe, wire, beam); 2x close-up cut on a downbeat; locked-off hold; oblique depth factor 0 to 0.5 so the drawing gains thickness; section line sweeping across; lateral pan Fig. 1 to Fig. 2 to Fig. 3; slow push-in with no voice for wonder. Keep the main figure at least 960/zoom from any framed sheet edge; transitions are downbeat cuts or fig-number rewrites; no dissolves.
+- **Palette:** Blue and white only: blue varies in value (coating, stains, folds), white varies in weight and softness, never hue; one non-blue colour used exactly once as rubber-stamp ink carrying the verdict (red classic, green APPROVED or black VOID); a climactic real object may carry white glow, not a new hue. Sets: `#18336B` to `#2A58A6` with lines `#E7F0F9` and table `#0D1116`; faded `#3A6DA8` to `#5B8CC4`; deep `#0F2350` to `#1D3F80`.
+- **Type and captions:** OFL hand lettering (Architects Daughter) for header, labels, notes and subtitles; technical sans (B612) for title-block fields; script (Allura) only for a signature; all text written on left to right with a glowing nib. Subtitles are drawing notes: light translucent box with double white rules, a "NOTE / n" cell, lettered on in ~0.35 s with a leader tick, placed per shot in empty sky (never fixed bottom), wrap ~880 px; hold >= max(1.8 s, speech + 0.6 s); every subtitle is also lettered into the GENERAL NOTES column for the final wide. Title is the sheet header; title block holds status and verdict.
+- **Sound:** Contrapuntal mechanical music: harpsichord, bassoon, spiccato strings, harp, celesta, music box, clavichord, small wind ensemble; inventions, canons, fugato; a short repeated motive as the "gear". Foley: paper roll crackle and slap, T-square slide, technical pen scratch (2-6 kHz, length = stroke), lettering bursts, compass squeak, hatching strokes, eraser rub, tracing-paper rustle; part clicks (~3-5 kHz), escapement ticks, chain rattle, spring twang, wind-down ticks slowing geometrically; damped water pats; rubber stamp thump; pen cap click. Silence holds paper sounds only. Dry understated voice, the most emotional moment voiceless; music ducked to ~0.36x, foley by half, whooshes low-passed; -14 LUFS; little grain.
+- **Use when:** how-it-works explainers, inventions and engineering, product versions and revisions, construction phases, permits and approvals, architecture and urban plans, flat-pack and assembly, flood or infrastructure design, 30-60 s pieces.
+- **Do not use when:** people and faces must carry the story (only a hand shadow or signature); colour-coded multi-category information; glossy photoreal product beauty; a warm lifestyle or food tone.
+- **Common mistakes:** main figure near the sheet edge shows the desk in wides -> keep margins or enlarge the sheet; upward explosions hit the header -> explode sideways and flatten long parts; subtitles on the ink layer vanish off-sheet -> separate overlay with premultiplied alpha; an object darkened by its own shadow -> zero its shadow in its area; per-lobe shading on blobby shapes reads as grapes -> one gradient across the union, fill unions as one path; a small payoff undersells the return -> payoff ~1/3 frame height, centred, drawn stroke by stroke, subtitles off it; line weights not scaled with zoom -> sausages or vanishing lines.
+- **Variation slots:** structure: one site plan through REV. 1 to REV. 6 as decades, or two sheets drawn in parallel that fit together, or a teardown in reverse erasing parts to the centre line (illustration only); opening: a single centre line crossing an empty sheet, or the stamp landing first (illustration only); ending: the sheet folds along its creases into a pocket square, or lights go off and white lines glow faintly (illustration only).
+- **Source:** lemomo-ai/lemo-opuscar `styles/blueprint/STYLE.md` (MIT; demo media CC BY 4.0 LemoLab).
+
+### Cyanotype blueprint (`blueprint`, hand)
+- **Look:** a ruling pen and spring-bow compass in white ink on Prussian-blue cyanotype stock that never exposed evenly (brighter where the lamp stood, mottled, two old fold lines, dust); white on blue blooms, so every line has a faint halo.
+- **Medium-specific moves:** ruled lines never dead straight (about 0.6 px seeded bow); compass circles truly round; chain lines (long dash, short dash) for centres and pitch circles; section lining at 45 degrees starting just inside each part, adjacent parts lined in opposing directions, thin sections solid, shafts never sectioned; filled arrowheads; single-stroke inclined gothic capitals, dimension figures read from the bottom of the sheet. Line hierarchy: visible outlines heavy white (1.4-1.9), section lining, pitch circles, dimensions and leaders thin cyan (0.75-1), construction lines thinner dim cyan left on the sheet. Order: border, zone marks, title block box, construction, outlines top of the stack down, section outlines then lining, details, dimensions, tables and notes, title-block lettering, the title itself the very last stroke. Motion: no camera moves and nothing fades during the drafting film; the nib travels along each stroke, compass circles swing from the needle leg, long ruled strokes fast, lettering slow.
+- **Palette:** ground `#123a63`, white ink `#f1f7fb`, cyan `#a7d8ec`, dim `#7fbcd8`.
+- **Sound:** pen scratch on stock, compass pivot click, ruler slide; sparse mechanical or minimal music.
+- **Use when:** engineering, mechanisms, hardware, architecture, technical explainers.
+- **Do not use when:** emotional or lifestyle topics; any shot that needs light, shadow or materials.
+- **Common mistakes:** faking light or cast shadow (an orthographic drawing has none) -> tone only by section lining convention; parts that are not kinematically true -> state real ratios and centre distances (mesh centre distance = module x (Z1 + Z2) / 2); drifting into ballpoint hatching -> ruled lines, compass circles, chain centres.
+- **Source:** alexgreensh/anidoodle `references/styles/blueprint.md` (Apache-2.0).
+
+## Crayon (merged: two sources)
+
+### Crayon Picture Book (`crayon-book`)
+- **Look:** A children's picture-book page drawn live in wax crayon on warm toothy off-white paper (about #f4efe3), with a limited crayon box, child-logic perspective, colour spilling past outlines and every line gently boiling; a single watercolour wash can reveal what white wax was hiding. The look comes from material physics, not a crayon filter over cute vector art; not a whiteboard, not a full watercolour painting, not chalkboard.
+- **Medium-specific moves:** everything drawn steps at 12 fps (lines, colouring, characters, boil seed) while camera, wash leading edge and twinkles run at 24 fps; boil re-jitters each stroke (<1 px offset, wobble, hatching rows) every 2 frames, characters full, background lines ~0.6, background colouring still, calm boil to half when the film goes quiet; wax deposits only where tooth > 1 - k x pressure (light pressure speckled, heavy almost solid); strokes are ribbons with 1-2 px hand wobble, ±15 % width, tapered ends; colouring is zig-zag hatching with a visible gap, overshooting the outline by a few px; lines reveal along their length in 0.4-0.9 s, colouring row by row, text letter by letter; acting is substitution (a new drawing per pose on the beat, no in-betweens); colouring is an action (scribbled coat = putting it on, pink scribble = blushing, wash = night falling); watercolour pools at edges, granulates and is resisted by wax (~0.9).
+  - Camera: locked full page; push toward a character; locked medium close-up for substitution acting; tilt along a gaze; tight follow with the world drawing itself ahead; held wide while the brush moves; slow truck across the page; pull out past the page edge (the page is an object); page turn. Transitions: drawing on, colouring over, the wash, a pan or page turn; never a dissolve.
+- **Palette:** about a dozen crayons, never more; outlines in one dark colour (indigo, dark brown, plum), never black; one white crayon reserved for wax resist; at most one watercolour per film chosen for what it reveals (ultramarine night, rose dawn, sap green rain), never painting characters; saturated crayon on lots of bare paper, value from pressure not extra hues. Example boxes: seaside (navy line, coral, sand, teal, turquoise, lemon, white); orchard (brown line, russet, apple red, mustard, olive, plum, cream, white).
+- **Type and captions:** subtitles are the book's printed words in Patrick Hand (OFL) 50-56 px in the outline colour, bottom centre, each glyph tilted and offset, boiling on twos, written left to right in ~0.35 s on a ragged knock-out patch of blank paper (never a dark box); none during wordless music; hold >= max(1.8 s, speech + 0.6 s). Titles hand-lettered on the page (Gaegu Bold or similar), letter by letter; crayon cannot fade, so titles leave by camera move, page turn or being coloured over.
+- **Sound:** small wooden and metal-toothed instruments, no strings or grand piano (ukulele or nylon guitar, clarinet or bassoon, music box that can wind down with a pitch droop, glockenspiel or celesta per uncovered sparkle, toy piano one note per counted thing, flute or recorder as the singing voice, shaker, woodblock); one theme held back and heard in full once; silence as a beat after a failure; foley of crayon stick-slip noise following stroke speed, wet brush, felt puffs, fabric, sharpener, crayon set down, page turn; faint crickets or birds, room tone, distant clock. Mix: music under narration, rising in wordless passages, -14 LUFS; soft warm storyteller a few dB over the bed, warm near-field reverb far under the dry voice.
+- **Use when:** children's and family content, gentle brand stories, farewells, thank-yous, year-in-review, simple processes told as a picture book, hidden-feature reveals.
+- **Do not use when:** the content needs precise data, technical diagrams or real evidence; the tone is corporate, urgent or serious; dense text must be read.
+- **Common mistakes:**
+  - White stripes between wash bands -> overlap bands and cover all intended paper.
+  - Light-pressure colouring goes muddy under a wash -> pressure >= 0.8 or cross-hatch where the wash crosses.
+  - Characters vanish under a wash -> composite them after the wash; place text away from the wash path (wax resists it).
+  - Outlines over hair read as a headband -> outline hair masses on their outer edge only.
+  - Screen-fixed paper tooth bloats the file -> anchor it to the page, do not boil background fills, no added grain.
+- **Variation slots:** (illustration only)
+  - Structure: a colouring-book page with all outlines from frame one, each idea colouring one area; a flip through several pages joined by turns; two crayon colours that argue, then combine.
+  - Opening: a finished page rubbed out to begin again; a crayon tip in extreme close-up mid-stroke, pulling back; a crumpled page being flattened.
+  - Ending: the page taped up among others; a last scribble filling the frame with one colour; a stray splash of water finding a white-wax message.
+- **Source:** lemomo-ai/lemo-opuscar `styles/crayon-book/STYLE.md` (MIT; demo media CC BY 4.0 LemoLab).
+
+### Crayon (`balloon`, hand)
+- **Look:** wax crayon on toothed paper: back-and-forth scribble fills that skip the paper's valleys, a darker crayon over the shade side, a white crayon burnishing the highlight, a fat contour gone over twice.
+- **Medium-specific moves:** fills laid as scribble passes that start and stop past the line; the burnish pass comes after the colour; the contour goes on last and twice; process film starts on the bare sheet and ends on the exact still; nothing fades.
+- **Palette:** saturated primaries softened by the paper showing through every valley.
+- **Sound:** wax drag on tooth, paper rustle; light acoustic or toy instruments.
+- **Use when:** warm, human brands, children's learning, friendly onboarding, picture-book stories.
+- **Do not use when:** precision, finance or engineering topics; serious or grief-related subjects.
+- **Common mistakes:** confusing it with coloured pencil -> crayon is fat, waxy, round-ended scribble with a white burnish and a doubled fat contour; coloured pencil is fine one-direction hatching.
+- **Source:** alexgreensh/anidoodle `references/styles.md`, `references/styles/INDEX.md` (Apache-2.0).
+
+## Pen, pencil and charcoal
+
+### Ballpoint sketch (`pocketWatch`, hand)
+- **Look:** one blue ballpoint (`#23379f`) on cream cartridge paper (`#f6f2e6`): near-constant line weight, no erasing, a bead of ink where a firm stroke stops.
+- **Medium-specific moves:** only lines; tone from where hatching sits (one direction, a cross layer, a third direction in the deepest darks); solid blacks only for tiny parts, scribbled in; glare is paper never hatched. Order: faint construction, contours, details, first tone layer, cross layer, third direction, solid blacks (a pen cannot take a mark back, so commit to contours before tone). Motion: time per mark = 4 + length^0.85 cost units, hatching overlaps like a time-lapse, a 10-frame pause between passes, strokes that will be covered take no time, a bead appears only when its stroke ends, solid areas grow as a band swept across and never fade in.
+- **Palette:** one ink, one paper; paper tile at about 0.07.
+- **Sound:** pen on paper, desk room tone; restrained piano or none.
+- **Use when:** founder essays, serious reports, product sketches, engineering thinking, journal-like stories.
+- **Do not use when:** colourful brands; children's content.
+- **Common mistakes:** smudge or pressure-driven weight (that is pencil) -> constant weight; washes -> none.
+- **Source:** alexgreensh/anidoodle `references/styles/pocketWatchDraw.md` (Apache-2.0).
+
+### Coloured pencil (`colouredPencil`, hand)
+- **Look:** wax coloured pencils, sharp but not needle-fine, on cream cartridge paper with real tooth; every passage speckled with the cream of the valleys; hues layered optically.
+- **Medium-specific moves:** a short, straight, slightly bowed hatch stroke (pressure in fast, a long lifting flick) laid side by side in strips, almost all in one dominant diagonal (lower-left to upper-right); tone from pressure and stacked passes, never a flat fill; one shared tooth field for the whole sheet, punched at three pressure thresholds so valleys stay cream through all layers. Order: faint graphite lay-in running past corners, local colour light to dark, second-hue layering, darks cross-hatched in a second direction (never filled), contours and details in a darker pencil last (heavier on the shade side), light halos over paper deliberately left bare. Colour thickens toward the edge of every form; solid forms keep a paler band on top. Motion: the film is the drawing, strip by strip, pace = stroke length plus a fixed cost per pencil lift, a 5-frame beat between passes, the last 35 frames are the still.
+- **Palette:** cream paper `#f3ecdc`; layered dusk blues, violets, ochres, red-browns as the subject needs.
+- **Sound:** pencil on tooth, paper; gentle acoustic.
+- **Use when:** cosy, crafted, editorial illustration, children's non-fiction, slow lifestyle.
+- **Do not use when:** loud social hooks; flat bold brand colour.
+- **Common mistakes:** crayon-like scribble -> fine parallel one-direction hatching; flat filled darks -> cross-hatch; ballpoint-like single colour -> layer hues.
+- **Source:** alexgreensh/anidoodle `references/styles/colouredPencil.md` (Apache-2.0).
+
+### Charcoal, erased and redrawn (`charcoalErasure`, hand)
+- **Look:** soft vine charcoal and black compressed charcoal on heavy cream rag paper with a strong tooth; stump-rubbed tone; a kneaded eraser lifts light back out but never all of it; the sheet carries its own history.
+- **Medium-specific moves:** stick point for structure (vine first, compressed last), the side of the stick for broad tonal drags, a soft zigzag stump rub that turns drags into atmosphere, the eraser as a drawing tool (streaky lifts in the drag direction that always leave grey residue). Signature: erase and redraw: every change is partly rubbed out, re-toned and redrawn over its own residue; nothing is ever fully gone. Motion: the film is the erase-redraw cycle, marks laid one after another, a breath of about 12 % of a pass between passes.
+- **Palette:** one warm black `#1b1917` on cream `#ece5d5`. Value only.
+- **Sound:** charcoal scratch and drag, eraser rub, paper; solo piano or cello, sparse.
+- **Use when:** change over time in one place (seasons, ageing, rebuilding), memory, founder stories, serious reflective topics.
+- **Do not use when:** colour is essential; cheerful high-energy promos.
+- **Common mistakes:** hatching tone (that is ballpoint) -> tone is rubbed and lifted; erasing whole areas cleanly -> keep faint earlier states; toning the whole sheet for a light source -> lift a small feathered haze.
+- **Source:** alexgreensh/anidoodle `references/styles/charcoalErasure.md` (Apache-2.0).
+
+### Pen-and-ink stipple (`stipple`, hand)
+- **Look:** one 0.25 mm technical pen dotted straight down on hot-press bristol thousands of times; tone is dot density only; dots slightly oval and ragged, the odd tail or dry grey dot.
+- **Medium-specific moves:** blue-noise distribution (spacing about 1.5 px / tone^0.64 at 1080p), no clumps; no contours: an edge is where density changes and in full light it is simply lost; order: darkest masses first, then mid tones, then sparse passes over lights, each pass working across the sheet in patches (never a raster scan); motion: dots accumulate pass by pass (about 100 per frame), never fade in, never move.
+- **Palette:** warm carbon black `#15120e` on bright bristol `#fbfaf5`.
+- **Sound:** pen taps as a soft rhythmic texture.
+- **Use when:** science, natural history, medical and botanical illustration, serious editorial.
+- **Do not use when:** speed or energy; colour-led brands.
+- **Common mistakes:** directional hatching (that is ballpoint) -> no direction at all; fading dots -> they only accumulate.
+- **Source:** alexgreensh/anidoodle `references/styles/stipple.md` (Apache-2.0).
+
+### Scratchboard (`scratchboard`, hand)
+- **Look:** white china clay under black India ink; every mark is ink scraped away with a knife or scratch nib, so every mark is white on black and the picture is found by removing the dark.
+- **Medium-specific moves:** a cut is widest where the blade bites and tapers as it lifts, clay chipping a hair at the edges; fur as tapered white flicks along the hair flow, each flick's width following tone; parallel hatching on hairless surfaces, a shorter crossing set at plus or minus 35 degrees for mid tones; lights cut so densely they close into scraped areas; catchlights scraped flat. Order: lit contour flicks, a sparse layer setting the lie of the coat, mid tones, crossing cuts, lights closing, details and catchlights. Motion: frame 0 is the black board; long knife lines watched being cut, fur flicks arriving whole many per frame region by region; nothing fades, nothing is re-inked.
+- **Palette:** board `#0c0b0a`, clay `#ebe5d8`. No grey ink: grey is only how close together the cuts are.
+- **Sound:** blade scratch, low ambience; dark folk or minimal strings.
+- **Use when:** night scenes, wildlife, dramatic premium pieces, book trailers, serious heritage.
+- **Do not use when:** colour is essential; cheerful bright brands.
+- **Common mistakes:** adding dark marks on light (that is engraving or ballpoint) -> every mark removes dark.
+- **Source:** alexgreensh/anidoodle `references/styles/scratchboard.md` (Apache-2.0).
+
+### Urban Sketch Pen and Wash (`urban-sketch`)
+- **Look:** A sketchbook page drawn on location: a thin near-constant dark sepia fineliner line (0.3-0.5 mm) that wobbles, overshoots and breaks, with loose transparent watercolour glazed on top, misregistered 1-3 px, spilling past lines and fraying into dabs and white holes at the cream cold-press page edge, with handwritten notes in the margin. Line and wash, both, always. Not line-free watercolour, not a whiteboard or explainer diagram, not monochrome ink wash or brush calligraphy.
+- **Medium-specific moves:** figures boil at 12 fps (line wobble and wash seeds change every 1/12 s) while the static page does not boil and the camera moves smoothly every frame; ink ~96 % coverage, world line width thinner far and thicker near (e.g. 1.3-3.4 px), wobble ~1 px, overshoot 3-8 px, a third to half of long strokes get one gap; strokes baked with draw time per pixel so stroke order plays back; wash in 2-3 rough multiply layers at alpha ~0.4-0.65, dried edges at 30-40 %, granulation = pigment x (0.82 + 0.36 x fbm); a colour arrival field gives every pixel a time colour reaches it, revealed with a ragged darker wet front; figures bloom from a point with a noisy circular clip; colour never snaps; invisible forces drawn (wind as ink curls that draw on and erase from the tail, sound as ink lines, heat as wavy strokes); stroke-order draw-on for anything that appears; anticipation, action, follow-through, footsteps on the beat; distant crowds as "carrot people" (wash blob, two leg lines, head dot).
+  - Camera: 2D over a large page (e.g. 5120 x 2880), designed moves on cubic easing, follow shots on a critically damped spring with lead-ahead target; moves: push-in; lateral follow on a spring; crane up; whip-tilt with slight roll; punch-in with a short shake; pull back to the whole page; tilt into the margin (picture to words); slow pan across a line-only area; hold while the pen draws; page turn to a new spread. Transitions: camera travel, page turns or colour arriving; no dissolves.
+- **Palette:** ink one colour (dark sepia or warm black) that never changes; wash is local colour, lightly, few pigments, shadows mixed ~45 % toward one shared cool violet-grey, distance ~50 % toward one haze; paper white is the brightest value and is reserved; colour can be withheld (ink-only page with colour as an event or one tinted object). Example palettes: park in summer lawn #c3c96f, leaves #7fa04a, sky #9fbcd6, limestone #d8c6a0; harbour morning sea #7fa6b8, hulls #c9573f, rope #c8a86b, sky #bcd0dc; winter market roofs #8b93a6, lights #e2b04a, awnings #b8483e, snow = paper.
+- **Type and captions:** all text is handwriting on the page, written on left to right with pen sound and moving with the camera: a corner note in Reenie Beanie (day, time, weather, place), titles and colophon in Caveat 500-600, left-aligned in the blank margin. Subtitles, if any voice, as handwritten lines in the margin or a caption strip written into the lower margin, never a generic overlay box; hold >= max(1.8 s, speech + 0.6 s). Works well with no voice.
+- **Sound:** paper room tone first, then the place's ambience once it has colour (birds, traffic, gulls, market chatter), J-cut a bar before it is seen; pen on cold-press paper as band-passed noise (~1.6-7.5 kHz) with fibre texture and grain clicks, one burst per stroke, overlapping into a hiss during fast sketching; wet brush "shhh" for blooms, jar rinse, drip; object foley at sketch scale (fabric or paper flapping in wind, steps on the beat, bells, splashes). Music families: jazz waltz (walking bass in three, brushes, piano, clarinet or flute), cafe accordion trio, solo nylon guitar, string quartet pizzicato, brass band for crowds; one colour instrument per area of the page; a bar of true silence (ambience included) at peak suspense. Mix: music ducks under key hits, foley high-passed ~90 Hz, -14 LUFS, moderate LRA.
+- **Use when:** travel and place portraits, cities, neighbourhoods, markets, food and hospitality, day-in-the-life stories, "one coloured object as protagonist" narratives, wordless music-led shorts.
+- **Do not use when:** the content needs precise data, technical accuracy or real evidence; a polished corporate, dark or high-tech look is required; edge-to-edge full-bleed imagery or dense on-screen text is needed.
+- **Common mistakes:**
+  - Straight edges or notches in the colour field from bounding-box or rectangular masks -> clip by the noisy distance and the real silhouette.
+  - Characters losing colour when moving into unpainted areas -> sample arrival once or tie it to the event, never at the current position.
+  - Static ink showing through later washes -> erase far ink inside nearer shapes first; use carrot people for far crowds.
+  - Splayed legs when blending poses with pinned feet, bald front-facing heads -> blend foot targets toward under-hip; draw the hair mass then knock out the face.
+  - Painting edge to edge kills the sketchbook feel -> leave margins and fray the edge.
+- **Variation slots:** (illustration only)
+  - Structure: a travel diary of several pages, one per day, turned by wind or a hand; a single street corner at four times of day, the wash changing while the ink stays; a process where each ingredient is drawn from life and the result painted last.
+  - Opening: the blank page with only the handwritten date, then the first horizon line; a close-up of an object at the page edge pulling back to find the place drawn behind it; rain dots landing on the paper and blooming into the first washes.
+  - Ending: the sketchbook closes; the last figure walks off into the blank margin; colour drains back to ink as evening comes, leaving one lit window.
+- **Source:** lemomo-ai/lemo-opuscar `styles/urban-sketch/STYLE.md` (MIT; demo media CC BY 4.0 LemoLab).
+

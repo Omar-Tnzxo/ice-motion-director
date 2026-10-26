@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 07 Build"
+  short_description: "Stage 07: build the film"
+  default_prompt: "$ice-07-build"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "about": "Illustration only: copy to ice/assets/manifest.json and replace every <slot>. One row per file in assets/. Checked by scripts/validate-assets.mjs.",
+  "assets": [
+    {
+      "id": "a1",
+      "role": "logo",
+      "label": "<brand> logo, light mono",
+      "path": "assets/brand/<logo file as received>.svg",
+      "source": { "type": "user-provided", "url": "user-provided://<original file name>" },
+      "verified_against": "<brand kit page or file it was compared with>",
+      "checked": "<YYYY-MM-DD>",
+      "rights": { "owner": "<brand owner>", "license": "proprietary", "use": "<use the owner allowed>", "attribution": "none" },
+      "authenticity": "verified",
+      "sha256": "<sha256 of the file as received>",
+      "used_in": ["<scene ids>"],
+      "changes": "none"
+    },
+    {
+      "id": "a2",
+      "role": "photo",
+      "label": "<subject> photo",
+      "path": "assets/images/<photo file>.webp",
+      "source": { "type": "licensed-stock", "url": "https://<page the item was downloaded from>" },
+      "checked": "<YYYY-MM-DD>",
+      "rights": { "owner": "<author>", "license": "<license id, for example CC-BY-4.0>", "license_url": "https://<license text>", "use": "<allowed use>", "attribution": "<paste-ready credit line, also in CREDITS.md>" },
+      "authenticity": "verified",
+      "used_in": ["<scene ids>"],
+      "changes": "<crop, grade>"
+    },
+    {
+      "id": "a3",
+      "role": "texture",
+      "label": "<background field>",
+      "path": "assets/images/<texture file>.png",
+      "source": { "type": "code-built", "script": "<project path of the code that made it>" },
+      "rights": { "owner": "<project owner>", "use": "any" },
+      "authenticity": "code-built",
+      "used_in": ["<scene ids>"]
+    },
+    {
+      "id": "a4",
+      "role": "generated",
+      "label": "<background plate>",
+      "path": "assets/generated/<plate file>.webp",
+      "source": { "type": "generated", "tool": "<tool and model>", "generated_id": "<id in ice/assets/generated.json>", "prompt": "<prompt as sent>" },
+      "rights": { "owner": "<project owner>", "use": "<what the tool's terms allow>" },
+      "authenticity": "generated",
+      "contains": [],
+      "used_in": ["<scene ids>"]
+    },
+    {
+      "id": "a5",
+      "role": "wordmark",
+      "label": "<brand name> set as text (only when the user confirmed no logo exists)",
+      "text": "<exact name as in TRUTH.md>",
+      "font": "<id of the font row it is set in>",
+      "source": { "type": "code-built", "script": "<composition file that sets it>" },
+      "rights": { "owner": "<brand owner>", "use": "any" },
+      "authenticity": "text-set",
+      "no_logo_confirmed": "<BRIEF answer or D-NN that records it>",
+      "used_in": ["<scene ids>"]
+    },
+    {
+      "id": "a6",
+      "role": "ui",
+      "label": "<screen> rebuilt in code from a live capture",
+      "path": "<project path of the rebuild>",
+      "source": { "type": "code-built", "script": "<project path of the rebuild>" },
+      "verified_against": "assets/capture/<brand>/<page>/<capture file>.png",
+      "fidelity": { "score": "<passes out of 10 as a decimal, at least 0.9>", "checked_by": "<read-only critic>", "sheet": "temp/fidelity/<screen>_raw.png", "share_sheet": "ice/review/fidelity/<screen>_share.png" },
+      "rights": { "owner": "<brand owner>", "use": "<allowed use>" },
+      "authenticity": "verified",
+      "used_in": ["<scene ids>"]
+    },
+    {
+      "id": "a7",
+      "role": "ui",
+      "label": "<several screens> rebuilt in one code file, one fidelity entry per capture",
+      "path": "<project path of the rebuild>",
+      "source": { "type": "code-built", "script": "<project path of the rebuild>" },
+      "verified_against": ["assets/capture/<brand>/<page>/<capture file one>.png", "assets/capture/<brand>/<page>/<capture file two>.png"],
+      "fidelity": [
+        { "against": "assets/capture/<brand>/<page>/<capture file one>.png", "score": "<at least 0.9>", "checked_by": "<read-only critic>", "sheet": "temp/fidelity/<screen one>_raw.png", "share_sheet": "ice/review/fidelity/<screen one>_share.png" },
+        { "against": "assets/capture/<brand>/<page>/<capture file two>.png", "score": "<at least 0.9>", "checked_by": "<read-only critic>", "sheet": "temp/fidelity/<screen two>_raw.png", "share_sheet": "ice/review/fidelity/<screen two>_share.png" }
+      ],
+      "rights": { "owner": "<brand owner>", "use": "<allowed use>" },
+      "authenticity": "verified",
+      "third_party_content": [],
+      "used_in": ["<scene ids>"]
+    }
+  ]
+}

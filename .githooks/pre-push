@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs every repository check before a push; hosted CI is not used (founder decision, 2026-10-22).
+# Enable once per clone: git config core.hooksPath .githooks
+# After a version bump, run the full set by hand first: node scripts/gates.mjs --all
+exec node scripts/gates.mjs

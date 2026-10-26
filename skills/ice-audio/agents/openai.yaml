@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Audio"
+  short_description: "Music, SFX, voice and mix"
+policy:
+  allow_implicit_invocation: false

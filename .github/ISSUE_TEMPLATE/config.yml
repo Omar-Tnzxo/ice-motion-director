@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Website
+    url: https://ice-motion-director.omarhassan.workers.dev/
+    about: What Ice makes, the gallery, and each demo's full workflow.
+  - name: Questions and ideas
+    url: https://github.com/Omar-Tnzxo/ice-motion-director/discussions
+    about: Ask how to do something, share a work in progress, or talk an idea through before you request it.
+  - name: Report a vulnerability
+    url: https://github.com/Omar-Tnzxo/ice-motion-director/security/advisories/new
+    about: Security problems are reported privately, never in a public issue.

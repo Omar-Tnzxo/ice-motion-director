@@ -1,0 +1,85 @@
+# Style directions for openers and promos, and explainer looks
+
+Two kinds of style live here. Style directions are skins for openers, promos, bumpers, kinetic type and launch pieces: they set background, type, signature motion and colour logic, and they are always derived from the user's brand. Explainer looks are complete visual systems for voiced or unvoiced explainers. The structure of the film (opener concepts, feature presentation methods, act order) is not a style: it is owned by the ice-ideas and ice-film skills.
+
+Contents
+1. How to use a direction
+2. Ten style directions
+3. Background, surface and render-family menus
+4. Six explainer looks
+5. Style territories (starting points for art direction)
+
+## 1. How to use a direction
+
+- Style is born from the theme. Write the style brief before code: theme plus three feeling adjectives; palette as one main colour FROM the brand, one background, one accent, each with hex AND source (non-brand colours written "derived: reason"); a characterful display font plus a companion (exception: when the film demonstrates a product UI, text uses the product's UI font); one emphasis form (or none); background language per segment; one signature motion; one special moment.
+- A starter file or template is architecture, not style: grey placeholder colours, system fonts and a default background left visible mean the style was never derived.
+- Two consecutive projects never use the same direction row; choose another row or blend two rows in a way not used before. How far two films must differ (the six axes and the 4-of-6 rule): the `ice-direction` skill, `references/anti-sameness.md` sections 3 and 4; the check runs in ice-direction and ice-qa. New colours on an old scene order are still a template.
+- Directions may be blended deliberately into one coherent skin; log which element comes from which row.
+- Backgrounds are not dark by default; most rows are light. Background colour may change when the story needs it, but each change has a visible trigger (a wipe, an object, a UI action, a push into a colour field, a cut on the beat), never an unmotivated crossfade.
+- If two choices both satisfy the rules, pick the bolder one. Rules lock structure, contrast and novelty, not expression: rich gradients, light, depth, texture and bold colour are allowed when derived.
+- Premium is not a style. "Make it premium" means restraint and one object changing shape well, not a glass and glow wrapper.
+
+## 2. Ten style directions
+
+| Direction | Background | Typography | Signature motion | Good for | Avoid when |
+|---|---|---|---|---|---|
+| Cinematic dark | near-black gradient, particles or nebula, bloom only on objects | bold clean grotesk | push-through, light passing in front of the lens | creative tools, gaming, tech | bad news, children, the brand is light and warm |
+| Poster color-block | large solid colour fields changing per scene, no gradients (grain allowed) | ultra-heavy display, giant letters cropped by the frame edge | block wipes, text slamming into the frame edge | consumer apps, music, events, festivals | quiet luxury, long reading |
+| Editorial light | white or cream, generous space, hairlines | display serif plus a small grotesk | calm slides, lines that draw, a quiet camera | productivity, finance, SaaS, publishing | loud social hooks |
+| Paper and print | paper texture, collage cut-outs, stamps, tape | handwriting plus a serif | objects fly in and land, tilted corners | education, community, food | high-tech precision products |
+| Retro / analog | faded colour, grain, scanlines, tape frame | 1970s-1990s geometric faces | controlled glitch, rough zoom, freeze frame | nostalgia, music, entertainment | trust-critical finance or health |
+| Brutalist mono | black and white, hard grid, ruled boxes | monospace plus condensed | hard cuts, shifting blocks, blinking cursor | developer tools, technical products | warm consumer brands |
+| Pastel playful | stacked pastels, big round shapes | heavy rounded sans | elastic bounce, blooming shapes | children, health, lifestyle | serious B2B, sober topics |
+| Luxury dark | black with gold or bronze, soft shadows, sheen | tall, wide-tracked serif | slow motion, sweeping light, depth | fashion, automotive, property | mass-market discount offers |
+| Flat pop with photos | light neutral alternating with solid brand-colour fields; flat shapes and stickers derived from the logo geometry plus soft 3D | heavy rounded geometric sans, giant cropped words | cut-out photos of people popping up from below, stickers popping, colour fields snapping on the beat | consumer apps, fintech, e-commerce, youth brands | documentary or serious tone |
+| Grainy gradient | deep base; saturated 2-3 hue gradients glowing from inside SHAPES with sharp edges; fine monochrome grain everywhere | small clean grotesk or minimal heavy display | shape layers opening or turning slowly, camera passing through a hole in a shape, a guiding orb | tech, AI, music, fintech, creative launches | brands whose palette is earthy or paper-based; the blue-purple default look without a brand reason |
+
+Direction notes:
+- Grainy gradient recipe: gradients live inside shapes and the background, 2-3 distant hues on a dark or deep base, fine monochrome grain everywhere (fractal noise, about 0.65-0.9 base frequency at 1080p for 1-2 px grain; overlay or soft-light at 0.15-0.3 on dark, multiply 0.08-0.15 on light; jitter the grain deterministically about 12 times per second). It is a skin, not a skeleton: concept and transitions still come from the brief. Encoding destroys grain and smooth gradients: export with a grain-preserving setting and check the encoded file, not the browser (export rules are owned by ice-engines).
+- Light-background variant of any dark direction: switch the background behind a cut or wipe so the jump is invisible, lighten the vignette, turn off bloom.
+- Poster color-block is the only row where a flat single colour background is allowed without extra layers (with grain), together with flat pop with photos.
+- Glass and frosted panels belong only to SaaS or product launches whose brand supports them; elsewhere glass, glow, gradients on type, orbs and chrome read as fake premium.
+
+## 3. Background, surface and render-family menus
+
+Pick one of each per piece (two if segments change), different from the previous project.
+
+**Background motion:** a textured background with a breathing camera and one subtle motion; a large gradient moving or rotating over 8-15 s; floating colour blobs drifting about 60 px over 4-6 s; living grain or paper offset driven by time; one light sweep per segment; big geometric shapes rotating once per 20-40 s on two parallax layers; particles rising (opacity at most about 0.35 behind text); a breathing grid (scale 1.0 to 1.04 over 6-10 s); giant ghost text drifting (contrast at least 0.12); photo or illustration with a slow push and two-layer parallax; horizontal flow only for speed or flow themes; alternating palette colour fields that snap or sweep in 0.15-0.3 s on a trigger.
+
+**Background surface (at least two layers, colours from the palette, never pure black or white):** horizon glow (dark); diagonal duotone; light mesh blobs (3-4 large radial gradients drifting); spotlight plus tint; layered sky with 2-3 thin bands; texture plus tint (multiply or overlay at 0.1-0.3); grainy gradient.
+
+**Render family (one per film, or two if the switch is a story moment):** flat solid; flat plus colour dots; soft 3D clay (rough matte materials); glossy 3D (clearcoat and environment reflections); glass or glowing orb (transmission with a little bloom); isometric (30 degrees, no perspective); realistic metal or marble (physically based, HDRI, depth of field, often cheaper as a rendered or supplied image layer animated in 2D); neon line on dark; flat character illustration. Basic unlit 3D looks flat; flat reads as slides.
+
+## 4. Six explainer looks
+
+| Look | Background and material | Type pairing (example families) | Motion signature | Choose for |
+|---|---|---|---|---|
+| Cartoon collage | cream paper, flat cut-outs, colour pills, handwriting | a characterful grotesk plus a handwriting face | born in close-up on the first asset, glide to the second, zoom out to home as the title appears, hold still at home until the transition | history (also visual journalism), light topics |
+| Visual journalism | black with grain, real licensed photos with source tags, yellow highlighter, red only for warnings, dashed lines | condensed grotesk plus a monospace | reading beats of 3-5 s, no voiceover needed | news, investigations |
+| White catalog | white with a faint 120 px grid fading radially, cut-outs with a two-layer drop shadow, a faint world map | heavy black display plus handwriting plus a neutral sans | an object passes through a lens (about 1.2-1.3 s, one or two times per scene) | products, objects, "how it is made" |
+| Vintage sketch | sepia paper, copperplate-engraving imagery multiplied onto the paper, rust annotations, gold highlighter, a ghost year outline | heavy didone display plus an italic old-style serif plus small caps | slow reveals, annotations drawn on | history, heritage, archives |
+| Continuous action | 100 % vector; one hero that never leaves the frame while the world changes | two text levels only | always moving (2-3 looping parallax layers, speed lines); numbers are props in the world the hero passes in front of, counters roll like an odometer; viewpoint changes (side, cabin, map, profile, front, interior) replace cuts, never three scenes in a row from one angle; a route-map simulation is the cheapest monotony breaker; palette change = tempo change | journeys, routes, logistics, motion and speed topics |
+| Cartoon stage | each scene a frame-sized vector stage, fully alive (at least 10 meaningful moving things), its own camera; no paper or grain; flat bright palette, no outlines, contact-shadow ellipses only | none on screen except diegetic signs and labels | camera only inside the stage (never wider than about 1.08 zoom: hold 0.45-0.7 s, one move per VO beat, hold); straight cuts between stages, accented transitions only for real location changes; idle breathing and blinks on characters | science with characters, environment, how systems work |
+
+Explainer look rules:
+- Ask the user only for the look (with a one-line recommendation by topic), the aspect ratio, the duration and the sound plan; decide the rest.
+- Start every explainer from its own look, never from an opener skin.
+- Ghost text and big year numbers: one treatment per video at a visible fill opacity (about 0.18-0.25, not 0.08-0.12); vary annotation forms (thin line, accent line, double line, corner brackets, hand underline, none) rather than always dashed circles.
+- News looks require sources for every number and date; unverified numbers are not shown, only the qualitative claim (truth rules owned by ice-assets).
+- Cartoon stage: zero captions; text only diegetic (signs, labels, plates). If the viewer needs to read, the picture has not explained yet.
+
+## 5. Style territories (starting points for art direction)
+
+When a brief gives no style, these territories are wide starting points to generate pitch directions (then pick concrete entries from the family files):
+
+- Editorial print (typographic hierarchy, paper, restrained colour)
+- Swiss kinetic (grid, one typeface, one signal colour)
+- Broadcast package (bold bars, lower thirds, clear system)
+- Cinematic minimal (light, negative space, slow scale)
+- Technical schematic (lines, callouts, drafting conventions)
+- Tactile collage (paper, photo, tape, hand marks)
+- Geometric brand world (logo geometry extended into a world)
+
+For any territory: one primary focal anchor per frame (optional secondary, never three equal); at most three layers (hero, support, atmosphere); large scale ratios rather than medium-sized everything; rotate composition families across shots; the final frame is simpler than the densest middle frame. Colour starting proportion for branded editorial work: 65-85 % ground and neutrals, 10-25 % ink and imagery, 5-15 % signal; one full-frame brand-colour moment is strong only if it is used once and earned. Partner logos keep their own colours on neutral clear space.
+
+Sources: bangtutorial/bang-motion `SKILL.md`, `references/techniques.md` sections 7b-7e, `references/explainer.md`, `references/kartun-panggung.md` (MIT, translated from Indonesian and condensed); charlie947/motion-graphics-skills `skills/motion-prompt-writer/SKILL.md` (MIT); territories, composition and colour-proportion ideas from imMamdouhaboammar/motion-graphics-skills (IDEAS_ONLY: rewritten, no text copied).

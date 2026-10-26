@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  Source of assets/readme/social-preview.png (1280x640), the GitHub social preview.
+  Render from the repo root with headless Chrome, then compress:
+    chrome --headless=new --hide-scrollbars --force-device-scale-factor=1 --window-size=1280,640
+           --virtual-time-budget=8000 --screenshot=assets/readme/social-preview.png brand/social-preview.html
+  Fonts come from Google Fonts (a network call); without network the system fallbacks are used.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ice Motion Director social preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+  :root {
+    --ice: #7FD8FF;
+    --frost: #E8F8FF;
+    --navy: #1E2A5A;
+    --coral: #FF6F5E;
+    --peach: #FFB38A;
+    --paper: #FBF4EC;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; background: var(--paper); }
+  body { position: relative; font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; color: var(--navy); }
+
+  /* Warm dusk stage on the right: the mascot never sits on cool blue alone. */
+  .stage {
+    position: absolute; right: -150px; top: -120px; width: 820px; height: 880px; border-radius: 50%;
+    background: radial-gradient(circle at 42% 52%, #FFD7BC 0%, var(--peach) 38%, var(--coral) 78%, #F05A4C 100%);
+  }
+  .mascot {
+    position: absolute; right: 36px; top: 26px; width: 600px; height: 600px; object-fit: contain;
+    filter: drop-shadow(0 26px 30px rgba(30, 42, 90, 0.35));
+  }
+
+  /* Voxel ice cubes drifting off the stage. */
+  .cube { position: absolute; background: var(--frost); border: 3px solid var(--ice); box-shadow: inset -6px -6px 0 rgba(127, 216, 255, 0.55); }
+  .c1 { width: 30px; height: 30px; left: 612px; top: 92px; transform: rotate(12deg); }
+  .c2 { width: 18px; height: 18px; left: 676px; top: 182px; transform: rotate(-8deg); }
+  .c3 { width: 22px; height: 22px; left: 600px; top: 520px; transform: rotate(20deg); }
+
+  /* Clapperboard stripe across the top of the text column. */
+  .clap {
+    position: absolute; left: 72px; top: 76px; width: 236px; height: 26px; border-radius: 4px;
+    background: repeating-linear-gradient(-45deg, var(--navy) 0 18px, var(--paper) 18px 36px);
+    border: 3px solid var(--navy);
+  }
+  .clap::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: -15px; height: 9px; background: var(--coral); border-radius: 2px; }
+
+  .copy { position: absolute; left: 72px; top: 150px; width: 600px; }
+  h1 { font-weight: 800; font-size: 96px; line-height: 0.9; letter-spacing: -0.035em; font-variation-settings: "opsz" 96; }
+  h1 .accent { color: var(--coral); }
+  .tagline { margin-top: 30px; font-weight: 500; font-size: 29px; line-height: 1.28; letter-spacing: -0.01em; max-width: 520px; color: #2F3B6E; }
+  .meta {
+    position: absolute; left: 72px; bottom: 64px; display: flex; gap: 12px; align-items: center;
+    font-family: "JetBrains Mono", Consolas, monospace; font-weight: 500; font-size: 17px; letter-spacing: 0.02em;
+  }
+  .pill { padding: 9px 14px; border: 2px solid var(--navy); border-radius: 999px; }
+  .pill.solid { background: var(--navy); color: var(--frost); }
+</style>
+</head>
+<body>
+  <div class="stage"></div>
+  <div class="cube c1"></div>
+  <div class="cube c2"></div>
+  <div class="cube c3"></div>
+  <img class="mascot" src="mascot-seated.webp" alt="">
+
+  <div class="clap"></div>
+  <div class="copy">
+    <h1>Ice Motion<br><span class="accent">Director</span></h1>
+    <p class="tagline">A motion design and video editing director for your coding agent.</p>
+  </div>
+  <div class="meta">
+    <span class="pill solid">Agent Skills</span>
+    <span class="pill">Open source</span>
+    <span class="pill">Apache-2.0</span>
+  </div>
+</body>
+</html>

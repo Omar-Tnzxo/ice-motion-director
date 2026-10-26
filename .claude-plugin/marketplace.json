@@ -1,0 +1,22 @@
+{
+  "name": "ice-motion-director",
+  "description": "Ice Motion Director: motion design and video editing skills for coding agents.",
+  "owner": {
+    "name": "Omar-Tnzxo",
+    "url": "https://github.com/Omar-Tnzxo"
+  },
+  "plugins": [
+    {
+      "name": "ice-motion-director",
+      "description": "Motion design and video editing director that writes code and renders deterministic films.",
+      "version": "0.2.0",
+      "source": "./",
+      "author": {
+        "name": "Omar-Tnzxo",
+        "url": "https://github.com/Omar-Tnzxo"
+      },
+      "category": "design",
+      "homepage": "https://github.com/Omar-Tnzxo/ice-motion-director"
+    }
+  ]
+}

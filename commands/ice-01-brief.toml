@@ -1,0 +1,7 @@
+description = "Ice Motion Director, step by step: run stage 01 (brief) and stop for your review"
+prompt = """
+Use the ice-motion-director skill from the Ice Motion Director extension. Open its references/step-mode.md and run stage 01 (brief) through the dispatcher in section 2, exactly as written. It starts with the state check, run from the project folder: node <ice-motion-director skill folder>/scripts/ice-state.mjs check 01. If it refuses, say its sentence and stop; otherwise run only this stage. After the stage 01 research and before the review card, ask about every decision the user's words leave open: exactly 4 options per question built from the brief and the research, the recommended one first, at most 4 questions per round (with a question tool when one is offered). Only the user's own words skip them. Then stop with the review card.
+The text the user typed after the command is below; it may be empty. With no project in the folder yet, it is the request itself (what the film is for). With a project, it is extra direction for this stage.
+
+{{args}}
+"""

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice Style Library"
+  short_description: "Browse and use 150+ motion styles"
+  default_prompt: "$ice-style"
+policy:
+  allow_implicit_invocation: false

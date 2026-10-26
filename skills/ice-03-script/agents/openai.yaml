@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 03 Script"
+  short_description: "Stage 03: write the script"
+  default_prompt: "$ice-03-script"
+policy:
+  allow_implicit_invocation: false

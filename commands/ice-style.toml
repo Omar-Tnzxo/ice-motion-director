@@ -1,0 +1,7 @@
+description = "Ice Motion Director style library: browse 150+ motion styles or start a film in one"
+prompt = """
+Use the ice-style skill from the Ice Motion Director extension and follow it exactly.
+The text the user typed after the command is below; it may be empty, a family name, or a style name followed by what the film is about.
+
+{{args}}
+"""

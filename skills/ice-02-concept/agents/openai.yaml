@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 02 Concept"
+  short_description: "Stage 02: pick a concept"
+  default_prompt: "$ice-02-concept"
+policy:
+  allow_implicit_invocation: false

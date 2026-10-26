@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice Status"
+  short_description: "Show stages and what is next"
+  default_prompt: "$ice-status"
+policy:
+  allow_implicit_invocation: false

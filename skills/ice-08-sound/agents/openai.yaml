@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ice 08 Sound"
+  short_description: "Stage 08: sound and mix"
+  default_prompt: "$ice-08-sound"
+policy:
+  allow_implicit_invocation: false

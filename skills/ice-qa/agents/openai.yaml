@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice QA"
+  short_description: "Quality gates and critics"
+policy:
+  allow_implicit_invocation: false

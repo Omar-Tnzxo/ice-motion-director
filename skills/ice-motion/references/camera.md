@@ -1,0 +1,110 @@
+# Camera: punctuation, not decoration
+
+## Contents
+1. When the camera moves
+2. Camera policy by film type
+3. Camera rig rules
+4. Move catalog with measured durations
+5. Camera and the cursor
+6. Shake, handheld and follow
+7. Density limits
+
+## 1. When the camera moves
+
+- The camera is punctuation, not decoration for every sentence. Before each move answer: where should the viewer look now, and can they read it at this framing; is this a transition or an accent; what was the previous camera move.
+- A camera move needs exactly one reason: reading order, detail inspection, scale reveal, spatial continuity, or decisive action. A beat or a new sentence is not a reason. Compare against a locked camera; keep the move only if it is clearer. The full camera necessity test, the frame and text focus-unit contracts, the camera verb table and the 2D anchor formula are in `semantic-camera.md` (the founder's original).
+- If it is readable, do not move. Hold when the picture moves by itself (footage, a line being drawn, a growing curve) and while the viewer reads.
+- Transitions use slow moves; fast push, slam and whip are accents reserved for reveals, reversals, key numbers and punchlines, countable in one film.
+- Go in and come back out: after pushing in, pull out, glide away, or cut to another framing; never three inward pushes in a row; never zoom in and straight back out; never the same move on two adjacent shots; never reverse direction without a cause.
+- One camera language per film; one eased move per scene in calm films; at most two real camera moves per shot in UI films, and the frame is locked during typing, submit and streaming (the content scrolls, the camera does not).
+- A move is what carries the spatial relationship between two shots; translating the scene and translating the camera are the same transform.
+- "Not moving is not automatically good": a static plain frame with nothing happening was rejected; the camera, objects or new information must carry the time (see `holds-and-stillness.md` for the scoped policy).
+- Readability comes from the camera, never from inflating the interface: keep UI at real size and push onto the one element.
+
+## 2. Camera policy by film type
+
+| Type | Policy |
+|---|---|
+| Explainer, science, finance, whiteboard, collage | Manage pushes, glides are free; push to the line to read, pull out after reading; slow push about 1 s when naming a data point; fast push only for the one or two key numbers; hold while a chart grows |
+| Storytime, comedy, talking-head | Manage pushes, not cuts: mostly hold plus hard jump-in (about 2x on the same world); reactions held 0.8 s or more with the camera still |
+| UI walkthrough, keynote and screenshot tutorial | Full-bleed screenshot; push only to the unreadable part, one or two pushes per image, then return or glide to the next area; camera locked during clicks and streaming |
+| Kinetic type and music-cut sections | Fast-push count not managed; camera follows beats and accents; a camera move at most once per phrase, never per beat |
+| Music video | Verse: slow push and drift; chorus: faster; interlude: pull out; transition peaks on beats |
+| Social short hook (first 3 s) | Density not managed; return to normal rhythm after 3 s |
+| Art film, art-style pictures | The painting stays alive; one main action plus 2 motif loops; the camera may drift slowly |
+| Brand film, calm luxury | One slow steady dolly or locked frames; no shake, no spins |
+| Product launch, app ad | Camera with intent: push before the cursor arrives, still during the click, release after the state resolves; pull-backs reveal scale |
+| Talking-head reframes | Fixed crop per shot, never a per-frame face follow (it jitters) |
+
+## 3. Camera rig rules
+
+- One camera wrapper carries the whole world; one state object, one writer function. Everything the camera moves is inside the rig; labels, captions, HUD, light leaks, vignette and grain sit outside it (light in front of the lens).
+- Outer node scales (dolly), inner node translates or turns; never animate the camera and the focal object with the same transform (it cancels the relative motion).
+- Screen point = anchor + (world point - anchor) x zoom; single-wrapper counter-translate T = -offset x S.
+- Zoom from the target box: zoomMax = min(viewW / (targetW + 2 margin), viewH / (targetH + 2 margin)); default commercial range 0.94-1.16; anchor push-ins at the target centre, never the canvas centre; never zoom into an off-centre dot (open the dot instead).
+- Interpolate zoom in log space (zooming linearly in scale feels wrong; easing log2 zoom spends time evenly per stop); for multi-key zooms use one monotone cubic that never overshoots or reverses.
+- Camera ease is smoother than object ease: ease-in-out on segments, critically damped springs (z 1) if springs; spring or back on a camera reads as the world wobbling.
+- Encode camera windows as from, apex, dwell end, to, target, reason; assert a locked camera outside them; velocity near zero during reading dwell.
+- Overscan: the world is larger than the frame; clamp translation so edges never show; plate padding for whips and trucks.
+- Raster sources need resolution at least rendered size x scale; text and UI meant for deep zoom are authored as vector or DOM.
+- Line weight at close range: divide strokes by zoom^0.35 so a close-up feels close, not enlarged (drawn styles); or keep strokes in screen pixels so pushing in does not thicken them.
+- Never put will-change (or similar caching) on anything the camera scales: text renders blurry.
+
+## 4. Move catalog with measured durations
+
+| Move | Duration | Values | Notes |
+|---|---|---|---|
+| Hold | per voice or reading | no move | reading, picture moving by itself, silence after a joke |
+| Slow push | 0.6-1.5 s (up to 2 s for long distance) | push until the target is readable, typically 10-40 percent; sine in-out | explainers; follow the beat on music |
+| Slow push across a whole shot | the shot length | 3-6 percent, linear for this move only (an eased drift stops at both ends and the stop is dead air) | policy A and B holds |
+| Pull out | 0.8-2 s | fast start, long tail | back to the whole; closes a section |
+| Glide to next item | 0.5-0.9 s | sine in-out; 1.3-1.8 s along a drawn string | speed follows a moving object |
+| Fast push (punch) | 0.25-0.35 s | 18-32 percent then hold; kinetic variant: push 6 frames plus 2 frames pull back | accent only |
+| Slam | 0.17 s | scale 1.55 to 0.94 to 1.0 | big text, number, stamp; at most once per shot |
+| Whip | 0.26-0.30 s | expo in-out with motion blur; see cut catalog | sudden gaze shift, comedy |
+| Whip to rest | 0.4-0.7 s | ease out, the last third is the slow part | inside one scene, under the speed ceiling |
+| Commercial camera move | 1.5-3 s | smooth in-out | calm ads; entrances after the frame moves |
+| Push and pull measured | push median 1.46x over 10 frames; pull 1.32x over 13 frames; wrapper pulls 1.82x, 62 percent ease-in | 1.25x for a 6-frame punch, 1.4x for 12-18 frames, 1.5x for 20-45 frames, 2.4x only for slow drifts; a reveal pull 1.8x with an ease-in; the hero scale move per moment about 4x | launch films |
+| One-frame snap reveal | 1 frame then 0.3-0.6 s tail | ratio 0.56-0.77 in one frame, then a decelerating tail (9-18 frames); never one global ease-out zoom | the camera reveals or reframes the product |
+| Two pushes | | different accelerations, never one ease | |
+| Coordinate target zoom | 1.0-2.0 s (under 0.8 feels like a teleport, over 2.5 drags) | 1.5x modest, 3x dominant, 5x and more extreme; dwell at least 1 s (1.5-2 ideal); target at most about 88 percent of the canvas at peak | |
+| Viewport change | 1.0-2.0 s | 1.3x, 1.6-2.0x typical, 3x and more; dwell at least 1 s | |
+| Multi-phase camera | phase 2 at 0.3-1.0 s for 1.0-1.8 s; phase 3 at 2.0-4.0 s for 1.0-2.0 s | phase scales 0.88-0.96, 0.98-1.02, 1.04-1.15; drift 1-3 cycles, 2-8 px x and 1-4 px y, frequency ratio 1.2-1.5 (about 1.3 organic) | hero reveal after the pull-back lands |
+| Zoom-out workspace reveal | one decelerating zoom-out | open at 4-12x; no zoom-in anywhere; camera static outside the single reveal | |
+| Pull-back reveal | 1.5-3 s | the larger thing is in the world from the start, never faded in at the end | |
+| Detail-first open | 1.5-3 s | zoom 4-6 down to 1 | |
+| Dolly zoom (vertigo) | 1-2.5 s | dolly 1.6-3x, at least two planes behind the subject | once per film, a realisation beat |
+| Turn (2.5D) | | perspective 2200-2800; rotationY from -6 to -10 degrees ending at -1 to -2 (never exactly 0); rotationX 2 to 0.5; power1 in-out | UI hero shots |
+| Accelerating scroll | about 1.8 s | about 6 px per frame up to about 250 px per frame (0.35 H per frame), no blur, then decelerate over 9 frames onto one readable block held 0.8 s | logs, feeds |
+| Pan | | about 1.2 H per second falling to 0.18 H per second over 2 s; parallax speed ratios 2-2.4x | |
+| Camera micro-drift | continuous | at least about 0.003 H per frame (about 1 px per frame); end still accelerating with no settle | policy A films only |
+| Collage camera | | born in close-up of the first asset (z about 1.4 settling to 1.32), glide to the second as it enters, zoom out to home (1.0-1.2 s) as the title appears, still at home until the transition; text at least 0.1 s after home | collage explainers |
+| Flythrough path (3D) | | continuous curvature, constant ground speed by arc length, heading aimed at a point ahead on the path, bank into turns (gain about 0.6, max about 7.5 degrees); calm reference about 0.54 km per second | map and terrain films |
+
+Dive with a constant octave rate and the push-through camera: see `cut-catalog.md` section 3.
+
+## 5. Camera and the cursor
+
+- Settle the push before the cursor arrives; hold still through the click; release after the state resolves. A camera still moving during a click steals the click.
+- Zoom to a click target 0.3-0.5 s before the cursor arrives (scale 1.4-2.2, power2 in-out over 0.6-0.9 s), target slightly above centre; then back to wide or glide to the changed panel (0.7-1 s); 1-3 important clicks per act get a zoom.
+- Fixed-point trick: set the transform origin on the clicked control so it stays put while the world scales.
+- Camera-cursor tracking: cursor target fraction 0.5-0.75 of the frame; track 0.8-2.0 s power2 or power3 in-out; back.out reads as UI bounce, not camera.
+- Keep the cursor inside the frame at every zoom, including during morphs; the cursor keeps a constant screen size when the UI zooms (or 1.5x when the UI zooms 2.33x).
+- Push-in never crops the preview out; a CTA is fully built before any push-in on it begins.
+
+## 6. Shake, handheld and follow
+
+- Impact shake: amplitude 0.8-1.5 percent of width in screen pixels, a little rotation, attack about 2 frames then a squared decay, low-frequency seeded gradient noise (about 10 Hz at 30 fps), never white noise per frame; full strength on the hit, gone within a beat; at most two per film and only on a real contact; on a separate wrapper. Banned in calm, premium, UI-narrated and health films; narrated UI films want no shake (a 180-degree shutter turns shake into double images).
+- Handheld float: a slow two-sine wobble that fades to zero in holds, plus a decaying deterministic shake on landings (energetic films only).
+- Follow with lag: 0.1-0.2 s lag, lead room ahead of the subject; key the camera about 0.1 s ahead of the subject on sine in-out to follow; key the landing point before a snap on expo in-out to whip.
+- Never lose the subject: declare which elements must stay in frame and check every frame; at deep zoom (past about 20x) key the anchor's screen position and the log of zoom.
+
+## 7. Density limits
+
+- In explainer, science, finance, whiteboard and collage films: fast push, slam and whip together at most one third of shots; no three consecutive inward pushes; about 8 or more push-ins per minute is a warning (one measured 102 s film pushed about 48 times, all inward, and was rejected as too fast and not smooth).
+- Narrated explainers: at least 3 camera moves per chapter, at most 1 per shot, 30-45 frames in-out; never during glitches or staggered entrances; moves finish before the beat, not start on it; end at least 30 frames before the shot exit (a gentle 1.0-1.05 push across the whole shot is the exception).
+- Camera never moves under a fixed overlay that must stay registered.
+- Use at least four different camera moves and real changes of framing across a story film; a 2D film has a camera too.
+- Two same-size shots in a row feel flat: vary shot size (wide, medium close-up, close-up); camera welcomes, it does not chase.
+
+Sources: huashu-art-motion (camera language, measured durations), motionmaxxing (motion.md camera, ui-demo), hyperframes skills (camera rules, blueprints), hyperframes docs (motion.mdx, vocabulary), anidoodle (camera.md, motion deck), product-launch-motion (05 camera, cursor), claude-motion-design, Barty-Bart motion-graphics, charlie947 motion-graphics (shot-size rig), video-ad-editor, lemo-opuscar, group-d explainer engine, commercial-motion-design (founder), ideas from onetake, anything2explainer, remotion skills, imMamdouhaboammar (rewritten).

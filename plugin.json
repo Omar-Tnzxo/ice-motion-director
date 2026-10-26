@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ice-motion-director",
+  "version": "0.2.0",
+  "description": "Motion design and video editing director for coding agents. Writes code and renders deterministic films: launch films, app ads, explainers, social shorts, edits of your footage, reference remakes, Lottie and UI motion, Arabic and RTL included.",
+  "author": {
+    "name": "Omar-Tnzxo",
+    "url": "https://github.com/Omar-Tnzxo"
+  },
+  "homepage": "https://github.com/Omar-Tnzxo/ice-motion-director",
+  "repository": "https://github.com/Omar-Tnzxo/ice-motion-director",
+  "license": "Apache-2.0"
+}

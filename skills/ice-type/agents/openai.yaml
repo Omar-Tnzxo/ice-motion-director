@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Type"
+  short_description: "Motion type and captions"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ice Assets"
+  short_description: "Assets, truth and licenses"
+policy:
+  allow_implicit_invocation: false
