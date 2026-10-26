@@ -50,12 +50,12 @@ Every film is code (HTML, CSS, GSAP, Remotion, Lottie or FFmpeg) and renders the
 
 ## Two ways to use it
 
-1. **One prompt, for everyone.** Describe the film in your own words, short or long. The director researches your business first, then stops at most twice: one message with up to four short questions (including which official brand files it may use), and, if you are there to answer, one look at the style frames or the rough cut before the full build. Everything else is decided, logged and explained in the delivery note; the final film needs no extra approval. Say "don't ask" and it stops for nothing. No commands, no setup beyond the install.
-2. **Step by step, for people who want to steer.** Run one stage at a time with numbered commands (`/ice-01-brief` to `/ice-10-deliver`). Each stage stops with a review card; talk it through, ask for changes or other options as often as you like, and move on only when you approve. See [Workflow, step by step](#workflow-step-by-step).
+1. **One prompt, for everyone.** In Claude Code, start your first message with `/ice-motion-director:ice`, then describe the film in your own words, short or long. The command makes Claude Code load the director's instructions itself, so the run starts the right way even when other video skills are installed. A prompt without the command usually works too, but then the agent picks the skill on its own, which is not guaranteed. Other agents: see [how to type the commands](#how-to-type-the-commands). The director researches your business first, then asks about every decision your prompt leaves open: four options per question with the recommended one first, at most four questions per message, and more than one message when many decisions are open (including which official brand files it may use). It asks nothing when your prompt already covers everything, or when you say "don't ask" or "decide yourself". Then, only if you are there to answer, one preview: the style frames or the animatic. After that it runs to the final file with no more questions. Everything it decided is logged and explained in the delivery note.
+2. **Step by step, for people who want to steer.** Run one stage at a time with numbered commands. In Claude Code the form that always works is `/ice-motion-director:ice-01-brief` to `/ice-motion-director:ice-10-deliver`. Each stage stops with a review card; talk it through, ask for changes or other options as often as you like. Say "approved" to lock the stage (it then names the next command), or "approved, go on" to lock it and start the next stage. See [Workflow, step by step](#workflow-step-by-step).
 
 You can switch at any time: type a stage command in the middle of a one-prompt run, or `/ice` to let it finish the rest on its own.
 
-> **What a first film takes.** From you: one prompt, then at most one message with up to four questions and, if you are there, one preview. Behind it, your agent runs all ten stages with several helper agents, so even a short ad runs for a while and uses far more of your plan than a chat answer. If your agent hits a usage limit in the middle, type `/ice` (or send the same prompt) later: it resumes from `ice/state.json` where it stopped.
+> **What a first film takes.** From you: one prompt that starts with the command, then the questions on every open decision (four options each, at most four per message, none if your prompt covers everything or you say "don't ask") and, if you are there, one preview. Behind it, your agent runs all ten stages with several helper agents, so even a short ad runs for a while and uses far more of your plan than a chat answer. If your agent hits a usage limit in the middle, type `/ice` (or send the same prompt) later: it resumes from `ice/state.json` where it stopped.
 
 ## Why it is different
 
@@ -210,7 +210,7 @@ Ideas and scripts need nothing. Lottie needs Node. Every delivered film (films, 
 
 ## Try it
 
-Start your agent in an empty folder and paste one of these:
+Start your agent in an empty folder and paste one of these. In Claude Code, put `/ice-motion-director:ice` in front of it so the director is sure to start:
 
 ```text
 Make a 20-second launch film for my note-taking app. Here is the site: <your URL or files>
@@ -236,7 +236,7 @@ Give me five ad concepts and a script for a real-estate open day, then build the
 
 Every film runs through the same ten stages, like a production company. With the commands you run them one at a time. Each stage ends with a review card: what was made (with previews), the options considered and why this one won, the critic's notes, and the choices still open. Nothing moves on until you say it is approved. Type anything after a command to steer that stage, for example a tone, a length or a detail to keep.
 
-1. `/ice-01-brief`: research on your business, brand and the advertising rules of your industry first, then who the film is for, the message, platform and length, plus anything you already have. **You review:** the brief, with up to four questions inside the card.
+1. `/ice-01-brief`: research on your business, brand and the advertising rules of your industry first, then who the film is for, the message, platform and length, plus anything you already have. **You review:** the brief, after the questions on every open decision (four options each, at most four per message).
 2. `/ice-02-concept`: several ideas, at least two of them unexpected, and the one the critic picked. **You review:** the ideas side by side.
 3. `/ice-03-script`: the words on screen and the voiceover for each language, timed to the beats, plus the shorter cuts and other versions you will get. **You review:** the script.
 4. `/ice-04-storyboard`: every shot as a rough sketch, how it is framed, how long it lasts and how it moves to the next. **You review:** the storyboard.
@@ -248,6 +248,8 @@ Every film runs through the same ten stages, like a production company. With the
 10. `/ice-10-deliver`: the final files in every language, size and length you asked for, with captions and a delivery report that also lists the permissions a brand owner would need. **You review:** the delivered files.
 
 Also: `/ice-status` shows every stage, its status and the command to run next; `/ice` runs or resumes everything on its own. A stage that needs an earlier one tells you which command to run first, and a stage waiting for your review says so. Stages you already supplied (your own script or storyboard, for example) are checked, not redone. Short pieces such as a loader or a logo sting skip the stages they do not need.
+
+### How to type the commands
 
 How to type the commands in your agent:
 
@@ -284,7 +286,7 @@ flowchart TD
 ```
 
 1. **Route.** The router reads your project state and request and picks one workflow; the workflow says what each of the ten stages means for its kind of film.
-2. **Brief (01).** Research comes first: your business, your brand's real material, and the advertising rules of your industry and platforms. Then one message with up to four questions (stop A), or none when nothing important is unclear or you said "don't ask".
+2. **Brief (01).** Research comes first: your business, your brand's real material, and the advertising rules of your industry and platforms. Then the questions on every open decision (stop A): four options each, at most four per message, more than one message when needed, or none when your prompt covers everything or you said "don't ask".
 3. **Concept and script (02, 03).** A pitch with unexpected directions and a critic's pick; then the words for each language, with the shorter cuts and other versions planned.
 4. **Storyboard and look (04 with 05).** They run side by side: rough boards and timing next to a mood board and style frames made with your brand's real material. The animatic (06) merges them, and if you are there you see one preview before the build (stop B).
 5. **Build and sound (07 with 08a, then 08b).** The film is written as code while the music, effects and voice are made from the locked timing; the final mix is done on the draft.
@@ -357,7 +359,7 @@ Films made with Ice Motion Director from one prompt each, across different indus
 <details>
 <summary><b>How do I make motion graphics or an animated video with Claude Code, Codex or Cursor?</b></summary>
 
-[Install](#install) Ice into your agent, open it in an empty folder and describe the video in plain words, for example the product, the length and where it will be posted. The router skill picks the workflow, researches your business, asks its questions in one message and then runs the ten stages up to a rendered MP4. If you prefer to steer each step, use the stage commands `/ice-01-brief` to `/ice-10-deliver` instead.
+[Install](#install) Ice into your agent, open it in an empty folder and start your first message with the command (`/ice-motion-director:ice` in Claude Code; other agents in [how to type the commands](#how-to-type-the-commands)), then describe the video in plain words, for example the product, the length and where it will be posted. The command loads the director for sure, even when other video skills are installed. The router skill picks the workflow, researches your business, asks about every open decision (four options each, at most four per message) and then runs the ten stages up to a rendered MP4. If you prefer to steer each step, use the stage commands `/ice-01-brief` to `/ice-10-deliver` instead.
 </details>
 
 <details>
