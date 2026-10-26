@@ -33,7 +33,9 @@
 
 ## What it does
 
-Ice Motion Director turns Claude Code, Codex, Cursor, Gemini CLI and 40+ other agents into a small motion studio. One router skill reads your request and sends it to the right workflow:
+Ice Motion Director is an open-source set of agent skills for motion graphics, motion design and video editing in Claude Code, Codex, Cursor, Gemini CLI and 40+ other coding agents. You describe the video in one prompt (or hand it your footage, or a reference), and your agent takes it from the brief and the script to a rendered MP4, writing every frame as code and checking it before you see it. It is free under Apache-2.0 and needs no After Effects and no paid video model.
+
+One router skill reads your request and sends it to the right workflow:
 
 | You ask for | It runs | You get |
 |---|---|---|
@@ -353,9 +355,45 @@ Films made with Ice Motion Director from one prompt each, across different indus
 ## FAQ
 
 <details>
-<summary><b>Do I need a GPU or a paid video model?</b></summary>
+<summary><b>How do I make motion graphics or an animated video with Claude Code, Codex or Cursor?</b></summary>
 
-No. Films are written as code and rendered with a browser and FFmpeg on a normal laptop.
+[Install](#install) Ice into your agent, open it in an empty folder and describe the video in plain words, for example the product, the length and where it will be posted. The router skill picks the workflow, researches your business, asks its questions in one message and then runs the ten stages up to a rendered MP4. If you prefer to steer each step, use the stage commands `/ice-01-brief` to `/ice-10-deliver` instead.
+</details>
+
+<details>
+<summary><b>Does it need After Effects, a GPU or a paid video model?</b></summary>
+
+No. Films are written as code (HTML, CSS, GSAP, Remotion, Lottie or FFmpeg) and rendered with a browser and FFmpeg on a normal computer, using the [prerequisites](#prerequisites) above. AI images, video, voices and hosted transcription are optional extras that may cost money and are used only when you ask for them. The one real cost is your agent's usage: a full film runs many stages and helper agents, so it uses far more of your plan than a chat answer.
+</details>
+
+<details>
+<summary><b>Can it edit my own footage?</b></summary>
+
+Yes, that is the `ice-edit` workflow: long-form and course videos, podcast episodes and clips, talking-head ads, shorts and reels, B-roll and motion overlays timed to words, and showreels cut to the beat. It transcribes your footage word by word with a local Whisper-class model (downloaded only after you say yes), edits on that transcript, then cuts, captions and renders the MP4 with EDLs and caption files. It does not shoot anything, so the footage has to come from you.
+</details>
+
+<details>
+<summary><b>Does it work in Arabic?</b></summary>
+
+Yes. Arabic and right-to-left are first class through the `ice-arabic` skill: connected letterforms and dots that survive animation, kashida, bidi isolation for mixed Arabic and English, numerals, Arabic captions and platform safe zones, and dialect as a setting for scripts and voice. You can also write your prompt in Arabic.
+</details>
+
+<details>
+<summary><b>How is it different from writing Remotion or HyperFrames code by hand?</b></summary>
+
+Remotion and HyperFrames are render engines, and Ice uses them (plus Three.js, Lottie, p5 and plain FFmpeg) underneath; `ice-engines` picks one per film. What Ice adds is the production work around the code: the researched brief, concepts, script, storyboard, style frames, animatic, sound design and mix, and separate critics and quality gates on the exported file. You still get the project as code in your folder, so you can open it and change anything by hand.
+</details>
+
+<details>
+<summary><b>Can it make a video in the style of one I like?</b></summary>
+
+Yes, with `ice-remake`: give it a reference video, a saved site or a set of images and it measures the style (pacing, palette, type, motion, sound) and rebuilds it with your content. It can also save that style as a portable recipe (`STYLE-RECIPE.md` and `style-recipe.json`) to reuse later. The reference's own footage, music, voice and logos never go into your film; the style is recreated instead.
+</details>
+
+<details>
+<summary><b>What can it not do?</b></summary>
+
+It does not shoot live action, it is not a photoreal CGI or character-animation studio (complex rigs, lip sync, heavy photoreal 3D), and it is not an AI video generator. It also does not invent a real brand's look: when it cannot get the brand's real material, it asks you for it. See [What it does not do](#what-it-does-not-do).
 </details>
 
 <details>
