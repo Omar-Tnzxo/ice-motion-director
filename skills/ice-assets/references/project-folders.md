@@ -66,10 +66,10 @@ Extra fields by case (checked by `scripts/validate-assets.mjs`): a text-set word
 
 One table, one row per external item (paste-ready credit for attribution licenses):
 
-| File | Site | Original URL | License and version | Author / attribution text | Changes | Used in | Checked |
-|---|---|---|---|---|---|---|---|
+| File | Site | Original URL | Owner | License status (`licensed` with id and version, `unknown`, `needs purchase`) | Author / attribution text | Changes | Used in | Checked |
+|---|---|---|---|---|---|---|---|---|
 
-Rows whose license is unclear say "license unconfirmed" in the license column and are listed again in the delivery notes.
+Rows whose status is `unknown` or `needs purchase`, or whose license does not cover the brief's use, are listed again in the delivery notes under "Needs a license before publishing" (`sourcing-and-licenses.md` section 0).
 
 ## 5. Delivery notes (asset part)
 

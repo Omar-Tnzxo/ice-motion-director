@@ -86,6 +86,28 @@ describe("validate-assets: brand sheet location", () => {
   });
 });
 
+describe("validate-assets: rights are the user's (sourcing-and-licenses.md section 0)", () => {
+  const found = (id, rights) => ({ id, role: "footage", path: `assets/footage/${id}.mp4`,
+    source: { type: "web-found", url: "https://agency.test/clip" }, rights: { owner: "<agency>", ...rights } });
+  test("unknown, to-buy and noncommercial items pass and are listed as needing a license", () => {
+    const dir = project("found", [found("a", { license_status: "unknown" }), found("b", { license_status: "needs purchase" }),
+      found("c", { license: "CC-BY-NC-4.0", license_url: "https://creativecommons.org/licenses/by-nc/4.0/", attribution: "x" })],
+      { "assets/footage/a.mp4": PNG, "assets/footage/b.mp4": PNG, "assets/footage/c.mp4": PNG, "ice/assets/CREDITS.md": "| c.mp4 |" });
+    writeFileSync(join(dir, "ice", "state.json"), JSON.stringify({ commercial_use: "yes" }));
+    const r = run(dir);
+    assert.equal(r.status, "PASS", r.problems.join("\n"));
+    assert.equal(r.licenses.length, 3, r.licenses.join("\n"));
+    assert.match(r.licenses.join("\n"), /needs a license before publishing \(https:\/\/agency\.test\/clip\)/);
+  });
+  test("a web-found row still records its source, owner and status", () => {
+    const dir = project("found-bare", [{ id: "d", role: "footage", path: "assets/footage/d.mp4", source: { type: "web-found" }, rights: {} }],
+      { "assets/footage/d.mp4": PNG });
+    const r = run(dir);
+    assert.equal(r.status, "FAIL");
+    assert.match(r.problems.join("\n"), /source\.url[\s\S]*rights\.owner[\s\S]*license_status/);
+  });
+});
+
 describe("validate-assets: code-built rebuilds of several captures", () => {
   const files = { "film/js/ui.js": "//", "assets/capture/b/one.png": PNG, "assets/capture/b/two.png": PNG, "ice/review/fidelity/one_share.png": PNG };
   const base = [captureRow("c1", "assets/capture/b/one.png"), captureRow("c2", "assets/capture/b/two.png")];

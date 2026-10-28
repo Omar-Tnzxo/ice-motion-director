@@ -87,7 +87,7 @@ test("recipe: unknowns are marked with what would measure them, and a missing so
   assert.match(md, /unknown \(measure with: /);
 });
 
-test("recipe: no rights gate: full skin and frame-locked for any reference, its own media recreated", (t) => {
+test("recipe: no rights gate: full skin and frame-locked for any reference, its own media as the identity slot says", (t) => {
   if (skip(t)) return;
   const { md, json } = run(makeRef("skin", { notesHex: true }));
   assert.equal(json.header.mode, "frame-locked", "the brief's mode is kept for any reference");
@@ -95,10 +95,12 @@ test("recipe: no rights gate: full skin and frame-locked for any reference, its 
   assert.ok(!("third_party" in json.header));
   assert.ok(json.look.palette_values.includes("#112233"));
   assert.match(JSON.stringify(json.grammar.transitions), /#12AB34/, "colour values in the notes are kept");
-  assert.ok(json.header.recreated.some((x) => /music track/.test(x)) && json.header.recreated.some((x) => /logos/.test(x)));
+  assert.ok(json.header.own_media.some((x) => /music track/.test(x)) && json.header.own_media.some((x) => /logos/.test(x)));
+  assert.match(json.header.identity, /as they are/);
   assert.match(json.header.people, /ai-media-policy\.md section 9/);
-  assert.match(json.prompt, /Never place its own media in the new piece/);
-  assert.match(md, /Recreated, never placed in the new piece/);
+  assert.match(json.prompt, /placed as they are or recreated as the identity slot says/);
+  assert.doesNotMatch(json.prompt, /Never place its own media/);
+  assert.match(md, /Its own media, placed as they are or recreated/);
 });
 
 test("recipe: the prompt block lists the open slots and the four-choice questions", (t) => {
@@ -272,11 +274,11 @@ function fixtureRef(name, { timeline = "", peaks = null, notes = "", sm = soundM
   return ref;
 }
 
-test("fix 1: the prompt block names both limits, frames and real people included", (t) => {
+test("fix 1: the prompt block names its own media, frames and real people included", (t) => {
   if (skip(t)) return;
   const { json } = run(makeRef("limits"));
   assert.match(json.prompt, /its footage and frames/);
-  assert.match(json.prompt, /its logos; its characters/);
+  assert.match(json.prompt, /its logos and end card; its characters/);
   assert.match(json.prompt, /real people's faces and voices: ice-assets references\/ai-media-policy\.md section 9/);
 });
 

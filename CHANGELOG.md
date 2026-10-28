@@ -2,6 +2,19 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.2 - 2026-10-28
+
+### Changed
+
+- **Rights are yours; one record instead of blocks.** A reference's own logo, end card, identity, footage, music and voice-over can go into your video as they are, or the same style can carry your identity, or a mix: a stage 01 question whose recommendation follows your words. Every outside item (footage, music, logos) is recorded with its source, owner and license status (licensed, unknown, needs purchase). The delivery note lists what needs a license before publishing, with one neutral line that rights are yours and one line for anything a platform may mute. No permission questions, no repeated warnings. The limits on real people, the truth rules and the untrusted-content rule are unchanged.
+- **Real footage first.** For a real event, statement, place or person, Ice searches for the best real, official, recent clip (news agencies, official channels, press conferences, officials' accounts), licensed or not, then stock, then graphics or generation.
+- **Music.** A reference's track or any available track is an option beside new music. The sync license check runs as before and records a status; it no longer drops a track.
+- `validate-assets.mjs` prints license problems as `LICENSE` lines for the delivery note instead of failing, and accepts a `web-found` source with its URL, owner and license status.
+
+### Added
+
+- **Speaker isolation with no model download.** Green screen or a plain wall: FFmpeg `chromakey` or `hsvkey` with `despill`. A locked-off camera with a few seconds of the empty room: FFmpeg `backgroundkey`. Commands measured on test clips, with tuning numbers. The model route stays for other footage. The stage 01 message of an edit that separates the speaker carries a shooting tip (green screen or plain wall, tripod, even light, a wide frame above the head).
+
 ## 0.2.1 - 2026-10-26
 
 ### Changed

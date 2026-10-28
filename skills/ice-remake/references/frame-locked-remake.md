@@ -4,7 +4,7 @@ Read this only when the mode is frame-locked (`rights-and-modes.md`). It recreat
 
 ## 0. Gate
 
-Frame-locked mode is available for any reference the user asks to remake frame by frame; record it in `BRIEF.md` with the neutral rights line of `rights-and-modes.md` section 1. Its two limits still apply: the reference's own footage, frames, music, voice-over, logos and characters are recreated, never placed in the film, and real people's faces and voices follow `ice-assets/references/ai-media-policy.md` section 9.
+Frame-locked mode is available for any reference the user asks to remake frame by frame; record it in `BRIEF.md` with the neutral rights line of `rights-and-modes.md` section 1. The reference's own footage, frames, music, voice-over, logos and characters are placed as they are or recreated, as the `identity` choice of `rights-and-modes.md` section 1 says, and real people's faces and voices follow `ice-assets/references/ai-media-policy.md` section 9.
 
 ## 1. Phase 0: analysis (no building)
 

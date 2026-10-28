@@ -77,17 +77,21 @@ By numbers: <list>. By eye: <list>. Heard by a person: <yes or no>. Not checked:
 ## Real and illustrative
 Real: <captured UI, copy, footage>. Illustrative or generated: <list>.
 
-## Permissions a brand owner or rights holder would need before publishing
-| Item | Whose permission | Why it is needed | Status (cleared by the user / not cleared / not needed) |
-|---|---|---|---|
-| Logo and trademark use (unofficial concept or not) | <brand> | <...> | <...> |
-| Captured or rebuilt screens of the brand's UI | <brand> | <...> | <...> |
-| Brand fonts (embedded, or the free substitute used) | <foundry or brand> | <...> | <...> |
-| Other rights holders' content left in screens (`third_party_content`) | <artists, users, other brands> | <...> | <...> |
-| Music sync and master rights (media, territory, term) | <publisher, label, library> | <...> | <...> |
-| People's likeness and voice: the user's responsibility (`ice-assets` skill, `references/ai-media-policy.md` section 9) | <person> | <...> | <...> |
-| Regulated claims and disclaimer wording still `draft, owner to approve` (`ice/research/COMPLIANCE.md`) | <brand or its legal advisor> | <...> | <...> |
-| Official files downloaded under the default (URL, size, SHA-256) | <brand> | <...> | <...> |
+## Needs a license before publishing
+Rights to use every outside item are the user's responsibility. (One line, no further warning: `ice-assets` skill, `references/sourcing-and-licenses.md` section 0.)
+| Item | Source URL | Owner (whose license) | Why it is needed | Status (licensed / unknown / needs purchase / not needed) |
+|---|---|---|---|---|
+| Each footage, photo, music, voice or SFX row of the footage ledger or `CREDITS.md` that is not `licensed` for this use, a reference's own media included | <...> | <...> | <...> | <...> |
+| Logo and trademark use (unofficial concept or not) | <...> | <brand> | <...> | <...> |
+| Captured or rebuilt screens of the brand's UI | <...> | <brand> | <...> | <...> |
+| Brand fonts (embedded, or the free substitute used) | <...> | <foundry or brand> | <...> | <...> |
+| Other rights holders' content left in screens (`third_party_content`) | <...> | <artists, users, other brands> | <...> | <...> |
+| Music sync and master rights (media, territory, term) | <...> | <publisher, label, library> | <...> | <...> |
+| People's likeness and voice: the user's responsibility (`ice-assets` skill, `references/ai-media-policy.md` section 9) | <...> | <person> | <...> | <...> |
+| Regulated claims and disclaimer wording still `draft, owner to approve` (`ice/research/COMPLIANCE.md`) | <...> | <brand or its legal advisor> | <...> | <...> |
+| Official files downloaded under the default (URL, size, SHA-256) | <...> | <brand> | <...> | <...> |
+
+Platform matching: <one information line per track or clip a platform may mute or claim, or "none">
 
 ## Decided for you (auto mode)
 - <D-NN: the question it replaced, the choice, the reason in one line; defaults taken; items left unresolved>

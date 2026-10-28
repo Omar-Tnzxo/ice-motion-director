@@ -13,7 +13,7 @@ Read this when writing the Treatment. The remake keeps what made the reference w
 
 | Lens | Rethink |
 |---|---|
-| Subject or identity | Who carries the narrative role and everywhere that identity appears. Real people's faces and voices: `ice-assets/references/ai-media-policy.md` section 9; the reference's own footage of people is never placed in the film |
+| Subject or identity | Who carries the narrative role and everywhere that identity appears. Real people's faces and voices: `ice-assets/references/ai-media-policy.md` section 9; the reference's own footage of people is placed or recreated as the `identity` choice of `rights-and-modes.md` section 1 says |
 | Product or brand | Product truth, use, props, UI, logo, colors, proof, offer, CTA. Claims only from the user's facts (the ice-assets skill, truth sheet) |
 | Script, language or CTA | Meaning, speech rhythm, on-screen words, demos, and the timing that follows the new words. Arabic or mixed: the ice-arabic skill |
 | Platform, duration or aspect | Which story functions survive, compress, expand or need new composition. Re-layout per aspect, never crop. Platform specs: the ice-engines skill |

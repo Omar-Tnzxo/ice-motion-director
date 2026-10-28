@@ -37,7 +37,8 @@ A fixed, named list. Each slot fills one or more slots of `ice/BRIEF.md` (`intak
 | 21 | `disclaimer` | Wording of a required disclaimer | truth sheet, `COMPLIANCE.md` | Only when a required disclaimer has no fixed wording (`industry-rules.md` section 5) |
 | 22 | `screen_access` | How screens behind a login or paywall are shown | "Brand material needed" | Only when the film needs such screens (`ice-assets` skill, `screen-capture.md` section 5) |
 | 23 | `reference_file` | How a linked reference is obtained | `references` | Only when a reference was given as a link (`ice-assets` sourcing rules) |
-| 24 | `tools` | What happens about a missing tool | prerequisites | Only when a required tool is missing (`ice-motion-director/references/prerequisites.md`) |
+| 24 | `identity` | Whether a reference's own logo, end card, look, footage and music go into the video, or its style is carried by the user's identity | `references`, look seed | Only when a reference is used and the user's words leave it open (`ice-remake/references/rights-and-modes.md` section 1) |
+| 25 | `tools` | What happens about a missing tool | prerequisites | Only when a required tool is missing (`ice-motion-director/references/prerequisites.md`) |
 
 A slot that does not apply to the deliverable (no sound in a silent loader, no call to action in a caption pass, no aspect in an ideas-only run) is written `not applicable: <reason>` in `ice/BRIEF.md`, never asked.
 
@@ -236,7 +237,7 @@ Ask when: the film has sound, no track was supplied and the user did not describ
 1. (Recommended) The music that fits the goal, the tone and the platform norms the research found, with its reason.
 2. A second direction with a clearly different energy.
 3. A direction from the tail, still fitting the brief.
-4. Your own track: you send it, and it passes its sync license check first (`ice-audio`).
+4. Your own track or a song you name (the reference's track included): you send or name it, and its license status is recorded (`ice-audio`).
 
 ### Q-cta: the call to action
 Ask when: the film is commercial and the user did not state the action or where it sends the viewer. Never invent an address, handle or offer.
@@ -297,9 +298,16 @@ Ask when: the film needs app or site screens behind a login or paywall. Never as
 ### Q-reference-file: getting the reference
 Ask when: a reference was given as a link. A link is downloaded only on the user's yes (option 2), never as a default.
 1. (Recommended) I study it from the page without downloading (stills and the page only).
-2. I download it from the link for study only; it stays in the project and never appears in the video.
+2. I download it from the link; it stays in the project, and whether its own parts appear in the video follows your answer about the reference's identity.
 3. You send the file yourself.
 4. You send a different reference instead.
+
+### Q-identity: the reference's own media and identity
+Ask when: a reference is used and the user's words leave open whether its own logo, end card, footage and music go into the video. Put the recommended option first as `ice-remake/references/rights-and-modes.md` section 1 says (it follows the user's words); the order below is the one for silence. Never a rights question: rights are the user's, and every outside item is recorded with its license status (`ice-assets/references/sourcing-and-licenses.md` section 0).
+1. (Recommended) The same style with your identity: your logo, colours and end card, your footage or real footage found for each scene, and new music with the same energy.
+2. The reference as it is: its logo, end card, look, footage and music in the video.
+3. A mix: you name which parts come from the reference (for example its music with your logo and end card).
+4. The style only: everything drawn or shot new, with new music and sound.
 
 ### Q-tools: a missing tool
 Ask when: a tool the run needs is missing. Option 2's description gives the one install step for the user's operating system (`ice-motion-director/references/prerequisites.md`).

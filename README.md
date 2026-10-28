@@ -391,7 +391,7 @@ Remotion and HyperFrames are render engines, and Ice uses them (plus Three.js, L
 <details>
 <summary><b>Can it make a video in the style of one I like?</b></summary>
 
-Yes, with `ice-remake`: give it a reference video, a saved site or a set of images and it measures the style (pacing, palette, type, motion, sound) and rebuilds it with your content. It can also save that style as a portable recipe (`STYLE-RECIPE.md` and `style-recipe.json`) to reuse later. The reference's own footage, music, voice and logos never go into your film; the style is recreated instead.
+Yes, with `ice-remake`: give it a reference video, a saved site or a set of images and it measures the style (pacing, palette, type, motion, sound) and rebuilds it with your content. It can also save that style as a portable recipe (`STYLE-RECIPE.md` and `style-recipe.json`) to reuse later. You choose whether the reference's own footage, music, logo and end card go into your film as they are, or the same style carries your identity, or a mix. Rights are yours: Ice records where every outside item came from and lists what needs a license before you publish.
 </details>
 
 <details>

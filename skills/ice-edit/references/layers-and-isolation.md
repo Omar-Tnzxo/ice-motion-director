@@ -11,13 +11,44 @@ Merged from heygen-com/hyperframes (Apache-2.0: remove-background, embedded-capt
 
 ## 2. Isolating the speaker
 
+Methods that need no model come first: they are part of FFmpeg (no download, no consent item, real time on CPU). Pick by how the footage was shot:
+
+| Footage | Method | Download |
+|---|---|---|
+| Green or blue screen, or an evenly lit plain wall | `chromakey` (or `hsvkey`) plus `despill` | None |
+| Locked-off camera with a few seconds of the empty room (at the start of the take, or as its own clip from the same tripod position) | `backgroundkey` (FFmpeg 6.1 or newer; check with `ffmpeg -filters`) | None |
+| Anything else (moving camera, busy room, no empty plate) | Person matting or prompted segmentation (table below), asked in the stage 01 message with its size | The model |
+
+Commands, measured on synthetic 1280x720, 25 fps clips made with `lavfi` (FFmpeg 8.1): a 300x500 subject on a 0x00B140 green, and a 300x500 or 640x700 subject over a static bar pattern with grain added (`noise=alls=6:allf=t`). In every run below the background came out fully transparent (alpha 0) and the subject fully opaque (alpha 255); the transparent share matched the background's share of the frame (0.837 and 0.514). Read the screen's colour from the footage first (a pixel of the background in a frame without the speaker), then:
+
+```
+# Green screen or plain wall, to an alpha master (ProRes 4444)
+ffmpeg -i in.mp4 -vf "chromakey=color=0x00B140:similarity=0.12:blend=0.05,despill=type=green" -c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le speaker_alpha.mov
+
+# The same key in HSV terms, steadier on an unevenly lit wall (hue in degrees)
+ffmpeg -i in.mp4 -vf "hsvkey=hue=142:sat=0.7:val=0.5:similarity=0.2:blend=0.05,despill=type=green" -c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le speaker_alpha.mov
+
+# Straight onto a new backdrop in one pass
+ffmpeg -i backdrop.mp4 -i in.mp4 -filter_complex "[1]chromakey=color=0x00B140:similarity=0.12:blend=0.05,despill=type=green[fg];[0][fg]overlay=format=auto:shortest=1,format=yuv420p" -c:v libx264 -crf 16 out.mp4
+
+# Locked-off camera, the empty room as its own clip: the plate goes first, the key learns it, then it is trimmed off
+ffmpeg -i plate.mp4 -i talk.mp4 -filter_complex "[0:v][1:v]concat=n=2:v=1:a=0,backgroundkey=threshold=0.3:similarity=0.1:blend=0.02,trim=start=<plate seconds>,setpts=PTS-STARTPTS" -c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le speaker_alpha.mov
+```
+
+Tuning, measured:
+- `chromakey` / `hsvkey`: raise `similarity` in steps of 0.02 until the screen is gone in the worst-lit corner, and stop before hair or clothes start to go; `blend` 0.02 to 0.08 softens the edge. `despill` removes the green fringe; use `type=blue` for a blue screen. A speaker wearing the screen's colour cannot be keyed: use the model route.
+- `backgroundkey` learns the background from the first frame it sees, so that frame must be the empty room. Its `threshold` is a scene-change reset, not a key strength: when the whole frame changes by more than it, the filter takes that frame as the new background and the speaker vanishes. Measured: with grain, 0.04 reset on noise alone (whole frame transparent); 0.08 held a speaker covering 16 percent of the frame but reset when the speaker covered 49 percent; 0.2 and 0.5 held both. Start at 0.3. `similarity` (default 0.1) is the per-pixel tolerance: raise it for grain or compression noise, lower it when a speaker's clothes match the wall. The camera, exposure, white balance and light must not change during the take; any change shows as holes or a halo.
+- Check alpha on three hard frames (hair, hands, the frame bottom) before the full render, as for any matte below.
+
+Model-based isolation, for footage the two keys cannot handle:
+
 | Tool | Use | Notes |
 |---|---|---|
 | Person matting (u2net human segmentation class, CPU) | Talking heads, text behind subject, cutout layouts | Alpha output as VP9 WebM (about 1 MB per 4 s), ProRes 4444 `.mov` or PNG frames; quality fast CRF 30, balanced 18, best 12. CPU only, about 2 fps at 1080p. The background plate it writes is hole-cut, not inpainted: a clean empty plate needs an inpainting model |
 | Prompted segmentation (SAM 2.1 class), local | Objects, props, hands, any non-person subject | Model by machine: 12 GB or more GPU large (898 MB), smaller GPU or Apple Silicon base-plus (323 MB), CPU tiny (156 MB). CPU is slow (about 5 s per frame): suggest separating only the needed range. Work at 960 px wide (the model resizes to 1024 itself, smaller is not faster). Convert variable frame rate first. Nothing is uploaded |
-| A real empty plate | Background replacement behind a locked-off speaker | About 5 s of the empty room from the same tripod position, when the user supplied it or a stage 01 question asked for it. Auto mode with no plate: decide the fallback (keep the original room, or a hole-cut matte over a designed backdrop), log it in `ice/DIRECTION.md` and report it in the delivery note |
+| A real empty plate | Background replacement behind a locked-off speaker, and the `backgroundkey` route above | About 5 s of the empty room from the same tripod position, when the user supplied it or a stage 01 question asked for it. Auto mode with no plate: decide the fallback (keep the original room, or a hole-cut matte over a designed backdrop), log it in `ice/DIRECTION.md` and report it in the delivery note |
 
-Model downloads are large: name the model and its size in the stage 01 message when the need is known then, and download only after a yes. Without a yes: keep the original frame (no isolation), log it, and say in the delivery note what the download would add.
+Model downloads are large: use them only when neither key above fits the footage; name the model and its size in the stage 01 message when the need is known then, and download only after a yes. Without a yes: keep the original frame (no isolation), log it, and say in the delivery note what the download would add.
 
 Mask quality:
 - Try a short range first (about 20 frames), check it, then run the full range in chunks (60 frames, each seeded by the previous last mask).

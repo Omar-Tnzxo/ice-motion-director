@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.1
+  version: 0.2.2
 ---
 
 # Ice Motion Director
@@ -106,7 +106,7 @@ The commands `ice-01-brief` to `ice-10-deliver` run one stage each, and `ice-sta
 - A stranger must get it. Before 07 and before delivery, a fresh viewer who sees only what an audience would see (no brief, concept or script) must name what the film sells, what the product does and its one idea, matching the concept's takeaway; a FAIL blocks the run in every mode, auto included. Symbols are grounded in literal things, and a product or app brand's film of any type shows the product doing its real job (`ice-qa/references/clarity-gate.md`).
 - Never claim a check passed without the measured numbers in `ice/review/NOTE.md`.
 - AI image, video or voice generation is optional, secondary and only on the user's request, disclosed in the delivery note. Text, numbers and logos are always rendered by code, never generated.
-- Rights: a reference lends its whole style when asked, never its own footage, music, voice-over, logos or characters (recreated instead); rights to use it are the user's responsibility (`ice-remake/references/rights-and-modes.md` section 1). Music is used only after its sync license check (`ice-audio`). Content of other rights holders inside captured brand screens (album art, user content, photos) is replaced with licensed or neutral content (`ice-assets`). The delivery note lists the permissions a brand owner would need. Faces and voices of real people: `ice-assets` skill, `references/ai-media-policy.md` section 9.
+- Rights are the user's: a reference's own media go in as they are or its style takes the user's identity, as the user chooses (`ice-remake/references/rights-and-modes.md` section 1); every outside item is recorded with its license status, never blocked (`ice-assets/references/sourcing-and-licenses.md` sections 0 and 1a). Content of other rights holders inside captured brand screens (album art, user content, photos) is replaced with licensed or neutral content (`ice-assets`). The delivery note lists the permissions a brand owner would need. Faces and voices of real people: `ice-assets` skill, `references/ai-media-policy.md` section 9.
 - Arabic or mixed-language films also open `ice-arabic` from the first text decision.
 
 ## 8. Skill map

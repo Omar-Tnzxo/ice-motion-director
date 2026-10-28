@@ -52,3 +52,20 @@ test("no owned file still asks for a person's consent", () => {
   }
   assert.deepEqual(hits, []);
 });
+
+// Outside items (founder decision, 2026-10-28): rights are the user's; sourcing-and-licenses.md section 0 owns the rule:
+// no question, one record with a license status, a "Needs a license before publishing" list, never a block.
+const SOURCING = "skills/ice-assets/references/sourcing-and-licenses.md";
+test("outside items: one record with a license status, never a block", () => {
+  const text = readText(SOURCING);
+  const s0 = text.slice(text.indexOf("\n## 0. "), text.indexOf("\n## 1. "));
+  assert.match(s0, /Rights to use every outside item are the user's responsibility\./);
+  assert.match(s0, /`licensed`.*`unknown`.*`needs purchase`/s);
+  assert.match(s0, /Needs a license before publishing/);
+  assert.match(s0, /never refused, swapped or downgraded/);
+  assert.doesNotMatch(text, /never shipped|any unknown means do not ship|Never ship unlicensed/i);
+  for (const f of ["skills/ice-remake/references/rights-and-modes.md", "skills/ice-remake/references/style-recipe.md",
+                   "skills/ice-motion-director/SKILL.md", "skills/ice-audio/SKILL.md", "README.md"]) {
+    assert.doesNotMatch(readText(f), /never (enter|go into) the deliverable|recreated, never placed|never unknown|The two limits/i, f);
+  }
+});

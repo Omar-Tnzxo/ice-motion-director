@@ -12,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.1
+  version: 0.2.2
 ---
 
 # Ice Audio
@@ -28,7 +28,7 @@ Not owned here: caption timing and on-screen text (ice-type), Arabic dialect nar
 3. Plan in data, never adjectives: a cue sheet with times, a music brief with numbers, a sound plan with one row per event and its visible cause.
 4. One clock per film: the voice (voice-led) or the beat grid (music-led). Write it in the cue sheet.
 5. Every sound has a visible cause or a written reason. Restraint is the design; silence is scored, not leftover.
-6. Licensed or generated, never unknown: every music and SFX file has a recorded source and license checked against the stated use case, or it does not ship. No music track is placed in the cue sheet, edited to picture or mixed before it passes the sync license check (music-choice-and-licensing.md section 5).
+6. Recorded, never blocked: every music and SFX file has a recorded source, owner and license status (`licensed`, `unknown`, `needs purchase`) checked against the stated use case; rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses.md` section 0). A reference's own track, the user's track or any available track is a valid choice. Every track gets the sync license check (music-choice-and-licensing.md section 5) before it is placed in the cue sheet; its result is a status for the delivery note, never a reason to drop the track.
 7. AI voice, music or SFX generation is optional, user-initiated and disclosed. Real people's voices, clones included, follow the `ice-assets` skill, `references/ai-media-policy.md` section 9.
 8. Measure the exported MP4, not the intermediate WAV.
 9. Anti-sameness: the sound axis (lead: score, sound design, voice or silence; genre; tempo band; dramaturgy) is logged in `ice/DIRECTION.md` with reasons; its definition and the distance rules: the `ice-direction` skill, `references/anti-sameness.md` section 1.
@@ -90,7 +90,7 @@ Stage 08 runs in two parts: 08a beside the 07 build, from the locked cue sheet; 
 | Use recorded and licensed audio | Use code-generated audio |
 |---|---|
 | The user supplied a track | Code-native film types and styles: art film, kinetic type, logo sting, pixel, synthwave, HUD, glitch, liquid, lo-fi collage, Bauhaus and similar |
-| Client brand film, industry spot, product launch for a paying client (library tracks beat AI scores in client tests) | Zero third-party assets requested, or no license-safe track exists |
+| Client brand film, industry spot, product launch for a paying client (library tracks beat AI scores in client tests) | Zero third-party assets requested, or the user chose a new score |
 | Real-footage edits (long-form, podcast, talking-head ad, reels) | UI loops and abstract UI sounds |
 | Physical contact sounds in realistic worlds (recorded foley) | Synthetic picture worlds (blips, chiptune, HUD, cartoon) |
 

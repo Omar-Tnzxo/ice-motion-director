@@ -39,7 +39,7 @@ The delivery report `ice/review/NOTE.md` uses the template of the `ice-qa` skill
 
 - "Decided for you": every creative call made without asking (from `ice/DIRECTION.md`), so the user can overturn any in one reply.
 - "The idea": the structure fingerprint line (`structure.md` section 7), how many axes differ from the nearest template, and one alternative direction for a next version.
-- "Permissions": for a brand the user does not own, the owner's written permission for the logo, the screens and the name; for licensed music, the sync license terms (media, territory, term); for any person shown, their release; any regulated claim that needs the owner's approved wording (from `ice/research/COMPLIANCE.md`). Each line says what is needed and from whom, in plain words.
+- "Permissions": the neutral rights line and the "Needs a license before publishing" list (`ice-assets/references/sourcing-and-licenses.md` section 0): for a brand the user does not own, the logo, the screens and the name; for music, the sync license terms (media, territory, term) or the status `unknown` or `needs purchase`; every outside clip or image that is not `licensed`; any regulated claim that needs the owner's approved wording (from `ice/research/COMPLIANCE.md`). Each line says what is needed and from whom, in plain words, with no warning beyond it.
 - "What a yes would add": every consent item the run skipped (an install, a download, a paid tool) and what it would change.
 
 ## 4. After delivery

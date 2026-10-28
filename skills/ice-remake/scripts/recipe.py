@@ -16,7 +16,8 @@ Writes into <ref>:
     style-recipe.json            its machine twin
 Format: references/style-recipe.md. Nothing is invented: a value no file holds is written as unknown together with
 what would measure it. No rights gate (references/rights-and-modes.md section 1): the recipe carries the full style,
-skin included, with one neutral line that rights are the user's responsibility; the reference's own media stay out.
+skin included, with one neutral line that rights are the user's responsibility; the reference's own media go in as
+they are or are recreated, as the identity slot says (asked at stage 01 when open).
 """
 import argparse, datetime, json, os, re, statistics, sys
 
@@ -38,9 +39,11 @@ TAKEN = ["rhythm and shot length distribution", "cut positions relative to beats
          "composition and layout", "climax anatomy (build, held breath, hit, hold)", "motif and rhyme structure",
          "palette values and relationships (light and dark ratio, saturation, accent rule)", "material, texture and light mood",
          "sound design and music style (genre, tempo, energy, structure, SFX types and placement, mix levels)"]
-RECREATED = ["its footage and frames", "its music track and lyrics (new music in the same genre, tempo, energy and structure)",
-             "its voice-over", "its sound effect recordings (new effects of the same types at the same moments)",
-             "its logos", "its characters"]
+OWN_MEDIA = ["its footage and frames", "its music track and lyrics (or new music in the same genre, tempo, energy and structure)",
+             "its voice-over", "its sound effect recordings (or new effects of the same types at the same moments)",
+             "its logos and end card", "its characters"]
+IDENTITY = ("identity slot: its own media and identity as they are, the same style with my identity, a mix named per element, "
+            "or the style only; outside items are recorded with their license status (ice-assets references/sourcing-and-licenses.md section 0)")
 PEOPLE = "real people's faces and voices: ice-assets references/ai-media-policy.md section 9"
 
 
@@ -584,7 +587,8 @@ def prompt_block(ref_id, rel_path, mode, slots):
     lines = [f"Use Ice Motion Director with the style recipe {rel_path} (reference {ref_id}; machine twin style-recipe.json in the same folder).",
              f"Mode: {mode}. {RIGHTS_LINE}",
              "Recreate its whole style, skin included unless I give a brand.",
-             "Never place its own media in the new piece; recreate them: " + "; ".join(RECREATED) + ".",
+             "Its own media, placed as they are or recreated as the identity slot says: " + "; ".join(OWN_MEDIA) + ".",
+             f"If I did not say which, ask the {IDENTITY}.",
              f"For {PEOPLE}."]
     lines.append("If content is footage, edit my footage with this recipe as the style reference; if it is from-scratch, build a new piece in this style.")
     lines.append("Slots:")
@@ -622,7 +626,7 @@ def markdown(r):
          *([f"- Caveats: {h['caveats']}"] if h.get("caveats") else []),
          f"- Mode: {h['mode']}   {h['rights']}",
          "- Taken: " + "; ".join(h["taken"]),
-         "- Recreated, never placed in the new piece: " + "; ".join(h["recreated"]),
+         "- Its own media, placed as they are or recreated (identity slot): " + "; ".join(h["own_media"]),
          f"- {h['people'][0].upper()}{h['people'][1:]}", "",
          "## 2. Measured grammar", ""]
     for k, label in (("tempo", "Tempo grid"), ("shot_lengths", "Shot lengths"), ("cuts_vs_beats", "Cuts against beats"),
@@ -724,7 +728,7 @@ def main():
                     "aspect": notes.get("aspect") or (f"{w}:{hgt} ({rnd(w / hgt)})" if w and hgt else unknown("analyze.py video size")),
                     **({"orientation": notes.get("orientation") or (rep.get("orientation") or {}).get("note")} if notes.get("orientation") or (rep.get("orientation") or {}).get("rotated") else {}),
                     **({"caveats": notes["caveats"]} if notes.get("caveats") else {}),
-                    "rights": RIGHTS_LINE, "mode": mode, "taken": TAKEN, "recreated": RECREATED, "people": PEOPLE},
+                    "rights": RIGHTS_LINE, "mode": mode, "taken": TAKEN, "own_media": OWN_MEDIA, "identity": IDENTITY, "people": PEOPLE},
          "grammar": g, "look": look(rep, notes), "sound": sound(rep, sm, cuts, v.get("duration"), structure_rows(rep, seams(rep, trans))[0]),
          "feeling": feeling(notes, g, v.get("duration")), "slots": slots, "scaling": scaling(rep, g)}
     rel_path = f"ice/reference/{ref_id}/STYLE-RECIPE.md"
