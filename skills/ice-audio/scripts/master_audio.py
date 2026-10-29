@@ -1,6 +1,12 @@
 # Adapted from Omar-Tnzxo/video-production-studio tools/master_audio.py (founder-owned, licensed here under Apache-2.0). Changes: ffmpeg runs with stdin closed, clear error when ffmpeg or ffprobe is missing, --music-start (back-timing offset into the track), --music-fade-in (default 0: the music starts at full level), --music-fade-out (0 = keep the track's own ending) and --music-loop added, the applied music edges recorded in master.json, an unreadable video duration is an input error instead of a silent 10 s guess, usage path updated; loudnorm replaced by a measured linear gain plus a 4x oversampled true-peak limiter, output forced to 48 kHz, the exported file re-measured with ffmpeg ebur128 and re-rendered until the true peak meets the target (exit 1 when it cannot).
 # 2026-10-29 (0.2.5): voice or SFX energy cut at the film end is reported in master.json ("cut_at_end") and on screen, and a
 # cut voice fails the master (exit 1); a looped or short music track is recorded as before and also printed as a warning.
+# 2026-10-29 (0.2.6): --no-sfx-premix OUT writes the same mix without the SFX layer (same gain and limiter as the
+# delivered file, audio only, 48 kHz), recorded in master.json under "no_sfx_premix"; qc.py --audit reads it (A14).
+# 2026-10-29 (0.2.6), two placement fixes found by A14 on generated tones: the voice offset and every SFX start are a
+# sample-exact pad of silence joined by concat (adelay feeding amix dropped its delay in about 1 run of 8 and played a
+# late cue at 0 s); the mix lasts the film (amix duration=first ended all audio at the last word when the voice was the
+# first input and ended before the picture; now duration=longest, padded and trimmed to the film).
 """Master and normalize audio for video with multi-track mixing, loudness gain and a true-peak limiter.
 
 Method: mix, measure integrated loudness with ffmpeg ebur128, apply the linear gain to the target, limit
@@ -32,6 +38,8 @@ Inputs:
   --target-lufs LUFS: Target integrated loudness (default: -14.0)
   --true-peak TP: Maximum true peak in dBTP, measured on the exported file (default: -1.5)
   --lra LRA: Accepted for old command lines and ignored; LRA is measured and reported
+  --no-sfx-premix FILE: Also write the same mix without the SFX layer (audio only, 48 kHz; .wav keeps it lossless),
+      through the gain and limiter of the delivered file, so qc.py --audit can measure each cue against it (A14)
 
 Music edges: these four flags are the only things that change the start or end of the music. Nothing else
 fades, trims or delays it; voiceover and SFX are never faded. Every applied value is written to master.json
@@ -44,7 +52,8 @@ problem (status fail, exit 1): end the line earlier or lengthen the picture.
 
 Outputs:
   OUT.mp4: Mastered video file with copied video stream and AAC audio at 48 kHz
-  master.json: Metrics file saved next to the output video ("status": "pass" or "fail", every render tried, "music_edges")
+  master.json: Metrics file saved next to the output video ("status": "pass" or "fail", every render tried, "music_edges",
+      and "no_sfx_premix" with the premix path when --no-sfx-premix is given)
 
 Exit codes:
   0: Success, 2: Bad input or invalid arguments, 1: Execution failure or a missed target
@@ -186,6 +195,20 @@ def master_chain(gain_db: float, ceiling_db: float) -> str:
     )
 
 
+FORMAT_48K = f"aformat=sample_fmts=fltp:sample_rates={SAMPLE_RATE}:channel_layouts=stereo"
+
+
+def delayed(src: str, head: str, seconds: float, label: str, video_duration: float) -> list[str]:
+    """`src` through the `head` filters, starting `seconds` into the film: a sample-exact pad of silence joined by
+    concat. (adelay feeding amix dropped its delay in about 1 run of 8 and played a late cue at 0 s; 2026-10-29.)"""
+    pad = int(round(seconds * SAMPLE_RATE))
+    return [
+        f"anullsrc=r={SAMPLE_RATE}:cl=stereo,atrim=end_sample={pad},{FORMAT_48K}[{label}_pad]",
+        f"{src}{head}{FORMAT_48K}[{label}_raw]",
+        f"[{label}_pad][{label}_raw]concat=n=2:v=0:a=1,atrim=0:{video_duration:.4f},asetpts=PTS-STARTPTS[{label}]",
+    ]
+
+
 def build_filter_graph(
     video_path: pathlib.Path,
     video_duration: float,
@@ -241,10 +264,10 @@ def build_filter_graph(
             sys.stderr.write("Notice: --keep-video-audio requested but video has no audio stream.\n")
 
     # 2. Voiceover track
-    if vo_path and vo_idx is not None:
-        if vo_offset > 0:
-            vo_timing = f"adelay={int(round(vo_offset * 1000.0))}|{int(round(vo_offset * 1000.0))}:all=1,"
-        elif vo_offset < 0:
+    if vo_path and vo_idx is not None and round(vo_offset * SAMPLE_RATE) > 0:
+        filter_chains.extend(delayed(f"[{vo_idx}:a]", "", vo_offset, "a_vo_base", video_duration))
+    elif vo_path and vo_idx is not None:
+        if vo_offset < 0:
             vo_timing = f"atrim=start={abs(vo_offset):.4f},asetpts=PTS-STARTPTS,"
         else:
             vo_timing = ""
@@ -287,9 +310,11 @@ def build_filter_graph(
     for idx, (in_idx, item) in enumerate(sfx_spec):
         at_sec = float(item.get("at", 0.0))
         gain_db = float(item.get("gain_db", 0.0))
-        if at_sec > 0:
-            sfx_timing = f"adelay={int(round(at_sec * 1000.0))}|{int(round(at_sec * 1000.0))}:all=1,"
-        elif at_sec < 0:
+        mix_inputs.append(f"[a_sfx_{idx}]")
+        if round(at_sec * SAMPLE_RATE) > 0:
+            filter_chains.extend(delayed(f"[{in_idx}:a]", f"volume={gain_db:.2f}dB,", at_sec, f"a_sfx_{idx}", video_duration))
+            continue
+        if at_sec < 0:
             sfx_timing = f"atrim=start={abs(at_sec):.4f},asetpts=PTS-STARTPTS,"
         else:
             sfx_timing = ""
@@ -298,16 +323,19 @@ def build_filter_graph(
             f"aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
             f"atrim=0:{video_duration:.4f},asetpts=PTS-STARTPTS[a_sfx_{idx}]"
         )
-        mix_inputs.append(f"[a_sfx_{idx}]")
 
     if not mix_inputs:
         raise ValueError("No audio sources available to master.")
 
+    # The mix lasts the film: every input is trimmed to it, the longest one sets the mix, silence pads the rest
+    # (duration=first ended the whole mix at the last word when the voice came first and ended early; 2026-10-29).
+    to_film = f"apad=whole_dur={video_duration:.4f},atrim=0:{video_duration:.4f}"
     if len(mix_inputs) == 1:
-        filter_chains.append(f"{mix_inputs[0]}anull[a_mix]")
+        filter_chains.append(f"{mix_inputs[0]}{to_film}[a_mix]")
     else:
         filter_chains.append(
-            f"{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:duration=first:dropout_transition=0:normalize=0[a_mix]"
+            f"{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:duration=longest:dropout_transition=0:normalize=0,"
+            f"{to_film}[a_mix]"
         )
 
     return ffmpeg_inputs, ";".join(filter_chains)
@@ -388,6 +416,33 @@ def describe_cuts_at_end(
     return out
 
 
+def render_no_sfx_premix(
+    dest: pathlib.Path, video: pathlib.Path, video_duration: float, video_has_audio: bool, keep_video_audio: bool,
+    vo: pathlib.Path | None, vo_offset: float, music: pathlib.Path | None, music_gain: float, duck: bool,
+    sfx_items: list[dict[str, Any]], gain_db: float, ceiling_db: float, music_start: float, music_fade_out: float,
+    music_fade_in: float, music_loop: bool,
+) -> dict[str, Any]:
+    """The delivered mix without the SFX layer, through the same gain and limiter, as audio only at 48 kHz."""
+    keep = keep_video_audio or (not vo and not music and not sfx_items)  # the same original-audio choice as the full mix
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if vo or music or (keep and video_has_audio):
+        inputs, base = build_filter_graph(
+            video_path=video, video_duration=video_duration, video_has_audio=video_has_audio, keep_video_audio=keep,
+            vo_path=vo, vo_offset=vo_offset, music_path=music, music_gain=music_gain, duck=duck, sfx_items=[],
+            music_start=music_start, music_fade_out=music_fade_out, music_fade_in=music_fade_in, music_loop=music_loop,
+        )
+        cmd = ["ffmpeg", "-y"] + inputs + ["-filter_complex", f"{base};[a_mix]{master_chain(gain_db, ceiling_db)}[a_out]",
+                                           "-map", "[a_out]", "-vn", "-ar", str(SAMPLE_RATE), str(dest)]
+    else:  # the SFX layer is the whole mix: without it the film is silent
+        cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", f"anullsrc=r={SAMPLE_RATE}:cl=stereo", "-t", f"{video_duration:.4f}",
+               "-ar", str(SAMPLE_RATE), str(dest)]
+    res = run_command(cmd)
+    if res.returncode != 0:
+        raise RuntimeError(f"FFmpeg rendering of the no-SFX premix failed:\n{res.stderr}")
+    return {"file": str(dest.resolve()), "gain_db": round(gain_db, 3), "limiter_ceiling_db": round(ceiling_db, 3),
+            "sfx_cues_left_out": len(sfx_items)}
+
+
 def master_audio(
     video: pathlib.Path,
     out: pathlib.Path,
@@ -405,6 +460,7 @@ def master_audio(
     music_fade_out: float = 1.5,
     music_fade_in: float = 0.0,
     music_loop: bool = True,
+    no_sfx_premix: pathlib.Path | None = None,
 ) -> dict[str, Any]:
     """Execute two-pass loudness normalization and audio mix for video."""
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -466,7 +522,9 @@ def master_audio(
     # Pass 2 and later: render, measure the exported file, tighten until the true peak meets the target
     renders: list[dict[str, Any]] = []
     final: dict[str, Any] = {}
+    used_gain, used_ceiling = gain, ceiling
     for _attempt in range(MAX_RENDERS):
+        used_gain, used_ceiling = gain, ceiling
         graph = f"{base_filter};[a_mix]{master_chain(gain, ceiling)}[a_out]"
         res = run_command(["ffmpeg", "-y"] + ffmpeg_inputs + [
             "-filter_complex", graph, "-map", "0:v", "-map", "[a_out]",
@@ -496,6 +554,13 @@ def master_audio(
         problems.append(f"the voiceover is cut at the film end ({cut_at_end['voice']['seconds_after_end']} s after the "
                         f"last frame, peak {cut_at_end['voice']['peak_db']} dBFS): end the line earlier or lengthen the picture")
 
+    premix = None
+    if no_sfx_premix:
+        premix = render_no_sfx_premix(
+            no_sfx_premix, video, video_duration, vid_info["has_audio"], keep_video_audio, vo, vo_offset, music,
+            music_gain, duck, sfx_items, used_gain, used_ceiling, music_start, music_fade_out, music_fade_in, music_loop,
+        )
+
     out_info = probe_video(out)
     master_summary = {
         "status": "fail" if problems else "pass",
@@ -508,6 +573,7 @@ def master_audio(
         "renders": renders,
         "music_edges": music_edges,
         "cut_at_end": cut_at_end,
+        **({"no_sfx_premix": premix} if premix else {}),
         "video_stream": {"codec_name": out_info["codec_name"], "nb_frames": out_info["nb_frames"], "duration": out_info["duration"]},
         "output_file": str(out.resolve()),
     }
@@ -539,7 +605,7 @@ def main() -> int:
             keep_video_audio=args.keep_video_audio, music=args.music, music_gain=args.music_gain,
             duck=args.duck, sfx=args.sfx, target_lufs=args.target_lufs, true_peak=args.true_peak, lra=args.lra,
             music_start=args.music_start, music_fade_out=args.music_fade_out,
-            music_fade_in=args.music_fade_in, music_loop=args.music_loop,
+            music_fade_in=args.music_fade_in, music_loop=args.music_loop, no_sfx_premix=args.no_sfx_premix,
         )
         sys.stdout.write(json.dumps(summary, ensure_ascii=False) + "\n")
         edges = summary.get("music_edges") or {}
@@ -596,6 +662,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target-lufs", type=float, default=-14.0, help="Target integrated loudness in LUFS.")
     parser.add_argument("--true-peak", type=float, default=-1.5, help="Maximum true peak in dBTP on the exported file.")
     parser.add_argument("--lra", type=float, default=11.0, help="Ignored (kept for old command lines); LRA is measured and reported.")
+    parser.add_argument("--no-sfx-premix", type=pathlib.Path, default=None, metavar="FILE",
+                        help="Also write the same mix without the SFX layer (audio only; for qc.py --audit A14).")
     return parser
 
 

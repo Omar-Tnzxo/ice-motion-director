@@ -6,6 +6,9 @@
 // its profile table equals mix-and-master.md section 5 and quick-checks.mjs, loudness --profile exits 1 off the
 // profile, align_script_to_asr.py --stem tells masked from misheard, master_audio.py fails a cut voice, and
 // qc.py --diagnose finds hum and a noise floor.
+// every effect heard (0.2.6): master_audio.py places SFX and the voice offset sample-exact, keeps the mix as long as the
+// film and writes the no-SFX premix; qc.py --audit A14 measures each cue against it (a late or unheard hero cue blocks),
+// A7 sends unexplained level jumps at cuts to the ear list, A17 gives the repeated-pulse item its time range.
 // Graph checks need Python 3.10+; the render checks also need ffmpeg and ffprobe on PATH, the ranking numpy and
 // scipy. Each test skips cleanly when its tool is missing.
 // Run: node --test tests/
@@ -515,6 +518,261 @@ test("audit: qc.py --diagnose finds mains hum and a raised noise floor, and pass
   assert.equal(dirty.symptoms.hum.value.frequency, 50);
   const clean = diagnose("clean");
   assert.ok(!clean.candidates.includes("hum") && !clean.candidates.includes("noise_floor"), JSON.stringify(clean.candidates));
+});
+
+// ---------------------------------------------------------------- 0.2.6: every sound effect is heard in the mix
+test("master_audio: SFX and a delayed voice start on a sample-exact pad, and the mix is padded to the film", (t) => {
+  if (!needPython(t)) return;
+  const { graph } = py(`inputs, graph = m.build_filter_graph(pathlib.Path("v.mp4"), 10.0, False, False, pathlib.Path("vo.wav"), 1.5,
+    pathlib.Path("m.wav"), -18.0, True, [{"file": pathlib.Path("s.wav"), "at": 7.25, "gain_db": -3.0}])
+print(json.dumps({"graph": graph}))`);
+  assert.doesNotMatch(graph, /adelay/, "adelay feeding amix dropped its delay in some runs and played a late cue at 0 s");
+  assert.match(graph, /anullsrc=r=48000:cl=stereo,atrim=end_sample=72000,[^;]*\[a_vo_base_pad\]/, "the voice offset is 1.5 s of silence");
+  assert.match(graph, /anullsrc=r=48000:cl=stereo,atrim=end_sample=348000,[^;]*\[a_sfx_0_pad\]/, "the SFX start is 7.25 s of silence");
+  assert.match(graph, /\[a_sfx_0_pad\]\[a_sfx_0_raw\]concat=n=2:v=0:a=1,atrim=0:10\.0000/);
+  assert.match(graph, /amix=inputs=3:duration=longest:[^;]*apad=whole_dur=10\.0000,atrim=0:10\.0000\[a_mix\]$/,
+    "the mix lasts the film, whichever input comes first");
+});
+
+test("master_audio: a voice that ends before the picture keeps the music to the last frame (render)", { skip: FFMPEG ? false : "ffmpeg or ffprobe not on PATH" }, (t) => {
+  if (!needPython(t)) return;
+  const dir = join(work, "early voice");
+  mkdirSync(dir, { recursive: true });
+  const mk = (args) => spawnSync("ffmpeg", ["-loglevel", "error", "-y", ...args], { encoding: "utf8" });
+  let r = mk(["-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=4", "-c:v", "libx264", "-pix_fmt", "yuv420p", join(dir, "picture.mp4")]);
+  assert.equal(r.status, 0, r.stderr);
+  r = mk(["-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000:duration=4", "-ac", "2", join(dir, "music.wav")]);
+  assert.equal(r.status, 0, r.stderr);
+  r = mk(["-f", "lavfi", "-i", "sine=frequency=1000:sample_rate=48000:duration=1", "-ac", "2", join(dir, "voice.wav")]);
+  assert.equal(r.status, 0, r.stderr);
+  const out = join(dir, "out", "film.mp4");
+  r = runPy(SCRIPT, "--video", join(dir, "picture.mp4"), "--out", out, "--vo", join(dir, "voice.wav"), "--vo-offset", "1",
+    "--music", join(dir, "music.wav"), "--music-fade-out", "0");
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const probe = spawnSync("ffprobe", ["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=duration", "-of", "csv=p=0", out], { encoding: "utf8" });
+  assert.ok(Math.abs(Number(probe.stdout.trim()) - 4) < 0.05, `the audio lasts ${probe.stdout.trim()} s of a 4 s film`);
+  assert.ok(meanDb(out, 3.2, 0.6) > -40, "the music must still play after the last word");
+});
+
+// 20 s at 48 kHz: music (a kick every 0.5 s, a 220 Hz pad, noise at 90 to 170 Hz), three one-shot hits (3 kHz, 6 kHz,
+// and a quiet 125 Hz hit inside the noise), SFX lists (the 6 kHz hit placed 100 ms after its frame) and cue sheets that
+// make one hit or another the hero. Illustration only.
+const SFX_TONES = String.raw`
+import json, sys, wave
+import numpy as np
+sr, dur = 48000, 20.0
+d = sys.argv[1]
+t = np.arange(int(sr * dur)) / sr
+noise = np.random.default_rng(3).standard_normal(len(t))
+spec = np.fft.rfft(noise)
+f = np.fft.rfftfreq(len(t), 1 / sr)
+spec[(f < 90) | (f > 170)] = 0
+band = np.fft.irfft(spec, len(t))
+x = 0.08 * np.sin(2 * np.pi * 220 * t) + 0.06 * band / band.std()
+k = np.arange(int(0.12 * sr)) / sr
+kick = 0.5 * np.sin(2 * np.pi * (50 + 80 * np.exp(-k * 30)) * k) * np.exp(-k * 25)
+for b in np.arange(0, dur, 0.5):
+    i = int(b * sr)
+    m = min(len(kick), len(t) - i)
+    x[i:i + m] += kick[:m]
+x -= x.mean()
+def write(name, y):
+    with wave.open(d + "/" + name, "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.stack([np.clip(y, -1, 1)] * 2, axis=1) * 32767).astype("<i2").tobytes())
+def hit(freq, gain):
+    h = np.arange(int(0.4 * sr)) / sr
+    return gain * np.sin(2 * np.pi * freq * h) * np.minimum(1, h / 0.002) * np.exp(-h * 12)
+write("music.wav", x)
+write("hit bright.wav", hit(3000, 0.5))
+write("hit air.wav", hit(6000, 0.5))
+write("hit low.wav", hit(125, 0.004))
+def put(name, data):
+    with open(d + "/" + name, "w") as fh:
+        json.dump(data, fh)
+put("sfx.json", [{"file": "hit bright.wav", "at": 4.998}, {"file": "hit low.wav", "at": 9.998}, {"file": "hit air.wav", "at": 15.098}])
+put("sfx low.json", [{"file": "hit low.wav", "at": 9.998}])
+def ev(t, what, sound, hero=False):
+    return {"t": t, "kind": "contact", "what": what, "sound": sound, **({"hero": True} if hero else {})}
+put("cues hero on time.json", {"fps": 30, "events": [ev(5.0, "card lands", "bright hit", True), ev(10.0, "box closes", "low hit"), ev(15.0, "badge pops", "air hit")]})
+put("cues hero late.json", {"fps": 30, "events": [ev(5.0, "card lands", "bright hit"), ev(10.0, "box closes", "low hit"), ev(15.0, "badge pops", "air hit", True)]})
+put("cues low.json", {"fps": 30, "events": [ev(10.0, "box closes", "low hit")]})
+`;
+
+// The film mastered once by master_audio.py with --no-sfx-premix, then audited per cue sheet in its own project folder.
+let sfxFilmMemo = null;
+function sfxFilm() {
+  if (sfxFilmMemo) return sfxFilmMemo;
+  const dir = join(work, "sfx cues");
+  mkdirSync(dir, { recursive: true });
+  let r = runPy("-c", SFX_TONES, dir);
+  assert.equal(r.status, 0, r.stderr);
+  r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=20",
+    "-c:v", "libx264", "-pix_fmt", "yuv420p", join(dir, "picture.mp4")], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  const render = join(dir, "out", "film.mp4");
+  r = runPy(SCRIPT, "--video", join(dir, "picture.mp4"), "--out", render, "--music", join(dir, "music.wav"), "--music-fade-out", "0",
+    "--sfx", join(dir, "sfx.json"), "--no-sfx-premix", join(dir, "out", "premix.wav"));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const audits = {};
+  const audit = (sheet, sfx = "sfx.json", ...extra) => {
+    const key = [sheet, sfx, ...extra].join(" ");
+    if (audits[key]) return audits[key];
+    const project = join(dir, `project ${Object.keys(audits).length}`);
+    const q = runPy(QC, "--audit", "--project", project, "--render", render, "--cue-sheet", join(dir, sheet), "--sfx", join(dir, sfx),
+      "--profile", "social", "--no-speech", ...extra);
+    assert.ok(q.status === 0 || q.status === 1, q.stdout + q.stderr);
+    const read = (f) => JSON.parse(readFileSync(join(project, "ice", "review", f), "utf8"));
+    audits[key] = { status: q.status, out: q.stdout, audit: read("audio-audit.json"), ear: read("ear-list.json") };
+    return audits[key];
+  };
+  sfxFilmMemo = { dir, master: JSON.parse(readFileSync(join(dir, "out", "master.json"), "utf8")), audit };
+  return sfxFilmMemo;
+}
+
+test("audit A14: each cue is measured against the no-SFX premix; a late hero cue blocks, other cues report (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const film = sfxFilm();
+  const premix = film.master.no_sfx_premix;
+  assert.ok(premix && readFileSync(premix.file).length > 0, "master.json names the premix file");
+  assert.equal(premix.sfx_cues_left_out, 3);
+  assert.equal(premix.gain_db, film.master.renders.at(-1).gain_db, "the premix takes the delivered file's gain");
+
+  const onTime = film.audit("cues hero on time.json");
+  const a14 = onTime.audit.checks.A14;
+  for (const key of ["value", "threshold", "source", "pass", "blocking"]) assert.ok(key in a14, `A14 has ${key}`);
+  assert.match(a14.source, /sfx\.md section 6/);
+  assert.equal(a14.blocking, false, JSON.stringify(a14.findings));
+  assert.ok(!onTime.audit.blocking.includes("A14"));
+  const at = (run, s) => run.audit.checks.A14.value.cues.find((c) => c.t === s);
+  const hero = at(onTime, 5);
+  assert.equal(hero.hero, true);
+  assert.equal(hero.status, "audible", JSON.stringify(hero));
+  assert.equal(hero.sync, "on time");
+  assert.ok(Math.abs(hero.offset_ms) <= 10, `the hero cue measures ${hero.offset_ms} ms off its frame`);
+  assert.ok(["masked", "missing"].includes(at(onTime, 10).status), JSON.stringify(at(onTime, 10)));
+  const late = at(onTime, 15);
+  assert.equal(late.sync, "late");
+  assert.ok(late.offset_ms >= 90 && late.offset_ms <= 115, `the cue placed 100 ms late measures ${late.offset_ms} ms`);
+  assert.ok(onTime.ear.candidates.some((c) => c.source === "A14" && /0:15\.0/.test(c.question) && /late/.test(c.question)),
+    "a late cue that does not block goes to the ear list");
+  assert.equal(onTime.audit.presence.sfx, true);
+  assert.match(onTime.audit.presence_sources.sfx, /^A14: 2 of 3 cue/);
+
+  const heroLate = film.audit("cues hero late.json").audit.checks.A14;
+  assert.equal(heroLate.blocking, true);
+  assert.ok(heroLate.findings.some((f) => /hero cue "air hit" at 0:15\.0 lands \+\d+ ms after its frame \(blocks\)/.test(f)), heroLate.findings.join("; "));
+
+  const buried = film.audit("cues low.json", "sfx low.json").audit.checks.A14;
+  assert.equal(buried.blocking, true, "more than half of the cues not heard blocks");
+  assert.ok(buried.findings.some((f) => /1 of 1 cues are not heard/.test(f)), buried.findings.join("; "));
+
+  const none = film.audit("cues hero on time.json", "sfx.json", "--master-json", join(film.dir, "no master.json")).audit.checks.A14;
+  assert.equal(none.status, "unmeasured", "a hero cue with no premix cannot pass");
+  assert.equal(none.blocking, true);
+  assert.match(none.findings.join(" "), /--no-sfx-premix/);
+});
+
+// 20 s: a tone that moves to another octave and level every 2 s (an arrangement that keeps moving). Illustration only.
+const MOVING_TONES = String.raw`
+import sys, wave
+import numpy as np
+sr = 48000
+x = np.concatenate([g * np.sin(2 * np.pi * f * np.arange(2 * sr) / sr) for f, g in
+    ((110, 0.2), (880, 0.05), (3520, 0.1), (220, 0.25), (1760, 0.04), (440, 0.15), (7040, 0.08), (165, 0.2), (660, 0.06), (2640, 0.12))])
+with wave.open(sys.argv[1] + "/mix.wav", "wb") as w:
+    w.setnchannels(2)
+    w.setsampwidth(2)
+    w.setframerate(sr)
+    w.writeframes((np.stack([x, x], axis=1) * 32767).astype("<i2").tobytes())
+`;
+
+test("audit A17: the longest unchanged repeat gets an ear-list item with its time range; a moving bed has no finding (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const loop = sfxFilm().audit("cues hero on time.json");
+  const a17 = loop.audit.checks.A17;
+  assert.equal(a17.blocking, false, "fatigue is judged by ear: A17 never blocks");
+  assert.ok(a17.value.seconds >= 15, JSON.stringify(a17.value));
+  assert.equal(a17.value.kind, "a steady pulse", JSON.stringify(a17.value));
+  assert.equal(a17.findings.length, 1, "a kick loop under one-shot hits is one unchanged pattern");
+  const item = loop.ear.items.find((i) => i.source === "A17");
+  assert.ok(item, JSON.stringify(loop.ear.items.map((i) => i.source)));
+  assert.equal(item.start, a17.value.start);
+  assert.equal(item.end, a17.value.end);
+  assert.ok(!loop.ear.candidates.some((c) => c.source === "repeat"), "the repeat item comes from A17 only");
+  assert.match(auditRun("quiet bed", 0.05).audit.checks.A17.value.measured_on, /stems/);
+
+  const dir = join(work, "moving bed");
+  mkdirSync(dir, { recursive: true });
+  let r = runPy("-c", MOVING_TONES, dir);
+  assert.equal(r.status, 0, r.stderr);
+  r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=20",
+    "-i", join(dir, "mix.wav"), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest",
+    join(dir, "film.mp4")], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  r = runPy(QC, "--audit", "--project", dir, "--render", "film.mp4", "--profile", "social", "--no-speech");
+  assert.ok(r.status === 0 || r.status === 1, r.stdout + r.stderr);
+  const moving = JSON.parse(readFileSync(join(dir, "ice", "review", "audio-audit.json"), "utf8")).checks.A17;
+  assert.deepEqual(moving.findings, [], JSON.stringify(moving.value));
+  assert.ok(JSON.parse(readFileSync(join(dir, "ice", "review", "ear-list.json"), "utf8")).candidates.some((c) => c.source === "A17"),
+    "the ear list still carries the stretch with the least change");
+});
+
+// 10 s: a pad that steps up 10 dB at 5.0 s and back down at 7.5 s (10 ms ramps), and a cue sheet with cuts at 2.5, 5.0
+// and 7.5 s, the last one carrying a sound. Illustration only.
+const JUMP_TONES = String.raw`
+import json, sys, wave
+import numpy as np
+sr, dur = 48000, 10.0
+d = sys.argv[1]
+t = np.arange(int(sr * dur)) / sr
+g = np.interp(t, [0, 4.99, 5.01, 7.49, 7.51, dur], [0.03, 0.03, 0.095, 0.095, 0.03, 0.03])
+x = g * (np.sin(2 * np.pi * 220 * t) + 0.6 * np.sin(2 * np.pi * 330 * t) + 0.3 * np.sin(2 * np.pi * 1320 * t))
+with wave.open(d + "/mix.wav", "wb") as w:
+    w.setnchannels(2)
+    w.setsampwidth(2)
+    w.setframerate(sr)
+    w.writeframes((np.stack([x, x], axis=1) * 32767).astype("<i2").tobytes())
+with open(d + "/cue sheet.json", "w") as fh:
+    json.dump({"fps": 30, "events": [{"t": 2.5, "kind": "cut", "what": "wide to close", "sound": "none"},
+        {"t": 5.0, "kind": "cut", "what": "close to product", "sound": "none"},
+        {"t": 7.5, "kind": "cut", "what": "product to end card", "sound": "drop hit"}]}, fh)
+`;
+
+test("audit A7: an unexplained level jump at a cut goes to the ear list, a cue explains another, and A7 never blocks (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const dir = join(work, "level jumps");
+  mkdirSync(dir, { recursive: true });
+  let r = runPy("-c", JUMP_TONES, dir);
+  assert.equal(r.status, 0, r.stderr);
+  r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=10",
+    "-i", join(dir, "mix.wav"), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest",
+    join(dir, "film.mp4")], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  r = runPy(QC, "--audit", "--project", dir, "--render", "film.mp4", "--cue-sheet", "cue sheet.json", "--profile", "social", "--no-speech");
+  assert.ok(r.status === 0 || r.status === 1, r.stdout + r.stderr);
+  const audit = JSON.parse(readFileSync(join(dir, "ice", "review", "audio-audit.json"), "utf8"));
+  const a7 = audit.checks.A7;
+  assert.equal(a7.blocking, false);
+  assert.ok(!audit.blocking.includes("A7"));
+  assert.equal(a7.value.cut_source, "cue sheet");
+  const jump = (s) => a7.value.jumps.find((j) => j.t === s);
+  assert.ok(Math.abs(jump(2.5).jump_lu) < 1, JSON.stringify(jump(2.5)));
+  assert.ok(jump(5).jump_lu > 8 && jump(5).explained_by === null, JSON.stringify(jump(5)));
+  assert.match(jump(7.5).explained_by || "", /drop hit/, "a sound on the cut explains the jump");
+  assert.deepEqual(a7.findings.map((f) => f.slice(0, 6)), ["0:05.0"], a7.findings.join("; "));
+  const ear = JSON.parse(readFileSync(join(dir, "ice", "review", "ear-list.json"), "utf8"));
+  assert.ok(ear.items.some((i) => i.source === "A7" && i.start <= 5 && i.end >= 5 && /\?$/.test(i.question)), JSON.stringify(ear.items));
+  assert.equal(audit.checks.A17.status, "n/a", "a film under 15 s has no repeat item");
+});
+
+test("audit docs: audio-gates.md section 2b gates A7, A14 and A17, and the other files point to them", () => {
+  const gates = section("skills/ice-qa/references/audio-gates.md", "2b");
+  for (const id of ["A7", "A14", "A17"]) assert.match(gates, new RegExp(`^\\| ${id} `, "m"), `section 2b has a row for ${id}`);
+  assert.doesNotMatch(gates, /Not yet measured by a script: effects present/, "effects per cue are measured now");
+  assert.match(readText("skills/ice-audio/references/sfx.md"), /measurably present in the final mix[^\n]*A14/);
+  const mm = readText("skills/ice-audio/references/mix-and-master.md");
+  assert.match(mm, /--no-sfx-premix/);
+  assert.match(section("skills/ice-audio/references/mix-and-master.md", 7), /A7[^\n]*A14[^\n]*A17/);
 });
 
 // ---------------------------------------------------------------- the CC0 SFX pack (founder decision D4, 2026-10-29)

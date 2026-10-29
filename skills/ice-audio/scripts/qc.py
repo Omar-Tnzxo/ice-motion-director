@@ -10,6 +10,11 @@
 # human ear list ice/review/ear-list.json), --diagnose (intake symptoms of a recorded voice: ice/audio/voice-diagnosis.json),
 # --profile and --profiles (the gate column of mix-and-master.md section 5); numpy only in --audit and --diagnose
 # (imported there). The legacy modes and their output are unchanged.
+# 2026-10-29 (0.2.6): --audit adds A7 (level jumps at cuts, ear list only), A14 (each effect cue against the no-SFX
+# premix of master_audio.py --no-sfx-premix or --premix: in-band lift, level under the ducked score, sync; a hero cue
+# not heard or late blocks, more than half masked blocks) and A17 (the longest unchanged repeated pattern in the music
+# and SFX stems, moved out of the ear-list fallbacks into its own check); the cue sheet's "hero" flag is read; the sfx
+# presence follows A14 when it was measured.
 """
 Audio QC before and after render: catch the problems that otherwise show up in the final film.
 
@@ -43,7 +48,7 @@ Exit code: 0 when there are no errors (warnings allowed, unless --strict),
 
 Audit mode (08b on the draft, 10 on the delivered file; needs numpy from requirements.txt):
     python qc.py --audit --render out/film.mp4 --profile <id> [--stems ice/audio/stems]
-                 [--cue-sheet ice/plan/cue-sheet.json] [--sfx ice/audio/sfx.json] [--project .] [--json]
+                 [--cue-sheet ice/plan/cue-sheet.json] [--sfx ice/audio/sfx.json] [--premix FILE] [--project .] [--json]
     python qc.py --profiles          # the profile table as JSON (ids, targets, tolerances)
 
   --profile: one id of the "Gate (--profile)" column of the ice-audio skill, references/mix-and-master.md
@@ -55,9 +60,14 @@ Audit mode (08b on the draft, 10 on the delivered file; needs numpy from require
              bed. Without stems the voice-over-bed check (A3) is "unmeasured" and blocks, unless --separate is
              given and demucs is installed (it then splits the render), or --no-speech declares a film with no
              spoken word at all.
+  --premix:  the same mix without the SFX layer (master_audio.py --no-sfx-premix FILE, read from master.json by
+             default; or the engine's render with the SFX layer muted). Without it A14 is "not run", and
+             "unmeasured" (blocking) when a hero cue exists. A hero cue: its cue-sheet event has "hero": true, or
+             its kind, what or sound names a hero, signature, reveal, payoff or logo moment.
   Checks: A1 loudness, A3 voice over bed, A5 (read from align_script_to_asr.py --stem), A6 clicks and
-  truncation at joins, A8 clipping runs, A9 DC offset, A10 stereo, phase and mono loss, A11 stream spec and
-  length, A12 holes and declared silences, A13 music ending and cut voice, A15 effects under speech.
+  truncation at joins, A7 level jumps at cuts (ear list only), A8 clipping runs, A9 DC offset, A10 stereo, phase
+  and mono loss, A11 stream spec and length, A12 holes and declared silences, A13 music ending and cut voice,
+  A14 each effect cue heard and in sync, A15 effects under speech, A17 the longest repeated pattern (ear list only).
   Writes <project>/ice/review/audio-audit.json (per check: value, threshold, source, pass, blocking; "presence":
   music, voice, sfx, ambience, foley and silence found measured or cued, with "presence_sources") and
   <project>/ice/review/ear-list.json (5 to 7 items for a human ear), and prints the "## For your ears" block.
@@ -558,21 +568,41 @@ def _sum_tracks(np, arrays):
     return out
 
 
+def _times(v) -> list[float]:
+    """Film times from a number, a {"t" | "start" | "time" | "at": s} object, or a list of either."""
+    if isinstance(v, bool):
+        return []
+    if isinstance(v, (int, float)):
+        return [float(v)]
+    if isinstance(v, dict):
+        k = next((k for k in ("t", "start", "time", "at") if isinstance(v.get(k), (int, float))
+                  and not isinstance(v.get(k), bool)), None)
+        return [] if k is None else [float(v[k])]
+    if isinstance(v, list):
+        return [x for i in v for x in _times(i)]
+    return []
+
+
 def load_cue_events(sheet: Path | None) -> dict:
     """Voice lines, sounding events, declared silences and extra joins from the cue sheet."""
-    out = {"voice": [], "events": [], "quiet": [], "joins": [], "music": False}
+    out = {"voice": [], "speakers": [], "events": [], "quiet": [], "joins": [], "music": False, "fps": None,
+           "music_marks": []}
     if not sheet:
         return out
     data = json.loads(sheet.read_text(encoding="utf-8"))
     fps = float(data.get("fps") or 0) or None
+    out["fps"] = fps
     music = data.get("music")
     out["music"] = bool(music.get("source") or music.get("file")) if isinstance(music, dict) else bool(music)
+    if isinstance(music, dict):  # music changes that explain a level jump at a cut (A7)
+        out["music_marks"] = [(t, f"music {k}") for k in ("drop", "outro", "sections") for t in _times(music.get(k))]
     voice = data.get("voice") or []
     if isinstance(voice, dict):
         voice = voice.get("lines", [])
     for v in voice:
         if isinstance(v, dict) and v.get("start") is not None and v.get("end") is not None:
             out["voice"].append((float(v["start"]), float(v["end"]), str(v.get("text", ""))))
+            out["speakers"].append(v.get("speaker"))
     for e in data.get("events") or []:
         if not isinstance(e, dict):
             continue
@@ -583,7 +613,7 @@ def load_cue_events(sheet: Path | None) -> dict:
             continue
         sound = str(e.get("sound") or "").strip()
         out["events"].append({"t": float(t), "kind": str(e.get("kind", "")), "what": str(e.get("what", "")),
-                              "word": str(e.get("word", "")),
+                              "word": str(e.get("word", "")), "hero": e.get("hero") is True,
                               "sound": "" if not sound or sound.lower().startswith("none") else sound})
     for q in data.get("quiet") or []:
         if isinstance(q, dict) and q.get("start") is not None and q.get("end") is not None:
@@ -942,6 +972,7 @@ def audit_stream(render: Path, profile_id: str) -> tuple[dict, float | None]:
         except (ValueError, ZeroDivisionError):
             fps = 30.0
         value["video_s"] = _r(vdur, 3)
+        value["fps"] = _r(fps, 3)
         tol = max(1.0 / max(fps, 1.0), 1024.0 / AUDIT_SR) + 0.001
         if adur is not None and vdur is not None and abs(adur - vdur) > tol:
             hard = True
@@ -1117,6 +1148,471 @@ def read_speech_check(project: Path, no_speech: bool) -> tuple[dict, list]:
     return _check("Masked or garbled words", value, rep.get("floors") or {}, src, not blocking, bool(blocking), blocking), ear
 
 
+# -- A7 level jumps at cuts ----------------------------------------------
+
+CUT_KINDS = re.compile(r"\b(cut|transition|edit|join)\b", re.I)
+JUMP_MIX_LU = 6.0        # whole mix, no cue to explain it (provisional, notes A7)
+JUMP_DIALOGUE_LU = 3.0   # the same voice across a join: the 1.5 LU unevenness line of mix-and-master.md section 5, scaled
+EXPLAIN_S = 0.5          # a cue this close to the cut explains a jump
+
+
+def momentary_loudness(path: Path) -> list[tuple[float, float]]:
+    """Momentary loudness (K-weighted, 400 ms) every 100 ms from ffmpeg ebur128: [(window end in s, LUFS)]."""
+    try:
+        r = _run(["ffmpeg", "-hide_banner", "-nostats", "-nostdin", "-i", str(path), "-map", "0:a:0", "-af", "ebur128",
+                  "-f", "null", "-"], timeout=3600)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    out = []
+    for m in re.finditer(r"\bt:\s*([\d.]+)\s.*?\bM:\s*(-?[\d.]+|-?inf|nan)", r.stderr or ""):
+        v = _num(m.group(2))
+        out.append((float(m.group(1)), -120.0 if v is None or math.isnan(v) else max(-120.0, v)))
+    return out
+
+
+def scene_cuts(render: Path) -> list[float]:
+    """Picture cuts of the render by ffmpeg scene detection (scene score over 0.3 on a 160 px wide copy)."""
+    try:
+        r = _run(["ffmpeg", "-hide_banner", "-nostats", "-nostdin", "-i", str(render), "-map", "0:v:0", "-vf",
+                  "scale=160:-2,select=gt(scene\\,0.3),showinfo", "-f", "null", "-"], timeout=3600)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return [] if r.returncode != 0 else [float(x) for x in re.findall(r"pts_time:([\d.]+)", r.stderr or "")]
+
+
+def picture_cuts(render: Path, cues: dict) -> tuple[list[float], str]:
+    """Cut and join times: the cue sheet (events of kind cut, transition, edit or join, and "joins"), the render's
+    events file (<render>.events.json, kind or type "cut"), else scene detection on the render."""
+    times = [e["t"] for e in cues["events"] if CUT_KINDS.search(e["kind"])] + list(cues["joins"])
+    src = ["cue sheet"] if times else []
+    for p in (render.with_suffix(".events.json"), render.parent / (render.name + ".events.json")):
+        if not p.is_file():
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            break
+        evs = data.get("events") if isinstance(data, dict) else data
+        got = []
+        for e in evs if isinstance(evs, list) else []:
+            t = e.get("t", e.get("time")) if isinstance(e, dict) else None
+            if isinstance(t, (int, float)) and str(e.get("kind") or e.get("type") or "").lower() == "cut":
+                got.append(float(t))
+        if got:
+            times += got
+            src.append(p.name)
+        break
+    if not times:
+        times = scene_cuts(render)
+        if times:
+            src.append("scene detection on the render")
+    merged: list[float] = []
+    for t in sorted(times):
+        if not merged or t - merged[-1] > 0.15:
+            merged.append(t)
+    return merged, ", ".join(src) or "none found"
+
+
+def _line_at(cues: dict, t: float) -> int | None:
+    return next((k for k, (s, e, _) in enumerate(cues["voice"]) if s <= t <= e), None)
+
+
+def _same_speaker(cues: dict, a: int | None, b: int | None) -> bool:
+    if a is None or b is None or a == b:
+        return True
+    sa, sb = cues["speakers"][a], cues["speakers"][b]
+    return not (sa and sb and sa != sb)
+
+
+def audit_level_jumps(np, render: Path, cues: dict, sfx: list[dict], info: dict | None, voice, film_s: float) -> dict:
+    """A7: momentary loudness 0.5 s before and after each cut and join; the same voice across a join. Ear list only."""
+    src = (f"{MM} section 5 (a line more than 1.5 LU from the median sounds uneven; scaled to 3 LU for one voice across a "
+           "join); the whole mix over 6 LU with no cue to explain it (provisional); never blocks: the ear list")
+    thr = {"mix_lu": JUMP_MIX_LU, "dialogue_lu": JUMP_DIALOGUE_LU, "window_s": 0.4, "guard_s": 0.1,
+           "explained_within_s": EXPLAIN_S}
+    cuts, where = picture_cuts(render, cues)
+    cuts = [c for c in cuts if 0.5 <= c <= film_s - 0.5]
+    if not cuts:
+        return _check("Level jumps at cuts", None, thr, src, None, False,
+                      ["no cut found (cue sheet events of kind cut or transition, joins, <render>.events.json, scene "
+                       "detection)"])
+    series = momentary_loudness(render)
+    if not series:
+        return _check("Level jumps at cuts", None, thr, src, None, False, ["could not read the momentary loudness"])
+    T = np.array([s[0] for s in series])
+    M = np.array([s[1] for s in series])
+    marks = [(e["t"], f"cue \"{e['sound']}\"") for e in cues["events"] if e["sound"]]
+    marks += [(it["at"], f"effect {Path(it['file']).name}") for it in sfx]
+    marks += list(cues["music_marks"])
+    for s, e, _ in cues["quiet"]:
+        marks += [(s, "declared quiet start"), (e, "declared quiet end")]
+    for s, e, _ in cues["voice"]:
+        marks += [(s, "voice line start"), (e, "voice line end")]
+    vp = None
+    if voice is not None and info is not None and info["voiced"].any():
+        vp = (_frames(np.asarray(voice, dtype=np.float64), int(0.1 * AUDIT_SR)) ** 2).mean(axis=1)
+    rows, findings, ear = [], [], []
+    for c in cuts:
+        pre = float(M[int(np.argmin(np.abs(T - (c - 0.1))))])   # the 400 ms ending 0.1 s before the cut
+        post = float(M[int(np.argmin(np.abs(T - (c + 0.5))))])  # the 400 ms starting 0.1 s after it
+        if pre <= -70 and post <= -70:
+            continue
+        jump = post - pre
+        why = next((label for t, label in marks if abs(t - c) <= EXPLAIN_S), None)
+        row = {"t": _r(c), "pre_lufs": _r(pre, 1), "post_lufs": _r(post, 1), "jump_lu": _r(jump, 1), "explained_by": why,
+               "voice_jump_db": None}
+        flagged = []
+        if abs(jump) > JUMP_MIX_LU and not why:
+            flagged.append(("mix", jump, JUMP_MIX_LU))
+        same = _same_speaker(cues, _line_at(cues, c - 0.3), _line_at(cues, c + 0.3))
+        if vp is not None and same:  # the voice stem's voiced 100 ms frames within 1 s on each side
+            a = [k for k in range(int((c - 1.0) / 0.1), int((c - 0.1) / 0.1)) if 0 <= k < len(vp) and info["voiced"][k]]
+            b = [k for k in range(int((c + 0.1) / 0.1) + 1, int((c + 1.0) / 0.1)) if 0 <= k < len(vp) and info["voiced"][k]]
+            if len(a) >= 2 and len(b) >= 2:
+                vj = 10 * math.log10(max(float(vp[b].mean()), 1e-12) / max(float(vp[a].mean()), 1e-12))
+                row["voice_jump_db"] = _r(vj, 1)
+                if abs(vj) > JUMP_DIALOGUE_LU:
+                    flagged.append(("voice", vj, JUMP_DIALOGUE_LU))
+        elif vp is None and same and _line_at(cues, c - 0.3) is not None and _line_at(cues, c + 0.3) is not None:
+            hit = next((label for t, label in marks if abs(t - c) <= EXPLAIN_S and not label.startswith("voice")), None)
+            if abs(jump) > JUMP_DIALOGUE_LU and not hit and not any(f[0] == "mix" for f in flagged):
+                flagged.append(("voice", jump, JUMP_DIALOGUE_LU))
+        rows.append(row)
+        for kind, size, limit in flagged:
+            if kind == "mix":
+                findings.append(f"{_fmt(c)}: the mix jumps {size:+.1f} LU across the cut with no cue to explain it ({NO_EAR})")
+                ear.append(_ear(c - 1.5, c + 1.5, f"Does the level change at {_fmt(c)} feel intended, not a slip?",
+                                f"The mix jumps {size:+.1f} LU across the cut and no cue in the cue sheet explains it (A7); an "
+                                "intended change and a slip measure the same", "Match the levels across the cut with a 30 ms "
+                                "fade (mix-and-master.md section 4), or name the cue that motivates the change in the cue sheet",
+                                "A7", 7, 0.4 + min(0.15, (abs(size) - limit) / 40), f"A7: {size:+.1f} LU across the cut"))
+            else:
+                findings.append(f"{_fmt(c)}: the voice changes {size:+.1f} dB across the join ({NO_EAR})")
+                ear.append(_ear(c - 1.5, c + 1.5, f"Does the voice keep the same level across the cut at {_fmt(c)}?",
+                                f"The voice changes {size:+.1f} dB across the join (A7, over {limit:g}); a new take, mic or "
+                                "emphasis can be intended", "Even the line levels (mix-and-master.md section 5, accept "
+                                "window)", "A7", 7, 0.45 + min(0.15, (abs(size) - limit) / 40),
+                                f"A7: voice {size:+.1f} dB across the join"))
+    c = _check("Level jumps at cuts", {"cuts": len(cuts), "cut_source": where, "jumps": rows}, thr, src, not findings,
+               False, findings)
+    c["ear"] = ear
+    return c
+
+
+# -- A14 every effect cue heard and in sync --------------------------------
+
+SFX_LIFT_DB = 3.0             # in-band lift over the premix (sfx.md section 6)
+SFX_REL_FAIL_DB = -6.0        # more than 6 dB under the ducked score in its band: masked (sfx.md section 6)
+SFX_MISSING_DB = 0.3          # a lift under this: nothing measurable
+SFX_FLOOR_DBFS = -45.0        # the cue's own level floor (audio-gates.md section 2, effects present and audible)
+SFX_LATE_S = 0.010            # never late; 10 ms is the measurement's resolution
+SFX_MATCH_S = 0.5             # an SFX list item belongs to the cue-sheet event within this time
+SFX_HOP_S = 0.0025
+SFX_BODY_S = 0.15             # the 150 ms body of a cue (sfx.md section 6)
+PREMIX_MATCH_DB = 1.0         # premix and render agree this closely away from the cues, or the premix is stale
+HERO_CUE = re.compile(r"\b(hero|signature|reveal|payoff|logo)\b", re.I)
+OCTAVES = [31.5 * 2 ** k for k in range(10)]  # octave centres 31.5 Hz to 16 kHz
+
+
+def _octave_powers(np, x):
+    p = np.abs(np.fft.rfft(x * np.hanning(len(x)))) ** 2
+    f = np.fft.rfftfreq(len(x), 1.0 / AUDIT_SR)
+    return np.array([float(p[(f >= c / 2 ** 0.5) & (f < c * 2 ** 0.5)].sum()) for c in OCTAVES])
+
+
+def _dominant_band(np, powers) -> tuple[float, float] | None:
+    """The contiguous octaves around the loudest one holding at least a quarter (-6 dB) of its energy, in Hz."""
+    if not len(powers) or float(powers.max()) <= 1e-18:
+        return None
+    k = int(np.argmax(powers))
+    lo = hi = k
+    while lo > 0 and powers[lo - 1] >= 0.25 * powers[k]:
+        lo -= 1
+    while hi < len(powers) - 1 and powers[hi + 1] >= 0.25 * powers[k]:
+        hi += 1
+    return OCTAVES[lo] / 2 ** 0.5, min(OCTAVES[hi] * 2 ** 0.5, AUDIT_SR / 2)
+
+
+def _band_env(np, x, lo: float, hi: float, hop: int):
+    spec = np.fft.rfft(x)
+    f = np.fft.rfftfreq(len(x), 1.0 / AUDIT_SR)
+    spec[(f < lo) | (f >= hi)] = 0
+    return (_frames(np.fft.irfft(spec, len(x)), hop) ** 2).mean(axis=1)
+
+
+def _attack(np, env) -> int | None:
+    """Index of the first hop within 12 dB of the envelope's maximum (the attack edge)."""
+    if not len(env) or float(env.max()) <= 1e-18:
+        return None
+    return int(np.argmax(env >= float(env.max()) * 10 ** -1.2))
+
+
+def sfx_cue_list(np, cues: dict, sfx: list[dict]) -> list[dict]:
+    """Effect cues: every sounding cue-sheet event, matched to the nearest SFX list item whose sync point (file start plus
+    the file's loudest sample, sfx.md section 5 item 1) lies within 0.5 s, then every SFX list item left over."""
+    items = []
+    hop = int(SFX_HOP_S * AUDIT_SR)
+    for it in sfx:
+        a = decode_audio(it["file"]) if it["file"].exists() else None
+        sync, band, onset = 0.0, None, None
+        if a is not None and len(a):
+            m = a.astype(np.float64).mean(axis=1)[: int(30 * AUDIT_SR)]
+            sync = float(np.argmax(np.abs(m))) / AUDIT_SR
+            band = _dominant_band(np, _octave_powers(np, m[: int(4 * AUDIT_SR)]))
+            k = None if band is None else _attack(np, _band_env(np, m, band[0], band[1], hop))
+            onset = None if k is None else k * SFX_HOP_S
+        items.append({"file": it["file"], "band": band, "planned": it["at"] + sync, "start": it["at"], "sync": sync,
+                      "onset": onset})
+    out, used = [], set()
+    for e in sorted((e for e in cues["events"] if e["sound"]), key=lambda e: e["t"]):
+        near = [k for k in range(len(items)) if k not in used and abs(items[k]["planned"] - e["t"]) <= SFX_MATCH_S]
+        k = min(near, key=lambda k: abs(items[k]["planned"] - e["t"])) if near else None
+        it = None if k is None else items[k]
+        if k is not None:
+            used.add(k)
+        cue = {"t": e["t"], "label": e["sound"], "hero": e["hero"] or bool(HERO_CUE.search(" ".join(
+            (e["kind"], e["what"], e["sound"])))), "picture_event": True}
+        out.append({**cue, **_file_part(it)})
+    for k, it in enumerate(items):
+        if k not in used:
+            out.append({"t": it["planned"], "label": it["file"].name, "hero": False, "picture_event": False,
+                        **_file_part(it)})
+    return sorted(out, key=lambda c: c["t"])
+
+
+def _file_part(it: dict | None) -> dict:
+    keys = ("band", "planned", "start", "sync", "onset")
+    return {"file": None if it is None else it["file"].name, **{k: None if it is None else it[k] for k in keys}}
+
+
+def measure_cue(np, R, P, cue: dict, fps: float, film_s: float) -> dict:
+    """In-band lift of the render over the premix in the cue's loudest 150 ms, its level against the premix (the ducked
+    score), its own level, and its sync point against the event time. The sync point: the cue's attack edge in the
+    render, moved by the file's own attack and sync point (sfx.md section 5 item 1), so a limiter that flattens a loud
+    hit does not move it; a cue with no file is a contact, its attack edge is its sync point."""
+    t = cue["t"]
+    planned = cue["planned"] if cue["planned"] is not None else t
+    first = min(t - (cue["sync"] or 0.0), cue["start"] if cue["start"] is not None else t)  # the file's start is inside
+    a, b = max(0.0, first - 0.25), min(film_s, len(R) / AUDIT_SR, max(t, planned) + 0.5)
+    row = {"t": _r(t, 3), "label": cue["label"], "hero": cue["hero"], "file": cue["file"],
+           "picture_event": cue["picture_event"]}
+    hop, pad = int(SFX_HOP_S * AUDIT_SR), int(0.2 * AUDIT_SR)
+    i0, i1 = int(a * AUDIT_SR), int(b * AUDIT_SR)
+    j0, j1 = max(0, i0 - pad), min(len(R), i1 + pad)
+    if i1 - i0 < int(SFX_BODY_S * AUDIT_SR) + hop:
+        return {**row, "status": "not measured", "sync": "not measured", "offset_ms": None,
+                "note": "the cue sits outside the film or at its edge"}
+    r, p = R[j0:j1], P[j0:j1]
+    band = cue["band"]
+    if band is None:  # no file: the octaves where the render rises over the premix
+        band = _dominant_band(np, np.maximum(_octave_powers(np, r[i0 - j0:i1 - j0]) - _octave_powers(np, p[i0 - j0:i1 - j0]), 0))
+    if band is None:
+        return {**row, "band_hz": None, "lift_db": 0.0, "rel_db": None, "level_dbfs": None, "status": "missing",
+                "sync": "not measured", "offset_ms": None}
+    k0, k1 = (i0 - j0) // hop, (i1 - j0) // hop
+    er, ep = _band_env(np, r, band[0], band[1], hop)[k0:k1], _band_env(np, p, band[0], band[1], hop)[k0:k1]
+    w = int(round(SFX_BODY_S / SFX_HOP_S))
+    sr_, sp_ = np.convolve(er, np.ones(w), "valid"), np.convolve(ep, np.ones(w), "valid")
+    lifts = 10 * np.log10((sr_ + 1e-20) / (sp_ + 1e-20))
+    j = int(np.argmax(lifts))
+    lift = float(lifts[j])
+    s_body = max(float(sr_[j] - sp_[j]), 0.0)
+    rel = 80.0 if sp_[j] <= 1e-18 else (-80.0 if s_body <= 0 else 10 * math.log10(s_body / float(sp_[j])))
+    S = np.maximum(er - ep, 0.0)
+    level = 10 * math.log10(max(float(S.max()), 1e-12))
+    if level < SFX_FLOOR_DBFS or lift < SFX_MISSING_DB:
+        status = "missing"
+    elif rel < SFX_REL_FAIL_DB:
+        status = "masked"
+    elif lift < SFX_LIFT_DB:
+        status = "weak"
+    else:
+        status = "audible"
+    row.update({"band_hz": [round(band[0]), round(band[1])], "lift_db": _r(lift, 1), "rel_db": _r(max(-80.0, min(80.0, rel)), 1),
+                "level_dbfs": _r(level, 1), "status": status, "sync": "not measured", "offset_ms": None})
+    k = _attack(np, S) if status in ("audible", "weak") else None
+    if k is not None:
+        sync_t = (j0 + (k0 + k) * hop) / AUDIT_SR
+        if cue["onset"] is not None:
+            sync_t += cue["sync"] - cue["onset"]
+        off = sync_t - t
+        tol = min(2.0 / max(fps, 1.0), 0.040)
+        row.update({"sync_t": _r(sync_t, 3), "offset_ms": _r(off * 1000, 0),
+                    "sync": "late" if off > SFX_LATE_S else ("early" if off < -tol else "on time")})
+    return row
+
+
+def _premix_from_master(master_json: Path | None) -> Path | None:
+    if not master_json or not master_json.is_file():
+        return None
+    try:
+        f = (json.loads(master_json.read_text(encoding="utf-8")).get("no_sfx_premix") or {}).get("file")
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return None
+    return Path(f) if f and Path(f).is_file() else None
+
+
+def audit_sfx_cues(np, mono, premix: Path | None, cues: dict, sfx: list[dict], fps: float, film_s: float) -> dict:
+    """A14: per cue, presence and audibility against the no-SFX premix, and sync against the event frame."""
+    src = ("the ice-audio skill, references/sfx.md section 6 (in-band lift at least 3 dB; more than 6 dB under the ducked "
+           "score fails; the level floor) and section 5 item 1 (the sync point); references/cue-map-and-beat-sync.md "
+           "section 5 (within 2 frames or 40 ms, never late); which results block: the ice-qa skill, "
+           "references/audio-gates.md section 2b")
+    thr = {"lift_db_min": SFX_LIFT_DB, "under_ducked_score_fail_db": SFX_REL_FAIL_DB, "level_floor_dbfs": SFX_FLOOR_DBFS,
+           "masked_share_max": 0.5, "early_ms_max": round(min(2.0 / max(fps, 1.0), 0.040) * 1000),
+           "late_ms_max": round(SFX_LATE_S * 1000), "hero_blocks": "not heard (masked or missing) or late"}
+    cl = sfx_cue_list(np, cues, sfx)
+    name = "Effects heard and in sync"
+    if not cl:
+        return _check(name, None, thr, src, None, False, ["no effect cue (cue sheet sounding events, --sfx)"])
+    heroes = [c for c in cl if c["hero"]]
+    how = ("render the premix with master_audio.py --no-sfx-premix <file> (or the engine's render with the SFX layer "
+           "muted) and pass --premix <file>")
+    P = decode_audio(premix) if premix and premix.is_file() else None
+    problem = None
+    if P is None:
+        problem = f"not measured: no premix; {how}"
+    else:
+        P = P.astype(np.float64).mean(axis=1)
+        if abs(len(P) - len(mono)) > int(0.5 * AUDIT_SR):
+            problem = f"the premix lasts {len(P) / AUDIT_SR:.2f} s against the render's {len(mono) / AUDIT_SR:.2f} s: {how}"
+        else:
+            P = np.concatenate([P, np.zeros(max(0, len(mono) - len(P)))])[: len(mono)]
+            n = int(0.1 * AUDIT_SR)
+            fr, fp = _db(np, (_frames(mono, n) ** 2).mean(axis=1)), _db(np, (_frames(P, n) ** 2).mean(axis=1))
+            away = np.ones(len(fr), dtype=bool)
+            for c in cl:
+                for tt in (c["t"], c["planned"] if c["planned"] is not None else c["t"]):
+                    away[max(0, int((tt - 0.75) / 0.1)): int((tt + 1.5) / 0.1) + 1] = False
+            sel = away & (fr > -60) & (fp > -60)
+            if sel.sum() >= 5 and abs(float(np.median(fr[sel] - fp[sel]))) > PREMIX_MATCH_DB:
+                problem = (f"the premix does not match the render ({float(np.median(fr[sel] - fp[sel])):+.1f} dB away from "
+                           f"the cues): render both from the same master_audio.py run")
+    if problem:
+        if heroes:
+            return _check(name, None, thr, src, None, True, [problem + f"; {len(heroes)} hero cue(s) cannot be verified"],
+                          status="unmeasured")
+        return _check(name, None, thr, src, None, False, [problem], status="not run")
+    rows = [measure_cue(np, mono, P, c, fps, film_s) for c in cl]
+    measured = [r for r in rows if r["status"] != "not measured"]
+    masked = [r for r in measured if r["status"] in ("masked", "missing")]
+    findings, hard, ear = [], False, []
+    for r in measured:
+        who = f"{'hero cue' if r['hero'] else 'cue'} \"{r['label']}\" at {_fmt(r['t'])}"
+        if r["status"] in ("masked", "missing"):
+            what = (f"is not heard: lift {r['lift_db']} dB"
+                    + ("" if not r.get("band_hz") else f" in {r['band_hz'][0]} to {r['band_hz'][1]} Hz")
+                    + ("" if r["rel_db"] is None else f", {r['rel_db']} dB against the mix without effects")
+                    + ("" if r["level_dbfs"] is None else f", own level {r['level_dbfs']} dBFS"))
+            findings.append(f"{who} {what}" + (" (blocks)" if r["hero"] else ""))
+            hard = hard or r["hero"]
+        elif r["status"] == "weak":
+            findings.append(f"{who} lifts its band only {r['lift_db']} dB (under {SFX_LIFT_DB:g}: {NO_EAR})")
+        if r["sync"] == "late":
+            findings.append(f"{who} lands {r['offset_ms']:+.0f} ms after its frame" + (" (blocks)" if r["hero"] else ""))
+            hard = hard or r["hero"]
+        elif r["sync"] == "early":
+            findings.append(f"{who} lands {abs(r['offset_ms']):.0f} ms before its frame (over {thr['early_ms_max']} ms)")
+    share = len(masked) / len(measured) if measured else 0.0
+    if share > 0.5:
+        hard = True
+        findings.append(f"{len(masked)} of {len(measured)} cues are not heard (more than half: blocks)")
+    weak = sorted((r for r in measured if r["status"] == "weak"), key=lambda r: r["lift_db"])
+    if weak:
+        r = weak[0]
+        ear.append(_ear(r["t"] - 1, r["t"] + 1, f"Can you hear the {r['label']} at {_fmt(r['t'])} clearly over the music?",
+                        f"It lifts its band only {r['lift_db']} dB over the mix without effects (A14, under {SFX_LIFT_DB:g} dB); "
+                        "whether it reads depends on the sound and the ear", "Raise the cue's own gain first, at most "
+                        "+8 dB (sfx.md section 6), or carve the bed in its band", "A14", 6, 0.6 if r["hero"] else 0.5,
+                        f"A14: lift {r['lift_db']} dB"))
+    gray = [r for r in measured if r["offset_ms"] is not None and 40 <= abs(r["offset_ms"]) <= 300
+            and not (r["hero"] and r["sync"] == "late")]
+    if gray:
+        r = max(gray, key=lambda r: abs(r["offset_ms"]))
+        off = r["offset_ms"] / 1000
+        ear.append(_ear(r["t"] - 1, r["t"] + 1, f"Does the sound at {_fmt(r['t'])} land with its picture, not "
+                        f"{'late' if off > 0 else 'early'}?", f"Its sync point measures {off * 1000:+.0f} ms from the frame "
+                        "(A14), inside the 40 to 300 ms zone where perception varies with the material",
+                        f"Move the sound {'earlier' if off > 0 else 'later'} by about {abs(off) * 1000:.0f} ms", "A14", 3,
+                        0.5 + min(0.2, abs(off)), f"A14: offset {off * 1000:+.0f} ms"))
+    value = {"premix": str(premix), "cues_measured": len(measured), "not_heard": len(masked),
+             "not_heard_share": _r(share, 3), "cues": rows}
+    c = _check(name, value, thr, src, not findings, hard, findings)
+    c["ear"] = ear
+    return c
+
+
+# -- A17 the longest repeated pattern ------------------------------------
+
+REPEAT_WINDOW_S = 15.0
+REPEAT_PERIODICITY = 0.5   # onset-flux autocorrelation at 0.3 to 2 s lags: a steady pulse, else a sustained sound
+REPEAT_CHANGE_DB = 1.5     # level and band change between 2 s blocks at or under this: nothing moving (provisional)
+
+
+def audit_repeat(np, src, film_s: float, measured_on: str) -> dict:
+    """A17: the stretch where one pattern repeats with the least change; it always gives the human ear item its range."""
+    doc = (f"{MM} section 3, the comfortable mix item 2 (a thump, kick, hit or drone unchanged for more than about 8 bars "
+           "or 15 s with nothing moving); fatigue is judged by ear, this check places the ear-list item; never blocks")
+    thr = {"window_s": REPEAT_WINDOW_S, "change_db_max": REPEAT_CHANGE_DB, "pulse_periodicity": REPEAT_PERIODICITY,
+           "provisional": True}
+    name = "Repeated pattern"
+    if src is None or film_s < REPEAT_WINDOW_S:
+        return _check(name, None, thr, doc, None, False, ["the film is under 15 s" if src is not None else
+                                                          "no music or effects stem"])
+    src = np.asarray(src, dtype=np.float64)
+    h = int(0.02 * AUDIT_SR)
+    env = _db(np, (_frames(src, h) ** 2).mean(axis=1))
+    if not len(env) or float(env.max()) < -60:
+        return _check(name, None, thr, doc, None, False, ["no music or effects sound"])
+    flux = np.maximum(0, np.diff(env, prepend=env[:1]))
+    # octave levels 63 Hz to 8 kHz per 2 s block, the median of its 100 ms frames: a sustained change of the
+    # arrangement moves it, a one-shot hit does not
+    n = int(0.1 * AUDIT_SR)
+    F = _frames(src, n)
+    pw = np.abs(np.fft.rfft(F * np.hanning(n), axis=1)) ** 2 if len(F) else np.zeros((0, n // 2 + 1))
+    f = np.fft.rfftfreq(n, 1.0 / AUDIT_SR)
+    oct_ = np.stack([pw[:, (f >= c / 2 ** 0.5) & (f < c * 2 ** 0.5)].sum(axis=1) for c in OCTAVES[1:9]], axis=1)
+    nb = len(oct_) // 20
+    bands = np.median(oct_[: nb * 20].reshape(nb, 20, 8), axis=1) if nb else np.zeros((0, 8))
+    bdb = np.maximum(10 * np.log10(np.maximum(bands, 1e-12)), -120.0)
+    win, step = int(REPEAT_WINDOW_S / 0.02), 50
+    scores = []
+    for s in range(0, max(1, len(flux) - win + 1), step):
+        x = flux[s:s + win] - flux[s:s + win].mean()
+        ac = np.fft.irfft(np.abs(np.fft.rfft(x, 2 * len(x))) ** 2)[: len(x)]
+        per = float(ac[15:100].max() / ac[0]) if ac[0] > 0 else 0.0
+        blocks = [float(env[s + i: s + i + 100].mean()) for i in range(0, win - 99, 100)]
+        change = float(np.mean(np.abs(np.diff(blocks)))) if len(blocks) > 1 else 0.0
+        sub = bdb[s // 100: min(len(bdb), (s + win) // 100)]
+        spec = 0.0
+        if len(sub) > 1:
+            live = sub.max(axis=0) > float(sub.max()) - 30  # the bands that carry the sound in this window
+            spec = float(np.mean(np.abs(np.diff(sub[:, live], axis=0)))) if live.any() else 0.0
+        scores.append(((0.5 + 0.5 * min(1.0, max(0.0, per))) * max(0.0, 1 - max(change, spec) / 6), s, per, change, spec))
+    k = max(range(len(scores)), key=lambda j: scores[j][0])
+    top, lo, hi = scores[k], k, k
+    while lo > 0 and scores[lo - 1][0] >= 0.8 * top[0] > 0:
+        lo -= 1
+    while hi < len(scores) - 1 and scores[hi + 1][0] >= 0.8 * top[0] > 0:
+        hi += 1
+    t0, t1 = scores[lo][1] * 0.02, min(film_s, scores[hi][1] * 0.02 + REPEAT_WINDOW_S)
+    _, _, per, change, spec = top
+    unchanged = max(change, spec) <= REPEAT_CHANGE_DB and t1 - t0 >= REPEAT_WINDOW_S
+    kind = "a steady pulse" if per >= REPEAT_PERIODICITY else "a sustained sound"
+    value = {"start": _r(t0), "end": _r(t1), "seconds": _r(t1 - t0, 1), "kind": kind, "periodicity": _r(per, 3),
+             "level_change_db": _r(change), "band_change_db": _r(spec), "score": _r(top[0], 3), "measured_on": measured_on}
+    findings = [f"{kind} runs unchanged for {t1 - t0:.0f} s ({_fmt(t0)}-{_fmt(t1)}; periodicity {per:.2f}, "
+                f"level change {change:.1f} dB, band change {spec:.1f} dB: {NO_EAR})"] if unchanged else []
+    c = _check(name, value, thr, doc, not findings, False, findings)
+    c["ear"] = [_ear(t0, t1, "Does this stretch tire you (one sound repeating on a steady beat)?",
+                     f"Listening fatigue has no measure; this is the longest stretch where one pattern repeats with the "
+                     f"least change (A17: periodicity {per:.2f}, level change {change:.1f} dB, band change {spec:.1f} dB, "
+                     f"{measured_on})", "Another section or track, a gentler duck release or fewer effects "
+                     "(mix-and-master.md section 3)", "A17", 4, 0.6 if unchanged else 0.45,
+                     f"A17: {t1 - t0:.0f} s, score {top[0]:.2f}")]
+    return c
+
+
 # -- the ear list --------------------------------------------------------
 
 HERO = re.compile(r"reveal|payoff|hero|signature|drop|logo|slam|impact|cta|end card|endcard|button", re.I)
@@ -1128,9 +1624,10 @@ def _short_term(np, mono, block=0.4):
     return _db(np, (_frames(mono.astype(np.float64), n) ** 2).mean(axis=1))
 
 
-def ear_candidates(np, mono, bed, cues: dict, film_s: float) -> list[dict]:
-    """The always-available sources of the ear list: hero moment, worst sync, repeat stretch, 8 s excerpt, long
-    sounds, plus fallbacks (opening, ending, phone speaker) so every film with sound gets at least 5 items."""
+def ear_candidates(np, mono, cues: dict, film_s: float, sync_measured: bool = False) -> list[dict]:
+    """The always-available sources of the ear list: hero moment, worst sync (when A14 did not measure the cues),
+    8 s excerpt, long sounds, plus fallbacks (opening, ending, phone speaker) so every film with sound gets at least
+    5 items. The repeat stretch is A17's item (audit_repeat)."""
     out = []
     st = _short_term(np, mono)
     loud_t = float(np.argmax(st)) * 0.4 if len(st) else 0.0
@@ -1150,11 +1647,11 @@ def ear_candidates(np, mono, bed, cues: dict, film_s: float) -> list[dict]:
         out.append(_ear(loud_t - 1.5, loud_t + 2.5, f"Does the loudest moment at {_fmt(loud_t)} land, without strain?",
                         "No hero event is named in the cue sheet; this is the loudest 0.4 s by measurement",
                         "Lower the peak or move it to the moment that matters", "hero", 2, 0.55, "loudest short-term block"))
-    # 3. the worst sync: a sounding cue whose onset lands 40 to 300 ms off its frame
+    # 3. the worst sync: a sounding cue whose onset lands 40 to 300 ms off its frame (A14 gives it when it measured)
     hop = int(0.005 * AUDIT_SR)
     e5 = _db(np, (_frames(mono.astype(np.float64), hop) ** 2).mean(axis=1))
     worst = None
-    for ev in cues["events"]:
+    for ev in [] if sync_measured else cues["events"]:
         if not ev["sound"]:
             continue
         k0, k1 = int((ev["t"] - 0.1) / 0.005), int((ev["t"] + 0.3) / 0.005)
@@ -1175,32 +1672,7 @@ def ear_candidates(np, mono, bed, cues: dict, film_s: float) -> list[dict]:
                         "inside the 40 to 300 ms zone where perception varies with the material",
                         f"Move the sound {'earlier' if off > 0 else 'later'} by about {abs(off) * 1000:.0f} ms", "sync", 3,
                         0.5 + min(0.2, abs(off)), f"onset offset {off * 1000:+.0f} ms"))
-    # 4. the longest repeated pulse (fatigue is human; the place is measurable)
-    src = bed if bed is not None else mono
-    if film_s >= 15:
-        h = int(0.02 * AUDIT_SR)
-        env = _db(np, (_frames(src.astype(np.float64), h) ** 2).mean(axis=1))
-        flux = np.maximum(0, np.diff(env, prepend=env[:1]))
-        win, step = 750, 50
-        scores = []
-        for s in range(0, max(1, len(flux) - win + 1), step):
-            x = flux[s:s + win] - flux[s:s + win].mean()
-            ac = np.fft.irfft(np.abs(np.fft.rfft(x, 2 * len(x))) ** 2)[: len(x)]
-            per = float(ac[15:100].max() / ac[0]) if ac[0] > 0 else 0.0
-            blocks = [float(env[s + i: s + i + 100].mean()) for i in range(0, win - 99, 100)]
-            change = float(np.mean(np.abs(np.diff(blocks)))) if len(blocks) > 1 else 0.0
-            scores.append((max(0.0, per) * max(0.0, 1 - change / 6), s, per))
-        k = max(range(len(scores)), key=lambda j: scores[j][0])
-        top, lo, hi = scores[k], k, k
-        while lo > 0 and scores[lo - 1][0] >= 0.8 * top[0] > 0:
-            lo -= 1
-        while hi < len(scores) - 1 and scores[hi + 1][0] >= 0.8 * top[0] > 0:
-            hi += 1
-        t0, t1 = scores[lo][1] * 0.02, min(film_s, scores[hi][1] * 0.02 + 15)
-        out.append(_ear(t0, t1, "Does this stretch tire you (one sound repeating on a steady beat)?",
-                        f"Listening fatigue has no measure; this is the stretch where one pattern repeats with the least "
-                        f"change (periodicity {top[2]:.2f})", "Another section or track, a gentler duck release or fewer "
-                        "effects (mix-and-master.md section 3)", "repeat", 4, 0.45, f"repeat score {top[0]:.2f}"))
+    # 4. the longest repeated pulse: A17 (audit_repeat)
     # 5. the 8 s excerpt with the largest energy and colour change
     if film_s > 0:
         blk = int(0.5 * AUDIT_SR)
@@ -1332,7 +1804,11 @@ def sound_presence(np, stems: dict | None, dec: dict, voice_info: dict | None, c
             pres["voice"], how["voice"] = True, "voice stem (voiced windows)"
         elif cues["voice"]:
             pres["voice"], how["voice"] = True, "cue sheet voice lines"
-    if sfx_track is not None and len(sfx_track) and float(np.abs(sfx_track).max()) > 0.001:
+    a14 = (checks.get("A14") or {}).get("value") or {}
+    if a14.get("cues_measured"):  # measured in the mix: present only when at least one cue is heard
+        heard = [c for c in a14.get("cues") or [] if c.get("status") in ("audible", "weak")]
+        pres["sfx"], how["sfx"] = bool(heard), f"A14: {len(heard)} of {a14['cues_measured']} cue(s) heard in the mix"
+    elif sfx_track is not None and len(sfx_track) and float(np.abs(sfx_track).max()) > 0.001:
         pres["sfx"], how["sfx"] = True, "effects stem or SFX list"
     elif sfx or any(e["sound"] for e in cues["events"]):
         pres["sfx"], how["sfx"] = True, "cue sheet sounding events"
@@ -1574,10 +2050,33 @@ def run_audit(args) -> int:
     c, fear = audit_sfx_under_speech(np, sfx_track, voice_info, voice, args.profile)
     checks["A15"] = c
     ear += fear
-    ear += ear_candidates(np, mono, bed, cues, film_s)
+    c = audit_level_jumps(np, render, cues, sfx, voice_info, voice, film_s)
+    checks["A7"] = c
+    ear += c.get("ear", [])
+    premix = rel(args.premix) if args.premix else _premix_from_master(mj)
+    fps = cues["fps"] or (checks["A11"].get("value") or {}).get("fps") or 30.0
+    c = audit_sfx_cues(np, mono, premix, cues, sfx, float(fps), film_s)
+    checks["A14"] = c
+    ear += c.get("ear", [])
+    # A17 on the music and effects stems (ambience and room tone left out: steady by design), demucs's no-vocals
+    # part, else the render
+    if stems:
+        rs = _sum_tracks(np, [dec[p] for p in stems["bed"] if re.split(r"[^a-z0-9]+", p.stem.lower())[0]
+                              not in PRESENCE_STEMS["ambience"]] + [dec[p] for p in stems["sfx"]])
+        rep_src, rep_on = (None if rs is None else rs.mean(axis=1)), "music and effects stems"
+    elif bed is not None:
+        rep_src, rep_on = bed, "the render without its voice (demucs)"
+    else:
+        rep_src, rep_on = mono, "the render (no stems: the voice can hide or imitate a repeat)"
+    c = audit_repeat(np, rep_src, film_s, rep_on)
+    checks["A17"] = c
+    ear += c.get("ear", [])
+    ear += ear_candidates(np, mono, cues, film_s, sync_measured=bool(((checks["A14"].get("value") or {})
+                                                                      .get("cues_measured"))))
     if work:
         shutil.rmtree(work, ignore_errors=True)
 
+    checks = {k: checks[k] for k in sorted(checks, key=lambda k: int(k[1:]))}
     presence, presence_how = sound_presence(np, stems, dec, voice_info, cues, sfx, sfx_track, checks, args.no_speech, mj)
     blocking = [k for k, v in checks.items() if v["blocking"]]
     review = project / "ice" / "review"
@@ -1631,6 +2130,8 @@ def main() -> int:
     ap.add_argument("--stems", help="With --audit: folder of film-length stems (voice*, vo*, dialogue*, ... ; the rest is bed)")
     ap.add_argument("--sfx", help="With --audit: the sfx.json list given to master_audio.py (effect edges and levels)")
     ap.add_argument("--master-json", help="With --audit: master.json of master_audio.py (default: beside the render)")
+    ap.add_argument("--premix", help="With --audit: the same mix without the SFX layer (default: master.json "
+                                     "no_sfx_premix, written by master_audio.py --no-sfx-premix); A14 measures each cue against it")
     ap.add_argument("--separate", action="store_true",
                     help="With --audit and no stems: split the render with demucs when it is installed")
     ap.add_argument("--no-speech", action="store_true",

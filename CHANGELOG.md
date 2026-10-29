@@ -10,6 +10,8 @@ Every notable change to Ice Motion Director is listed here. The format follows [
 - **A shipped fetcher for real footage (L24).** `ice-assets/scripts/fetch_media.py` searches and fetches from Openverse, Wikimedia Commons, Internet Archive, NASA and single official clips through the pinned yt-dlp, with the words taken from your script or brief, and writes each item's source, owner, license status, size and hash; `ICE_OFFLINE` and `sources.json` turn it down.
 - **After Effects projects are read (L24).** `ice-remake/scripts/analyze.py` reads an `.aep` you supply (never runs it) and lists its comps, layers and transform keys in `aep.json`, with what it could not decode.
 
+- **Every sound effect is heard, on time (L25).** `master_audio.py --no-sfx-premix` writes the same mix without effects, and `qc.py --audit` measures each cue against it: a hero effect that is masked or late blocks delivery, more than half masked blocks, and level jumps at cuts and the longest unchanged repeat go to the "For your ears" list with their times.
+
 ### Changed
 
 - `probe-mp4.mjs` is now the `probe` subcommand of `ice-qa/scripts/quick-checks.mjs`, same checks and output.

@@ -145,7 +145,7 @@ Density (scope line for section 4): in a news reel the "about 15 events per minu
 - Under speech, in any film: while a voice talks, an effect sits in the sub band (under 150 Hz) or the air band (over 4 kHz), so the 150 Hz to 4 kHz voice band stays clear (measured on broadcast packages; the news reel's section 3b NEVER item 1 is that case). The `news-reel` profile of `scripts/match_music.py sfx` ranks candidates for this band whatever the film type (section 7 item 3).
 - Clean sources, for effects that play in the clear (no voice over them): high-pass about 150 to 220 Hz, low-pass about 6.5 to 11 kHz, click-free fades (10 ms in, 0.15 s out). Reject candidates with more than 50 % energy below 150 Hz, more than 40 % above 6 kHz, or noise-like character; calm-film whooshes had little energy below 150 Hz and an 80 to 400 ms rise. This band filter and reject rule never apply to an effect under speech (the line above), and a reference's sound map or the chosen style's sound line may set another band for effects in the clear, with its plan row.
 - Avoid foley and music piling under 300 Hz: high-pass foley around 220 Hz, lift above 3 kHz.
-- Every row of the sound plan must be measurably present in the final mix (ice-qa checks it).
+- Every row of the sound plan must be measurably present in the final mix: `scripts/qc.py --audit` measures each effect cue against the mix without effects of `scripts/master_audio.py --no-sfx-premix` (A14: presence, audibility and sync); which results block: the `ice-qa` skill, `references/audio-gates.md` section 2b.
 
 ## 7. SFX library policy
 
