@@ -41,6 +41,10 @@ Leads with: real screens. 01 captures the live product first; 05 runs before 04 
 | Chat playback | A five-beat exchange needs about 8 s with four push-ins; at 3-4 s it cannot be followed |
 | Hook | Motion in the first second; first on-screen text before 0.5 s; the first frame is readable (it is also the cover) |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 6; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s is the longest act of the Structure options (acts of 2-6 s, Living UI ecosystem); the shot fields stay open because several options run with only 1 or 2 cuts; holds excuse: reading holds on UI are locked (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Voiceover the whole way is the ad default when a voice source exists (the user's recording, or a voice the user chose): measured word times drive shot lengths, captions and motion (generate or record the voiceover early). Music-only ads: the beat grid with reading windows kept calm. See `../cue-sheet.md`.

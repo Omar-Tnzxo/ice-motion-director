@@ -73,23 +73,24 @@ The camera move type and pace class of each shot match its reference shot: a slo
 
 | Stat | Reference source | Allowed range |
 |---|---|---|
-| Mean shot length (s, and beats when musical) | `pacing.mean_shot_s` | within 30 percent |
+| Mean shot length (s, and beats when musical) | `pacing.mean_shot_s` (needs 3 detected shots or more) | within 30 percent |
+| Cuts per minute on detected cuts | `analysis/craft-measure.json` (`craft_gate.py measure` of the reference) | within 30 percent (the pacing gate on the render: `ice-qa/references/motion-density.md`, "Pacing against the reference", "On the render") |
 | Text-only card share of runtime | measured (`measuring.md` section 3) | within 30 percent |
-| Low-key (dark) shot share | `look_summary.low_key_shots` | within 30 percent |
-| Moving-camera shot share | `look_summary.moving_camera_shots` | within 30 percent |
-| Camera pace mix per section | `shot_details[].camera.pace` | same class per mapped shot |
-| Stillness ratio (when measured) | measured | within 30 percent |
+| Low-key (dark) shot share | `look_summary.low_key_shots` | within 30 percent, and at least plus or minus 0.05 |
+| Moving-camera shot share | `look_summary.moving_camera_shots` | within 30 percent, and at least plus or minus 0.05 |
+| Camera pace mix per section | `shot_details[].camera.pace` | same class per mapped shot, or a camera speed within 30 percent of the reference shot's (two close speeds either side of a class line are not a mismatch) |
+| Stillness ratio (when measured) | `stillness.ratio` | within 30 percent, and at least plus or minus 0.05 |
 | Share of frames with the camera moving, parallax ratio, push-throughs | `analysis/depth.json` (`measuring.md` section 12) | within 30 percent; every 3D kind and the depth of field present (the gate: `ice-qa/references/motion-density.md`, "Depth and camera against the reference") |
 | Longest event gap, events per minute | `analysis/events.json` (`measuring.md` section 10) | the pacing gate's own limits, not 30 percent: `ice-qa/references/motion-density.md`, "Pacing against the reference"; copied into `plan.reference` for the edit plan |
 
-A stat outside its range needs a written reason in `ice/DIRECTION.md` (for example a platform that forces shorter shots) or a fix. After rendering, `compare.py` re-measures our film with the same functions:
+The "at least plus or minus 0.05" on a share keeps a share near zero from being held to a hundredth. The plan is checked against this table at 04. After rendering, `compare.py` detects our film's own cuts with the detector the reference was measured with (`analyze.py`, PySceneDetect, threshold 22), never the plan's spans, measures each detected shot with the same functions, maps it to the plan shot that holds its middle (and through it to the reference shot), and checks every row it can measure (mean shot length and beats, low-key share, moving-camera share, camera pace per mapped shot, stillness ratio; the text-only card share stays with `measuring.md` section 3):
 
 ```
 python <skill>/scripts/compare.py --analysis <ice>/reference/<ref-id>/analysis --plan <ice>/plan/shots.json \
   --video <render.mp4> --out <ice>/review/remake/compare
 ```
 
-It prints "motion mismatch" when one side is still and the other is not. Numbers flag; open `compare_*.jpg` and judge.
+It writes `compare_*.jpg` (one pair per detected shot), `compare.json` and `contract.json` (each stat, both values, the allowed range, `ok`, and the planned cuts it did not find as leads), and exits 1 outside the contract (2 on bad input or a missing package). Blocking after assembly at 07 and confirmed at 09; a run on one chunk reads as a lead. A stat outside its range is cleared by a fix re-checked, or by its reason logged in `ice/DIRECTION.md` (for example a platform the user named that forces shorter shots, or a chosen style whose own measure differs) together with an exemption row of the craft plan lifting `contract:<stat>` (`mean_shot_s`, `mean_shot_beats`, `low_key_shots`, `moving_camera_shots`, `stillness_ratio`, `camera_pace`) whose source kind is user or style; the reference never excuses a departure from itself. Row format: the `ice-direction` skill, `references/treatment.md` section "Craft plan". Numbers flag the gate; open `compare_*.jpg` and judge the craft by eye.
 
 ## 5. Variety and arc (apply after mapping)
 

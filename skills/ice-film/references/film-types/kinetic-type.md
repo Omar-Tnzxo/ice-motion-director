@@ -37,6 +37,10 @@ Tempo, line counts, opacities and hold numbers for the first eight options: the 
 - Word onset gaps and beat tempos: the `ice-type` skill, `references/kinetic-type.md` sections 3 and 8. Reading time, minimum holds per language and beats per readable word in music films: the `ice-type` skill, `references/reading-time.md` sections 1-2.
 - Shot length variation (equal word beats read as slides): the `ice-motion` skill, `references/anti-slideshow-and-density.md` section 3.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: the structure options run from word hits to a held thesis that is truly still, so no single number holds for the type; word and beat timing stay with the `ice-type` skill. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Voice-led with a voiceover, music-led with music, reading time (mode `free`) when silent. Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting type on the grid: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.

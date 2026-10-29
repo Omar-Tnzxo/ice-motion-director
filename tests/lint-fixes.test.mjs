@@ -4,6 +4,8 @@
 // L12, standard library only) and the news reel checks of storyboard_lint.py. Fixtures are written to a temp folder.
 // Then the craft plan's exemption rows (0.2.5): the Python and Node readers agree, and storyboard_lint, film_gate,
 // lint.mjs and art-check.mjs pass a covered hit and still fail it without a row.
+// Then pace on the render (0.2.6): motion_check.py fails a declared event the render's measure does not show and holds
+// the detected shot statistics against the reference's own measure; film_gate.py gate 5 reads the type's rhythm row.
 // The lint tests skip when no Chrome or Edge is found (set CHROME_PATH); the Python tests skip without Python 3.10+;
 // the film_gate test also skips without ffmpeg, numpy or opencv.
 // Run: node --test tests/
@@ -675,4 +677,111 @@ window.renderAt=function(t){document.getElementById('head').textContent=T.slice(
     assert.equal(rule(ar.out, "T1").status, "FAIL", kind + ": " + JSON.stringify(rule(ar.out, "T1")));
     assert.ok(ar.out.exemptions.some((e) => e.startsWith("T1 not lifted: Arabic text grew by letters")), JSON.stringify(ar.out.exemptions));
   }
+});
+
+// ---------------------------------------------------------------- pace on the render (0.2.6, package G1)
+// motion_check.py reads the render's measured changes (a craft_gate.py measure JSON, written here by hand in that
+// shape, standard library only): a declared event with no measured change within 2 frames fails as "declared, not
+// visible", and mean shot length and cuts per minute on detected cuts stay within 30 percent of the reference's own
+// measure. film_gate.py gate 5 reads the type's "Rhythm row:" line on the detected cuts of a real clip.
+const range = (from, to, step) => { const out = []; for (let t = from; t <= to + 1e-9; t += step) out.push(+t.toFixed(3)); return out; };
+const measureJson = (name, { dur = 30, cuts = [], moves = [], boxAt = () => [], every = 0.04 }) => json(name, {
+  tool: "craft_gate.py measure", video: { width: 1920, height: 1080, duration_s: dur, fps: 25 },
+  settings: { every_s: every, face_every_s: 0.2 },
+  camera: { cuts_s: cuts, moves, steps: [] }, flashes: { transition_times_s: [] },
+  detail: range(0, dur, 0.2).map((t) => ({ t, faces: [], text_boxes: boxAt(t) })),
+});
+const lowerThird = [[100, 900, 600, 80]];
+const push = (start) => ({ start, end: start + 1, kind: "push_in", scale_ratio: 1.05, shift_x: 0, shift_y: 0, rotation_deg: 0 });
+const refMeasure = () => measureJson("ref.measure.json", { cuts: range(1, 25, 1) });
+
+test("motion_check on the render: a declared camera move and a graphic the render does not show fail as declared, not visible", { skip: NO_PY }, () => {
+  const film = json("vis.events.json", { duration: 30, fps: 25, events: [...every(1, 25, 1), { t: 12.5, kind: "camera" },
+    { t: 26.5, kind: "camera" }, { t: 28, kind: "graphic" }, { t: 29, kind: "graphic" }] });
+  // the render: every cut, the push at 26.5 and the lower third at 28; nothing at 12.5 and nothing at 29
+  const bad = measureJson("vis-bad.measure.json", { cuts: range(1, 25, 1), moves: [push(26.52)], boxAt: (t) => (t >= 28 ? lowerThird : []) });
+  const r = motion(["--events", film, "--reference-events", refEvents(), "--measure", bad, "--reference-measure", refMeasure()]);
+  assert.equal(r.status, 1, r.err);
+  const p = r.out.pacing;
+  assert.equal(p.render_measured, true);
+  assert.equal(p.ok, false);
+  assert.deepEqual(p.declared_not_visible.map((x) => [x.t, x.kind]), [[12.5, "camera"], [29, "graphic"]]);
+  assert.ok(p.reasons.some((x) => /^declared, not visible: camera at 12\.5 s/.test(x)), JSON.stringify(p.reasons));
+  assert.deepEqual(p.shots.reasons, [], "the shot statistics match the reference");
+  // the same events once the render shows them: a push starting on 12.5 and the lower third leaving at 29
+  const good = measureJson("vis-good.measure.json", { cuts: range(1, 25, 1), moves: [push(12.5), push(26.52)],
+    boxAt: (t) => (t >= 28 && t < 29 - 1e-9 ? lowerThird : []) });
+  const ok = motion(["--events", film, "--reference-events", refEvents(), "--measure", good, "--reference-measure", refMeasure()]);
+  assert.equal(ok.status, 0, JSON.stringify(ok.out.pacing.reasons));
+  assert.equal(ok.out.pacing.declared_checked, 29);
+});
+
+test("motion_check on the render: mean shot length and cuts per minute more than 30 percent off the reference's detected cuts fail", { skip: NO_PY }, () => {
+  // every declared event is a graphic the render shows (a box in or out each second), but the film cuts twice in 30 s
+  const film = json("slow.events.json", { duration: 30, fps: 25, events: every(1, 29, 1, "graphic") });
+  const slow = measureJson("slow.measure.json", { cuts: [10, 20], boxAt: (t) => (Math.floor(t + 1e-9) % 2 ? lowerThird : []) });
+  const r = motion(["--events", film, "--reference-events", refEvents(), "--measure", slow, "--reference-measure", refMeasure()]);
+  assert.equal(r.status, 1, r.err);
+  const p = r.out.pacing;
+  assert.deepEqual(p.declared_not_visible, []);
+  assert.equal(p.shots.film.mean_shot_s, 10);
+  assert.equal(p.shots.reference.cuts, 25);
+  assert.ok(p.reasons.some((x) => /^mean_shot_s on detected cuts: film 10 s/.test(x)), JSON.stringify(p.reasons));
+  assert.ok(p.reasons.some((x) => /^cuts_per_minute on detected cuts/.test(x)), JSON.stringify(p.reasons));
+  // without the reference's own measure the shot statistics cannot be compared: a fail, never n/a
+  const blind = motion(["--events", film, "--reference-events", refEvents(), "--measure", slow]);
+  assert.equal(blind.status, 1);
+  assert.ok(blind.out.pacing.reasons.some((x) => /reference's measure is missing/.test(x)), JSON.stringify(blind.out.pacing.reasons));
+});
+
+test("motion_check without a reference: --measure checks the declared events alone, and a declared-only pacing run says so", { skip: NO_PY }, () => {
+  const film = json("alone.events.json", { duration: 30, fps: 25, events: [{ t: 5, kind: "cut" }, { t: 9, kind: "zoom in" }, { t: 14, kind: "flash" }] });
+  const m = measureJson("alone.measure.json", { cuts: [5] });
+  const outDir = join(dir, "declared-alone");
+  const r = motion(["--events", film, "--measure", m, "--out", outDir]);
+  assert.equal(r.status, 1, r.err);
+  assert.deepEqual(r.out.declared.declared_not_visible.map((x) => [x.t, x.class]), [[9, "camera"], [14, "flash"]]);
+  assert.ok(existsSync(join(outDir, "declared.json")), "declared.json written");
+  const paper = motion(["--events", json("paper.events.json", every(1, 29, 1, "cut", "type")), "--reference-events", refEvents(), "--duration", "30"]);
+  assert.equal(paper.status, 0, paper.err);
+  assert.equal(paper.out.pacing.render_measured, false);
+  assert.match(paper.out.pacing.note, /declared events only/);
+});
+
+test("film_gate gate 5: a single take fails the shorts rhythm row, a cut on the row passes, and only a user, reference or style row lifts it", { skip: NO_FILM }, () => {
+  const root = join(dir, "rhythm");
+  mkdirSync(join(root, "render"), { recursive: true });
+  const one = join(root, "render", "one.mp4");
+  const cut = join(root, "render", "cut.mp4");
+  let mk = spawnSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=640x360:r=25:d=6", "-pix_fmt", "yuv420p", one], { encoding: "utf8", timeout: 60000 });
+  assert.equal(mk.status, 0, mk.stderr);
+  // hard cuts at 0.8, 2.1, 3.4 and 4.7 s: shots of 0.8 and 1.3 s, first cut 0.8 s
+  mk = spawnSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=640x360:r=25:d=6", "-f", "lavfi", "-i", "smptehdbars=s=640x360:r=25:d=6",
+    "-filter_complex", "[0][1]overlay=enable='between(t,0.8,2.1)+between(t,3.4,4.7)'", "-pix_fmt", "yuv420p", cut], { encoding: "utf8", timeout: 60000 });
+  assert.equal(mk.status, 0, mk.stderr);
+  const gate = (film) => {
+    const r = spawnSync(PY[0], [...PY.slice(1), abs("skills/ice-qa/scripts/film_gate.py"), film, "--json", "--type", "shorts and reels"], { encoding: "utf8", cwd: root, timeout: 180000 });
+    assert.ok(r.status === 0 || r.status === 2, `film_gate.py exit ${r.status}: ${r.stderr}`);
+    return { status: r.status, out: JSON.parse(r.stdout), err: r.stderr };
+  };
+  const red = gate(one);
+  assert.equal(red.status, 2);
+  const m = red.out.rhythm.measures;
+  assert.match(red.out.rhythm.from, /shorts-reels\.md$/);
+  for (const k of ["mean_shot_s", "max_shot_s", "first_cut_s", "max_event_gap_s"]) assert.equal(m[k].light, "red", k + ": " + JSON.stringify(m[k]));
+  assert.equal(m.first_cut_s.value, null);
+  const good = gate(cut).out.rhythm.measures;
+  for (const k of ["mean_shot_s", "max_shot_s", "first_cut_s", "max_event_gap_s"]) assert.equal(good[k].light, "green", k + ": " + JSON.stringify(good[k]));
+  assert.ok(Math.abs(good.first_cut_s.value - 0.8) <= 0.09, JSON.stringify(good.first_cut_s));
+  // a content row cannot lift a rhythm red; a user row can
+  plan(root, { exemptions: [{ id: "X-30", lifts: ["film:max_shot_s"], element: "one long take", source: src("content", "the take is calm"), shots: ["all"] }] });
+  const contentRun = gate(one);
+  const content = contentRun.out;
+  assert.equal(content.rhythm.measures.max_shot_s.light, "red");
+  // the shared reader (RULE_KINDS, treatment.md 11.7) warns and ignores the row
+  assert.match(contentRun.err, /X-30 ignored for film:max_shot_s: a content row cannot lift it/);
+  plan(root, { exemptions: [{ id: "X-31", lifts: ["film:max_shot_s"], element: "one long take", source: src("user", "\"keep it as one take\""), shots: ["all"] }] });
+  const user = gate(one).out;
+  assert.equal(user.rhythm.measures.max_shot_s.light, "exempt");
+  assert.ok(user.exempt.includes("exempt film:max_shot_s by X-31 (user: \"keep it as one take\")"), JSON.stringify(user.exempt));
 });

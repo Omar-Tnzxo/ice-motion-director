@@ -13,6 +13,9 @@
 # film:<richness key>); a covered hit gets the light "exempt" and prints "exempt <rule id> by <row id> (<source>)";
 # --allow-blue-purple stays as an alias of a user-sourced row; the film type for the floor may come from the craft plan;
 # gate 4 also reads an edit type's coverage floor (motion-density.md section 6.2), the render-side twin of validate-plan.mjs.
+# 2026-10-29 (0.2.6, pace on the render): gate 5 reads the film or edit type's "Rhythm row:" line (mean shot range,
+# longest shot, first cut, longest event gap; motion-density.md section 6.3) on the detected cuts, which are now kept
+# apart from declared cuts; red outside the row, yellow near it; skipped as a gate when the project follows a reference.
 # See NOTICE.md.
 """film_gate.py: read a finished mp4 only and measure the "page-flip slideshow" feel. Run before delivery.
 
@@ -80,6 +83,19 @@ cuts; detection also needs the luma correlation of the pair to drop under 0.7, s
 sliding past) is not a cut. A page flip (a cut with nothing moving in the 0.5 s on either side) is reported apart
 from the hard cuts: it is not a visual event and does not end a still run.
 
+Gate 5 (added 2026-10-29, 0.2.6): pace without a reference. The type file of the film type (the ice-film type file, or
+the ice-edit type file for an edit type) holds one "Rhythm row:" line with mean_shot_s (a range), max_shot_s,
+first_cut_s and max_event_gap_s (each a ceiling "<n>", a range "<a>-<b>", or "-" for not gated, in seconds) and "holds
+excuse" or "holds never" (whether a declared hold's span is left out of an event gap). Measured on the detected cuts and
+fades, never the declared cuts: shots under 3 analysis frames join the one before; the CTA or end card from its
+declared start on is left to gate G3 (look.py); events are the detected cuts (page flips excluded), fades, fast-motion
+run starts and the events file's declared visual events, merged within 0.3 s. Red outside the row by more than one
+analysis frame (a range with no cut detected is red for first_cut_s), yellow inside it within 10 percent of the
+range's width from an edge or of a ceiling. A row lifting film:<key> (source user, reference or style; a content row is
+ignored) lifts it. When the project follows a reference (the craft plan names one, or a reference analysis holds
+events.json), the reference's numbers win and the row is reported only. The rule: references/motion-density.md
+section 6.3.
+
 All other metrics are report-only (yellow at most, never blocking). Still-type metrics (still share, longest still,
 longest gap without an event) would flag good "hold, burst, hold" films, so they must never be gates; a yellow only
 means "go and look at this stretch".
@@ -101,8 +117,8 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from storyboard_lint import (_key, _table_after, declared_times, exempt_line, exemption_for, find_craft_plan,   # noqa: E402
-                             load_craft_plan, owner_floor, parse_floor, project_ice,   # shared film-type helpers and craft plan reader
+from storyboard_lint import (FILM_TYPES_DIR, _key, _table_after, declared_times, exempt_line, exemption_for,   # noqa: E402
+                             find_craft_plan, load_craft_plan, owner_floor, parse_floor, project_ice,   # shared film-type helpers and craft plan reader
                              resolve_scope_with_plan)
 
 try:
@@ -286,6 +302,7 @@ def analyze(path, sub_band=None, vertical="auto", template=None, verbose=False, 
         # correlation high (0.8 or more measured), a cut drops it (0.3-0.6 measured on the pilot films)
         cut_like[i] = d[i] >= max(8.0, 3 * med + 2) and loc[i] >= 0.6 * d[i] and corr[i] < 0.7
     cut = cut_like & ~np.concatenate([[False], cut_like[:-1]])
+    det_cut, det_like = cut.copy(), cut_like.copy()    # the detected cuts, kept apart from declared ones (rhythm rows)
     if event_cuts:
         cut = np.zeros(n - 1, bool)
         for tc_ in event_cuts:
@@ -370,17 +387,22 @@ def analyze(path, sub_band=None, vertical="auto", template=None, verbose=False, 
     # page for another. It is counted apart from the hard cuts, it is not a visual event, and it does not end a still run,
     # so a slideshow of still pages cannot pass as an edited film (ice-motion anti-slideshow-and-density section 1).
     half = max(2, int(round(0.5 * FPS)))
-    flip = np.zeros(n - 1, bool)          # first frame of a page-flip cut (like cut)
-    flip_like = np.zeros(n - 1, bool)     # every cut-like frame of that cut
-    for i in np.where(cut)[0]:
-        j = i
-        while j + 1 < n - 1 and cut_like[j + 1]:
-            j += 1
-        before = [k for k in range(max(0, i - half), i) if not cut_like[k] and not in_diss[k]]
-        after = [k for k in range(j + 1, min(n - 1, j + 1 + half)) if not cut_like[k] and not in_diss[k]]
-        if len(before) >= 2 and len(after) >= 2 and all(d[k] < STILL for k in before + after):
-            flip[i] = True
-            flip_like[i:j + 1] = True
+
+    def page_flips(cmask, clike):
+        flip = np.zeros(n - 1, bool)          # first frame of a page-flip cut (like cut)
+        flip_like = np.zeros(n - 1, bool)     # every cut-like frame of that cut
+        for i in np.where(cmask)[0]:
+            j = i
+            while j + 1 < n - 1 and clike[j + 1]:
+                j += 1
+            before = [k for k in range(max(0, i - half), i) if not clike[k] and not in_diss[k]]
+            after = [k for k in range(j + 1, min(n - 1, j + 1 + half)) if not clike[k] and not in_diss[k]]
+            if len(before) >= 2 and len(after) >= 2 and all(d[k] < STILL for k in before + after):
+                flip[i] = True
+                flip_like[i:j + 1] = True
+        return flip, flip_like
+    flip, flip_like = page_flips(cut, cut_like)
+    det_flip = page_flips(det_cut, det_like)[0] if event_cuts else flip
     n_flip = int(flip.sum())
     n_cut -= n_flip
     st_full = ((d < STILL) & ~trans) | flip_like
@@ -394,10 +416,11 @@ def analyze(path, sub_band=None, vertical="auto", template=None, verbose=False, 
     fast_full = np.zeros(n - 1, bool)
     fast_full[good] = fast
     ev_t = [i for i in np.where(cut & ~flip)[0]] + [c for _, _, c in diss]
-    prev = False
+    prev, fast_starts = False, []
     for i, v in enumerate(fast_full):
         if v and not prev:
             ev_t.append(i)
+            fast_starts.append(i)
         prev = v
     ev_t = sorted(ev_t)
     secs = n / FPS
@@ -597,6 +620,9 @@ def analyze(path, sub_band=None, vertical="auto", template=None, verbose=False, 
         "blank_runs_s": blank_runs,
         "cut_times_s": [round((i + 1) / FPS, 2) for i in np.where(cut)[0]],
         "cuts_from": "events" if event_cuts else "detected",
+        "detected_cut_times_s": [round((i + 1) / FPS, 3) for i in np.where(det_cut)[0]],
+        "detected_flip_times_s": [round((i + 1) / FPS, 3) for i in np.where(det_flip)[0]],
+        "fast_run_starts_s": [round((i + 1) / FPS, 3) for i in fast_starts],
         "_mov": mov, "_trans": trans, "_flip": flip_like, "_events": [round((i + 1) / FPS, 3) for i in ev_m],
         "page_flip_times_s": [round((i + 1) / FPS, 2) for i in np.where(flip)[0]],
         "dissolve_times_s": [round(c / FPS, 2) for _, _, c in diss],
@@ -1065,6 +1091,9 @@ def measure(path, sub_band=None, vertical="auto", template=DEFAULT_TEMPLATE, all
     rich = richness(path, res, floors, holds, cta_start, shows, plan)
     cover, csrc = edit_coverage(scope, res, ev_path, plan)
     rich.update(cover)
+    rh = rhythm_check(scope, res, holds, cta_start, ev_path, plan, ice)
+    if rh:
+        res["rhythm"] = rh
     for k in ("_mov", "_trans", "_flip", "_events"):
         res.pop(k, None)
     res["richness"] = {"film_type": scope["type_text"], "type_source": scope["type_source"], "row": scope["row"],
@@ -1072,11 +1101,13 @@ def measure(path, sub_band=None, vertical="auto", template=DEFAULT_TEMPLATE, all
                        "cta_start": cta_start, "declared_from": hsrc, "measures": rich}
     rows, red = grade(res, plan)
     res["exempt"] += [x for m in rich.values() for x in m.get("exempt", [])]
-    red = red or any(m.get("light") == "red" for m in rich.values())
+    rhm = rh["measures"] if rh else {}
+    res["exempt"] += rh["exempt"] if rh else []
+    red = red or any(m.get("light") == "red" for m in rich.values()) or any(m["light"] == "red" for m in rhm.values())
     res["lights"] = {k: lv for k, _, _, lv, _, _ in rows}
     res["gate_metrics"] = [k for k, _, _, _, gate, _ in rows if gate]
     gl = [res["lights"][k] for k in res["gate_metrics"]]
-    gl += [m.get("light") for m in rich.values()]
+    gl += [m.get("light") for m in rich.values()] + [m["light"] for m in rhm.values()]
     res["gate_light"] = "red" if "red" in gl else "yellow" if "yellow" in gl else "green"
     res["verdict"] = "red" if red else "pass"
     res["explain"] = explain(res)
@@ -1088,6 +1119,10 @@ def measure(path, sub_band=None, vertical="auto", template=DEFAULT_TEMPLATE, all
     if bare:
         res["explain"]["summary"] = "the edit is under the coverage floor of its type: " + "; ".join(bare) + ". Also: " + res["explain"]["summary"]
         res["explain"]["fix"] = COVER_FIX + (" " + res["explain"]["fix"] if res["explain"]["fix"] else "")
+    slow = [f"{k} {m['value'] if m['value'] is not None else 'none'} (row: {m['limit']})" for k, m in rhm.items() if m["light"] == "red"]
+    if slow:
+        res["explain"]["summary"] = "the cut is outside its type's rhythm row: " + "; ".join(slow) + ". Also: " + res["explain"]["summary"]
+        res["explain"]["fix"] = RHYTHM_FIX + (" " + res["explain"]["fix"] if res["explain"]["fix"] else "")
     return res, rows
 
 
@@ -1191,6 +1226,197 @@ def edit_coverage(scope, res, ev_path, plan):
     return out, f
 
 
+# ---------------------------------------------------------------- rhythm row without a reference (added 2026-10-29, 0.2.6)
+# The rule: references/motion-density.md section 6.3; the numbers: the "Rhythm row:" line of the ice-film type file or
+# the ice-edit type file. Shots and the first cut come from the detected cuts and fades only (never the declared cuts).
+RHYTHM_KEYS = ("mean_shot_s", "max_shot_s", "first_cut_s", "max_event_gap_s")
+RHYTHM_LINE = re.compile(r"^\s*(?:[-*]\s+)?(?:\*\*)?Rhythm row:(?:\*\*)?\s*(.*)$")
+RHYTHM_KINDS = ("user", "reference", "style")   # who may lift a rhythm red (restraint the agent chose is not a source)
+RHYTHM_FIX = ("Re-cut toward the type's rhythm row: split a long shot on its words, move the first cut onto the first "
+              "charged word, add a visible change (a cut, a camera move on a word, a graphic in or out) inside a long gap; "
+              "never an idle loop added to pass a number (references/motion-density.md section 6.3).")
+
+
+def rhythm_file(scope):
+    """The type file holding the scope's rhythm row: the ice-edit type file, else the ice-film type file, else None."""
+    f = edit_type_file(scope)
+    if f:
+        return f
+    name = scope["row"].split("/")[0].strip().lower().replace(" ", "-")
+    p = os.path.join(str(FILM_TYPES_DIR), name + ".md")
+    return p if os.path.isfile(p) else None
+
+
+def parse_rhythm_row(text):
+    """The text after "Rhythm row:" -> {key: None (not gated) | (low or None, high)}, plus "holds": excuse | never.
+    Fields are split on ';': "<key> -", "<key> <ceiling>" or "<key> <low>-<high>", seconds; "holds excuse|never"."""
+    out = {}
+    for cl in text.strip().rstrip(".").split(";"):
+        m = re.match(r"^\s*([a-z_]+)\s+(.+?)\s*s?\s*$", cl.strip().lower())
+        if not m:
+            continue
+        k, v = m.group(1), m.group(2).strip()
+        if k == "holds":
+            out["holds"] = "never" if v.startswith("never") else "excuse"
+            continue
+        if k not in RHYTHM_KEYS:
+            continue
+        r = re.match(r"^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$", v)
+        c = re.match(r"^(\d+(?:\.\d+)?)$", v)
+        out[k] = (float(r.group(1)), float(r.group(2))) if r else (None, float(c.group(1))) if c else None
+    out.setdefault("holds", "never")
+    return out
+
+
+def read_rhythm_row(path):
+    """-> (fields, line) of the file's first "Rhythm row:" line, or (None, None)."""
+    try:
+        lines = open(path, encoding="utf-8", errors="replace").read().splitlines()
+    except OSError:
+        return None, None
+    for ln in lines:
+        m = RHYTHM_LINE.match(ln)
+        if m:
+            return parse_rhythm_row(m.group(1)), ln.strip()
+    return None, None
+
+
+def has_reference(ice, plan):
+    """True when the project follows a reference: the craft plan names one, or a reference analysis holds events."""
+    ref = str((plan or {}).get("reference") or "").strip().lower()
+    if ref and ref != "none":
+        return True
+    rd = os.path.join(str(ice), "reference") if ice else None
+    return bool(rd and os.path.isdir(rd) and any(os.path.isfile(os.path.join(rd, x, "analysis", "events.json"))
+                                                for x in os.listdir(rd)))
+
+
+def cut_out(spans, holds):
+    """Spans (a, b) with the declared hold spans removed."""
+    for s, e in holds:
+        nxt = []
+        for a, b in spans:
+            if e <= a or s >= b:
+                nxt.append((a, b))
+                continue
+            if s > a:
+                nxt.append((a, s))
+            if e < b:
+                nxt.append((e, b))
+        spans = nxt
+    return spans
+
+
+def rhythm_values(res, holds, cta_start, ev_path, holds_excuse):
+    """The four rhythm measures on the render. Shots split at the detected cuts (page flips included) and fades; spans
+    under 3 analysis frames join the one before. The CTA or end card from its declared start on is left out of the
+    longest shot and the event gaps (gate G3 holds it). Events: detected cuts (page flips excluded), fades, fast-motion
+    run starts and the events file's declared visual events, merged within 0.3 s."""
+    dur = float(res["duration_s"])
+    end = cta_start if isinstance(cta_start, (int, float)) and 0 < cta_start < dur else dur
+    bounds = sorted({t for t in res.get("detected_cut_times_s", []) + res.get("dissolve_times_s", []) if 0 < t < dur})
+    spans, a = [], 0.0
+    for b in bounds + [dur]:
+        if spans and b - a < 3.0 / FPS:
+            spans[-1] = (spans[-1][0], b)
+        elif b > a:
+            spans.append((a, b))
+        a = b
+    body = [(s, min(e, end)) for s, e in spans if s < end - 1e-6] or spans
+    longest = max(body, key=lambda x: x[1] - x[0])
+    flips = set(res.get("detected_flip_times_s", []))
+    declared = [t for t in declared_visual_events(ev_path) if 0 <= t <= dur]
+    ev = sorted({t for t in res.get("detected_cut_times_s", []) if t not in flips} | set(res.get("dissolve_times_s", []))
+                | set(res.get("fast_run_starts_s", [])) | set(declared))
+    merged = []
+    for t in ev:
+        if t < end and (not merged or t - merged[-1] > 0.3):
+            merged.append(t)
+    times = [0.0] + merged + [end]
+    gaps = [(x, y) for x, y in zip(times, times[1:]) if y > x]
+    if holds_excuse:
+        gaps = cut_out(gaps, [(s, e) for s, e, _ in holds])
+    gap = max(gaps, key=lambda g: g[1] - g[0], default=(0.0, 0.0))
+    return {"mean_shot_s": (round(sum(e - s for s, e in spans) / len(spans), 2), (0.0, dur)),
+            "max_shot_s": (round(longest[1] - longest[0], 2), longest),
+            "first_cut_s": (round(bounds[0], 2), (0.0, bounds[0])) if bounds else (None, (0.0, dur)),
+            "max_event_gap_s": (round(gap[1] - gap[0], 2), gap)}, {"shots": len(spans), "events": len(merged),
+                                                                   "declared_events": len(declared), "end_s": round(end, 2)}
+
+
+def rhythm_light(v, lim):
+    """red outside the row's range (or over its ceiling) by more than one analysis frame; yellow inside but near it
+    (within 10 percent of the range's width from an edge, or of a ceiling); else green."""
+    lo, hi = lim
+    tol = 1.0 / FPS
+    if v is None:
+        return "red"
+    if lo is None:
+        return "red" if v > hi + tol else "yellow" if v > 0.9 * hi else "green"
+    if v < lo - tol or v > hi + tol:
+        return "red"
+    m = 0.1 * (hi - lo)
+    return "yellow" if v < lo + m or v > hi - m else "green"
+
+
+def rhythm_check(scope, res, holds, cta_start, ev_path, plan, ice):
+    """Gate 5 (0.2.6): the type's rhythm row on the render when no reference is followed. -> dict or None."""
+    f = rhythm_file(scope)
+    fields, line = read_rhythm_row(f) if f else (None, None)
+    if not fields:
+        return None
+    vals, info = rhythm_values(res, holds, cta_start, ev_path, fields["holds"] == "excuse")
+    ref = has_reference(ice, plan)
+    out = {"from": f, "row": line, "holds": fields["holds"], "reference": ref, "measures": {}, "exempt": [], "notes": [], **info}
+    if ref:
+        out["notes"].append("the project follows a reference: its own numbers win (motion_check.py, "
+                            "references/motion-density.md section 7); the row is reported, not gated")
+    for k in RHYTHM_KEYS:
+        lim = fields.get(k)
+        v, span = vals[k]
+        m = {"value": v, "limit": None if lim is None else (f"{lim[1]:g}" if lim[0] is None else f"{lim[0]:g}-{lim[1]:g}"),
+             "at": [round(span[0], 2), round(span[1], 2)]}
+        if lim is None:
+            m["light"] = "--"
+        elif ref:
+            m["light"] = "--"
+        else:
+            m["light"] = rhythm_light(v, lim)
+            if v is None:
+                m["note"] = "no cut detected"
+        if m["light"] in ("red", "yellow") and plan:
+            rid = "film:" + k
+            row = exemption_for(plan, rid, t=tuple(span), value=v)
+            kind = str(((row or {}).get("source") or {}).get("kind", "")).lower() if row else ""
+            if row and kind in RHYTHM_KINDS:
+                m["light"], m["exempt"] = "exempt", [exempt_line(rid, row)]
+                out["exempt"].append(exempt_line(rid, row))
+            elif row:
+                out["notes"].append(f"exemption {row.get('id')} ignored for {rid}: a {kind or 'sourceless'} row cannot lift "
+                                    f"a rhythm row (allowed: {', '.join(RHYTHM_KINDS)})")
+        out["measures"][k] = m
+    return out
+
+
+def rhythm_lines(rh):
+    L = [f"Rhythm row (references/motion-density.md section 6.3) from {rh['from']}: {rh['row'].split(':', 1)[-1].strip()}",
+         f"  measured on detected cuts: {rh['shots']} shot(s); events {rh['events']} ({rh['declared_events']} declared in "
+         f"the events file); holds {'excuse their span' if rh['holds'] == 'excuse' else 'never excuse a gap'}; "
+         f"CTA or end card from {rh['end_s']:g} s left to gate G3"]
+    for n in rh["notes"]:
+        L.append("  note: " + n)
+    for k, m in rh["measures"].items():
+        v = "none" if m["value"] is None else f"{m['value']:g} s"
+        L.append(f"  {LIGHT[m['light']]} gate    {k}: {v}" + (f"   row: {m['limit']}" if m["limit"] else "   (not in the row)")
+                 + (f"   at {m['at'][0]:g}-{m['at'][1]:g}s" if k in ("max_shot_s", "max_event_gap_s") else "")
+                 + (f"   {m['note']}" if m.get("note") else ""))
+        for e in m.get("exempt", []):
+            L.append("           " + e)
+    if any(m["light"] in ("red", "yellow") for m in rh["measures"].values()):
+        L.append("  How to fix the rhythm: " + RHYTHM_FIX)
+    return L
+
+
 LIGHT = {"red": "[RED]   ", "yellow": "[YELLOW]", "green": "[GREEN] ", "exempt": "[EXEMPT]", "--": "[  --  ]"}
 
 
@@ -1210,14 +1436,16 @@ def report_lines(res, rows):
         L.append(f"  blue-purple declared as needed by the brief: {res['allow_blue_purple']}")
     if res.get("craft_plan"):
         L.append(f"  craft plan: {res['craft_plan']} (exemption rows read; rule: the ice-direction skill, references/treatment.md section \"Craft plan\")")
-    # gate 1 to 3 exemptions here; the gate 4 ones print under their measure
-    under = {x for m in res["richness"]["measures"].values() for x in m.get("exempt", [])}
+    # gate 1 to 3 exemptions here; the gate 4 and 5 ones print under their measure
+    under = {x for m in res["richness"]["measures"].values() for x in m.get("exempt", [])} | set((res.get("rhythm") or {}).get("exempt", []))
     L += ["  " + e for e in res.get("exempt", []) if e not in under]
     if ex["worst_window"]:
         w = ex["worst_window"]
         L.append(f"  worst {w['end_s'] - w['start_s']:.0f} s window: {w['start_s']:.0f}-{w['end_s']:.0f}s, fast-motion share {w['fast_ratio']}; "
                  f"fast-motion share per 10 s: {res['fast_ratio_by_10s']}")
     L += richness_lines(res["richness"], res.get("cuts_from"))
+    if res.get("rhythm"):
+        L += rhythm_lines(res["rhythm"])
     return L
 
 
@@ -1302,7 +1530,8 @@ def main():
             for _, t in ex["look"]:
                 print("  - " + t)
         if not red:
-            print("Reminder: the gates block almost no fast action, a blank mid-section, a blue-purple ground and a frame under the richness floor; "
+            print("Reminder: the gates block almost no fast action, a blank mid-section, a blue-purple ground, a frame under the richness floor "
+                  "and a cut outside its type's rhythm row; "
                   "the independent review is still required.")
     sys.exit(2 if red else 0)
 

@@ -35,6 +35,10 @@ A 15 to 60 s vertical ad or reel where one person speaks to camera, recomposed f
 | Importance budget | Grade each line 1 (connective: fast, small, a cut or word swap), 2 (supporting), 3 (the point: slower, larger, held for reading time plus 0.5 to 1 s, its own sound). At most 25% of lines are 3. Animating every line the same is the top AI tell |
 | Popped words | Stay until their sentence ends, at least 0.6 s |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 4; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s: something happens every 2 to 4 s (Something moves row; `house-style-numbers.md` section 2); this section gives no shot length or first cut; holds excuse: a declared hold with its reason (`ice-qa/references/motion-density.md` section 3, the talking-head ad row). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Coverage floor
 
 Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table.

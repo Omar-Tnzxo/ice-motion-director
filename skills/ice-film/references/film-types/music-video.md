@@ -30,6 +30,10 @@ One idea for the whole video, carried by the music's structure. Act the lyric, d
 - A readable word holds at least one beat (headline 3-8 beats); a camera move at most once per phrase; a dense flip or strobe system runs at most 2-3 s (cap about 4 s).
 - Calm tracks: pace by phrase, never by per-onset cuts on an unreliable grid.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: pace follows the track (beat-cut or phrase-flow), so no fixed number holds for the type; cut offsets against the grid are its QA threshold. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 The track, analyzed by one beat analyzer and trusted (ice-audio). Film duration equals the audio duration. Never change duration or audio timing to hide a sync issue.

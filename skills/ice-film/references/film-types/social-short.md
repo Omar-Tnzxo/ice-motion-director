@@ -33,6 +33,10 @@ Earn the watch in the first 3 seconds, then pay it off inside the film. Virality
 - A 1-2 s event rhythm is a pacing diagnostic, not a cutting schedule; keep a longer hold when a developing action earns it and record why.
 - Vary rhythm by sequence: a short cluster of discoveries, a brief anticipation, a payoff.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 2.5; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s: a unit running past about 2.5 s gets a pattern interrupt (above); holds excuse: a longer hold that a developing action or a payoff earns is declared with its reason (above, and Camera policy during holds); the shot fields stay open because the hook is about motion, not a cut. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 The voiceover when there is one; otherwise the music grid, with reading windows. See `../cue-sheet.md`.

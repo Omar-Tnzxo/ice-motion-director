@@ -35,6 +35,10 @@ Do not add graphics just because a gap exists; add them when the narration has a
 | On-screen words (graphics-led) | About 20 per section, labels 1 to 2 words, no sentences |
 | Outro | Hold 4 to 6 s |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 45; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s: the Visual beat cadence row (at most 30 to 45 s without a beat in the body; 20 to 30 s early stays a target; `house-style-numbers.md` section 2); this section gives no shot length or first cut. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Coverage floor
 
 Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. The visual beat cadence above counts overlay beats; this floor counts every visual change, cuts and camera moves included.

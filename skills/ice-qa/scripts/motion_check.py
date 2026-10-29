@@ -8,17 +8,24 @@
 # between events and events per minute) and depth and camera against the reference, both blocking; --pacing-only runs
 # them with the standard library alone (numpy and ffmpeg load only on the video path). 2026-10-29 (0.2.5, craft plan):
 # black frames, white flashes and the end cut to black are labelled "exempt frame:A5 by <row>" when an exemption row of
-# ice/plan/craft-plan.json covers them (labels only: no check here fails on them). See NOTICE.md.
+# ice/plan/craft-plan.json covers them (labels only: no check here fails on them). 2026-10-29 (0.2.6, pace on the
+# render): the pacing gate also reads the render's measured changes (craft_gate.py measure JSON, or measured here with
+# its functions): a declared event with no measured change within 2 frames fails as "declared, not visible", and the
+# mean shot length and cuts per minute on detected cuts are held within 30 percent of the reference's; --measure alone
+# (no reference) runs the declared-event check. See NOTICE.md.
 # Needs: Python 3.11+; on the video path also ffmpeg/ffprobe on PATH (or FFMPEG_DIR) and numpy (pinned in
-# requirements.txt). --pacing-only needs neither.
+# requirements.txt), plus opencv when the render is measured here. --pacing-only needs neither.
 """motion_check.py: find the motion defects that stills can't show, in a rendered video; check the film's pacing, depth
 and camera against its reference.
 
     python motion_check.py out/video.mp4 --out out/check/motion [--from 0 --to 30] [--events film.events.json]
-           [--reference-events ice/reference/<ref-id>/analysis/events.json]
+           [--reference-events ice/reference/<ref-id>/analysis/events.json] [--reference-measure <ref craft-measure.json>]
+           [--boxes <boxes.json>] [--measure-every S]
            [--reference-depth ice/reference/<ref-id>/analysis/depth.json] [--depth film.depth.json]
     python motion_check.py --pacing-only --events film.events.json --reference-events <ref events.json>
+           [--measure <render measure.json> [--reference-measure <ref craft-measure.json>] [--boxes <boxes.json>]]
            [--reference-depth <ref depth.json> --depth film.depth.json] [--duration S] [--fps N] [--out DIR]
+    python motion_check.py --pacing-only --events film.events.json --measure <render measure.json> [--boxes ...]
 
 Video path. Looks at every frame (downscaled to 192 px wide, aspect ratio kept) and flags:
   freeze  a stretch longer than --freeze seconds (default 1.0) where NO region moves: every cell of a 12 px grid
@@ -54,6 +61,30 @@ Pacing against the reference (lesson L9, references/motion-density.md "Pacing ag
   hold never excuses a gap. Result: a "pacing" block (reference and film, each with longest_gap, longest_gap_at as the
   pair [start, end] of that gap in seconds, and events_per_minute; ok; blocking: true; reasons), printed as JSON and written to <out>/pacing.json with --out.
 
+The pacing gate on the render (0.2.6, references/motion-density.md section 7, "On the render"). The render's measured
+changes come from the JSON of `craft_gate.py measure <render> --out <json> --text` (--measure), or, on the video path, from the
+same functions run here (written to <out>/render-measure.json; sample step --measure-every, default the reference
+measure's own step, else 0.1 s). Measured changes: cuts (camera.cuts_s), camera moves (each move's start traced back
+to where its motion begins, and its end; a single visible camera jump outside a move: a punch-in), text or card boxes
+appearing or leaving (detail[].text_boxes of the measure, or --boxes: lint.mjs --boxes-out, a list of {"t", "boxes",
+"width", "height"}), and flash transitions (flashes.transition_times_s). Then:
+  declared, not visible  every film event (holds and sound left out) needs a measured change of its class within 2
+          frames of its time, plus the sample step of the measure it is read from (a measured time sits on that grid):
+          a cut needs a cut; a camera event a move start or end, a punch-in or a cut; a graphic (also show, text, title,
+          caption, card, label, overlay, cta) a box in or out, or a cut; a flash (also wash, dip) a flash transition or
+          a cut; any other kind any measured change. A graphic with no box source (a measure written without --text and
+          no --boxes) cannot be checked: unless a cut sits on it, it fails with the way to measure it.
+  shots   mean shot length (duration / (cuts + 1)) and cuts per minute on detected cuts, film against reference, each
+          within plus or minus 30 percent (the stats contract: the ice-remake skill, references/shot-mapping.md
+          section 4). The reference side is its own measure: --reference-measure, else craft-measure.json next to the
+          reference events file. A reference with fewer than 2 detected cuts gives no shot statistic (noted, not
+          failed). Both sides measured at different sample steps: noted.
+  The pacing block then carries render_measured: true, the render summary, declared_not_visible and shots. Without a
+  render measure it says render_measured: false (declared events only: the stage 06 animatic check); at 07, 09 and 10
+  only a render-measured pacing.json counts.
+  With --measure and no reference, the declared-event check runs alone: a "declared" block written to
+  <out>/declared.json, blocking like the others.
+
 Depth and camera against the reference (lesson L12, references/motion-density.md "Depth and camera against the
 reference"), with --reference-depth and the film's --depth (else <video>.depth.json next to the render). One format:
   {"camera_moving_share": <0..1>, "layers": <n>, "parallax_ratio": <n or null>, "push_through": <n>,
@@ -64,10 +95,11 @@ reference"), with --reference-depth and the film's --depth (else <video>.depth.j
   the reference's elements_3d present in the film's, depth of field present when the reference has it. Result: a
   "depth" block of the same shape, printed as JSON and written to <out>/depth-check.json with --out.
 
-Exit codes: 0 when every check run passes (the video checks alone never fail the exit); 1 when the pacing or the depth
-check fails (a blocker: the film is not delivered); 2 on bad input (an unreadable or malformed file, no duration).
+Exit codes: 0 when every check run passes (the video checks alone never fail the exit); 1 when the pacing, the declared
+events or the depth check fails (a blocker: the film is not delivered); 2 on bad input (an unreadable or malformed
+file, no duration, a render that cannot be measured here).
 """
-import argparse, json, os, shutil, subprocess, sys
+import argparse, json, math, os, re, shutil, subprocess, sys
 
 FFMPEG_FALLBACK = os.environ.get("FFMPEG_DIR", "")
 if not shutil.which("ffmpeg") and FFMPEG_FALLBACK and os.path.isdir(FFMPEG_FALLBACK):
@@ -150,7 +182,8 @@ def pacing_numbers(ev):
             "events_per_minute": round(len(ev["events"]) / ev["duration"] * 60, 2)}
 
 
-def pacing_check(ref, film):
+def pacing_check(ref, film, render=None):
+    """render: None (declared events only), or dict(measure, ref_measure, boxes, box_source) for the render side."""
     r, f = pacing_numbers(ref), pacing_numbers(film)
     fps = film["fps"] or ref["fps"]
     frame = 1.0 / fps if fps else 0.04
@@ -166,11 +199,32 @@ def pacing_check(ref, film):
     if f["events_per_minute"] < min_epm - 1e-9:
         reasons.append(f"{f['events_per_minute']:g} events per minute is under the limit {min_epm:.2f} "
                        f"(reference {r['events_per_minute']:g} x 0.90)")
-    return {"reference": r, "film": f,
-            "limits": {"max_gap": round(max_gap, 3), "min_events_per_minute": round(min_epm, 2), "frame": round(frame, 4)},
-            "ok": not reasons, "blocking": True, "reasons": reasons,
-            "rule": "references/motion-density.md, \"Pacing against the reference\": cleared only by changed material "
-                    "re-checked, or the user's own words accepting a slower pace, logged in ice/DIRECTION.md"}
+    out = {"reference": r, "film": f,
+           "limits": {"max_gap": round(max_gap, 3), "min_events_per_minute": round(min_epm, 2), "frame": round(frame, 4)},
+           "ok": True, "blocking": True, "reasons": reasons, "render_measured": render is not None,
+           "rule": "references/motion-density.md, \"Pacing against the reference\": cleared only by changed material "
+                   "re-checked, or the user's own words accepting a slower pace, logged in ice/DIRECTION.md"}
+    if render is None:
+        out["note"] = ("declared events only (the stage 06 animatic check): at 07, 09 and 10 run it on the render, or "
+                       "pass the render's craft_gate.py measure with --measure")
+    else:
+        vis = visible_check(film, render["measure"], render.get("boxes"), render.get("box_source"))
+        shots = shot_check(render.get("ref_measure"), render["measure"])
+        out.update(render=vis["render"], declared_checked=vis["checked"], declared_not_visible=vis["missing"],
+                   tolerance={"frames2_s": vis["frames2_s"], "plus": "the sample step of the measured change"}, shots=shots)
+        reasons += visible_reasons(vis) + shots["reasons"]
+    out["ok"] = not reasons
+    return out
+
+
+def declared_check(film, render):
+    """The declared-event check alone (a render measure and no reference)."""
+    vis = visible_check(film, render["measure"], render.get("boxes"), render.get("box_source"))
+    reasons = visible_reasons(vis)
+    return {"film": film["path"], "render": vis["render"], "declared_checked": vis["checked"],
+            "declared_not_visible": vis["missing"], "tolerance": {"frames2_s": vis["frames2_s"],
+            "plus": "the sample step of the measured change"}, "ok": not reasons, "blocking": True, "reasons": reasons,
+            "rule": "references/motion-density.md section 7, \"On the render\": cleared only by changed material re-checked"}
 
 
 # ---------------------------------------------------------------- depth and camera against the reference (lesson L12)
@@ -201,7 +255,8 @@ def depth_check(ref, film):
         return out
     reasons = out["reasons"]
     if film is None:
-        reasons.append("the film's depth file is missing: write <render>.depth.json (or pass --depth) from the plan and the build")
+        reasons.append("the film's depth file is missing: run craft_gate.py measure <render> --out <json>, which writes "
+                       "<render>.depth.json from the pixels beside the render (or pass --depth)")
     else:
         for k in DEPTH_VALUES:
             rv, fv = ref[k], film[k]
@@ -217,6 +272,227 @@ def depth_check(ref, film):
         if ref["dof"] and not film["dof"]:
             reasons.append("the reference has depth of field, the film has none")
     out["ok"] = not reasons
+    return out
+
+
+# ---------------------------------------------------------------- the render's measured changes (0.2.6, L9 on the render)
+# A measure is the JSON of craft_gate.py measure (video, settings, camera {cuts_s, moves, steps}, flashes, detail). The
+# visible-change thresholds below are craft_gate.py's (VISIBLE_SCALE, VISIBLE_SHIFT, VISIBLE_ROLL) and its per-second
+# move thresholds (references/measuring.md section 2 of the ice-remake skill).
+VISIBLE_SCALE, VISIBLE_SHIFT, VISIBLE_ROLL_DEG = 0.01, 0.01, 0.5
+RATE = {"zoom": 0.006, "dx": 0.008, "dy": 0.008, "rot": 0.01}     # per second; the onset walk reads a quarter of a step's share
+CLASS_WORDS = (("cut", ("cut",)),
+               ("camera", ("camera", "move", "zoom", "push", "pull", "pan", "tilt", "punch", "roll", "dolly", "truck",
+                           "orbit", "crane", "whip")),
+               ("graphic", ("graphic", "show", "text", "title", "caption", "card", "lower", "label", "overlay", "cta",
+                            "super", "graphics", "sticker", "badge")),
+               ("flash", ("flash", "wash", "dip", "strobe", "white")))
+ACCEPTS = {"cut": ("cut",), "camera": ("move", "punch", "cut"), "graphic": ("box", "cut"), "flash": ("flash", "cut"),
+           None: ("cut", "move", "punch", "box", "flash")}
+STATS_BAND = 0.30     # the stats contract: within plus or minus 30 percent (ice-remake shot-mapping.md section 4)
+MIN_REF_CUTS = 2      # fewer detected cuts on the reference: no shot statistic
+
+
+def declared_class(kind):
+    """cut, camera, graphic, flash, or None (any measured change), from the words of an event's kind."""
+    words = [w for w in re.split(r"[^a-z]+", str(kind or "").lower()) if w]
+    for cls, keys in CLASS_WORDS:
+        if any(w in keys for w in words):
+            return cls
+    return None
+
+
+def read_measure(path, what):
+    m = read_json(path, what)
+    cam = m.get("camera") if isinstance(m, dict) else None
+    vid = m.get("video") if isinstance(m, dict) else None
+    if not isinstance(cam, dict) or not isinstance(cam.get("cuts_s"), list) or not isinstance(vid, dict) \
+            or not _num(vid.get("duration_s")):
+        raise BadInput(f"the {what} {path} is not a craft_gate.py measure (it needs video.duration_s and camera.cuts_s): "
+                       "write it with craft_gate.py measure <video> --out <json>")
+    m["_path"] = path
+    return m
+
+
+def read_boxes(path):
+    """Box samples [(t, boxes, width, height)] from lint.mjs --boxes-out: a list, {"samples": [...]} or one sample."""
+    data = read_json(path, "boxes file")
+    samples = data.get("samples") if isinstance(data, dict) and isinstance(data.get("samples"), list) else \
+        [data] if isinstance(data, dict) else data if isinstance(data, list) else None
+    if samples is None:
+        raise BadInput(f"the boxes file {path} holds no samples")
+    out = []
+    for s in samples:
+        if not isinstance(s, dict) or _num(s.get("t")) is None: continue
+        boxes = [b for b in s.get("boxes") or [] if isinstance(b, list) and len(b) == 4 and all(_num(v) is not None for v in b)]
+        out.append((_num(s["t"]), boxes, _num(s.get("width")), _num(s.get("height"))))
+    return sorted(out, key=lambda x: x[0])
+
+
+def _iou(a, b):
+    ax2, ay2, bx2, by2 = a[0] + a[2], a[1] + a[3], b[0] + b[2], b[1] + b[3]
+    iw, ih = max(0.0, min(ax2, bx2) - max(a[0], b[0])), max(0.0, min(ay2, by2) - max(a[1], b[1]))
+    inter = iw * ih
+    union = a[2] * a[3] + b[2] * b[3] - inter
+    return inter / union if union > 0 else 0.0
+
+
+def box_changes(samples):
+    """Times at which a text or card box appears or leaves: the later of two consecutive samples whose boxes do not
+    match at IoU 0.5 (as craft_gate.py box_changes). Boxes are scaled to the first sample's size."""
+    out, prev, size = [], None, None
+    for t, boxes, w, h in samples:
+        if size is None and w and h: size = (w, h)
+        kx = size[0] / w if size and w else 1.0
+        ky = size[1] / h if size and h else kx
+        cur = [[b[0] * kx, b[1] * ky, b[2] * kx, b[3] * ky] for b in boxes]
+        if prev is not None and (any(all(_iou(a, b) < 0.5 for b in cur) for a in prev) or
+                                 any(all(_iou(b, a) < 0.5 for a in prev) for b in cur)):
+            out.append(round(t, 3))
+        prev = cur
+    return out
+
+
+def _spacing(times):
+    d = sorted(b - a for a, b in zip(times, times[1:]) if b > a)
+    return d[len(d) // 2] if d else 0.0
+
+
+def _step_value(step, key):
+    if not step.get("valid"): return 0.0
+    if key == "zoom":
+        s = _num(step.get("scale"))
+        return math.log(s) if s and s > 0 else 0.0
+    if key == "rot": return math.radians(_num(step.get("rot_deg")) or 0.0)
+    return _num(step.get(key)) or 0.0
+
+
+MOVE_KEY = {"push_in": "zoom", "pull_out": "zoom", "move_left": "dx", "move_right": "dx", "move_up": "dy",
+            "move_down": "dy", "roll": "rot"}
+
+
+def move_onset(move, steps, every):
+    """Where a move's motion begins: from its measured start (where the rate crossed the threshold) back over the
+    camera steps that keep the move's direction at a quarter of a step's threshold or more (an eased start)."""
+    start = _num(move.get("start")) or 0.0
+    key = MOVE_KEY.get(str(move.get("kind")))
+    if not key or not steps or not every: return start
+    total = {"zoom": math.log(_num(move.get("scale_ratio")) or 1.0), "dx": _num(move.get("shift_x")) or 0.0,
+             "dy": _num(move.get("shift_y")) or 0.0, "rot": math.radians(_num(move.get("rotation_deg")) or 0.0)}[key]
+    if not total: return start
+    floor = RATE[key] * every * 0.25
+    k = int(round(start / every)) - 1
+    onset = start
+    while 0 <= k < len(steps):
+        v = _step_value(steps[k], key)
+        if v * total <= 0 or abs(v) < floor: break
+        onset = k * every
+        k -= 1
+    return round(onset, 3)
+
+
+def render_changes(m, box_samples=None, box_source=None):
+    """The render's measured changes: [(t, what, step)] with what in cut, move, punch, box, flash, plus a summary."""
+    vid, cam, st = m["video"], m["camera"], m.get("settings") or {}
+    fps = _num(vid.get("fps")) or 25.0
+    every = _num(st.get("every_s")) or 0.1
+    steps = [s for s in cam.get("steps") or [] if isinstance(s, dict)]
+    ch = [(float(t), "cut", every) for t in cam["cuts_s"] if _num(t) is not None]
+    moves = [x for x in cam.get("moves") or [] if isinstance(x, dict) and _num(x.get("start")) is not None]
+    for x in moves:
+        ch.append((move_onset(x, steps, every), "move", every))
+        if _num(x.get("end")) is not None: ch.append((float(x["end"]), "move", every))
+    for s in steps:      # a visible jump of the camera outside any move: a punch-in or a snap
+        if s.get("moving") or not s.get("valid") or _num(s.get("t")) is None: continue
+        if abs(_step_value(s, "zoom")) >= VISIBLE_SCALE or max(abs(_num(s.get("dx")) or 0), abs(_num(s.get("dy")) or 0)) >= VISIBLE_SHIFT \
+                or abs(_num(s.get("rot_deg")) or 0) >= VISIBLE_ROLL_DEG:
+            ch.append((float(s["t"]), "punch", every))
+    if box_samples is None:
+        detail = [d for d in m.get("detail") or [] if isinstance(d, dict) and "text_boxes" in d and _num(d.get("t")) is not None]
+        if detail:
+            box_samples = [(float(d["t"]), d["text_boxes"] or [], vid.get("width"), vid.get("height")) for d in detail]
+            box_source = "the measure's text boxes (craft_gate.py text-region detector)"
+    box_t = box_changes(box_samples) if box_samples else []
+    bstep = _spacing([s[0] for s in box_samples]) if box_samples else 0.0
+    ch += [(t, "box", bstep) for t in box_t]
+    fl = m.get("flashes") if isinstance(m.get("flashes"), dict) else {}
+    ch += [(float(t), "flash", 1.0 / fps) for t in fl.get("transition_times_s") or [] if _num(t) is not None]
+    summary = {"measure": m.get("_path") or "measured here", "duration_s": _num(vid.get("duration_s")), "fps": fps,
+               "every_s": every, "cuts": len(cam["cuts_s"]), "moves": len(moves),
+               "punch_ins": sum(1 for c in ch if c[1] == "punch"), "box_changes": len(box_t),
+               "boxes_from": box_source if box_samples else None, "flash_transitions": len(fl.get("transition_times_s") or [])}
+    return sorted(ch), summary
+
+
+def visible_check(film, m, box_samples=None, box_source=None):
+    """Every declared visual event of the film needs a measured change of its class within 2 frames plus the sample
+    step of its source. -> dict(missing [..], checked n, tolerance, render summary)."""
+    changes, summary = render_changes(m, box_samples, box_source)
+    fps = summary["fps"]
+    frames2 = 2.0 / fps
+    dur = summary["duration_s"] or film["duration"]
+    missing, checked = [], 0
+    for t, kind in film["events"]:
+        if t > dur + frames2: continue
+        cls = declared_class(kind)
+        accepts = ACCEPTS[cls]
+        checked += 1
+        if cls == "graphic" and not summary["boxes_from"]:
+            cuts = [c for c in changes if c[1] == "cut" and abs(c[0] - t) <= frames2 + c[2] + 1e-6]
+            if not cuts:
+                missing.append({"t": t, "kind": kind, "class": cls, "why": "no box source: the graphic cannot be checked "
+                                "(measure with craft_gate.py measure --text, measure the render here, or pass --boxes from "
+                                "lint.mjs --boxes-out)"})
+            continue
+        near = [(abs(c[0] - t), c) for c in changes if c[1] in accepts]
+        hit = [c for d, c in near if d <= frames2 + c[2] + 1e-6]
+        if hit: continue
+        best = min(near, key=lambda x: x[0], default=None)
+        missing.append({"t": t, "kind": kind, "class": cls or "any",
+                        "nearest": {"t": round(best[1][0], 3), "what": best[1][1], "off_s": round(best[0], 3)} if best else None,
+                        "why": "no measured " + " or ".join(accepts) + " within 2 frames"})
+    return {"missing": missing, "checked": checked, "frames2_s": round(frames2, 4), "render": summary}
+
+
+def visible_reasons(v):
+    out = []
+    for x in v["missing"]:
+        near = x.get("nearest")
+        out.append(f"declared, not visible: {x['kind'] or 'event'} at {x['t']:g} s ({x['why']}"
+                   + (f"; nearest measured {near['what']} at {near['t']:g} s, {near['off_s']:g} s away" if near else "") + ")")
+    return out
+
+
+def shot_numbers(m):
+    dur = float(m["video"]["duration_s"])
+    cuts = sorted(float(t) for t in m["camera"]["cuts_s"] if _num(t) is not None and 0 < float(t) < dur)
+    return {"path": m.get("_path") or "measured here", "duration": round(dur, 3), "cuts": len(cuts),
+            "mean_shot_s": round(dur / (len(cuts) + 1), 3), "cuts_per_minute": round(len(cuts) / dur * 60, 2),
+            "every_s": _num((m.get("settings") or {}).get("every_s"))}
+
+
+def shot_check(ref_m, film_m):
+    """Mean shot length and cuts per minute on detected cuts, film within 30 percent of the reference."""
+    f = shot_numbers(film_m)
+    if ref_m is None:
+        return {"reference": None, "film": f, "reasons": ["the reference's measure is missing, so its detected cuts are "
+                "unknown: write it with craft_gate.py measure <reference video> --out "
+                "ice/reference/<ref-id>/analysis/craft-measure.json, or pass --reference-measure"], "notes": []}
+    r = shot_numbers(ref_m)
+    out = {"reference": r, "film": f, "band": STATS_BAND, "reasons": [], "notes": []}
+    if r["every_s"] and f["every_s"] and abs(r["every_s"] - f["every_s"]) > 1e-3:
+        out["notes"].append(f"sample steps differ (reference {r['every_s']:g} s, film {f['every_s']:g} s): cuts closer "
+                            "than the larger step may count differently; measure both with the same --every")
+    if r["cuts"] < MIN_REF_CUTS:
+        out["notes"].append(f"the reference has {r['cuts']} detected cut(s): too few for a shot statistic; its pace is "
+                            "held by the event gap and density above")
+        return out
+    for key, unit in (("mean_shot_s", " s"), ("cuts_per_minute", " per minute")):
+        rv, fv = r[key], f[key]
+        lo, hi = rv * (1 - STATS_BAND), rv * (1 + STATS_BAND)
+        if not lo - 1e-9 <= fv <= hi + 1e-9:
+            out["reasons"].append(f"{key} on detected cuts: film {fv:g}{unit} against reference {rv:g}{unit}, more than "
+                                  f"30 percent apart (allowed {lo:.3g} to {hi:.3g})")
     return out
 
 
@@ -239,17 +515,40 @@ def beside(video, suffix):
     return next((c for c in (video + suffix, os.path.splitext(video)[0] + suffix) if os.path.isfile(c)), None)
 
 
-def reference_checks(a, film_events_path, film_depth_path, video_duration=None, video_fps=None):
-    """Runs the pacing and depth checks the flags ask for. -> ({name: block}, failed?)."""
+def reference_measure_path(a):
+    """--reference-measure, else craft-measure.json next to the reference events file (the analysis folder)."""
+    if a.reference_measure: return a.reference_measure
+    if a.reference_events:
+        c = os.path.join(os.path.dirname(os.path.abspath(a.reference_events)), "craft-measure.json")
+        if os.path.isfile(c): return c
+    return None
+
+
+def render_input(a, measure):
+    """dict(measure, ref_measure, boxes, box_source) for the pacing and declared checks, from a measure dict."""
+    boxes = read_boxes(a.boxes) if a.boxes else None
+    rp = reference_measure_path(a)
+    return {"measure": measure, "ref_measure": read_measure(rp, "reference measure") if rp else None,
+            "boxes": boxes, "box_source": f"--boxes {a.boxes}" if boxes is not None else None}
+
+
+def reference_checks(a, film_events_path, film_depth_path, video_duration=None, video_fps=None, render=None):
+    """Runs the pacing, declared-event and depth checks the flags ask for. -> ({name: block}, failed?)."""
     blocks = {}
+    if a.reference_events or render is not None:
+        if not film_events_path or not os.path.isfile(film_events_path):
+            raise BadInput("the pacing and declared-event checks need the film's events: pass --events, or write "
+                           "<render>.events.json next to the render")
+        fps = a.fps or video_fps
+        dur = a.duration or video_duration or (render and _num(render["measure"]["video"].get("duration_s")))
+        film = read_events(film_events_path, "film events file", dur, fps)
     if a.reference_events:
         ref = read_events(a.reference_events, "reference events file")
-        if not film_events_path or not os.path.isfile(film_events_path):
-            raise BadInput("the pacing check needs the film's events: pass --events, or write <render>.events.json next to the render")
-        fps = a.fps or video_fps
-        film = read_events(film_events_path, "film events file", a.duration or video_duration, fps)
-        blocks["pacing"] = pacing_check(ref, film)
+        blocks["pacing"] = pacing_check(ref, film, render)
         write_block(a.out, "pacing.json", blocks["pacing"])
+    elif render is not None:
+        blocks["declared"] = declared_check(film, render)
+        write_block(a.out, "declared.json", blocks["declared"])
     if a.reference_depth:
         ref = read_depth(a.reference_depth, "reference depth file")
         film = read_depth(film_depth_path, "film depth file") if film_depth_path and os.path.isfile(film_depth_path) else None
@@ -291,6 +590,36 @@ def strip(path, t, fps, out, n=10):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{a:.3f}", "-i", path, "-frames:v", str(n),
                     "-vf", f"scale=320:-2,drawtext=text='%{{pts\\:hms\\:{a:.3f}}}':x=4:y=4:fontsize=14:fontcolor=white:box=1:boxcolor=black@0.5,tile={n}x1",
                     "-update", "1", out], capture_output=True)
+
+
+def measure_render(a):
+    """The render measured here with craft_gate.py's own functions (cuts, camera moves and steps, flashes, and text
+    boxes unless --boxes gives them), at the reference measure's sample step (else --measure-every, else 0.1 s); written
+    to <out>/render-measure.json so --measure can reuse it."""
+    every = a.measure_every
+    if not every:
+        rp = reference_measure_path(a)
+        every = _num(((read_json(rp, "reference measure") or {}).get("settings") or {}).get("every_s")) if rp else None
+        every = every or 0.1
+    if not 0.02 <= every <= 2.0:
+        raise BadInput("--measure-every must be between 0.02 and 2 seconds")
+    try:
+        import craft_gate
+        from pathlib import Path
+        craft_gate.load_cv()
+        m = craft_gate.measure(Path(a.video), every=every, want_text=not a.boxes)
+    except SystemExit as e:      # craft_gate.load_cv names the missing pinned packages
+        raise BadInput(f"cannot measure the render here: {e}")
+    except Exception as e:       # noqa: BLE001  (an unreadable video, or craft_gate.py mid-change)
+        raise BadInput(f"cannot measure the render here ({type(e).__name__}: {e}): run craft_gate.py measure <render> "
+                       "--out <json> and pass it with --measure")
+    m = json.loads(json.dumps(m))
+    os.makedirs(a.out, exist_ok=True)
+    path = os.path.join(a.out, "render-measure.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(m, f, ensure_ascii=False)
+    m["_path"] = path
+    return m
 
 
 def video_check(a):
@@ -354,8 +683,16 @@ def video_check(a):
     for z in freezes: strip(a.video, (z["from"] + z["to"]) / 2, fps, os.path.join(a.out, f"freeze_{z['from']:.2f}.jpg"))
     for b in rep["black"]: strip(a.video, b["from"], fps, os.path.join(a.out, f"black_{b['from']:.2f}.jpg"))
     blocks, failed = {}, False
-    if a.reference_events or a.reference_depth:
-        blocks, failed = reference_checks(a, ev, a.depth or beside(a.video, ".depth.json"), probe_duration(a.video), fps)
+    if a.reference_events or a.reference_depth or a.measure:
+        render = None
+        if (a.reference_events or a.measure) and not (ev and os.path.isfile(ev)):
+            raise BadInput("the pacing and declared-event checks need the film's events: pass --events, or write "
+                           "<render>.events.json next to the render")
+        if a.measure:
+            render = render_input(a, read_measure(a.measure, "render measure"))
+        elif a.reference_events:     # the pacing gate on the render: measure it here with craft_gate.py's functions
+            render = render_input(a, measure_render(a))
+        blocks, failed = reference_checks(a, ev, a.depth or beside(a.video, ".depth.json"), probe_duration(a.video), fps, render)
         rep.update(blocks)
     with open(os.path.join(a.out, "motion.json"), "w", encoding="utf-8") as f: json.dump(rep, f, indent=1)
     print(f"cuts {len(cuts)}  freezes {len(freezes)}  black {len(rep['black'])}  white {len(white)}  end_hard_black {end_hard_black}")
@@ -380,6 +717,10 @@ def main():
     ap.add_argument("--reference-events", default=None, help="the reference's events.json: run the pacing check (lesson L9)")
     ap.add_argument("--reference-depth", default=None, help="the reference's depth.json: run the depth and camera check (lesson L12)")
     ap.add_argument("--depth", default=None, help="the film's depth file (default: <video>.depth.json if present)")
+    ap.add_argument("--measure", default=None, help="the render's craft_gate.py measure JSON: check that every declared event is visible, and the shot statistics (0.2.6)")
+    ap.add_argument("--reference-measure", default=None, help="the reference's craft_gate.py measure JSON (default: craft-measure.json next to the reference events file)")
+    ap.add_argument("--boxes", default=None, help="text and card boxes per sample (lint.mjs --boxes-out): the graphics' in and out")
+    ap.add_argument("--measure-every", type=float, default=None, help="sample step when the render is measured here (default: the reference measure's, else 0.1 s)")
     ap.add_argument("--pacing-only", action="store_true", help="no video: run only the reference checks, standard library only")
     ap.add_argument("--duration", type=float, default=None, help="film duration in seconds, when its events file has none")
     ap.add_argument("--fps", type=float, default=None, help="film frame rate, when its events file has none")
@@ -389,9 +730,11 @@ def main():
             _stream.reconfigure(encoding="utf-8", errors="replace")
     try:
         if a.pacing_only:
-            if not (a.reference_events or a.reference_depth):
-                print("--pacing-only needs --reference-events and/or --reference-depth", file=sys.stderr); return 2
-            blocks, failed = reference_checks(a, a.events or beside(a.video, ".events.json"), a.depth or beside(a.video, ".depth.json"))
+            if not (a.reference_events or a.reference_depth or a.measure):
+                print("--pacing-only needs --reference-events, --reference-depth or --measure", file=sys.stderr); return 2
+            render = render_input(a, read_measure(a.measure, "render measure")) if a.measure else None
+            blocks, failed = reference_checks(a, a.events or beside(a.video, ".events.json"), a.depth or beside(a.video, ".depth.json"),
+                                              render=render)
             print(json.dumps(blocks, indent=1, ensure_ascii=False))
             for name, b in blocks.items(): print_block(name, b, sys.stderr)
             return 1 if failed else 0

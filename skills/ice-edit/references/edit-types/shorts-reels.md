@@ -34,6 +34,10 @@ A 15 to 90 s vertical video (1080x1920 by default) that convinces in the first t
 | Event gap | Over 2.2 s fails without a recorded hold reason |
 | Length | Platforms treat vertical uploads up to about 3 min as shorts (TikTok 10 min); re-verify |
 
+Rhythm row: mean_shot_s 1.1-1.4; max_shot_s 2.8; first_cut_s 0.6-1.0; max_event_gap_s 2.2; holds excuse.
+
+Where the row's numbers come from: the Shots and Event gap rows above (`house-style-numbers.md` section 2); holds excuse: a gap over 2.2 s passes only with a recorded hold reason (Event gap row). A news reel uses its own row (`news-reel.md` section 3). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the shot caps, presence, event gap and "no intro or outro card" rows above are replaced by `news-reel.md` section 3 (one take per passage, a branded end card after the last word, held static).
 
 ## Coverage floor

@@ -35,6 +35,10 @@ Leads with: the story.
 - Energy curve (where the strongest frame sits, the ending smaller than the climax): the `ice-motion` skill, `references/anti-slideshow-and-density.md` section 3.
 - The middle fails through equal density: break it with acceleration, a quiet frame, a scale change, new material or a camera change.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: the structure options disagree (cut-free acts of 2.5-4 s, scenes of about 2.5 s, an archival film with no number) and calm brands expect still holds (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Music-led by default; voice-led with a manifesto voiceover; free for a calm film without a steady beat. When the music is a score composed by code, its tempo is chosen at 05 with the sound lead, written into the cue sheet at 06 and composed at 08a; a licensed track that leads the cut is taken at 01 like a track-led type (the `ice-audio` skill, `SKILL.md` section 4, steps 1, 3 and 5). Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting on the grid and the pre-drop gap: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.

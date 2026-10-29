@@ -29,6 +29,10 @@ The canonical, instantly recognizable form of a style, used to say something. A 
 
 Vary the pace: at least one clear acceleration or deceleration and one breath; a film at one even speed has failed. One action, one sound, one cut, but not a cut on every beat.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: this section gives no shot or gap number, and holds and stillness are design choices for this type (`ice-qa/references/motion-density.md` section 3). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Usually music or a score written to a cue map before animating; narration when the piece has a voice. See `../cue-sheet.md`.

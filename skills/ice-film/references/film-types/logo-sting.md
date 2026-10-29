@@ -38,6 +38,10 @@ The mark comes to exist in a way that expresses the brand's personality, then ho
 | Anticipation, action, follow-through and stagger of parts | the `ice-motion` skill, `references/physics-and-morphing.md` section 2 |
 | Hold | a mark registers in about 0.5 s and a name in about 1 s; see the end-hold scope below |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: a sting is one continuous move of 1.2-2 s of main motion, and its end hold has its own gate (end-hold scope below). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 The sting's own choreography; with music, the final hit lands on the mark's settle. Sound starts on or just before the visual contact (ice-audio).

@@ -48,6 +48,10 @@ House values from the measured packages, used only when no reference is supplied
 | End card | After the last word: hard cut 10-22 f (0.4-0.88 s) later, or a 10 f (0.4 s) dissolve, or a ring mask closing on the presenter; built in 78-88 f (3.12-3.52 s), then a static hold of 2.2-6.5 s, no fade to black; 3.9-11.5 s in all. Skin: `family-broadcast-news.md` section 2 |
 | Length | 36-78 s for a promo reel (a reel cut from a long episode: 55-70 s), up to about 3 min for an English explainer reel |
 
+Rhythm row: mean_shot_s -; max_shot_s 37; first_cut_s -; max_event_gap_s 3; holds never.
+
+Where the row's numbers come from: the Presenter takes row (one take of 5-37 s, the end card excluded) and the Inner events row (never idle more than about 3 s); the mean shot stays open because the distribution is bimodal (Median shot row); holds never: a presenter talking with no inner event is dead air even when the hold is declared (`ice-qa/references/motion-density.md` section 3). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 Transitions: hard cuts between passages, each hidden in a camera move; designed transitions only on phrase boundaries (19 of 20 measured within 0-3 frames of a caption change), each with its meaning: white flash into or out of B-roll, red flash on a turn to threat or conflict, a monochrome strobe only at a chapter break (rationed: 3 in a 3 min reel), a red screen flash or a blur-out with an over-exposed entry into archive. Keyframes: `ice-motion/references/cut-catalog.md`, "Broadcast transitions". Logos and the progress bar are never moved by the camera or hit by a flash.
 
 ### Coverage floor

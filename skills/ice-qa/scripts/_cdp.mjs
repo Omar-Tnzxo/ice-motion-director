@@ -52,6 +52,7 @@ const KINDS_ALL = Object.freeze(['user', 'reference', 'style', 'content']);
 const RULE_KINDS = Object.freeze({
   ...Object.fromEntries(['film:hero_share', 'film:frame_fill', 'film:empty_half', 'film:depth_layers', 'film:in_shot_motion',
     'film:longest_still', 'film:element_events_per_min', 'film:longest_bare_talk_s', 'film:fast_ratio', 'film:blank_run_s',
+    'film:mean_shot_s', 'film:max_shot_s', 'film:first_cut_s', 'film:max_event_gap_s', 'contract:*',
     'lint:depth_layers', 'art:tones', 'art:shading', 'art:shapes', 'art:texture', 'art:shadow', 'look:g2', 'look:g3', 'story:*']
     .map((k) => [k, KINDS_NO_CONTENT])),
   'film:blue_purple_share': KINDS_ALL,       // content: the subject's real colours, logged

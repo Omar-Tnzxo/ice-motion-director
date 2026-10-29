@@ -56,6 +56,10 @@ Warning: hook, feature, feature, promise, logo, CTA is one possibility, never a 
 | Energy | Strongest single frame at 60-75% of the film; beats shorten toward it | all |
 | UI demo | A sequence of 3 or more consecutive feature beats on the same surface (input, response, result, benefit), not one isolated frame | when value depends on workflow |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 7.5; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s: never stretch a beat past 7.5 s (Beats row; energetic music-led beats of 1.4-3.5 s are stricter and stay a target); the shot fields stay open because the One shape, never cut and Continuous-take options have no cut; holds excuse: narrated cuts declare their reading holds (Richness floor, `longest_still`). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 - Narrated launch: voice-led. Music-led launch: music-led, with the drop on the product's big moment. Silent launch: free (every reveal cued to what motivates it, never an estimate).

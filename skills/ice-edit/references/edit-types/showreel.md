@@ -29,6 +29,10 @@ A short reel (often 15 to 40 s) of the user's own clips or past work, cut so eve
 | Zoom | Only when the source is at least 1.5 times the output size |
 | Tempo of shots on speech videos | Low density, clean style, avoid the hook and number moments |
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: this section ties cuts to the music's hits and lets density breathe, with no fixed shot or gap number; the cut offsets have their own gate (`ice-qa/references/captions-and-sync.md` section 3). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Coverage floor
 
 Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. Plan the clips as `broll` scenes.

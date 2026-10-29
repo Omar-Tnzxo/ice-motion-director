@@ -27,6 +27,10 @@ Energy and one remembered idea. Keep to one idea per scene; 6 strong scenes beat
 
 Big changes on beats; typography on 1/8 or 1/16 notes; slams accelerate from beats to 8ths to 16ths. Every cut, flash and invert within 2 frames of a grid line. Burst, then a short rest, then the slam.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 3; holds never.
+
+Where the row's numbers come from: max_event_gap_s: something happens on every beat (QA thresholds) and the longest scene of the Structure options is 3 s (Beat-grid hype, scenes of 1.5-3 s); holds never: no scene without motion, the end card is the only hold (Camera policy during holds); the shot fields stay open because the Ten-second hero arc gives no cut count. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 The measured beat grid of the track (ice-audio analyzes it; check the kick-band phase so cuts do not land half a beat late). See `../cue-sheet.md`.

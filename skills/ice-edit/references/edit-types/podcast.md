@@ -35,6 +35,10 @@ Two shapes: a full episode (usually 16:9) cleaned and switched between cameras, 
 | 16:9 wide | On silence or overlap, plus about 4 s of wide every 45 s |
 | Overlay cards | Card count formula in `house-style-numbers.md` |
 
+Rhythm row: mean_shot_s 2-9; max_shot_s 9; first_cut_s -; max_event_gap_s 9; holds excuse.
+
+Where the row's numbers come from: the Shot length row above (minimum 2 s, no shot over 9 s; `house-style-numbers.md` section 6): every shot inside 2-9 s keeps the mean there too, and a camera switch at least every 9 s is the longest gap; the opening gives no first-cut number. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Coverage floor
 
 Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table.

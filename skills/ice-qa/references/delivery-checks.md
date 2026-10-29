@@ -17,6 +17,7 @@ The user stops are the router's stops table (`ice-motion-director/SKILL.md` sect
 | Exists and decodes | File exists, is non-empty, decodes; `look.py` G0 passes | hyperframes, motionmaxxing |
 | Spec | `node scripts/quick-checks.mjs probe final.mp4 <WxH> <fps>`: resolution exact, fps within +-0.5, duration equal to the composition duration (ffprobe), codec h264 unless the platform asks otherwise | iart motion-skills, hyperframes |
 | Frame count | Exact frame count for the planned duration; even frame spacing (no variable frame rate unless intended) | anidoodle, founder skills |
+| Pace on the render (lesson L23) | `film_gate.py` gate 5 holds the cut inside the type's `Rhythm row:` on detected cuts when no reference is followed; with a reference, `motion_check.py --measure` finds every declared event within 2 frames of a measured change and the mean shot length and cuts per minute of detected cuts within plus or minus 30 percent (`motion-density.md` sections 6.3 and 7) | Ice |
 | Audio stream | Present exactly when scored; muxed if missing | anidoodle, reelmimic |
 | Audio audit (lesson L18) | `python scripts/qc.py --audit` of the ice-audio skill exits 0 and `ice/review/ear-list.json` exists; `align_script_to_asr.py --stem` (ice-type) finds no masked word (`audio-gates.md` section 2b) | Ice |
 | Frame 0 | Not near-blank; a finished composition, not a half-entered word | anidoodle, motion-video-kit |

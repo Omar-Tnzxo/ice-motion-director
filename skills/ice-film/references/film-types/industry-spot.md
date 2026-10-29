@@ -50,6 +50,10 @@ When the industry is not listed, take the closest row and let the stage 01 RQ-ru
 - 30 s: about 12-15 compositions, beats of 1.4-3.5 s; frame 0 is a finished composition.
 - Pilot set: one 20-30 s film plus two hooks plus two aspects.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 3.5; holds excuse.
+
+Where the row's numbers come from: max_event_gap_s: beats of 1.4-3.5 s (above); compositions are not shots (a carried transition changes the composition without a cut), so the shot fields stay open; holds excuse: calm spots may hold locked reading frames (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Voiceover when the market expects it; otherwise a back-timed real track whose own ending lands on the end card (ice-audio). See `../cue-sheet.md`.

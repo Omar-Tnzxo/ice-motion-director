@@ -31,6 +31,10 @@ One chart, one message. Write the chart's one point as a sentence first; the tit
 
 Count-ups decelerate over about 1.2-1.6 s, then hold; the label arrives after the number lands (value, then meaning). A number changes while the thing it counts is changing and stops on the frame the action stops.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: this section times count-ups, not shots or gaps, and the structure options hold values for 4 s or more by design (Chart loop, Hero stat). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 The voiceover word that names the metric, or the music phrase; silent units use reading time. See `../cue-sheet.md`.

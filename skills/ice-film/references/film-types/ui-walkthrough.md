@@ -29,6 +29,10 @@ Show the product being used: one operation at a time, the cause visible, the res
 - A title line holds about 2 s after it lands; UI runs at real speed (typing rates by viewer task, for example narrated UI against human authoring: the `ice-motion` skill, `references/cursor-and-ui.md` section 4); a pause of about 0.5 s after each result.
 - Each feature at least 2.5 s on screen; one close-up per operation.
 
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
+
+Where the row's numbers come from: No field is gated: UI runs at real speed and feature chapters run 8-15 s with a title line, a UI moment and a pull-back (Structure options), so no shot or gap number holds for every option. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+
 ## Timing master
 
 Narrated: voice-led; every beat names the word it lands on, so a new voice means re-reading word times, not redesigning. Music-only: music-led with reading windows. Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1. Film-side cue rules: `../cue-sheet.md`.
