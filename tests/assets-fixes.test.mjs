@@ -1,16 +1,19 @@
 // ice-assets fixes: capture-brand.mjs (page language, buttons, redirects, consent dialogs, nearly empty shots,
 // interface strings, sheet location) on local fixture pages served from 127.0.0.1 (no real network), and
 // validate-assets.mjs (brand sheets at the old and new places, code-built rebuilds of several captures).
-// The capture tests skip when no Chrome, Chromium or Edge is found (set ICE_CHROME). Run: node --test tests/
+// The capture tests skip when no Chrome, Chromium or Edge is found (set ICE_CHROME). Also fetch_media.py (the shipped
+// fetcher of real media) without any network: argument errors, the ICE_OFFLINE and sources.json refusals, the
+// one-clip rule and the records it writes for a local file. Run: node --test tests/
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { pathToFileURL } from "node:url";
-import { abs, readText, repoFiles } from "./helpers.mjs";
+import { abs, findPython, readText, repoFiles } from "./helpers.mjs";
 
 const CAPTURE = abs("skills/ice-assets/scripts/capture-brand.mjs");
 const VALIDATE = abs("skills/ice-assets/scripts/validate-assets.mjs");
@@ -369,5 +372,154 @@ describe("capture-brand on local fixture pages", { skip, timeout: 240000 }, () =
     assert.match(s.warnings.join("\n"), /no --lang given/);
     assert.equal(s.per_ratio["16:9"].consent[0].action, "hidden");
     assert.equal(hits.accepted, before, "an accept-only dialog is never clicked");
+  });
+});
+
+// ---------------------------------------------------------------- fetch_media.py, no network (0.2.6, package G5)
+// Every run points the proxies at a closed local port and HOME at an empty folder, so even a bug cannot reach the
+// network or read the user's own sources.json.
+
+const FETCH = abs("skills/ice-assets/scripts/fetch_media.py");
+const PY = findPython();
+const pySkip = PY ? false : "Python 3 not found";
+const fetchHome = join(work, "fetch home");
+const fetchMedia = (args, env = {}) => spawnSync(PY[0], [...PY.slice(1), "-I", FETCH, ...args], { encoding: "utf8", timeout: 60000,
+  env: { ...process.env, HOME: fetchHome, USERPROFILE: fetchHome, HTTP_PROXY: "http://127.0.0.1:9", HTTPS_PROXY: "http://127.0.0.1:9",
+    NO_PROXY: "", ICE_OFFLINE: "", ...env } });
+const fetchProject = (name, files = {}) => {
+  const dir = join(work, name);
+  mkdirSync(join(dir, "ice"), { recursive: true });
+  for (const [p, body] of Object.entries(files)) { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), body); }
+  return dir;
+};
+
+describe("fetch_media.py: the shipped fetcher, tested without network", { skip: pySkip }, () => {
+  test("argument errors exit 2 before any network call", () => {
+    const p = fetchProject("fetch args");
+    let r = fetchMedia(["search", "nasa", "--terms", "words"]);
+    assert.equal(r.status, 2, "search needs --terms-from: the slot the words come from");
+    assert.match(r.stderr, /--terms-from/);
+    r = fetchMedia(["get", "nasa", "an-id", "--project", p, "--type", "video"]);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /--height is required for video[\s\S]*section 5/);
+    r = fetchMedia(["get", "nasa", "an-id", "--project", p, "--type", "video", "--height", "720", "--window", "30-10"]);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /--window takes <start>-<end>/);
+    r = fetchMedia(["get", "youtube_official", "abcdefghijk", "--project", p, "--height", "1080"]);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /--channel, --official-from, --owner-kind/);
+    r = fetchMedia(["search", "wikimedia", "--terms", "words", "--terms-from", "slot", "--type", "svg", "--n", "3"], { ICE_OFFLINE: "1" });
+    assert.equal(r.status, 3, "valid arguments reach the settings check");
+    assert.ok(!existsSync(join(p, "assets")), "nothing is written by a refused or invalid run");
+  });
+
+  test("ICE_OFFLINE and sources.json refuse before any network call (exit 3), a download under ask waits for --yes, nothing is written", () => {
+    let r = fetchMedia(["search", "nasa", "--terms", "words", "--terms-from", "slot"], { ICE_OFFLINE: "1" });
+    assert.equal(r.status, 3);
+    assert.match(r.stderr, /not fetched: downloads are off \(ICE_OFFLINE=1\): no network at all/);
+    const off = fetchProject("fetch off", { "ice/sources.json": JSON.stringify({ downloads: "off" }) });
+    r = fetchMedia(["get", "wikimedia", "File:Any.jpg", "--project", off]);
+    assert.equal(r.status, 3);
+    assert.match(r.stderr, /downloads are off \(.*sources\.json downloads\)/);
+    const route = fetchProject("fetch route", { "ice/sources.json": JSON.stringify({ routes: { nasa: false } }) });
+    r = fetchMedia(["search", "nasa", "--terms", "words", "--terms-from", "slot", "--project", route]);
+    assert.equal(r.status, 3);
+    assert.match(r.stderr, /the route nasa is switched off \(.*routes\.nasa\)/);
+    const ask = fetchProject("fetch ask", { "ice/sources.json": JSON.stringify({ downloads: "ask" }) });
+    r = fetchMedia(["get", "wikimedia", "File:Any.jpg", "--project", ask]);
+    assert.equal(r.status, 3);
+    assert.match(r.stderr, /needs a yes[\s\S]*ice-motion-director\/SKILL\.md section 5, "Stops"[\s\S]*--yes/);
+    for (const dir of [off, route, ask]) assert.ok(!existsSync(join(dir, "assets")) && !existsSync(join(dir, "temp")), `${dir}: nothing written`);
+    r = fetchMedia(["doctor", "--project", ask]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /^User-Agent: IceMotionDirector\/\S+ \(\+https:\/\/github\.com\/Omar-Tnzxo\/ice-motion-director\)$/m);
+    assert.match(r.stdout, /^downloads: ask \(/m);
+  });
+
+  test("one official clip at a time: channel, playlist and search pages are refused before yt-dlp runs", () => {
+    const p = fetchProject("fetch clip");
+    const common = ["--project", p, "--height", "1080", "--channel", "https://www.youtube.com/@owner", "--official-from", "verified mark", "--owner-kind", "agency"];
+    for (const url of ["https://www.youtube.com/playlist?list=PL0123456789", "https://www.youtube.com/@owner/videos",
+      "https://www.youtube.com/results?search_query=words", "https://www.youtube.com/channel/UC0123456789"]) {
+      const r = fetchMedia(["get", "youtube_official", url, ...common]);
+      assert.equal(r.status, 3, url);
+      assert.match(r.stderr, /one clip at a time from an official channel/, url);
+    }
+  });
+
+  test("license ids, single-clip URLs and file names, read from the script's own functions", () => {
+    const code = String.raw`
+import importlib.util, json, sys
+spec = importlib.util.spec_from_file_location("fm", sys.argv[1]); fm = importlib.util.module_from_spec(spec); spec.loader.exec_module(fm)
+ids = [fm.license_id("CC BY-SA 4.0"), fm.license_id("", "http://creativecommons.org/publicdomain/mark/1.0/"),
+       fm.license_id("", "https://creativecommons.org/licenses/by-nc-nd/3.0/"), fm.license_id("Public domain"), fm.license_id("CC0"),
+       fm.license_id("GFDL"), fm.license_id("", "https://creativecommons.org/publicdomain/zero/1.0/")]
+info = {"channel_url": "https://www.youtube.com/channel/UCabc", "uploader_url": "https://www.youtube.com/@Owner", "uploader_id": "@Owner", "channel_id": "UCabc"}
+print(json.dumps({"ids": ids, "clip": fm.single_clip_url("abcdefghijk"), "slug": fm.slug("Harbour, at dawn: 1956!"),
+                  "same": [fm.same_channel(c, info) for c in ("https://youtube.com/@owner/", "UCabc", "https://www.youtube.com/@Other")]}))`;
+    const r = spawnSync(PY[0], [...PY.slice(1), "-I", "-c", code, FETCH], { encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    const o = JSON.parse(r.stdout);
+    assert.deepEqual(o.ids, ["CC-BY-SA-4.0", "PDM", "CC-BY-NC-ND-3.0", "public-domain", "CC0-1.0", "", "CC0-1.0"]);
+    for (const id of o.ids.filter(Boolean)) assert.notEqual(val.classifyLicense(id).cls, "unrecognized", `${id} is an id the asset gate reads`);
+    assert.equal(o.clip, "https://www.youtube.com/watch?v=abcdefghijk");
+    assert.equal(o.slug, "harbour-at-dawn-1956");
+    assert.deepEqual(o.same, [true, true, false]);
+  });
+
+  test("record writes the sidecar, manifest row and credits row of project-folders.md, offline, and the asset gate passes", () => {
+    const p = fetchProject("fetch record", { "ice/state.json": JSON.stringify({ commercial_use: "yes" }) });
+    const src = join(work, "fetch inbox", "harbour clip.png");
+    mkdirSync(dirname(src), { recursive: true });
+    writeFileSync(src, Buffer.concat([PNG, Buffer.alloc(64, 7)]));
+    const args = ["record", src, "--project", p, "--title", "Harbour at dawn", "--owner", "A. Photographer", "--source-url",
+      "https://commons.wikimedia.org/wiki/File:Harbour.png", "--license", "CC BY 4.0", "--license-url", "https://creativecommons.org/licenses/by/4.0/",
+      "--route", "wikimedia"];
+    let r = fetchMedia(args, { ICE_OFFLINE: "1" });
+    assert.equal(r.status, 0, r.stderr);
+    const rel = "assets/images/photo_harbour-at-dawn_orig_wikimedia.png";
+    assert.ok(existsSync(join(p, rel)), "the file goes to assets/<folder>/ under the naming rule");
+    const side = JSON.parse(readFileSync(join(p, "ice", "assets", "sources", "photo_harbour-at-dawn_orig_wikimedia.png.json"), "utf8"));
+    for (const k of ["file", "route", "title", "author", "license", "license_url", "license_status", "source_url", "media_url", "rendition", "window", "probe", "fetched", "sha256"]) {
+      assert.ok(k in side, `sidecar field ${k} (project-folders.md section 3b)`);
+    }
+    assert.equal(side.file, rel);
+    assert.equal(side.license, "CC-BY-4.0");
+    assert.equal(side.license_status, "licensed");
+    assert.equal(side.window, "full");
+    assert.match(side.fetched, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(side.probe.bytes, 72);
+    assert.equal(side.sha256, createHash("sha256").update(readFileSync(src)).digest("hex"));
+    assert.match(side.attribution, /"Harbour at dawn" by A\. Photographer, CC-BY-4\.0/);
+    r = fetchMedia(args, { ICE_OFFLINE: "1" });
+    assert.equal(r.status, 0, r.stderr);
+    r = fetchMedia(["record", src, "--project", p, "--title", "Night market", "--owner", "B. Maker", "--source-url", "https://example.org/item",
+      "--license", "CC-BY-NC-4.0", "--subject", "night-market"], { ICE_OFFLINE: "1" });
+    assert.equal(r.status, 0, r.stderr);
+    const manifest = JSON.parse(readFileSync(join(p, "ice", "assets", "manifest.json"), "utf8"));
+    assert.equal(manifest.assets.length, 2, "a second record of the same file replaces its row");
+    const row = manifest.assets.find((a) => a.path === rel);
+    assert.equal(row.source.type, "web-found");
+    assert.equal(row.rights.owner, "A. Photographer");
+    assert.equal(manifest.assets.find((a) => a.path !== rel).rights.license_status, "needs purchase", "noncommercial in a commercial film");
+    const credits = readFileSync(join(p, "ice", "assets", "CREDITS.md"), "utf8");
+    assert.equal(credits.split("\n").filter((l) => l.startsWith("| photo_harbour-at-dawn_orig_wikimedia.png |")).length, 1);
+    assert.match(credits, /^\| File \| Site \| Original URL \| Owner \| License status/m);
+    const v = run(p);
+    assert.equal(v.status, "PASS", v.problems.join("\n"));
+    r = fetchMedia(["record", src, "--project", p, "--title", "x", "--owner", "y", "--source-url", "https://example.org/x", "--license", "some license"]);
+    assert.equal(r.status, 2, "a license the asset gate cannot read is refused");
+  });
+
+  test("the script holds no query and no browser User-Agent, and the sourcing docs point to it", () => {
+    const src = readText("skills/ice-assets/scripts/fetch_media.py");
+    assert.match(src, /UA = f"IceMotionDirector\/\{ice_version\(\)\} \(\+\{REPO_URL\}\)"/);
+    assert.doesNotMatch(src, /Mozilla|Chrome\/|Safari\//, "never a faked browser User-Agent");
+    assert.match(src, /se\.add_argument\("--terms", required=True/);
+    assert.match(src, /TIMEOUT_S = 90\r?\nTRIES = 3/);
+    const sourcing = readText(SOURCING);
+    assert.match(section(sourcing, "4. ", "5. "), /\*\*The fetcher\.\*\* `scripts\/fetch_media\.py` runs the routes `openverse`, `wikimedia`, `internet_archive`, `nasa` and `youtube_official`/);
+    assert.match(section(sourcing, "5. ", "6. "), /`scripts\/fetch_media\.py get youtube_official` runs these steps/);
+    assert.match(readText("skills/ice-assets/references/project-folders.md"), /`scripts\/fetch_media\.py` writes these files/);
   });
 });

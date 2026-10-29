@@ -82,7 +82,9 @@ Every file Ice fetches from a route (`sourcing-and-licenses.md` section 4) gets 
   "fetched": "<YYYY-MM-DD>", "sha256": "<checksum>" }
 ```
 
-`probe` holds the ffprobe facts of the saved file (`width`, `height` and `fps` only for pictures and video). A file that came from `assets/inbox/` has `route: "user-download"` and the subscription or store it came from as `source_url` when the user gave it.
+`probe` holds the ffprobe facts of the saved file (`width`, `height` and `fps` only for pictures and video). A still taken at a smaller width than its original records `rendition: "<width>px wide"`. A file that came from `assets/inbox/` has `route: "user-download"` and the subscription or store it came from as `source_url` when the user gave it.
+
+`scripts/fetch_media.py` writes these files (and the manifest and credits rows) for every item it fetches or records (`sourcing-and-licenses.md` section 4, "The fetcher"). It may add: `owner` (the rights holder named in the records), `license_name` (the license as the source wrote it), `attribution` (the paste-ready credit for an attribution license), `published` (the date at the source), `notes`; for an official-channel clip also `channel_url`, `official_from` (the owner's page that links the channel, or the platform's verified mark) and `delivery_line` (the delivery note line of `sourcing-and-licenses.md` section 1a).
 
 ## 4. CREDITS.md
 

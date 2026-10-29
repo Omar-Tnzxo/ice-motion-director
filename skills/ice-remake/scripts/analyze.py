@@ -1,7 +1,11 @@
 # Adapted from edenfunf/reelmimic (MIT, Copyright (c) 2026 ReelMimic contributors; see LICENSE-reelmimic.txt). Changes: URL download (yt-dlp) removed, local files only; analysis cache made opt-in with --cache-dir; shebang dropped; dash characters replaced; UTF-8 console output for Windows; a missing optional package (opencv, scenedetect, librosa) prints a one-line warning naming its pinned version and its report section stays empty (librosa used to crash the run), a missing numpy, ffmpeg or ffprobe stops with a clear message; images are written through cv2.imencode so non-ASCII Windows paths work; no cache is written while a package is missing.
+# 2026-10-29 (0.2.6): an After Effects project (.aep or .aet, a RIFX file) is read instead of analysed as video: its
+# compositions, layers and the keyframes of transform properties go to aep.json (standard library only, no ffmpeg); best
+# effort, with a list of what was not decoded; nothing in the file is ever run.
 """analyze.py: take a reference video (a local file the user supplied) apart for style analysis.
 
     python analyze.py <local-file> --out <ice>/reference/<ref-id>/analysis [--cache-dir DIR] [--no-cache]
+    python analyze.py <project.aep> --out <ice>/reference/<ref-id>/analysis      (an After Effects project, see below)
 
 Writes into --out:
     source.<ext>      a copy of the input file
@@ -17,12 +21,18 @@ Writes into --out:
 With --cache-dir, results are cached per input (file content) in that folder: the same reference is analysed once.
 Without it nothing is written outside --out. This script never uses the network.
 
+An After Effects project (.aep or .aet) is read, never opened in After Effects and never run: aep.json lists the
+compositions (size, frame rate, duration), their layers (name, source, start, in and out) and the keyframes of the
+transform properties (time, value, interpolation, influence, spatial tangents), static transform values, which other
+properties carry keys or expressions, and what could not be decoded. Key times are raw time / the comp's time scale
+(30720 = 30 x 1024 in the measured project: raw / 1024 is 1/30 s, not a frame); check them against a render of the comp.
+
 Lessons baked in (each one broke a real run):
     - phone screen recordings: the video is a strip in the middle of a UI → cropdetect, then analyse the proxy
     - stereo recordings with inverted phase cancel to silence when summed to mono → measure L, R and L+R separately
     - loudness: normalise the chosen channel so beat tracking sees the music, not the noise floor
 """
-import argparse, hashlib, importlib.util, json, os, re, shutil, subprocess, sys, collections
+import argparse, hashlib, importlib.util, json, os, re, shutil, struct, subprocess, sys, collections
 
 ANALYZE_VERSION = 6   # bump when report.json gains fields, so cached analyses are redone
 
@@ -681,6 +691,255 @@ def cache_key(src):
     return h.hexdigest()[:16]
 
 
+# ---------------------------------------------------------------- After Effects projects (.aep, .aet): read, never run
+# A RIFX file: big-endian chunks (4-byte id, 4-byte size, body, padded to even), LIST chunks hold a 4-byte type and
+# children. Layouts below were checked on a real project against its tutorial's recorded timeline (2026-10-29).
+AEP_TRANSFORM = {"ADBE Anchor Point": "Anchor Point", "ADBE Position": "Position", "ADBE Position_0": "X Position",
+                 "ADBE Position_1": "Y Position", "ADBE Position_2": "Z Position", "ADBE Scale": "Scale",
+                 "ADBE Orientation": "Orientation", "ADBE Rotate X": "X Rotation", "ADBE Rotate Y": "Y Rotation",
+                 "ADBE Rotate Z": "Rotation", "ADBE Opacity": "Opacity"}
+AEP_SPATIAL = {"ADBE Anchor Point", "ADBE Position"}
+AEP_INTERP = {1: "linear", 2: "bezier", 3: "hold"}
+AEP_TIME_SCALE = 30720   # 30 x 1024: raw key time / 1024 was 1/30 s in the measured project (lesson of 2026-10-29)
+AEP_NOT_DECODED = [
+    "effect parameters: keyed effect properties are listed by match name and key count, their meaning is not read",
+    "masks, shape paths and shape-layer contents", "text layer contents, fonts and styles",
+    "parenting, 3D switches, blend modes, track mattes and motion blur switches", "markers and time remapping values",
+    "footage paths beyond the file name; solids' names and colours"]
+
+
+def rifx_tree(data, start, end, depth, notes):
+    """[(id, list type or None, body start, body end, children or None)] for the chunks between start and end."""
+    out, pos = [], start
+    while pos + 8 <= end:
+        cid = data[pos:pos + 4]
+        size = int.from_bytes(data[pos + 4:pos + 8], "big")
+        b0, b1 = pos + 8, pos + 8 + size
+        if b1 > end:
+            notes.append(f"chunk {cid.decode('latin-1')} at byte {pos} runs past its parent; read up to the parent's end")
+            b1 = end
+        if cid in (b"LIST", b"RIFX") and b1 - b0 >= 4:
+            if depth >= 64:
+                notes.append(f"LIST nested deeper than 64 at byte {pos}: not read")
+                kids = []
+            else:
+                kids = rifx_tree(data, b0 + 4, b1, depth + 1, notes)
+            out.append((cid, data[b0:b0 + 4], b0 + 4, b1, kids))
+        else:
+            out.append((cid, None, b0, b1, None))
+        pos = b0 + size + (size & 1)
+    return out
+
+
+def _u(data, a, n, signed=False):
+    return int.from_bytes(data[a:a + n], "big", signed=signed)
+
+
+def _utf8(data, node):
+    return data[node[2]:node[3]].split(b"\0")[0].decode("utf-8", "replace").strip()
+
+
+def _child(node, cid, ltype=None):
+    return next((c for c in node[4] or [] if c[0] == cid and (ltype is None or c[1] == ltype)), None)
+
+
+def _name(data, node):
+    c = _child(node, b"Utf8")
+    return _utf8(data, c) if c else ""
+
+
+def aep_footage_name(data, item):
+    """A footage item's file name from its Pin/Als2/alas record (JSON with the full path; only the base name is kept)."""
+    pin = _child(item, b"LIST", b"Pin ")
+    als = _child(pin, b"LIST", b"Als2") if pin else None
+    alas = _child(als, b"alas") if als else None
+    if not alas:
+        return ""
+    try:
+        full = json.loads(data[alas[2]:alas[3]].split(b"\0")[0].decode("utf-8")).get("fullpath") or ""
+    except (ValueError, AttributeError):
+        return ""
+    return re.split(r"[\\/]", full)[-1]
+
+
+def aep_key(raw, dims, spatial, scale):
+    """One keyframe: 8 head bytes (time u32, in and out interpolation codes) then big-endian doubles. Non-spatial:
+    values, in speeds, in influences, out speeds, out influences (5 per dimension). Spatial: 6 ease doubles, values,
+    in tangents, out tangents. A record of another size keeps its time and says the values were not decoded."""
+    t = _u(raw, 0, 4)
+    k = {"t_raw": t, "t_s": round(t / scale, 4),
+         "interp": [AEP_INTERP.get(raw[4], f"code {raw[4]}"), AEP_INTERP.get(raw[5], f"code {raw[5]}")]}
+    n = (len(raw) - 8) // 8
+    d = struct.unpack(f">{n}d", raw[8:8 + 8 * n])
+    r = lambda xs: [round(x, 4) for x in xs]
+    if dims and spatial and n == 6 + 3 * dims:
+        k.update(value=r(d[6:6 + dims]), speed_in=round(d[2], 4), influence_in=round(d[3], 4), speed_out=round(d[4], 4),
+                 influence_out=round(d[5], 4), tangent_in=r(d[6 + dims:6 + 2 * dims]), tangent_out=r(d[6 + 2 * dims:6 + 3 * dims]))
+    elif dims and n == 5 * dims:
+        k.update(value=r(d[:dims]) if dims > 1 else round(d[0], 4), speed_in=r(d[dims:2 * dims]), influence_in=r(d[2 * dims:3 * dims]),
+                 speed_out=r(d[3 * dims:4 * dims]), influence_out=r(d[4 * dims:5 * dims]))
+    else:
+        k["not_decoded"] = f"values of a {len(raw)}-byte key record for {dims or 'unknown'} dimensions"
+    return k
+
+
+def aep_property(data, node, match, scale):
+    """A tdbs property: dimensions and spatial flag (tdb4), static value (cdat), keys (list: lhd3 + ldat), expression."""
+    tdb4, cdat, expr = _child(node, b"tdb4"), _child(node, b"cdat"), _child(node, b"Utf8")
+    dims = _u(data, tdb4[2] + 2, 2) if tdb4 and tdb4[3] - tdb4[2] >= 8 else 0
+    spatial = bool(data[tdb4[2] + 7] & 0x02) if tdb4 and tdb4[3] - tdb4[2] >= 8 else match in AEP_SPATIAL
+    out = {"match": match}
+    if expr:
+        out["expression"] = _utf8(data, expr)[:300]
+    lst = _child(node, b"LIST", b"list")
+    head = _child(lst, b"lhd3") if lst else None
+    body = _child(lst, b"ldat") if lst else None
+    if head and body and head[3] - head[2] >= 20:
+        count, size = _u(data, head[2] + 10, 2), _u(data, head[2] + 16, 4)
+        if count and size >= 8 and body[3] - body[2] >= count * size:
+            out["keys"] = [aep_key(data[body[2] + i * size: body[2] + (i + 1) * size], dims, spatial, scale) for i in range(count)]
+    if "keys" not in out and cdat and dims:
+        n = min(dims, (cdat[3] - cdat[2]) // 8)
+        vals = [round(x, 4) for x in struct.unpack(f">{n}d", data[cdat[2]:cdat[2] + 8 * n])]
+        out["static"] = vals if dims > 1 else vals[0]
+    return out
+
+
+def aep_walk_props(data, node, path, scale, found):
+    """Every property under node: a tdmn chunk names the LIST that follows it; groups (tdgp and others) are walked."""
+    pending = None
+    for c in node[4] or []:
+        if c[0] == b"tdmn":
+            pending = data[c[2]:c[3]].split(b"\0")[0].decode("latin-1")
+        elif c[0] == b"LIST" and pending:
+            if c[1] == b"tdbs":
+                found.append((path + [pending], aep_property(data, c, pending, scale)))
+            elif pending != "ADBE Group End":
+                aep_walk_props(data, c, path + [pending], scale, found)
+            pending = None
+        elif c[0] == b"LIST" and c[1] == b"tdgp":   # a layer's root group has no match name before it
+            aep_walk_props(data, c, path, scale, found)
+
+
+def aep_read(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:4] != b"RIFX":
+        raise ValueError("not an After Effects project: the file does not start with RIFX (an .aepx is XML: save the project as .aep)")
+    notes = []
+    if data[8:12] != b"Egg!":
+        notes.append(f"form {data[8:12].decode('latin-1')!r} is not 'Egg!' (an After Effects project): read as far as it goes")
+    tree = rifx_tree(data, 12, len(data), 0, notes)
+    items = []
+
+    def collect(nodes):
+        for c in nodes:
+            if c[4] is None:
+                continue
+            if c[1] == b"Item":
+                items.append(c)
+            collect(c[4])
+    collect(tree)
+    by_id, comps, footage, folders = {}, [], [], []
+    for it in items:
+        idta = _child(it, b"idta")
+        if not idta or idta[3] - idta[2] < 20:
+            continue
+        kind, iid = _u(data, idta[2], 2), _u(data, idta[2] + 16, 4)
+        name = _name(data, it) or (aep_footage_name(data, it) if kind == 7 else "")
+        by_id[iid] = name or f"(unnamed item {iid})"
+        (comps if kind == 4 else footage if kind == 7 else folders if kind == 1 else []).append((iid, name, it))
+    report = {"file": os.path.basename(path), "kind": "after-effects-project", "bytes": len(data),
+              "reader": "analyze.py (best effort; nothing in the file is run)",
+              "units": "times in seconds = raw / time_scale; Opacity and Scale are fractions (1.0 = 100 percent); rotation in "
+                       "degrees; position and anchor point in pixels; influence as a fraction of the key span (0.33 = 33 percent)",
+              "compositions": [], "footage": [{"id": i, "name": n or f"(unnamed item {i})"} for i, n, _ in footage],
+              "folders": [n for _, n, _ in folders if n], "not_decoded": list(AEP_NOT_DECODED), "notes": notes}
+    for iid, name, it in comps:
+        c = {"id": iid, "name": name or f"(unnamed comp {iid})"}
+        cdta, scale = _child(it, b"cdta"), AEP_TIME_SCALE
+        if cdta and cdta[3] - cdta[2] >= 158:
+            b = cdta[2]
+            fdiv, fdvd, sdvd, sdiv = _u(data, b + 4, 4), _u(data, b + 8, 4), _u(data, b + 44, 4), _u(data, b + 48, 4)
+            c.update(width=_u(data, b + 140, 2), height=_u(data, b + 142, 2),
+                     fps=round(fdvd / fdiv, 3) if fdiv else _u(data, b + 156, 2),
+                     duration_s=round(sdvd / sdiv, 3) if sdiv else None,
+                     background="#" + data[b + 52:b + 55].hex())
+            scale = sdiv or AEP_TIME_SCALE
+        else:
+            c["not_decoded"] = "comp settings (no readable cdta chunk)"
+        c["time_scale"] = scale
+        layers = []
+        for order, lay in enumerate((x for x in it[4] if x[1] == b"Layr"), 1):
+            L, lscale = {"order_in_file": order}, scale
+            ldta = _child(lay, b"ldta")
+            if ldta and ldta[3] - ldta[2] >= 44:
+                b = ldta[2]
+                src = _u(data, b + 40, 4)
+                lscale = _u(data, b + 16, 4) or scale
+                for key, at in (("start_s", 12), ("in_s", 20), ("out_s", 28)):
+                    div = _u(data, b + at + 4, 4)
+                    L[key] = round(_u(data, b + at, 4, signed=True) / div, 4) if div else None
+                if src:
+                    L["source"] = by_id.get(src, f"(item {src})")
+            L["name"] = _name(data, lay) or L.get("source") or f"(layer {order})"
+            found = []
+            aep_walk_props(data, lay, [], lscale, found)
+            transform, other, exprs = {}, [], 0
+            for path_, prop in found:
+                m = prop["match"]
+                if "ADBE Transform Group" in path_ and m in AEP_TRANSFORM:
+                    prop["name"] = AEP_TRANSFORM[m]
+                    transform[m] = {k: v for k, v in prop.items() if k != "match"}
+                else:
+                    if prop.get("keys"):
+                        other.append({"property": m, "group": " > ".join(path_[:-1][-2:]), "keys": len(prop["keys"])})
+                    exprs += 1 if prop.get("expression") else 0
+            L["transform"] = transform
+            if other:
+                L["other_keyed"] = other
+            if exprs:
+                L["other_expressions"] = exprs
+            layers.append(L)
+        c["layers"] = layers
+        report["compositions"].append(c)
+    if not comps:
+        notes.append("no composition was found in the file")
+    return report
+
+
+def aep_main(src, out):
+    try:
+        rep = aep_read(src)
+    except (OSError, ValueError) as e:
+        sys.exit(f"could not read {src}: {e}")
+    dst = os.path.join(out, "aep.json")
+    with open(dst, "w", encoding="utf-8") as f:
+        json.dump(rep, f, ensure_ascii=False, indent=1)
+    for c in rep["compositions"]:
+        print(f"comp    {c['name']}: {c.get('width')}x{c.get('height')} {c.get('fps')} fps {c.get('duration_s')} s, {len(c['layers'])} layers")
+        for L in c["layers"]:
+            keyed = [f"{p['name']} {len(p['keys'])} keys" for p in L["transform"].values() if p.get("keys")]
+            if keyed or L.get("other_keyed"):
+                print(f"  layer {L['name']}: {', '.join(keyed) or 'no transform keys'}"
+                      + (f"; other keyed: {len(L['other_keyed'])}" if L.get("other_keyed") else ""))
+    for n in rep["notes"]:
+        print("note   ", n)
+    print("not decoded:", "; ".join(rep["not_decoded"]))
+    print("wrote", dst)
+
+
+def is_aep(src):
+    if os.path.splitext(src)[1].lower() in (".aep", ".aet"):
+        return True
+    try:
+        with open(src, "rb") as f:
+            head = f.read(12)
+        return head[:4] == b"RIFX" and head[8:12] == b"Egg!"
+    except OSError:
+        return False
+
+
 def summary(rep, out):
     info, crop, au = rep["video"], rep["crop"], rep["audio"]
     print(f"video   {info['width']}x{info['height']} {info['fps']}fps {info['duration']:.1f}s" + (f"  crop → {crop['w']}x{crop['h']} ({crop['note']})" if crop else ""))
@@ -720,6 +979,10 @@ def main():
     ap.add_argument("--rotate", default="auto", choices=["auto", "0", "90", "180", "270"],
                     help="degrees clockwise that make a sideways picture upright; auto turns it only when the orientation check is sure")
     a = ap.parse_args()
+    if os.path.isfile(a.src) and is_aep(a.src):   # an After Effects project: read with the standard library only
+        os.makedirs(a.out, exist_ok=True)
+        aep_main(a.src, a.out)
+        return
     if importlib.util.find_spec("numpy") is None:
         sys.exit("analyze.py needs numpy==2.4.6. Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
                  f'python -m pip install -r "{REQUIREMENTS}"')

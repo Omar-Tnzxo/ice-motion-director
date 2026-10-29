@@ -7,6 +7,8 @@ Every notable change to Ice Motion Director is listed here. The format follows [
 ### Added
 
 - **Pace measured on the render (L23).** `motion_check.py --measure` fails an event the plan declares but the render does not show ("declared, not visible") and checks mean shot length and cuts per minute on detected cuts against the reference; `compare.py` detects the film's own cuts. Without a reference, every film and edit type carries a `Rhythm row:` line (mean shot, longest shot, first cut, longest gap between events) that `film_gate.py` gate 5 checks on the render.
+- **A shipped fetcher for real footage (L24).** `ice-assets/scripts/fetch_media.py` searches and fetches from Openverse, Wikimedia Commons, Internet Archive, NASA and single official clips through the pinned yt-dlp, with the words taken from your script or brief, and writes each item's source, owner, license status, size and hash; `ICE_OFFLINE` and `sources.json` turn it down.
+- **After Effects projects are read (L24).** `ice-remake/scripts/analyze.py` reads an `.aep` you supply (never runs it) and lists its comps, layers and transform keys in `aep.json`, with what it could not decode.
 
 ### Changed
 

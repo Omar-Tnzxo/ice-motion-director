@@ -574,3 +574,68 @@ test("measuring and the plan carry pacing, fixed marks, depth and a reel cut fro
   assert.match(rm, /key time unit is calibrated against the comp's known duration/);
   assert.match(readText("skills/ice-direction/references/reference-fidelity.md"), /follow `ice-remake\/references\/rights-and-modes\.md` sections 1 and 4 instead of this table/);
 });
+
+// A tiny synthetic After Effects project (RIFX, big-endian chunks), built here: one comp, one footage item, one layer
+// with keyed Opacity and Position. analyze.py reads it with the standard library only and never runs anything from it.
+function chunk(id, body) {
+  const head = Buffer.alloc(8); head.write(id, 0, "latin1"); head.writeUInt32BE(body.length, 4);
+  return Buffer.concat([head, body, body.length & 1 ? Buffer.alloc(1) : Buffer.alloc(0)]);
+}
+const list = (type, ...kids) => chunk("LIST", Buffer.concat([Buffer.from(type, "latin1"), ...kids]));
+const cstr = (s) => Buffer.from(s + "\0", "utf8");
+const doubles = (...xs) => { const b = Buffer.alloc(8 * xs.length); xs.forEach((x, i) => b.writeDoubleBE(x, 8 * i)); return b; };
+function keyRec(t, inCode, outCode, ...ds) { const h = Buffer.alloc(8); h.writeUInt32BE(t, 0); h[4] = inCode; h[5] = outCode; return Buffer.concat([h, doubles(...ds)]); }
+function prop(match, dims, spatial, keys) {
+  const tdb4 = Buffer.alloc(8); tdb4.writeUInt16BE(dims, 2); tdb4[7] = spatial ? 0x02 : 0;
+  const lhd3 = Buffer.alloc(20); lhd3.writeUInt16BE(keys.length, 10); lhd3.writeUInt32BE(keys[0].length, 16);
+  return [chunk("tdmn", cstr(match)), list("tdbs", chunk("tdb4", tdb4), list("list", chunk("lhd3", lhd3), chunk("ldat", Buffer.concat(keys))))];
+}
+function aepFixture() {
+  const S = 30720;
+  const idta = (kind, id) => { const b = Buffer.alloc(20); b.writeUInt16BE(kind, 0); b.writeUInt32BE(id, 16); return chunk("idta", b); };
+  const cdta = Buffer.alloc(160);
+  cdta.writeUInt32BE(1, 4); cdta.writeUInt32BE(30, 8);            // 30 fps
+  cdta.writeUInt32BE(3 * S, 44); cdta.writeUInt32BE(S, 48);         // 3 s
+  cdta[52] = 0x10; cdta[53] = 0x20; cdta[54] = 0x30;
+  cdta.writeUInt16BE(1920, 140); cdta.writeUInt16BE(1080, 142);
+  const ldta = Buffer.alloc(44);
+  for (const at of [12, 20, 28]) ldta.writeUInt32BE(S, at + 4);
+  ldta.writeUInt32BE(3 * S, 28); ldta.writeUInt32BE(2, 40);         // out at 3 s; source: item 2
+  const opacity = prop("ADBE Opacity", 1, false, [keyRec(0, 1, 1, 0, 0, 0, 0, 0), keyRec(S, 2, 2, 1, 0, 0.33, 0, 0.33)]);
+  const position = prop("ADBE Position", 2, true, [keyRec(S / 2, 2, 2, 0, 0, 0, 0.5, 0, 0.5, 960, 540, 0, 0, 0, 0)]);
+  const layer = list("Layr", chunk("ldta", ldta), chunk("Utf8", cstr("Logo")),
+    list("tdgp", chunk("tdmn", cstr("ADBE Transform Group")), list("tdgp", ...opacity, ...position)));
+  const comp = list("Item", idta(4, 1), chunk("Utf8", cstr("Main Comp")), chunk("cdta", cdta), layer);
+  const footage = list("Item", idta(7, 2), list("Pin ", list("Als2", chunk("alas", cstr(JSON.stringify({ fullpath: String.raw`C:\footage\clip.mov` }))))));
+  const body = Buffer.concat([Buffer.from("Egg!", "latin1"), list("Fold", footage, comp)]);
+  return chunk("RIFX", body);
+}
+
+test("aep: analyze.py reads a synthetic After Effects project's comp, layer and transform keys, and refuses a file that is not RIFX", (t) => {
+  if (skip(t)) return;
+  const d = join(work, "aep"); mkdirSync(d, { recursive: true });
+  const src = join(d, "tiny.aep"); writeFileSync(src, aepFixture());
+  const out = join(d, "analysis");
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), abs("skills/ice-remake/scripts/analyze.py"), src, "--out", out], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /not decoded:/);
+  const rep = JSON.parse(readFileSync(join(out, "aep.json"), "utf8"));
+  assert.equal(rep.kind, "after-effects-project");
+  assert.deepEqual(rep.footage, [{ id: 2, name: "clip.mov" }]);
+  assert.equal(rep.compositions.length, 1);
+  const c = rep.compositions[0];
+  assert.deepEqual([c.name, c.width, c.height, c.fps, c.duration_s, c.background], ["Main Comp", 1920, 1080, 30, 3, "#102030"]);
+  const L = c.layers[0];
+  assert.deepEqual([L.name, L.source, L.out_s], ["Logo", "clip.mov", 3]);
+  const op = L.transform["ADBE Opacity"];
+  assert.equal(op.name, "Opacity");
+  assert.deepEqual(op.keys.map((k) => [k.t_s, k.value, k.interp[0]]), [[0, 0, "linear"], [1, 1, "bezier"]]);
+  assert.deepEqual(op.keys[1].influence_in, [0.33]);
+  const pos = L.transform["ADBE Position"];
+  assert.deepEqual([pos.keys[0].t_s, pos.keys[0].value], [0.5, [960, 540]]);
+  assert.ok(rep.not_decoded.some((x) => /effect parameters/.test(x)));
+  const bad = join(d, "fake.aep"); writeFileSync(bad, "RIFF not an AE project");
+  const r2 = spawnSync(PYTHON[0], [...PYTHON.slice(1), abs("skills/ice-remake/scripts/analyze.py"), bad, "--out", join(d, "bad")], { encoding: "utf8" });
+  assert.notEqual(r2.status, 0);
+  assert.match(r2.stderr, /does not start with RIFX/);
+});
