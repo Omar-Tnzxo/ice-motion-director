@@ -149,13 +149,39 @@ Density (scope line for section 4): in a news reel the "about 15 events per minu
 
 ## 7. SFX library policy
 
-1. The plugin ships no audio files. The optional, disclosed Release asset pack (planned) carries a recorded CC0 kit and instrument samples for opt-in music by code; it is one rung of the SFX ladder when the user installed it.
+1. The plugin ships no audio files. Ice's own Release asset pack `assets-sfx-v1` (about 58.6 MB, 128 recorded effects in 24 types, each file CC0 1.0 or public domain, pinned in the ice-engines skill, `references/versions.json` `asset_packs.sfx`) is fetched once by `python scripts/match_music.py pack fetch` into `~/.ice-motion-director/sfx-pack/` and checked by SHA-256, the zip and every file. It is a free download with no account: standing consent, no question; `ICE_OFFLINE=1`, `"downloads": "off"` or `"routes": {"ice_sfx_pack": false}` in `sources.json` turn it down (the ice-assets skill, `references/sourcing-and-licenses.md` section 0). It is rung 3 of the SFX ladder (`ice-audio/SKILL.md` section 5): the user's own files and libraries come first. Its `manifest.json` gives every file a `type`, a sync point `sync_s` and its levels: pick the type by the move (the table below), list candidates with `pack list --type <type>` (add `--profile under-speech` for a cue under speech), rank hero sounds with the `sfx` mode, then place the file at event time minus `sync_s` (section 5 item 1). One file per type for the whole film (section 3b). A file used in a film is copied into `ice/assets/audio/sfx/` and gets its row in `ice/assets/CREDITS.md` from the manifest's `source` block, status `licensed`; the delivery note says in one line: SFX pack `assets-sfx-v1` (CC0), the number of files used, fetched from the project's GitHub Releases with no account. Sound made by code stays opt-in, used only when the user names it (`ice-audio/SKILL.md` core rule 7).
 2. Search order: the SFX ladder (`ice-audio/SKILL.md` section 5). Routes, endpoints, keys, license classes, each library's recorded terms and the license check per file: the `ice-assets` skill, `references/sourcing-and-licenses.md`.
-3. Name effects concretely when searching (a material and an action, never "dramatic sound"); prefer clips of 15 s or less. Hero sounds (the signature impact and riser): fetch 3 to 5 candidates, rank them with `scripts/match_music.py sfx --kind impact` or `--kind whoosh` (the measures of sections 5 and 6: lead-in, rise time, tail, energy under 150 Hz and over 6 kHz, peak; a news reel, and any cue under speech in any film, adds `--profile news-reel`, sections 3b and 6), and lay the best 2 to 3 on the same cut; who hears them follows the options flow (`ice-audio/SKILL.md` section 5), and without a listener the best by measurement is placed and the others are listed in the delivery note. Every other effect is picked by measurement alone (sync point, spectrum fit, audibility). No match on any rung: skip the cue and say so rather than failing or inventing.
+3. Name effects concretely when searching (a material and an action, never "dramatic sound"); prefer clips of 15 s or less. Hero sounds (the signature impact and riser): fetch 3 to 5 candidates, rank them with `scripts/match_music.py sfx --kind impact` or `--kind whoosh` (the measures of sections 5 and 6: lead-in, rise time, tail, energy under 150 Hz and over 6 kHz, peak; a news reel adds `--profile news-reel`, and any cue under speech in any film its alias `--profile under-speech`, sections 3b and 6), and lay the best 2 to 3 on the same cut; who hears them follows the options flow (`ice-audio/SKILL.md` section 5), and without a listener the best by measurement is placed and the others are listed in the delivery note. Every other effect is picked by measurement alone (sync point, spectrum fit, audibility). No match on any rung: skip the cue and say so rather than failing or inventing.
 4. Library previews may be compressed: for hero sounds fetch the original into the user's project when the route allows it. No Freesound key is never a reason for a sound made by code: Freesound through Openverse needs no key (it serves Freesound's high-quality previews, which still pass through section 6). A key or an account that only the user can create is asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"); without it, use the no-key rungs and note in the delivery note what the key would add.
 5. Library hygiene for any pack: leading silence trimmed, max 4 s (risers 6 s, ambience 20 s with 1 s fades), one-shots peak-normalized to -3 dBFS (raw generations differ by 20 dB), ambience at -35 LUFS, 48 kHz, mono when channels are identical, a manifest entry per file (file, category, duration, source URL, license, attribution) and a license row.
 6. Every recorded sound file gets one row in `ice/assets/CREDITS.md`: the `ice-assets` skill, `references/project-folders.md` section 4. An unknown license is a status (`unknown` or `needs purchase`), listed in the delivery note, never a block (`ice-assets` skill, `references/sourcing-and-licenses.md` section 0).
 7. AI SFX generators are optional and user-initiated: say the service, cost and that the sound is generated; describe the material and action specifically; keep under the service's length limit.
+
+Pack types by move (item 1; the manifest's `types` block repeats these uses). Inside a type, in order: the under-speech band filter for a cue under speech, the duration fit (a whoosh about as long as the move, a riser at least as long as the build), the `sfx` ranking for hero sounds and measurement alone for the rest (item 3), one file per type for the film logged in `ice/DIRECTION.md`.
+
+| Move or event (sections 3 and 3b) | Pack type |
+|---|---|
+| Camera push, spatial move, soft scene cut | `whoosh_soft` (pass-by peak on the move's peak speed) |
+| Fast move, whip, hard transition | `whoosh_hard`, `transition` |
+| Swipe, card slide, wipe | `swipe`; `paper` in desk worlds |
+| Section change, time cut | `transition` |
+| Card or pill pop, a heavy picture entering behind the presenter | `impact_low` |
+| Reveal, logo slam, end card hit | `impact_cinematic` (the loudest effect) |
+| Edit into or out of archive, a fast zoom that opens a clause, a montage cut | `sub_drop`, then `impact_low` |
+| White or colour flash, exposure flash, a strobe replacement | `flash_hit` |
+| Build-up into a hit | `riser_short` (news reel: at most 0.7 s, trimmed from the start; the sync point is the arrival) |
+| Glitch transition, graphic flicker, tech error | `glitch` |
+| Write-on keyword, pointer reveal, terminal or HUD build | `data_chatter` |
+| Counter step, cascade landing, icon stream, hover | `tick` |
+| Press, toggle, tap | `ui_click` |
+| Appear, badge | `ui_pop` |
+| Success, check, card settle | `ui_ding` |
+| A message or phone notification on screen | `ui_notification` |
+| A calm end card sign-off | `chime_low` |
+| Typed text under a voice | `keyboard` (one per word) or `typing` (a texture clipped to the typing) |
+| A key word or hit of a section, a photo, a freeze frame | `camera_shutter` |
+| A page turn, a document sliding in | `paper` |
+| A bed under a scene | `ambience_room_tone`, `ambience_crowd`, `ambience_city` (beds sit at -35 LUFS; the bed level comes from `mix-and-master.md`) |
 
 ## 8. Feedback rounds
 

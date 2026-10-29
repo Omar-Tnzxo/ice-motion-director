@@ -185,6 +185,17 @@
       "download": "weights fetched by the pinned demucs on first use, without a question, into TORCH_HOME on a drive with room (engine-choice.md sections 7.6 and 7.7), recorded with size and folder"
     }
   },
+  "asset_packs": {
+    "about": "Optional Release asset packs. Fetched by ice-audio scripts/match_music.py pack fetch into the user cache and checked by SHA-256 (the ice-audio skill, references/sfx.md section 7). freshness.mjs never bumps them: a new pack is a new tag, and a published tag's asset is never edited.",
+    "sfx": {
+      "tag": "assets-sfx-v1",
+      "url": "https://github.com/Omar-Tnzxo/ice-motion-director/releases/download/assets-sfx-v1/ice-sfx-pack-v1.zip",
+      "sha256": "5314683d340d04a99938a1b204876c812a50edaff15d76e94081525c088b5f8c",
+      "bytes": 58620974,
+      "license": "CC0 1.0 or public domain per file (LICENSES.md inside the zip)",
+      "use": "rung 3 of the SFX ladder, after the user's own files and libraries (the ice-audio skill, SKILL.md section 5; references/sfx.md section 7 item 1)"
+    }
+  },
   "platform_specs": {
     "source": "skills/ice-engines/references/platform-specs.md",
     "max_age_days": 90,

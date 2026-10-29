@@ -89,9 +89,11 @@ Written by Omar-Tnzxo and merged here under this repository's Apache-2.0 license
 | brand-identity-studio | Brand system intake, color and type science | Rules in ice-direction, ice-type, ice-assets, ice-arabic, ice-audio |
 | commercial-motion-design | Commercial ad direction, camera inference, reference rubric | Rules in ice-direction, ice-film, ice-motion, ice-remake and others |
 
-## 6. Optional Release asset pack (planned, not in this repository)
+## 6. Release asset packs (not in this repository)
 
-Audio samples, sound effects and textures will ship as an optional, disclosed Release asset pack, never inside the plugin. Only CC0 items with recorded provenance are planned:
+**Sound effects, published:** [`assets-sfx-v1`](https://github.com/Omar-Tnzxo/ice-motion-director/releases/tag/assets-sfx-v1), 128 recorded effects in 24 types, fetched on demand by `skills/ice-audio/scripts/match_music.py pack fetch` and checked by SHA-256, never inside the plugin. Every file is CC0 1.0 or public domain, from [Kenney](https://kenney.nl/assets), [OpenGameArt](https://opengameart.org) (items listed as CC0), [Freesound](https://freesound.org) (sounds whose own page shows CC0 1.0) and [Wikimedia Commons](https://commons.wikimedia.org) (CC0 or public-domain templates). The author, title, page and check date of each file are in the pack's `LICENSES.md` and `manifest.json`; a film that uses a file credits it in its own `ice/assets/CREDITS.md`.
+
+**Still planned** (instrument samples for opt-in music by code, and textures), CC0 items with recorded provenance only:
 
 | Source | License | Planned use | Credit |
 |---|---|---|---|

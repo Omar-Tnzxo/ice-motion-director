@@ -98,7 +98,7 @@ Real first: music and effects come from real tracks and recordings, close to the
 **SFX ladder.** For every picture world, synthetic ones included (designed UI, HUD, glitch and 8-bit packs exist in these libraries):
 1. The user's files and local libraries.
 2. Professional designed sounds: the Sonniss GDC bundles (single files pulled from the bundle), BBC Sound Effects (recorded `needs purchase` for publishing), Freesound with a key (originals and similarity search).
-3. No key: Freesound through Openverse, Mixkit, Wikimedia Commons, Internet Archive, and the optional Release asset pack when the user installed it (planned: a recorded CC0 kit; its instrument samples serve opt-in music by code only).
+3. No key: Freesound through Openverse, Mixkit, Wikimedia Commons, Internet Archive, and Ice's CC0 pack, fetched without a question by `scripts/match_music.py pack fetch` (`references/sfx.md` section 7).
 4. Last: skip the cue and say so in the delivery note. Never a sound made by code (core rule 7).
 
 **Choosing.** Measure the reference with `scripts/sound_map.py` (in its voice-free windows when speech covers the bed), pull 10 to 20 candidates down the ladder, rank them with `scripts/match_music.py music`, and keep the best 2 to 3. Library search filters: music-choice-and-licensing.md section 3, item 3. Hero SFX (the signature impact and riser) get the same treatment: 2 to 3 measured candidates ranked with `scripts/match_music.py sfx`, laid on the same cut; every other effect is placed by measurement alone (sfx.md sections 5 and 6).

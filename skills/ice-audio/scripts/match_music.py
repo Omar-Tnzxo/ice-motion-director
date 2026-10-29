@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # Original to Ice Motion Director (Apache-2.0), from the 2026-10-29 editor-sources research (the tested prototypes
 # match_music.py and rank_sfx.py, merged into one script with two modes). It measures with sound_map.py from this folder.
-"""Rank real music tracks, or recorded sound effects, by measured closeness. No network: the candidates are local
-files the sourcing routes already fetched (the ice-audio skill, SKILL.md section 5).
+# 2026-10-29 (0.2.5): the pack mode (fetch and list Ice's own CC0 Release asset pack, founder decision D4) and the
+# under-speech alias of the news-reel SFX profile.
+"""Rank real music tracks, or recorded sound effects, by measured closeness. No network except `pack fetch` (the
+pinned Release asset pack): the candidates are local files the sourcing routes already fetched (the ice-audio skill,
+SKILL.md section 5).
 
 music mode: the reference (its sound_map.json, or the reference file itself, measured here) is compared with every
 candidate track, each measured with sound_map.py. Distance per axis, then a weighted sum (lower is closer):
@@ -19,27 +22,44 @@ sfx mode: the selection rules of references/sfx.md sections 5 and 6 as numbers, 
 rise time, tail, energy share under 150 Hz and over 6 kHz, peak. Rejects: over 50 % of the energy under 150 Hz
 (whoosh), over 40 % over 6 kHz (any). Whooshes score on an 80 to 400 ms rise and a short lead-in; impacts on a
 0.6 to 1.0 s tail and a fast transient. Lower score is better.
---profile news-reel (references/sfx.md section 3b): under speech a broadcast effect is sub or air, so the two band
-rejects and the phone note are replaced by one reject: over 50 % of the energy in the 150 Hz to 4 kHz voice band
-(any kind). Impacts score on a 0.6 to 1.4 s tail (the sub booms on edits); whooshes keep their rise and lead-in.
+--profile news-reel (references/sfx.md section 3b), or its alias under-speech for a cue under speech in any film:
+under speech an effect is sub or air, so the two band rejects and the phone note are replaced by one reject: over
+50 % of the energy in the 150 Hz to 4 kHz voice band (any kind). Impacts score on a 0.6 to 1.4 s tail (the sub booms
+on edits); whooshes keep their rise and lead-in.
+
+pack mode: Ice's own CC0 sound-effects pack, a Release asset pinned in ice-engines/references/versions.json
+(`asset_packs.sfx`: tag, URL, SHA-256, size; the PACK constant below mirrors it and a test keeps the two equal).
+`pack fetch` downloads it once into the user cache (~/.ice-motion-director/sfx-pack/<tag>/, or ICE_SFX_PACK_DIR),
+checks the zip and every file against their SHA-256, and refuses unsafe paths; ICE_OFFLINE=1, "downloads": "off" or
+"routes": {"ice_sfx_pack": false} in sources.json turn it down (the ice-assets skill, sourcing-and-licenses.md
+section 0), and "ask" there needs --yes after the user agreed. `pack list` prints the files of one or more types with
+their sync point and levels (references/sfx.md section 7), filtered for speech with --profile news-reel or
+under-speech; rank hero sounds by piping the paths into the sfx mode.
 
 Usage (Windows, macOS, Linux; needs ffmpeg on PATH, ffprobe too for sfx, and numpy plus scipy from requirements.txt):
     python match_music.py music --ref <sound_map.json or reference file> --out <folder> <track> <track> [...]
-    python match_music.py sfx --kind whoosh|impact [--profile default|news-reel] [--out <folder>] <file> <file> [...]
+    python match_music.py sfx --kind whoosh|impact [--profile default|news-reel|under-speech] [--out <folder>] <file> [...]
+    python match_music.py pack fetch [--force] [--yes]
+    python match_music.py pack list --type <type> [--type <type>] [--profile default|news-reel|under-speech] [--max-dur <s>]
 
-Exit code: 0 on success, 2 for bad input (a missing file, no candidate that could be measured),
-3 for a missing package or a missing ffmpeg or ffprobe.
+Exit code: 0 on success, 2 for bad input (a missing file, no candidate that could be measured, a pack that fails its
+checksum or is not installed), 3 for a missing package or a missing ffmpeg or ffprobe.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
+import os
 import re
 import shutil
 import statistics
 import subprocess
 import sys
+import tempfile
+import urllib.request
+import zipfile
 from pathlib import Path
 
 import sound_map
@@ -48,6 +68,14 @@ WEIGHTS = {"tempo": 0.30, "key": 0.10, "brightness": 0.20, "dynamics": 0.15, "mo
            "instruments": 0.05}
 SILENT_DB = -45.0  # energy_curve blocks under this level are silences or cuts, not music
 SFX_SR = 48000
+# Mirror of ice-engines/references/versions.json "asset_packs"."sfx"; tests/audio-fixes.test.mjs keeps the two equal.
+PACK = {"tag": "assets-sfx-v1",
+        "url": "https://github.com/Omar-Tnzxo/ice-motion-director/releases/download/assets-sfx-v1/ice-sfx-pack-v1.zip",
+        "sha256": "5314683d340d04a99938a1b204876c812a50edaff15d76e94081525c088b5f8c",
+        "bytes": 58620974,
+        "folder": "ice-sfx-pack-v1",
+        "route": "ice_sfx_pack"}
+UNDER_SPEECH = ("news-reel", "under-speech")
 
 
 def need_ffprobe() -> None:
@@ -243,7 +271,7 @@ def measure_sfx(np, path: Path) -> dict:
 
 def score_sfx(kind: str, m: dict, profile: str = "default") -> tuple[float, list[str]]:
     notes, s = [], 0.0
-    if profile == "news-reel":
+    if profile in UNDER_SPEECH:
         if m["voice_band_share"] > 0.5:
             notes.append("reject: over 50% of the energy in the 150 Hz to 4 kHz voice band (sfx.md section 3b)")
             s += 10
@@ -276,6 +304,119 @@ def score_sfx(kind: str, m: dict, profile: str = "default") -> tuple[float, list
         notes.append("quiet file: level it before use (sfx.md section 6)")
         s += 1
     return round(s, 2), notes
+
+
+def pack_dir() -> Path:
+    root = os.environ.get("ICE_SFX_PACK_DIR") or str(Path.home() / ".ice-motion-director" / "sfx-pack")
+    return Path(root) / PACK["tag"]
+
+
+def pack_manifest() -> dict | None:
+    m = pack_dir() / PACK["folder"] / "manifest.json"
+    if not (m.is_file() and (pack_dir() / "ok.json").is_file()):
+        return None
+    return json.loads(m.read_text(encoding="utf-8"))
+
+
+def download_setting() -> tuple[str, str]:
+    """The user's download setting for this route: ("allowed" | "ask" | "off", where it came from)."""
+    if os.environ.get("ICE_OFFLINE") == "1":
+        return "off", "ICE_OFFLINE=1"
+    setting, origin = "allowed", "default"
+    for f in (Path.home() / ".ice-motion-director" / "sources.json", Path.cwd() / "ice" / "sources.json"):
+        if not f.is_file():
+            continue
+        try:
+            s = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            sys.stderr.write(f"warning: {f} is not readable JSON ({e}); its settings are ignored\n")
+            continue
+        downloads = s.get("downloads")
+        if downloads in ("allowed", "ask", "off"):
+            setting, origin = downloads, f"{f} downloads"
+        route = (s.get("routes") or {}).get(PACK["route"])
+        if route is False:
+            setting, origin = "off", f"{f} routes.{PACK['route']}"
+        elif route == "ask" and setting == "allowed":
+            setting, origin = "ask", f"{f} routes.{PACK['route']}"
+        cap = s.get("max_download_mb")
+        if isinstance(cap, (int, float)) and PACK["bytes"] > cap * 1_000_000 and setting == "allowed":
+            setting, origin = "ask", f"{f} max_download_mb {cap}"
+    return setting, origin
+
+
+def safe_member(name: str) -> bool:
+    parts = Path(name.replace("\\", "/")).parts
+    return not (name.startswith(("/", "\\")) or ".." in parts or (parts and ":" in parts[0]))
+
+
+def run_pack_fetch(args: argparse.Namespace) -> int:
+    setting, origin = download_setting()
+    if setting == "off":
+        print(f"pack not fetched: downloads are off ({origin}); the SFX ladder takes the next rung")
+        return 0
+    if setting == "ask" and not args.yes:
+        print(f"pack not fetched: downloads need a yes ({origin}); ask the user (about {PACK['bytes'] / 1e6:.1f} MB, "
+              f"{PACK['url']}), then run again with --yes")
+        return 0
+    if pack_manifest() and not args.force:
+        print(f"pack {PACK['tag']} already at {pack_dir()}")
+        return 0
+    dest = pack_dir()
+    dest.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=dest) as tmp:
+        z = Path(tmp) / "pack.zip"
+        req = urllib.request.Request(PACK["url"], headers={"User-Agent": "IceMotionDirector (+https://github.com/Omar-Tnzxo/ice-motion-director)"})
+        h = hashlib.sha256()
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r, open(z, "wb") as f:
+                while chunk := r.read(1 << 20):
+                    h.update(chunk)
+                    f.write(chunk)
+        except OSError as e:
+            sys.stderr.write(f"error: could not download {PACK['url']}: {e}\n")
+            return 2
+        if h.hexdigest() != PACK["sha256"]:
+            sys.stderr.write(f"error: pack checksum {h.hexdigest()} is not the pinned {PACK['sha256']}; nothing kept\n")
+            return 2
+        with zipfile.ZipFile(z) as zf:
+            bad = [n for n in zf.namelist() if not safe_member(n)]
+            if bad:
+                sys.stderr.write(f"error: unsafe path in pack: {bad[0]}; nothing kept\n")
+                return 2
+            shutil.rmtree(dest / PACK["folder"], ignore_errors=True)
+            zf.extractall(dest)
+    man = json.loads((dest / PACK["folder"] / "manifest.json").read_text(encoding="utf-8"))
+    for row in man["files"]:
+        f = dest / PACK["folder"] / row["file"]
+        if not f.is_file() or hashlib.sha256(f.read_bytes()).hexdigest() != row["sha256"]:
+            sys.stderr.write(f"error: {row['file']} does not match the manifest; run again with --force\n")
+            return 2
+    from datetime import datetime, timezone
+    (dest / "ok.json").write_text(json.dumps({"tag": PACK["tag"], "sha256": PACK["sha256"],
+                                              "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}),
+                                  encoding="utf-8")
+    print(f"pack {PACK['tag']}: {len(man['files'])} files at {dest / PACK['folder']} (record: {PACK['url']}, CC0 or public domain)")
+    return 0
+
+
+def run_pack_list(args: argparse.Namespace) -> int:
+    man = pack_manifest()
+    if not man:
+        sys.stderr.write("the pack is not installed: run match_music.py pack fetch\n")
+        return 2
+    root = pack_dir() / PACK["folder"]
+    rows = [r for r in man["files"] if r.get("type") in args.type]
+    if args.profile in UNDER_SPEECH:  # references/sfx.md section 3b: sub or air under speech
+        rows = [r for r in rows if (r.get("band_share") or {}).get("voice_150_4k", 1.0) <= 0.5]
+    if args.max_dur:
+        rows = [r for r in rows if r.get("duration_s", 0) <= args.max_dur]
+    for r in rows:
+        print(f"{root / r['file']}\tsync {r.get('sync_s')} s ({r.get('sync_kind')})\t{r.get('duration_s')} s\t"
+              f"{r.get('lufs_momentary_max')} LUFS-M\t{r.get('peak_dbfs')} dBFS\tcentroid {r.get('centroid_hz')} Hz")
+    if not rows:
+        sys.stderr.write(f"no pack file of type {', '.join(args.type)} passes the filters\n")
+    return 0 if rows else 2
 
 
 def run_sfx(args: argparse.Namespace) -> int:
@@ -313,7 +454,7 @@ def run_sfx(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Rank real music tracks against a reference, or recorded sound effects, by measurement. No network.",
+    ap = argparse.ArgumentParser(description="Rank real music tracks against a reference, or recorded sound effects, by measurement; fetch and list Ice's CC0 SFX pack.",
                                  epilog="Then lay the best 2 or 3 tracks on the film with preview_options.py.")
     sub = ap.add_subparsers(dest="mode", required=True)
     mu = sub.add_parser("music", help="rank candidate tracks against a reference sound map")
@@ -324,13 +465,25 @@ def main(argv: list[str] | None = None) -> int:
     mu.add_argument("candidates", type=Path, nargs="+", help="local candidate tracks")
     sx = sub.add_parser("sfx", help="rank recorded sound effects of one kind")
     sx.add_argument("--kind", choices=("whoosh", "impact"), required=True)
-    sx.add_argument("--profile", choices=("default", "news-reel"), default="default",
-                    help="news-reel: sub or air only under speech (references/sfx.md section 3b)")
+    sx.add_argument("--profile", choices=("default",) + UNDER_SPEECH, default="default",
+                    help="news-reel or under-speech: sub or air only under speech (references/sfx.md section 3b)")
     sx.add_argument("--out", type=Path, help="folder for sfx-<kind>-ranking.json (optional)")
     sx.add_argument("files", type=Path, nargs="+", help="local candidate sound files")
+    pk = sub.add_parser("pack", help="fetch Ice's pinned CC0 sound-effects pack, or list its sounds of one type")
+    pks = pk.add_subparsers(dest="action", required=True)
+    pf = pks.add_parser("fetch", help="download the pinned pack once into the user cache and check its SHA-256")
+    pf.add_argument("--force", action="store_true", help="download again even when the pack is installed")
+    pf.add_argument("--yes", action="store_true", help="the user agreed, when sources.json says downloads ask")
+    pl = pks.add_parser("list", help="print the pack files of one or more types with their sync point and levels")
+    pl.add_argument("--type", action="append", required=True, help="a pack type from the manifest (repeatable)")
+    pl.add_argument("--profile", choices=("default",) + UNDER_SPEECH, default="default",
+                    help="news-reel or under-speech: keep only files with at most half their energy in 150 Hz to 4 kHz")
+    pl.add_argument("--max-dur", type=float, help="keep files no longer than this many seconds")
     args = ap.parse_args(argv)
     if args.mode == "music":
         return run_music(args)
+    if args.mode == "pack":
+        return run_pack_fetch(args) if args.action == "fetch" else run_pack_list(args)
     return run_sfx(args)
 
 

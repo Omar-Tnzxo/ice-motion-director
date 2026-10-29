@@ -223,6 +223,7 @@ Access classes: `no-key API` and `direct URL` (Ice fetches, standing consent); `
 | SFX | `bbc_sfx` | Real recorded ambiences of many countries, original WAV (`needs purchase`) | A JSON search POST to `sound-effects-api.bbcrewind.co.uk/api/sfx/search`, files at `sound-effects-media.bbcrewind.co.uk/wav/<id>.wav` | no key | no-key API |
 | SFX | `freesound` | Search with BPM, key and loudness filters, audio similarity, originals | `freesound.org/apiv2/search/`; originals through OAuth2 (one browser authorisation by the user) | `FREESOUND_API_KEY`; `FREESOUND_CLIENT_ID`, `FREESOUND_CLIENT_SECRET` for originals | free key |
 | SFX | `kenney` | CC0 game and UI sound packs | The pack's download link, sent with the item page as `Referer` | no key | direct URL |
+| SFX | `ice_sfx_pack` | Ice's own pack of recorded effects by type, CC0 or public domain per file | `match_music.py pack fetch` (the ice-audio skill): the pinned Release asset, checked by SHA-256 | no key | direct URL |
 | Music | `incompetech` | A catalog of about 1,400 pieces with exact BPM, feel and instruments (CC BY 4.0) | `incompetech.com/music/royalty-free/pieces.json` | no key | direct URL |
 | Music | `jamendo` | Production cues with tempo class and instrumental flag, FLAC | `api.jamendo.com/v3.0/tracks/` (or no key through `openverse`) | `JAMENDO_CLIENT_ID` | free key |
 | Music, SFX | `epidemic_sound` | Search by reference track, BPM, mood and key; recuts; stems | Its MCP connector, or its API | `EPIDEMIC_SOUND_API_KEY` | subscription |

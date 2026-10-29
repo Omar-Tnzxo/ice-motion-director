@@ -516,3 +516,50 @@ test("audit: qc.py --diagnose finds mains hum and a raised noise floor, and pass
   const clean = diagnose("clean");
   assert.ok(!clean.candidates.includes("hum") && !clean.candidates.includes("noise_floor"), JSON.stringify(clean.candidates));
 });
+
+// ---------------------------------------------------------------- the CC0 SFX pack (founder decision D4, 2026-10-29)
+test("sfx pack: match_music.py pins the same tag, URL, SHA-256 and size as versions.json asset_packs.sfx", () => {
+  const pin = JSON.parse(readText("skills/ice-engines/references/versions.json")).asset_packs.sfx;
+  const code = readText("skills/ice-audio/scripts/match_music.py");
+  for (const [key, value] of [["tag", pin.tag], ["url", pin.url], ["sha256", pin.sha256]]) {
+    assert.ok(code.includes(`"${key}": "${value}"`), `match_music.py PACK ${key} is not ${value}`);
+  }
+  assert.ok(code.includes(`"bytes": ${pin.bytes}`), "match_music.py PACK bytes differs from versions.json");
+  assert.match(pin.sha256, /^[0-9a-f]{64}$/);
+  assert.match(readText("skills/ice-audio/references/sfx.md"), /`python scripts\/match_music\.py pack fetch`/);
+  assert.match(readText("skills/ice-assets/references/sourcing-and-licenses.md"), /\| SFX \| `ice_sfx_pack` \|/);
+});
+
+test("sfx pack: pack list reads a fixture manifest offline, filters under speech, and fetch stays off with ICE_OFFLINE", { skip: PYTHON ? false : "no Python 3.10+" }, (t) => {
+  const root = mkdtempSync(join(tmpdir(), "ice-sfx-pack-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const pin = JSON.parse(readText("skills/ice-engines/references/versions.json")).asset_packs.sfx;
+  const pack = join(root, pin.tag, "ice-sfx-pack-v1");
+  mkdirSync(join(pack, "sfx", "sub_drop"), { recursive: true });
+  writeFileSync(join(root, pin.tag, "ok.json"), JSON.stringify({ tag: pin.tag, sha256: pin.sha256 }));
+  const row = (file, voice) => ({ file, type: "sub_drop", sha256: "0".repeat(64), duration_s: 1.2, sync_s: 0.05, sync_kind: "peak",
+    lufs_momentary_max: -18, peak_dbfs: -10, centroid_hz: 60, band_share: { voice_150_4k: voice } });
+  writeFileSync(join(pack, "manifest.json"), JSON.stringify({ tag: pin.tag, files: [row("sfx/sub_drop/sub_drop_01.wav", 0.1), row("sfx/sub_drop/sub_drop_02.wav", 0.7)] }));
+  const env = { ...process.env, ICE_SFX_PACK_DIR: root, PYTHONIOENCODING: "utf-8" };
+  const run = (...a) => spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "match_music.py"), "pack", ...a], { encoding: "utf8", env });
+  let r = run("list", "--type", "sub_drop");
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /sub_drop_01\.wav/);
+  assert.match(r.stdout, /sub_drop_02\.wav/);
+  r = run("list", "--type", "sub_drop", "--profile", "under-speech");
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /sub_drop_01\.wav/);
+  assert.doesNotMatch(r.stdout, /sub_drop_02\.wav/, "a file with most of its energy in the voice band is left out under speech");
+  r = run("list", "--type", "whoosh_soft");
+  assert.equal(r.status, 2, "no file of the type: exit 2");
+  r = spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "match_music.py"), "pack", "fetch", "--force"],
+    { encoding: "utf8", env: { ...env, ICE_OFFLINE: "1" } });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /downloads are off \(ICE_OFFLINE=1\)/);
+  const empty = mkdtempSync(join(tmpdir(), "ice-sfx-none-"));
+  t.after(() => rmSync(empty, { recursive: true, force: true }));
+  r = spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "match_music.py"), "pack", "list", "--type", "tick"],
+    { encoding: "utf8", env: { ...env, ICE_SFX_PACK_DIR: empty } });
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /the pack is not installed: run match_music.py pack fetch/);
+});
