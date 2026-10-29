@@ -2,6 +2,16 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## Unreleased
+
+### Added
+
+- **Pace measured on the render (L23).** `motion_check.py --measure` fails an event the plan declares but the render does not show ("declared, not visible") and checks mean shot length and cuts per minute on detected cuts against the reference; `compare.py` detects the film's own cuts. Without a reference, every film and edit type carries a `Rhythm row:` line (mean shot, longest shot, first cut, longest gap between events) that `film_gate.py` gate 5 checks on the render.
+
+### Changed
+
+- `probe-mp4.mjs` is now the `probe` subcommand of `ice-qa/scripts/quick-checks.mjs`, same checks and output.
+
 ## 0.2.5 - 2026-10-29
 
 Every video at its full capacity, without being asked. An audit of six trials found that a craft reached a film only when its type file named it, a reference measured it, the news reel package carried it, or the user asked; everything else stayed off, and about 150 taste rules were written as absolute bans. Now the director decides every craft for every video from what the content, the type, the reference and the chosen style call for, in every style, and the gates check that each decision reached the film. Each lesson is listed in `docs/maintainers/lessons.md` (L13 to L22) with its rule and its test.
