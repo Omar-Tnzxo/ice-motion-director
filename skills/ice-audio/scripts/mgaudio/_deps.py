@@ -10,7 +10,7 @@ Two modes, chosen once at import:
   ITU-R BS.1770-4 meter. Output is valid and deterministic, but not bit-identical to the fast path.
 Set MGAUDIO_FALLBACK=1 to force fallback mode even when the packages are installed (for tests).
 
-Nothing is ever installed automatically; the messages tell the agent what to install after the user agrees.
+This module installs nothing itself; the messages tell the agent what to install (free pinned packages need no question: ice-engines engine-choice.md section 7.6).
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ FORCED = os.environ.get('MGAUDIO_FALLBACK', '').strip() not in ('', '0')
 def missing_message(names, what='mgaudio'):
     pins = ' '.join(PINS[n] for n in names)
     return (f"{what} needs {' and '.join(PINS[n] for n in names)}. Install into a project virtual environment "
-            f"after the user agrees: python -m pip install -r <the ice-audio skill's scripts/requirements.txt> "
+            f"(no question needed, ice-engines engine-choice.md section 7.6): python -m pip install -r <the ice-audio skill's scripts/requirements.txt> "
             f"(or: python -m pip install {pins})")
 
 

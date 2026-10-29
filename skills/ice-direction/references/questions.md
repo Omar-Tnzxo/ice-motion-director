@@ -27,7 +27,7 @@ A fixed, named list. Each slot fills one or more slots of `ice/BRIEF.md` (`intak
 | 11 | `idea` | Whether the user has a picture of the film in mind | concept seed | Only for an unformed request (`intake-and-brief.md` section 4) |
 | 12 | `look` | Look and tone direction (the feel, never palette values a brand system already fixes) | look seed for the 05 direction round | Always for a rendered film |
 | 13 | `voice` | Who speaks, or no voice | `voice` | Always when the film has sound |
-| 14 | `music` | Music direction and source | music seed for `ice-audio` | Always when the film has sound |
+| 14 | `music` | The real track the film uses | music seed for `ice-audio` | At stage 01 only for a music-led film with no supplied or named track; every other film picks by ear later, at stop B (auto) or on the 06 card (step) (`ice-audio/SKILL.md` section 5, "The options flow") |
 | 15 | `cta` | The call to action and where it sends the viewer | end card, `must_include` | Always for a commercial film |
 | 16 | `must_include` | What a hinted but unnamed item means | `must_include` | Only when the user hinted at content without naming it |
 | 17 | `name_logo` | How a new or unnamed brand is shown | `brand_inputs` | Only when the film's own brand is new or unnamed and no logo file was supplied |
@@ -36,9 +36,9 @@ A fixed, named list. Each slot fills one or more slots of `ice/BRIEF.md` (`intak
 | 20 | `facts` | How a number, price or claim only the user can confirm is shown | truth sheet (`ice-assets`) | Only when the truth sheet holds an unconfirmed fact the film needs |
 | 21 | `disclaimer` | Wording of a required disclaimer | truth sheet, `COMPLIANCE.md` | Only when a required disclaimer has no fixed wording (`industry-rules.md` section 5) |
 | 22 | `screen_access` | How screens behind a login or paywall are shown | "Brand material needed" | Only when the film needs such screens (`ice-assets` skill, `screen-capture.md` section 5) |
-| 23 | `reference_file` | How a linked reference is obtained | `references` | Only when a reference was given as a link (`ice-assets` sourcing rules) |
-| 24 | `identity` | Whether a reference's own logo, end card, look, footage and music go into the video, or its style is carried by the user's identity | `references`, look seed | Only when a reference is used and the user's words leave it open (`ice-remake/references/rights-and-modes.md` section 1) |
-| 25 | `tools` | What happens about a missing tool | prerequisites | Only when a required tool is missing (`ice-motion-director/references/prerequisites.md`) |
+| 23 | `reference_file` | How a linked reference is obtained | `references` | Only when a linked reference cannot be fetched (private, behind a login, removed or blocked); a link that can be fetched is downloaded by default, without a question, so it can be measured (`ice-assets/references/sourcing-and-licenses.md` section 0, "Standing consent") |
+| 24 | `identity` | Whether a reference's own logo, end card, look, footage and music go into the video, or its style is carried by an identity that fits the content | `references`, look seed | Only when a reference is used and the user's words leave it open, or ask for the reference's identity on a video of another content type that its outlet does not own; the recommendation compares the content type with the reference's type (`ice-remake/references/rights-and-modes.md` section 1, "The identity fits the content") |
+| 25 | `tools` | What happens about a tool that cannot be installed for free | prerequisites | Only when a missing tool is paid, needs an account or a sign-in, or has no install route on this machine; free tools, models and packages are installed without a question (`ice-engines/references/engine-choice.md` section 7.6) |
 
 A slot that does not apply to the deliverable (no sound in a silent loader, no call to action in a caption pass, no aspect in an ideas-only run) is written `not applicable: <reason>` in `ice/BRIEF.md`, never asked.
 
@@ -115,7 +115,7 @@ Signals change answers, never add stops:
 | Signal (any wording) | Effect |
 |---|---|
 | The user's own "don't ask", "decide yourself" (below) | The waiver: no rounds, no preview approval, every open slot takes its recommended option, and the summary lists every decision with its alternatives |
-| "surprise me" | Answers the `idea` slot with "pitch me ideas" and leans the `look` and `music` recommendations toward their tail options; the other open slots are still asked |
+| "surprise me" | Answers the `idea` slot with "pitch me ideas" and leans the `look` recommendation toward its tail options; the other open slots are still asked |
 | "show me a storyboard first", "let me see options" | A request for the preview approval (auto mode) or for step mode; the router decides which, never a new stop |
 | A bare "go" or "looks good" on a review card | Approves that card only; does not change mode |
 | "stop asking, finish it" mid-run | The waiver for any rounds left, and the router switches to auto with "don't ask"; answers already given stay as they are |
@@ -233,10 +233,10 @@ Ask when: the film has sound and no recording or approved voice source exists (`
 Never generate a voice and never route to a voice-led workflow without answer 2 or 3.
 
 ### Q-music: the music
-Ask when: the film has sound, no track was supplied and the user did not describe the music. Each option says the energy, the instruments and the speed in plain words; the source (made by code or licensed) follows `ice-audio`.
-1. (Recommended) The music that fits the goal, the tone and the platform norms the research found, with its reason.
-2. A second direction with a clearly different energy.
-3. A direction from the tail, still fitting the brief.
+Ask when: a music-led film (hype promo, music video, kinetic type cut to a track, showreel) has no supplied or named track. Every other film gets no music question at stage 01: its options are heard laid on the film with stop B (auto mode) or on the 06 review card (step mode). Both follow `ice-audio/SKILL.md` section 5, "The options flow" (owner decision, 2026-10-29): the options are 2 to 3 real library tracks ranked by measurement against the reference, or against the film type when there is none, in genre, feel and tempo, each heard laid on the reference picture or the film (audio only when there is no picture yet). Each option names the track, its library and what makes it fit (tempo, energy, instruments) in plain words. Music made by code is never an option unless the user asked for it in their own words.
+1. (Recommended) The closest real track by measurement.
+2. The second closest real track.
+3. The third closest real track; when only two fit, the closest from the next rung of the music ladder (`ice-audio/SKILL.md` section 5).
 4. Your own track or a song you name (the reference's track included): you send or name it, and its license status is recorded (`ice-audio`).
 
 ### Q-cta: the call to action
@@ -296,26 +296,26 @@ Ask when: the film needs app or site screens behind a login or paywall. Never as
 4. Rebuilt from the brand's official images (press kit, store screenshots) at the fidelity rule of the ice-assets skill.
 
 ### Q-reference-file: getting the reference
-Ask when: a reference was given as a link. A link is downloaded only on the user's yes (option 2), never as a default.
-1. (Recommended) I study it from the page without downloading (stills and the page only).
-2. I download it from the link; it stays in the project, and whether its own parts appear in the video follows your answer about the reference's identity.
-3. You send the file yourself.
-4. You send a different reference instead.
+Ask when: a reference was given as a link that cannot be fetched (private, behind a login, removed, or blocked from this machine). A link that can be fetched is downloaded by default, with no question, so it can be measured, and recorded like any download (`ice-assets/references/sourcing-and-licenses.md` section 0, "Standing consent"; `ICE_OFFLINE=1` or the user's `sources.json` turns this down). Whether the reference's own parts appear in the video follows the `identity` slot.
+1. (Recommended) I study it from what the page still shows (stills, thumbnail, captions) and measure what those allow.
+2. You send the file itself (a screen recording of it works too).
+3. You send a different reference that can be fetched.
+4. I go on without the reference: the film type and the research lead the style.
 
 ### Q-identity: the reference's own media and identity
-Ask when: a reference is used and the user's words leave open whether its own logo, end card, footage and music go into the video. Put the recommended option first as `ice-remake/references/rights-and-modes.md` section 1 says (it follows the user's words); the order below is the one for silence. Never a rights question: rights are the user's, and every outside item is recorded with its license status (`ice-assets/references/sourcing-and-licenses.md` section 0).
-1. (Recommended) The same style with your identity: your logo, colours and end card, your footage or real footage found for each scene, and new music with the same energy.
+Ask when: a reference is used and the user's words leave open whether its own logo, end card, footage and music go into the video. First compare the content type of the user's video with the reference's content type (owner decision, 2026-10-29; the canonical logic: `ice-remake/references/rights-and-modes.md` section 1, "The identity fits the content"). When they differ, option 1 below is recommended, and in auto mode, with a waiver or with no answer, it is the decision taken, logged with both content types. When they match, put the recommended option first as that section says (it follows the user's words); the order below is the one for silence. The user's own words win when they make the reference's outlet the owner of this video; on different types, a request for the reference's identity on a video the outlet does not own is a conflict that leaves this slot open (same section). Never a rights question: rights are the user's, and every outside item is recorded with its license status (`ice-assets/references/sourcing-and-licenses.md` section 0).
+1. (Recommended) The same editing principles with an identity that fits your content: your logo, colours and end card (or the real brand's when the video is for one), your footage or real footage found for each scene, and new music with the same energy.
 2. The reference as it is: its logo, end card, look, footage and music in the video.
 3. A mix: you name which parts come from the reference (for example its music with your logo and end card).
 4. The style only: everything drawn or shot new, with new music and sound.
 
-### Q-tools: a missing tool
-Ask when: a tool the run needs is missing. Option 2's description gives the one install step for the user's operating system (`ice-motion-director/references/prerequisites.md`).
-1. (Recommended) I go on with the free fallback that needs no install, which the prerequisites file names; for a tool with none, I build now and hold the video before delivery.
-2. You install it with the one step shown, and I go on.
-3. I pause the run until you tell me it is installed.
+### Q-tools: a tool that cannot be installed for free
+Ask when: a tool the run needs is paid, needs an account or a sign-in, or has no install route on this machine (no exact pin, no network, no drive with room). Free tools, models and packages are installed without a question, told in one plain line and recorded (`ice-engines/references/engine-choice.md` section 7.6); a system tool that needs an administrator password is one plain step for the user, given once, never this question (section 7.3). Option 2's description gives the one setup step (`ice-motion-director/references/prerequisites.md`).
+1. (Recommended) I go on with the free fallback the owning file names; for a tool with none, I build now and hold the video before delivery.
+2. You set it up (the account, the key in your environment, or the purchase) with the one step shown, and I go on.
+3. I pause the run until you tell me it is ready.
 4. I leave out the part that needs it, and the delivery note lists it.
-Never install anything without the user's yes.
+Never sign in, create an account, spend money, or ask for a key value in chat.
 
 ## 9. After stage 01
 

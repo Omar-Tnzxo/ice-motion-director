@@ -29,7 +29,7 @@ from pathlib import Path
 
 REQUIREMENTS = Path(__file__).resolve().parent / "requirements.txt"
 PLAYWRIGHT_HINT = (
-    "Install it into a project virtual environment after the user agrees: "
+    "Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
     f'python -m pip install -r "{REQUIREMENTS}"\n'
     "Then it needs a browser: CHROME_PATH, or an installed Chrome or Edge, is used when found; otherwise run "
     "python -m playwright install chromium, which is a browser download, so ask the user first."
@@ -43,7 +43,7 @@ def need_image_packages() -> None:
     except ImportError as exc:
         sys.exit(
             "capture_motion_frames.py needs pillow==12.3.0 and numpy==2.4.6 for --strip and --compare-final "
-            f"(missing: {exc.name}). Install them into a project virtual environment after the user agrees: "
+            f"(missing: {exc.name}). Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
             f'python -m pip install -r "{REQUIREMENTS}"'
         )
 

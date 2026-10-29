@@ -7,9 +7,10 @@ Read this when writing the plan. Shot-by-shot mapping is the core of a style rem
 1. Split the reference shot list (`TIMELINE.md`) into sections: opening, each selling point or story beat, climax, ending.
 2. Confirm the reference's peaks with 12 fps strips and write `peaks.json` (`climax-duel.md` sections 1-2). Then design our peaks first: which planned shots are hero shots, what their hit frame is.
 3. Map every other shot to a reference shot: `ref_shot`, `ref_what`, engine-ready `camera`, `anchor`. Time everything by meaning (`word-anchored-timing.md`): words, beats, actions; never copied reference seconds.
-4. Write `ice/plan/shots.json` and `ice/plan/storyboard.md`.
-5. Check the contract (section 4), row by row against `shot_details`, and variety (section 5). Fix mismatches or write the reason in the shot's `notes`.
-6. At stage 06 the storyboard, with a short explanation, is the preview for approval. No final production before the plan is approved. Who approves follows the router's stops table (`ice-motion-director/SKILL.md` section 5, "Stops"): the user on the 06 review card in step mode; in auto mode the user at the one preview stop when the session is interactive and the user did not say not to ask, otherwise the critic and the approver. The storyboard and the key frames together are that preview.
+4. Carry elements only with their reasons (owner decision, 2026-10-29). An element of the reference (text, shape, cutout, map, colour wash, transition, a sound that marks it) enters the plan only with its `REASONS.md` row (`notes-files.md` section 6) and only where the new script holds an instance of the same trigger kind: each appearance names its row and the word or sentence of the new script that switches it on, and it lands on the role its row names (the speaker or guest stays lit: `ice-edit/references/layers-and-isolation.md`, section "The speaker stays lit"). An element with no row, with a row whose trigger kind or meaning is `unknown`, or with no trigger in the new script is cut and listed under `cut_elements` with the reason; it is never copied blind. The finishing layer follows the same rule: an effect of the "Finishing layer" table of `ANALYSIS.md` goes only on the shots where its where and why hold (`measuring.md` section 9).
+5. Write `ice/plan/shots.json` and `ice/plan/storyboard.md`.
+6. Check the contract (section 4), row by row against `shot_details`, and variety (section 5). Fix mismatches or write the reason in the shot's `notes`.
+7. At stage 06 the storyboard, with a short explanation, is the preview for approval. No final production before the plan is approved. Who approves follows the router's stops table (`ice-motion-director/SKILL.md` section 5, "Stops"): the user on the 06 review card in step mode; in auto mode the user at the one preview stop when the session is interactive and the user did not say not to ask, otherwise the critic and the approver. The storyboard and the key frames together are that preview.
 
 Engine choice and render: the ice-engines skill. Style catalogs: the ice-styles skill. Cuts, camera, easing: the ice-motion skill.
 
@@ -37,9 +38,12 @@ Engine choice and render: the ice-engines skill. Style catalogs: the ice-styles 
       "scene_setup": "<scene + camera setup id, for the variety check>",
       "transition_in": "<slot>", "transition_out": "<slot>",
       "text_overlay": [{ "text": "<user copy only>", "at": [0, 0], "position": "<slot>" }],
+      "elements": [{ "element": "<REASONS.md element>", "reason_row": 0, "trigger": "<word or sentence of the new script>", "on": "<role it lands on>", "in": "<cue>", "out": "<cue>" }],
+      "finishing": [{ "effect": "<effect from the Finishing layer table>", "amount": "<measured amount>", "why": "<its reason, true for this shot>" }],
       "hero": false, "notes": ""
     }
   ],
+  "cut_elements": [{ "element": "<REASONS.md element>", "why": "<no reason row | reason unknown | no trigger in the new script>" }],
   "peaks": [ "see climax-duel.md" ],
   "required_inputs": [{ "id": "<slot>", "kind": "<lyrics | design image | product photo | logo | audio>", "label": "<slot>", "why": "<slot>" }],
   "open_questions": []
@@ -49,6 +53,7 @@ Engine choice and render: the ice-engines skill. Style catalogs: the ice-styles 
 Rules:
 - Every shot carries `ref_shot`, `ref_what` and a `camera` spec the engine can use directly. A shot with no reference counterpart says `"ref_shot": null` and gives the reason in `notes`; keep these rare.
 - Shots carry both beats and seconds when there is music; without music, beats may be omitted.
+- Every entry in `elements` cites a `REASONS.md` row and a `trigger` taken from the new script; `finishing` lists only effects whose measured row holds for this shot; whatever is left out is in `cut_elements` (section 1, item 4).
 - `required_inputs` lists only what the user alone can give. Before approval each is provided or explicitly skipped; in auto mode with no answer, it is replaced by a labelled placeholder, logged in `ice/DIRECTION.md` and listed in the delivery note, so production never stalls on a missing file.
 - `open_questions`: real user decisions only, at most 4. Step mode: they go on the review card. Auto mode: each is decided, logged and reported.
 - Each user-driven plan change: `version` plus 1 and a changelog line. If a change sacrifices the reference's core (removes the climax, turns a two-character story into a solo), say so explicitly.
@@ -95,4 +100,4 @@ It prints "motion mismatch" when one side is still and the other is not. Numbers
 
 ## 7. storyboard.md
 
-Logline; world and color arc; motif; protagonist emotion arc; a shot table with beats, transition in, event, reaction, camera, and `ref_shot`; the scene-setup share calculation; the stats table from section 4 with reference value, plan value and percent difference.
+Logline; world and color arc; motif; protagonist emotion arc; a shot table with beats, transition in, event, reaction, camera, `ref_shot`, and each element with the word or sentence that triggers it; the cut elements with their reasons; the scene-setup share calculation; the stats table from section 4 with reference value, plan value and percent difference.

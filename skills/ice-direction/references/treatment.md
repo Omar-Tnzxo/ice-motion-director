@@ -32,7 +32,7 @@ The emotional change is the payload; features are the vehicle. The bigger the di
 
 One paragraph: the world; what moves and what stays; the recurring continuity device; the dominant transition family; how the brand owns the film; what the film refuses.
 
-Each beat is later solved as three things (by the workflow): its message, its visual mechanism, and what it carries into the next beat. Never jump from script to scenes.
+Each beat is later solved as three things (by the workflow): its message, its visual mechanism, and what it carries into the next beat. Never jump from script to scenes. In the storyboard every element of a beat then carries its trigger (the script sentence or word that justifies it) and its reason; an element with neither is cut (the `ice-qa` skill, `references/storyboard-lint.md` section 3b).
 
 ## 5. Treatment template
 

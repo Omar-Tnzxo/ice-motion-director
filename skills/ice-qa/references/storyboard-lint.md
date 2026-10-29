@@ -6,7 +6,9 @@ Run before any code. A red storyboard is fixed on paper; it is ten times cheaper
 
 Write `ice/plan/storyboard.md` with the style lock above the table (lock lines are defined by the ice-styles skill; the linter reads `Style:`, `Palette:` with hex values, `Characters:`, optional `Allow blue-purple:` and `Style exception:`), then one row per shot:
 
-`Time | Object | Action | Camera | On-screen text | Method | Tags`
+`Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method | Tags`
+
+`Trigger` and `Reason` are required in every film type (section 3b).
 
 Workflows may add columns (Buys, Role, Carrier, Sound); the linter ignores columns it does not know. Run:
 
@@ -18,7 +20,7 @@ Exit 1 = red: fix and re-run; do not start building. Exit 0 with yellows: start,
 
 The first line names the film type and the row of `motion-density.md` section 6 it used (from `--type "<film type>"`, else `ice/state.json` `subtype`, else the `film_type` row of `ice/BRIEF.md`). Write the On-screen text cell exactly as the script has it, diacritics included: the linter removes combining marks before counting, so never make a stripped copy of the table to pass it.
 
-## 2. The 16 machine checks
+## 2. The 17 machine checks
 
 | # | Check | Light |
 |---|---|---|
@@ -38,6 +40,7 @@ The first line names the film type and the row of `motion-density.md` section 6 
 | 14 | No code-drawn people, chibi figures, robots or stick figures without a frame library or rig; no faces on coins, balls, ions | red/yellow |
 | 15 | No three inward pushes in a row | yellow |
 | 16 | Accent moves (fast push, slam, whip) on at most a third of shots | yellow |
+| 17 | Every row has a `Trigger` and a `Reason` cell that is not empty and not only a pointer to the source or a taste ("reference", "style", "decoration", "looks good"); a table without both columns is red (section 3b) | red |
 
 Plus: one reusable template or clip file running over 8 s in total is red; more than 2 template families mixed is red (yellow with a declared style exception); time spans that do not join, and a table with no camera move at all, are yellow.
 
@@ -68,6 +71,17 @@ Answer each in one sentence in `ice/review/storyboard-review.md`.
 | Every sentence has a picture | Every narrated sentence causes a visible change; a sentence with no visual change is a high-severity defect | PolyForm explainer ideas (rewritten) |
 | Template skeleton | Not the skeleton "hook, feature, feature, promise, logo, CTA" with text-zoom opener, three feature tiles and a typed search box unless the concept demands it (two or more of those = template) | bang-motion |
 | Beat test sentence | Each primary beat completes: the viewer understands [claim] because [object] visibly changes from [state A] to [state B], causing [next state]. Most primary beats failing rejects the plan | founder skills |
+
+## 3b. Every element has a trigger and a reason (owner decision, 2026-10-29)
+
+Scope: every film type, with or without a reference. Trials that copied a reference's marks, circles and overlays with no reason behind them came out as blind copies; a picture element that nothing in the film asks for is decoration.
+
+- An element is anything the viewer sees placed on purpose: the row's Object, and every mark, circle, arrow, highlight, dimming, cut-out, label, caption style, overlay, colour block or texture laid over it. Every appearance is a row of its own, or one line inside its row's `Reason` cell starting with the element's name.
+- `Trigger`: the script sentence or the word that justifies the appearance, quoted, with its time from the script or the word timings. In a film without speech (music video, logo sting, silent loop) the trigger is the music or sound cue from the cue sheet, or the story event the element belongs to.
+- `Reason`: what the element means, who or what it is on, and why its colour and shape are what they are (a colour from the palette's role, a shape from the concept or the brand, never "it looked good").
+- An element with no trigger or no reason is cut before 05, never kept with an invented reason. A reason may never be "it is in the reference": the reference explains where the idea came from, not why it belongs in this film.
+- With a reference: the reference's reasons table (the notes file `REASONS.md`, format in the `ice-remake` skill, `references/notes-files.md`, section "Element reasons") is read next to the storyboard. A carried-over element passes only when its reason in the reference still holds in the new film: the same kind of trigger exists in this script, on the same kind of subject (illustrations only, two of many: a circle that marks the person being accused carries over to a film that accuses someone, not to a film where nobody is accused; a strike-through on an old price carries over to a film that announces a lower price, not to one that sells a service with no price). Where it does not hold, the element is cut or re-reasoned from this film's script.
+- Where it runs: the linter (check 17) at 04, the earliest stage that can show it, and the storyboard critic reads every reason for truth (`critic-prompts.md`, "Storyboard critic"). The final review confirms it on the frames (`critic-prompts.md`, "Stage critic" item 5 and "Full-film critic"); a new element there with no row is a finding.
 
 ## 4. Storyboard boards
 

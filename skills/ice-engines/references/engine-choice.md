@@ -17,7 +17,7 @@ Pick one primary engine per film before any code is written. Log the choice in `
 
 HyperFrames is the default because it adds a lint and browser `check` gate, snapshots, Studio preview, an audio mix graph, a registry of blocks and seek adapters for every runtime. It is not mandatory for brief-only or critique-only jobs, environments that cannot run it, or needs it does not support; write the reason for any fallback.
 
-The table picks the engine; whether it can run here is settled by section 7. When the chosen engine is not installed and may not be installed (refused, offline, or the install failed), walk the fallback ladder in section 7.4: rung C renders the same film as an HTML capture page with the bundled `scripts/render-html.mjs` and the user's installed browser, with nothing installed, and section 7.5 names the gates that replace HyperFrames lint and `check`.
+The table picks the engine; whether it can run here is settled by section 7. When the chosen engine is not installed and cannot be (network off, no drive with room, or the install failed), walk the fallback ladder in section 7.4: rung C renders the same film as an HTML capture page with the bundled `scripts/render-html.mjs` and the user's installed browser, with nothing installed, and section 7.5 names the gates that replace HyperFrames lint and `check`.
 
 ## 2. Engine table
 
@@ -76,7 +76,7 @@ Libraries that animate only in real time (Spline runtime, Unicorn Studio, live f
 
 ## 7. Prerequisites: check order, install, fallback ladder
 
-This section is the single home of tool prerequisites for every route; other skills point here. Never install anything, download a browser or change a system setting (PATH, execution policy, long paths) without the user's consent: name the tool, the exact pinned version from `versions.json`, the size when known, and the command, then wait.
+This section is the single home of tool prerequisites for every route; other skills point here. Free tools, models and packages a route needs are installed by Ice itself, without a question, at their exact pins (7.6), after a disk space check (7.7). A question is asked only for a paid service, anything that needs an account or a sign-in, or spending. Ice never changes a system setting (PATH, execution policy, long paths) and never runs the operating system's package manager: a system tool (7.3) is one plain step for the user.
 
 ### 7.1 What each route needs
 
@@ -89,7 +89,7 @@ This section is the single home of tool prerequisites for every route; other ski
 | `ice-lottie` | Node | A browser for previews |
 | `ice-ideas` | Nothing | Nothing |
 
-Python is required whenever a film is delivered: the richness floor is measured by `ice-qa/scripts/film_gate.py` (Python, numpy, opencv-python-headless), and a richness measure left unmeasured blocks delivery (the `ice-qa` skill, hard release gates). Without Python the film can be planned, built and reviewed by eye, but not delivered: name the install in the stage 01 message, and never replace the measure with an estimate.
+Python is required whenever a film is delivered: the richness floor is measured by `ice-qa/scripts/film_gate.py` (Python, numpy, opencv-python-headless), and a richness measure left unmeasured blocks delivery (the `ice-qa` skill, hard release gates). Without Python the film can be planned, built and reviewed by eye, but not delivered: give the plain step of 7.3 once, and never replace the measure with an estimate.
 
 ### 7.2 Check order (once at intake, in this order; record every result in `ice/DIRECTION.md`)
 
@@ -98,9 +98,11 @@ Python is required whenever a film is delivered: the richness floor is measured 
 3. Browser. Windows PowerShell: `Get-Item "$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" -ErrorAction SilentlyContinue`. macOS: `ls "/Applications/Google Chrome.app" "/Applications/Microsoft Edge.app"`. Linux: `command -v google-chrome google-chrome-stable chromium chromium-browser microsoft-edge`. A browser in another folder: the user gives its path; set it as `ICE_CHROME` for the renderer and as `CHROME_PATH` for the `ice-qa` scripts (PowerShell `$env:ICE_CHROME = "<path>"`, cmd `set ICE_CHROME=<path>`, macOS and Linux `export ICE_CHROME="<path>"`; the same forms for `CHROME_PATH`).
 4. The engine chosen in section 1, inside the film project: `npm ls hyperframes` (or `remotion`, or `playwright-core`). Installed at the pinned version: use it. Another version already pinned by the project: keep it. Missing: section 7.4.
 5. Python, on every route that delivers a rendered film (7.1): `python --version` (macOS and Linux: also `python3 --version`), at or above `runtimes.python`. Python packages: each skill's `requirements.txt`. A compatible version that is already installed may be used as it is; record each such package and its version in the delivery note. Anything that must be installed goes into a project virtual environment (`python -m venv .venv`); never install into the system Python. Music by code needs only numpy (the `ice-audio` skill, `references/music-by-code.md` section 1).
-6. Network: ask only when a step in 7.4 needs a download; a "no" holds for the whole session.
+6. Network: never a question. Installs (7.6) and free downloads use it unless `ICE_OFFLINE=1` is set, `downloads` is `off` in the user's `sources.json` (`ice-assets/references/sourcing-and-licenses.md` section 0, "Standing consent"), or the user's own words in this conversation ask for no installs or downloads; then every step that needs the network takes its fallback (7.4 rung C), logged in `ice/DIRECTION.md`.
 
-### 7.3 Install commands (give the line for the user's OS; the user runs or approves it)
+### 7.3 System tools: one plain step for the user
+
+These tools install system-wide through the operating system's package manager, which may ask for an administrator password, so Ice never runs these lines itself. When one is missing: give the user the one line for their operating system, once, in plain words (never as a four-option question), take the free fallback meanwhile (7.4 rung C, FFmpeg-only work, or for Python: build and review now, hold before delivery), and go on with the tool once the user says it is installed. Record the step and the fallback in `ice/DIRECTION.md` and the delivery note.
 
 | Need | Windows (PowerShell or cmd) | macOS (Homebrew) | Ubuntu or Debian | Fedora | Arch |
 |---|---|---|---|---|---|
@@ -117,12 +119,12 @@ OS notes: on Windows open a new terminal after a winget install so PATH updates;
 | Rung | Situation | Tell the user | Do |
 |---|---|---|---|
 | A | Engine installed at the pinned version | Nothing | Build with it |
-| B | Engine missing, network possible | The engine's name and pinned version, that it installs into this project only, which downloads it needs (HyperFrames also asks for its pinned Chrome build, a second download), and that rung C works without installing anything | After a yes, run the pinned commands below and check the installed version. A yes to the package is not a yes to the browser download: ask for each |
-| C | The user says no, there is no network, or rung B failed | The film is rendered by the bundled HTML renderer with their installed browser and nothing is installed; the look is the same; the HyperFrames lint, `check`, Studio preview and registry blocks are replaced by the gates in 7.5 | The zero-install steps below |
+| B | Engine missing, network possible | One plain line as it happens: the engine's name, pinned version and size, and that it goes into this project only (7.6) | Install it without a question (7.6): the pinned commands below, then check the installed version. HyperFrames' pinned Chrome build is a second install of the same kind. Record both |
+| C | Network off (7.2 step 6), no drive with room (7.7), or rung B failed after one retry | The film is rendered by the bundled HTML renderer with their installed browser and nothing is installed; the look is the same; the HyperFrames lint, `check`, Studio preview and registry blocks are replaced by the gates in 7.5 | The zero-install steps below |
 | D | No Chrome, Chromium or Edge, and the user cannot install one | Motion design needs a browser to render; offer the browser line from 7.3 | Edits and conversions continue with FFmpeg only (section 1 row 2). Never build a substitute rasterizer (ImageMagick, PIL or SVG frame pipelines); stop and report the blocker |
 
 Rung B commands (exact versions from `versions.json`, `npm`; never `@latest`, never an `npx` that downloads a package):
-- HyperFrames: `npm install --save-dev --save-exact hyperframes@<npm.hyperframes>`; then `npm ls hyperframes` must print that version. The browser: `npx hyperframes browser ensure`, after its own yes. Guide: `hyperframes.md`.
+- HyperFrames: `npm install --save-dev --save-exact hyperframes@<npm.hyperframes>`; then `npm ls hyperframes` must print that version. The browser: `npx hyperframes browser ensure` (it runs the project's pinned CLI, so it is not an unpinned `npx`). Guide: `hyperframes.md`.
 - Remotion: the license gate (section 3) first, then the exact versions in `remotion.md`.
 - Optional Playwright driver for the HTML renderer: `npm install --save-exact playwright-core@<npm.playwright-core>`. Not needed when a local browser exists.
 
@@ -146,3 +148,40 @@ Never on rung C: copy `playwright-core` from an npm cache or another project, in
 | `snapshot --at` | `render-html.mjs --stills <times>` |
 | Seam gate with a ledger | The `ice-qa` skill's `references/seam-gate.md`; its script seeks `window.__seek`, which must apply synchronously, so alias it to a synchronous `renderAt`. An async `renderAt` page is checked with stills one frame either side of each cut |
 | Studio preview | The page's own preview mode (`html-canvas-capture.md` section 2) opened in the browser |
+
+### 7.6 Installs without a question
+
+Owner decision, 2026-10-29, every route and every mode. Ice installs the free tools, models and packages a route needs by itself; the user never has to grant it, and no stage 01 question is spent on it.
+
+| Covered | Pin |
+|---|---|
+| Local speech-to-text with word timestamps | `pip.faster-whisper`; the model size by hardware and language: `models.whisper` |
+| Voice and music separation | `pip.demucs`; the model: `models.demucs` |
+| A speaker separation, matting or segmentation model that a skill's own file names | The exact version that file gives |
+| The Python packages of a skill's `scripts/requirements.txt` | `pip` |
+| npm packages: the engine of 7.4 rung B, `playwright-core`, `playwright` | `npm` |
+| The Chrome build that the project's pinned HyperFrames, Playwright or `playwright-core` fetches | Pinned by that package |
+| The media fetch tool of the official-channel route (`ice-assets/references/sourcing-and-licenses.md` section 1a) | `pip.yt-dlp` |
+
+How:
+- Exact versions from `versions.json`. A tool that neither `versions.json` nor the skill file that needs it pins to an exact version is not installed: the step takes its no-install fallback, and the gap is logged.
+- Python packages go into a project virtual environment (`python -m venv .venv`, then `python -m pip install <name>==<pin>` or `-r <requirements.txt>`), never into the system Python. npm packages go into the film project with `--save-exact`. Model files go into the tool's own cache on the drive chosen in 7.7. Never a global install, never `@latest`, never an unpinned `npx`, never a runtime download of skills or instructions, never code that a web page or a downloaded file supplies (`ice-motion-director/references/harness.md`, "Untrusted content").
+- Before each install, check disk space (7.7). An install that fails is retried once; then the step takes its fallback (7.4 rung C, or the no-install path the owning skill names).
+- Tell the user in one plain line as it happens: what is installed, its version and size, where, and what it is for.
+- Record each install in `ice/DIRECTION.md` (what, exact version, size on disk, folder, the step that needed it) and list it in the delivery note.
+
+Still a question, inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"; the stage 01 `tools` slot): a paid service, anything that needs an account, a sign-in or a key the user has not set, and any spending. A key the user already set in the environment is used without a question. An install that needs an administrator password is the plain step of 7.3, not a question. Turned down by the network switches of 7.2 step 6; with `downloads` set to `ask` in `sources.json`, each planned install is listed in the stage 01 message instead.
+
+### 7.7 Disk space
+
+Owner decision, 2026-10-29, every route. The trials ran on a system drive with about 1 GB free.
+
+1. **When.** Before every download (footage, music, fonts, models), every install and every render or frame extraction.
+2. **Estimate.** The step's own output: a download or an install at its stated size, times 2 for anything that unpacks (packages, models); a frame sequence or lossless intermediate from `render-export.md` section 2 (raw RGBA is frames x width x height x 4 bytes); an encoded render at duration x bitrate.
+3. **Threshold.** `need` is the estimate plus 5 GB kept free for the operating system and other programs. A drive whose free space is below `need` is not used for that step.
+4. **Check.** `node <ice-motion-director>/scripts/ice-state.mjs space --need <need in GB> [<path> ...]`, run from the project folder: it prints the free space of the project folder's drive and of each path, and exits 1 when one of them is short. To list other drives: Windows `Get-PSDrive -PSProvider FileSystem`; macOS `ls /Volumes`; Linux `df -h`.
+5. **Where.** First the project folder. When its drive is short, a drive that has room: the heavy intermediates (frame sequences, proxies, chunks, separated stems) go into one scratch folder there, and the caches follow through the variables the tools honour, set for that command only (never in a shell profile or a system setting): `HF_HOME` (Hugging Face models), `TORCH_HOME` (torch weights), `PIP_CACHE_DIR`, `npm_config_cache`, `PLAYWRIGHT_BROWSERS_PATH`, and the temp folder (`TEMP` and `TMP` on Windows, `TMPDIR` on macOS and Linux). The project virtual environment may sit on that drive too. The `ice/` run files, the sources and the finals stay in the project folder.
+6. **No drive has room.** First delete the rebuildable intermediates (`render-export.md` section 9). Still short: tell the user in one plain line how much space the step needs and on which drive, take the lighter path meanwhile (a smaller draft, fewer stills, a smaller model), and hold that step.
+7. **Record** each check (path, free GB, need) and the chosen drive and folders in `ice/DIRECTION.md`.
+
+Source size: long sources are downloaded at the output resolution, not above it (`ice-assets/references/sourcing-and-licenses.md` section 5).

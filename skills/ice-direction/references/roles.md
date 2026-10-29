@@ -23,7 +23,7 @@ You find dated evidence for the direction questions in your dispatch, one resear
 
 ### Never
 - Add a name, artist, brand, style, place or year the brief and your traced results do not contain.
-- Download a third-party video without the user's approval.
+- Download anything behind a sign-in, a key or a purchase without a yes inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"; free downloads follow `ice-assets/references/sourcing-and-licenses.md` section 5).
 - Copy footage, logos, text or music into the project.
 - Recommend a choice. Your note ends at "Conventions found" and "Open spaces".
 - Invent a source, a date or a result. If you cannot search, write the note with `Status: not run (<reason>)`.

@@ -2,6 +2,21 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.3 - 2026-10-29
+
+Lessons from four trials of 0.2.2 on raw news footage become default rules: your prompt stays the idea and your files, and Ice applies what the trials taught on its own. Each lesson is listed in `docs/maintainers/lessons.md` with the trial it came from, its scope, where the rule lives and the test that guards it (founder decision, `AGENTS.md` rule 19).
+
+### Changed
+
+- **Real music and sound, picked by ear.** Music and sound effects come from real libraries and real recordings, ranked by how close they measure to your reference or your kind of video (tempo, key, brightness, loudness range, sections). When you are there, you hear two or three options laid on the video at equal loudness and pick one, with the one preview you already approve; when nobody can answer, Ice takes the closest and names the other two in the delivery note. Music and sound made by code (mgaudio) are used only when you ask for them by name. A comfortable mix: the music sits under the speech, with no repeated pulse. New scripts: `match_music.py` (also ranks hero sound effects) and `preview_options.py`.
+- **Real material found without being asked.** For every scene about a real event, statement, place, person or object, Ice searches for the most recent real, official footage and photos and downloads them: the owner's own download pages first, then official channels, then agencies through your own login, then CC footage, then stock, then graphics labelled as illustration. The same ladder, real first and code last, covers photos of people, flags, maps, fonts, overlays and LUTs. Free downloads need no question; `ICE_OFFLINE=1` or an optional `~/.ice-motion-director/sources.json` turns them down. A reference link is downloaded so it can be measured.
+- **Free tools and models install without a question.** Whisper, demucs and the other free packages and models a route needs are installed at pinned versions and recorded in `ice/DIRECTION.md` and the delivery note. Only paid services, accounts, sign-ins and spending are asked; a system tool is one plain step for your system.
+- **A reason for every element.** From any reference, Ice writes a reasons table (`REASONS.md`): each element, what triggers it in the speech, what it means, who it is on, when it appears and leaves, and why its colour and shape are so. Every storyboard row carries its trigger and reason (storyboard lint check 17), an element with no reason is cut, and the critics check it.
+- **The speaker stays lit.** In news, explainers, talk shows, podcasts and interviews, dimming, silhouettes, circles and target marks fall only on the people being talked about; the speaker or guest keeps their exposure and colour.
+- **The finishing layer, measured.** Motion blur, blur for depth and for entrances and exits, grain and old-film texture, vignette, glow and grade are measured from the reference (where, how much, why) and applied only there, with Ice's own tools. The slop scan lets a measured finishing effect pass and still fails decoration.
+- **The identity fits the content.** When your video's content type differs from the reference's (a news reference for a service ad), Ice recommends the same editing principles with your identity or the real brand's; in auto mode that is the decision taken, and a version with the reference's own identity is one answer away.
+- **Disk space and source quality.** Ice checks free space before downloads, installs and renders (`ice-state.mjs space`), works on a drive with room, downloads long sources at the output resolution (1080p for a 1080 video) and deletes heavy intermediates that can be rebuilt once their stage is approved.
+
 ## 0.2.2 - 2026-10-28
 
 ### Changed

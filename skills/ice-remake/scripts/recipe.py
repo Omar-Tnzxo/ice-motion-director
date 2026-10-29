@@ -6,8 +6,9 @@
 
 Reads, all local files, no network:
     <ref>/analysis/report.json   analyze.py output (required)
-    <ref>/ANALYSIS.md            notes, including its "## Recipe notes" block (optional)
+    <ref>/ANALYSIS.md            notes, including its "## Recipe notes" block and "## Finishing layer" table (optional)
     <ref>/TIMELINE.md            per-shot table: the "transition in" column (optional)
+    <ref>/REASONS.md             element reasons table (optional; notes-files.md section 6)
     <ref>/peaks.json             confirmed peaks (optional; else the analyzer's peak candidates)
     <ref>/sound_map.json         the ice-audio sound map (optional; also looked for in <ref>/analysis/)
     the brief's References block line for this ref-id: kind and mode (flags override it)
@@ -121,6 +122,74 @@ def recipe_notes(analysis_text):
     return notes
 
 
+def _col(cell):
+    """A table header cell as a key: lower case, no bracketed part, words joined by underscores."""
+    return re.sub(r"[^a-z0-9]+", "_", re.sub(r"\(.*?\)", "", cell).lower()).strip("_")
+
+
+def md_tables(text):
+    """Every Markdown table of a text: its header keys and its body rows (separator rows skipped)."""
+    tables, cur = [], None
+    for line in text.splitlines():
+        t = line.strip()
+        if not t.startswith("|"):
+            cur = None
+            continue
+        cells = [c.strip() for c in t.strip("|").split("|")]
+        if cur is None:
+            cur = {"head": [_col(c) for c in cells], "rows": []}
+            tables.append(cur)
+        elif not all(set(c) <= set("-: ") for c in cells):
+            cur["rows"].append(cells)
+    return tables
+
+
+def md_section(text, title):
+    """The lines under "## <title>..." up to the next "## " heading."""
+    out, inside = [], False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            inside = line[3:].strip().lower().startswith(title.lower())
+            continue
+        if inside:
+            out.append(line)
+    return "\n".join(out)
+
+
+def table_rows(text, must, drop=()):
+    """Rows of the first table whose header has the column `must`, as dicts; placeholder rows skipped, a cell
+    written "unknown: <what would settle it>" kept as an unknown."""
+    for tb in md_tables(text):
+        if must not in tb["head"]:
+            continue
+        out = []
+        for cells in tb["rows"]:
+            if not any(c and not c.startswith("<") for c in cells):
+                continue
+            row = {}
+            for k, c in zip(tb["head"], cells):
+                if not k or k in drop:
+                    continue
+                row[k] = unknown(c.partition(":")[2].strip() or "the evidence named in notes-files.md section 6") if c.lower().startswith("unknown") else c
+            out.append(row)
+        return out
+    return []
+
+
+def element_reasons(reasons_text):
+    """The reference's element reasons (REASONS.md), without the quoted instances and evidence paths."""
+    rows = table_rows(reasons_text, "element", drop=("trigger_instances", "evidence"))
+    return rows or unknown("no reasons table yet: write REASONS.md during the watch (notes-files.md section 6)")
+
+
+def finishing(analysis_text):
+    """The Finishing layer table of ANALYSIS.md: effect, where, how much, measured how, why (measuring.md section 9)."""
+    rows = table_rows(md_section(analysis_text, "Finishing layer"), "effect")
+    if len(rows) == 1 and str(rows[0].get("effect", "")).lower().startswith("none"):
+        return "none seen"
+    return rows or unknown("Finishing layer table of ANALYSIS.md: where, how much and why for each effect (measuring.md section 9)")
+
+
 GRADUAL = ("morph", "dissolve", "crossfade", "cross-fade", "fade", "wipe", "match", "gradual", "whip", "push", "zoom", "continuous")
 
 
@@ -226,7 +295,7 @@ def structure_rows(rep, seam_rows):
     return sorted(rows, key=lambda r: r["t"]), "structure" in rep
 
 
-def grammar(rep, notes, fams, peaks_file, sm=None):
+def grammar(rep, notes, fams, peaks_file, sm=None, reasons=None):
     dur = (rep.get("video") or {}).get("duration")
     shots = rep.get("shots") or []
     lens = [b - a for a, b in shots]
@@ -391,12 +460,13 @@ def grammar(rep, notes, fams, peaks_file, sm=None):
     else:
         g["climax"] = {"source": "none", "peaks": unknown("peaks.json (climax-duel.md) or analyze.py peak candidates (needs librosa)")}
     g["motif_and_rhyme"] = notes.get("motif and rhyme") or notes.get("motif") or unknown("Motif and rhyme line of the Recipe notes: recurring motif, how the ending rhymes with the opening")
+    g["element_reasons"] = reasons if reasons is not None else element_reasons("")
     return g
 
 
 # ------------------------------------------------------------------ look
 
-def look(rep, notes):
+def look(rep, notes, finish=None):
     sd = rep.get("shot_details") or []
     lo = {}
     if sd:
@@ -428,6 +498,7 @@ def look(rep, notes):
     lo["material_and_light"] = notes.get("material and light") or unknown("Material and light line of the Recipe notes: material category, texture, light mood")
     lo["typefaces"] = notes.get("typefaces") or unknown("Typefaces line of the Recipe notes: headline and body typefaces seen, or the closest named match")
     lo["medium"] = notes.get("medium") or unknown("Medium line of ANALYSIS.md")
+    lo["finishing"] = finish if finish is not None else finishing("")
     return lo
 
 
@@ -582,14 +653,16 @@ def scaling(rep, g):
     return {"reference_length_s": rnd(dur), "rules": rules, "derived_examples": table or unknown("shot lengths and duration from analyze.py")}
 
 
-def prompt_block(ref_id, rel_path, mode, slots):
+def prompt_block(ref_id, rel_path, mode, slots, content_type="unknown"):
     open_slots = [s for s in SLOTS if not slots.get(s)]
     lines = [f"Use Ice Motion Director with the style recipe {rel_path} (reference {ref_id}; machine twin style-recipe.json in the same folder).",
              f"Mode: {mode}. {RIGHTS_LINE}",
              "Recreate its whole style, skin included unless I give a brand.",
              "Its own media, placed as they are or recreated as the identity slot says: " + "; ".join(OWN_MEDIA) + ".",
              f"If I did not say which, ask the {IDENTITY}.",
-             f"For {PEOPLE}."]
+             f"For {PEOPLE}.",
+             f"Reference content type: {content_type}. If my piece is a different type, recommend the same editing principles with my identity or my real brand's, not the reference's identity (ice-remake references/rights-and-modes.md section 1, The identity fits the content).",
+             "Carry an element of the reference only where my script holds the same trigger kind as its element reason, and cut an element with no reason; apply each finishing effect only where its measured row says."]
     lines.append("If content is footage, edit my footage with this recipe as the style reference; if it is from-scratch, build a new piece in this style.")
     lines.append("Slots:")
     for s in SLOTS:
@@ -616,12 +689,22 @@ def fmt(v):
     return "not measured" if v is None else str(v)
 
 
+def md_rows(rows):
+    """A list of row dicts as a Markdown table, every cell through fmt."""
+    cols = []
+    for r in rows:
+        cols += [k for k in r if k not in cols]
+    return (["| " + " | ".join(c.replace("_", " ") for c in cols) + " |", "|" + "---|" * len(cols)]
+            + ["| " + " | ".join(fmt(r.get(c, "")).replace("|", "/") for c in cols) + " |" for r in rows])
+
+
 def markdown(r):
     h, g, lo, so, fe, sc = r["header"], r["grammar"], r["look"], r["sound"], r["feeling"], r["scaling"]
     L = [f"# Style recipe: {r['ref_id']}", "",
          f"Made {r['made']} by recipe.py from measured files. Format: ice-remake references/style-recipe.md. Every number is measured; \"unknown\" names what would measure it.", "",
          "## 1. Header", "",
          f"- Reference: {h['kind']}, {fmt(h['medium'])}, {fmt(h['duration_s'])} s, aspect {fmt(h['aspect'])}",
+         f"- Content type: {fmt(h['content_type'])}",
          *([f"- Orientation: {h['orientation']}"] if h.get("orientation") else []),
          *([f"- Caveats: {h['caveats']}"] if h.get("caveats") else []),
          f"- Mode: {h['mode']}   {h['rights']}",
@@ -652,7 +735,13 @@ def markdown(r):
             L.append(f"- Peak {i} anatomy: " + ("; ".join(parts) if parts else "unknown (measure with: confirmed peaks.json from a 12 fps strip around the hit, climax-duel.md section 1)"))
     else:
         L.append(fmt(cl["peaks"]))
-    L += ["", "## 3. Look", ""] + [f"- {k.replace('_', ' ')}: {fmt(v)}" for k, v in lo.items()]
+    er = g.get("element_reasons")
+    L += ["", "Element reasons (REASONS.md; an element carries over only where the new script holds the same trigger kind, else it is cut):", ""]
+    L += md_rows(er) if isinstance(er, list) else [fmt(er)]
+    L += ["", "## 3. Look", ""] + [f"- {k.replace('_', ' ')}: {fmt(v)}" for k, v in lo.items() if k != "finishing"]
+    fin = lo.get("finishing")
+    L += ["", "Finishing layer (measuring.md section 9; applied only where its where and why hold, never on everything):", ""]
+    L += md_rows(fin) if isinstance(fin, list) else [fmt(fin)]
     L += ["", "## 4. Sound", ""] + [f"- {k.replace('_', ' ')}: {fmt(v)}" for k, v in so.items()]
     L += ["", "## 5. Feeling", "", f"- Arc: {fmt(fe['arc'])}", "- Measured markers: " + ("; ".join(fe["measured_markers"]) or "none")]
     L += ["", "## 6. Slots", ""] + [f"- {s}: {r['slots'][s] or 'OPEN'} ({SLOT_HELP[s]})" for s in SLOTS]
@@ -713,6 +802,8 @@ def main():
 
     notes = recipe_notes(read_text(os.path.join(ref, "ANALYSIS.md")))
     trans = timeline_transitions(read_text(os.path.join(ref, "TIMELINE.md")))
+    reasons = element_reasons(read_text(os.path.join(ref, "REASONS.md")))
+    finish = finishing(read_text(os.path.join(ref, "ANALYSIS.md")))
     peaks = load_json(os.path.join(ref, "peaks.json"))
     sm_path = a.sound_map or next((p for p in (os.path.join(ref, "sound_map.json"), os.path.join(ref, "analysis", "sound_map.json")) if os.path.isfile(p)), None)
     sm = load_json(sm_path)
@@ -720,21 +811,23 @@ def main():
     v = rep.get("video") or {}
     pic = rep.get("picture") or {}
     w, hgt = pic.get("width") or v.get("width"), pic.get("height") or v.get("height")   # the real picture, never the analysis crop
-    g = grammar(rep, notes, trans, peaks, sm)
+    g = grammar(rep, notes, trans, peaks, sm, reasons)
     cuts = [x["t"] for x in seams(rep, trans) if x["hard"]]
     r = {"version": RECIPE_VERSION, "ref_id": ref_id, "made": a.date or datetime.date.today().isoformat(),
          "header": {"kind": a.kind or brief.get("kind") or "video", "medium": notes.get("medium") or unknown("Medium line of ANALYSIS.md"),
+                    "content_type": notes.get("content type") or unknown("Content type line of the Recipe notes: what kind of piece the reference is (rights-and-modes.md section 1)"),
                     "duration_s": rnd(v.get("duration")) if v.get("duration") else unknown("analyze.py (ffprobe)"),
                     "aspect": notes.get("aspect") or (f"{w}:{hgt} ({rnd(w / hgt)})" if w and hgt else unknown("analyze.py video size")),
                     **({"orientation": notes.get("orientation") or (rep.get("orientation") or {}).get("note")} if notes.get("orientation") or (rep.get("orientation") or {}).get("rotated") else {}),
                     **({"caveats": notes["caveats"]} if notes.get("caveats") else {}),
                     "rights": RIGHTS_LINE, "mode": mode, "taken": TAKEN, "own_media": OWN_MEDIA, "identity": IDENTITY, "people": PEOPLE},
-         "grammar": g, "look": look(rep, notes), "sound": sound(rep, sm, cuts, v.get("duration"), structure_rows(rep, seams(rep, trans))[0]),
+         "grammar": g, "look": look(rep, notes, finish), "sound": sound(rep, sm, cuts, v.get("duration"), structure_rows(rep, seams(rep, trans))[0]),
          "feeling": feeling(notes, g, v.get("duration")), "slots": slots, "scaling": scaling(rep, g)}
     rel_path = f"ice/reference/{ref_id}/STYLE-RECIPE.md"
-    r["prompt"], r["open_slots"] = prompt_block(ref_id, rel_path, mode, slots)
+    ct = r["header"]["content_type"]
+    r["prompt"], r["open_slots"] = prompt_block(ref_id, rel_path, mode, slots, "unknown" if is_unknown(ct) else ct)
     r["unknowns"] = collect_unknowns({k: r[k] for k in ("header", "grammar", "look", "sound", "feeling", "scaling")})
-    watch = [u["field"] for u in r["unknowns"] if "Recipe notes" in u["measure_with"] or "ANALYSIS.md" in u["measure_with"]]
+    watch = [u["field"] for u in r["unknowns"] if any(w in u["measure_with"] for w in ("Recipe notes", "ANALYSIS.md", "REASONS.md"))]
     if a.dry_run:
         print("dry run: nothing written")
         print("watch   " + (", ".join(watch) if watch else "none: every watch field is filled"))

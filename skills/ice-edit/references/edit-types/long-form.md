@@ -22,7 +22,7 @@ Turn a raw recording (one speaker, several minutes or more) into a clean, breath
 - Motion B-roll clips over the talking head (`broll-and-motion-broll.md`), density 2 to 7 per minute.
 - Speaker plus framed B-roll with a speaker badge (`layers-and-isolation.md` section 3).
 
-Do not add graphics just because a gap exists; add them when the narration has a topic, transition, proof point or mental model that benefits from support.
+Do not add graphics just because a gap exists; add them when the narration has a topic, transition, proof point or mental model that benefits from support. Every overlay, keyword, lower third, mark and insert sits on the word or sentence that triggers it, with its reason (`broll-and-motion-broll.md` section 1). Speaker look and marks: the speaker stays lit and unmarked; dimming, silhouettes, rings and target marks go only on the people talked about (`layers-and-isolation.md` section 5).
 
 ## Rhythm ranges
 | Measure | Value |
@@ -44,7 +44,7 @@ Do not add graphics just because a gap exists; add them when the narration has a
 Talking-head shots: static locked zoom per segment (calm cycle in `house-style-numbers.md`). Graphics-led holds: follow the ice-motion skill; vary move duration with distance travelled.
 
 ## Sound policy
-Room-tone air, never digital silence. A warm pad or quiet bed under speech when used (levels in the ice-audio skill). Sound effects follow visible actions only.
+Room-tone air, never digital silence. A quiet music bed under speech when used, chosen from the ice-audio skill's ladder (real library music; music made by code only when the user names it), levels in the same skill. Sound effects follow visible actions only.
 
 ## Text density
 Glance comprehension: a card reads in under one second. No repetition of the whole voiceover, no long sentences, few highlighted words.

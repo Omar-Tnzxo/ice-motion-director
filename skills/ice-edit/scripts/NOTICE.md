@@ -29,7 +29,7 @@ Transcription is not bundled. Use a local word-level ASR (Whisper-class with wor
 | `motion-broll/inspect_video.py`, `words.py`, `composite.py`, `make_pages.py` | Footage layout inspection, subtitle-file word estimates, composite preview, review pages and TIMING.md | Barty-Bart/motion-graphics | MIT | Changed (UTF-8 I/O for Windows, usage checks, templates path, a dash character; `composite.py` creates its output folder) |
 | `motion-broll/viewer.html`, `motion-broll/compare.html` | Clip viewer and before/after compare templates | Barty-Bart/motion-graphics | MIT | Unchanged apart from the notice comment (Google Fonts links kept; stripped by `make_pages.py --offline`) |
 
-The motion B-roll engine needs Playwright with Chromium in the user's project (a one-time network install, only with the user's yes in the stage 01 message; see `references/broll-and-motion-broll.md` section 6). Nothing in it downloads at run time.
+The motion B-roll engine needs Playwright with Chromium in the user's project (a one-time network install, free and pinned, run without a question after the free space check and recorded; see `references/broll-and-motion-broll.md` section 6). Nothing in it downloads at run time.
 
 Known limits: `find-cut-candidates.mjs` uses an English stop-word list, so non-English retake scores run a little high; review every candidate. `timeline_view.py` labels use system fonts without Arabic shaping. `render.py --build-subtitles` writes uppercase Helvetica captions; for Arabic or styled captions build the caption layer with the ice-type and ice-arabic skills instead.
 
@@ -49,7 +49,7 @@ Paths in this table are relative to the ice-edit skill folder.
 | `scripts/pack_transcripts.py`, `scripts/timeline_view.py` | Packed phrase transcript, filmstrip plus waveform at decision points |
 | `scripts/cutdown.py` | Reframe to 9:16, 1:1 or 4:5 (blur, crop, pad) with segments |
 | `scripts/music-grid.mjs`, `scripts/beatgrid.mjs`, `scripts/analyze-reference.mjs` | Beat grid, cut sheet, cut offsets of a render |
-| `scripts/motion-broll/` (`build.py`, `render.js`, `beats.js`, `motion.js`, `inspect_video.py`, `words.py`, `composite.py`, `make_pages.py`, two page templates) | One-shape motion B-roll engine: build, stills, motion-blur render, alpha panels, composite preview, viewer and compare pages (setup in `references/broll-and-motion-broll.md` section 6; needs a one-time Playwright install, only with the user's yes (`references/ingest-and-ledger.md` section 6); fonts: project or user font files first, then the font the direction chose from either an installed system family or Google Fonts (a disclosed build-time network call), with no fixed order between those two; `--offline` or `ICE_OFFLINE=1` allows only project and system fonts) |
+| `scripts/motion-broll/` (`build.py`, `render.js`, `beats.js`, `motion.js`, `inspect_video.py`, `words.py`, `composite.py`, `make_pages.py`, two page templates) | One-shape motion B-roll engine: build, stills, motion-blur render, alpha panels, composite preview, viewer and compare pages (setup in `references/broll-and-motion-broll.md` section 6; needs a one-time Playwright install, free and pinned, run without a question and recorded (`references/ingest-and-ledger.md` section 6); fonts: project or user font files first, then the font the direction chose from either an installed system family or Google Fonts (a disclosed build-time network call), with no fixed order between those two; `--offline` or `ICE_OFFLINE=1` allows only project and system fonts) |
 
 ## License texts
 

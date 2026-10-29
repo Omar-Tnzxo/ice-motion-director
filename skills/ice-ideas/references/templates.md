@@ -110,15 +110,15 @@ Changelog: v<n>: <change>
 
 ## 7. Shot table
 
-Each lock line sits on its own line above the table. The seven linter columns come first, named exactly; extra columns (`#`, `Sound`, `Why`) are allowed after them.
+Each lock line sits on its own line above the table. The nine linter columns come first, named exactly (`Trigger` and `Reason` tie every element to the script line that justifies it: the `ice-qa` skill, `references/storyboard-lint.md` section 3b); extra columns (`#`, `Sound`) are allowed after them.
 
 ```markdown
 Style: <one sentence; one style for the whole film>
 Palette: <3 to 6 hex values with roles, copied from ice/DIRECTION.md>
 Characters: <none / hands and backs only / frame library <path> / rig <path>>
-| Time | Object | Action | Camera | On-screen text | Method | Tags | # | Sound | Why |
-|---|---|---|---|---|---|---|---|---|---|
-| <a-b> | <noun> | <the object's own verb> | <...> | "<quoted text or none>" | <template:<name> / code scene / footage <file>> | <at most 3> | <n> | <...> | <...> |
+| Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method | Tags | # | Sound |
+|---|---|---|---|---|---|---|---|---|---|---|
+| <a-b> | <noun> | <the object's own verb> | <...> | "<quoted text or none>" | "<script sentence or word>" at <s> | <what it means, who it is on, why its colour and shape> | <template:<name> / code scene / footage <file>> | <at most 3> | <n> | <...> |
 ```
 
 ## 8. Animatic spec (`ice/plan/animatic.md`)

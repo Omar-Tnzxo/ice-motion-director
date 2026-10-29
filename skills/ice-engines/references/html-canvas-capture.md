@@ -10,8 +10,8 @@ One HTML page draws any time `t` on request; a headless Chromium seeks it frame 
 |---|---|
 | Node.js | The minimum in `versions.json` (`runtimes.node`) |
 | FFmpeg, ffprobe | On PATH, at or above the minimum in `versions.json` (`runtimes.ffmpeg`) |
-| Browser | An installed Chrome, Chromium or Edge, found in the usual install folders, or `ICE_CHROME=<path>` (per-OS syntax: `engine-choice.md` section 7.2). Only when none exists and the user agrees: install the driver below, then `npx playwright-core install chromium` (runs the project's pinned copy; a browser download) |
-| Driver | None needed: the renderer carries a built-in Chrome DevTools driver. Optional, after the user agrees: `npm install --save-exact playwright-core@<npm.playwright-core>` in the film project (exact version in `versions.json`); `ICE_DRIVER=cdp` forces the built-in driver |
+| Browser | An installed Chrome, Chromium or Edge, found in the usual install folders, or `ICE_CHROME=<path>` (per-OS syntax: `engine-choice.md` section 7.2). Only when none exists: install the driver below, then `npx playwright-core install chromium` (runs the project's pinned copy; an install without a question, recorded: `engine-choice.md` section 7.6) |
+| Driver | None needed: the renderer carries a built-in Chrome DevTools driver. Optional, installed without a question when needed (`engine-choice.md` section 7.6): `npm install --save-exact playwright-core@<npm.playwright-core>` in the film project (exact version in `versions.json`); `ICE_DRIVER=cdp` forces the built-in driver |
 | Libraries the page loads | Exact versions vendored into the project or pinned CDN URLs (GSAP, three, p5, p5.brush at their exact versions in `versions.json`); never `@latest`, which is mutable |
 
 Probe the environment once at intake with the check order in `engine-choice.md` section 7.2, plus fonts present. The renderer's first four log lines name the served folder, the driver and browser path, the compositing mode and the browser version: log them with the film (pixels can drift across browser versions and compositing modes).

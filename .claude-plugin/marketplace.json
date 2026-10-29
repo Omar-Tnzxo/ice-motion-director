@@ -9,7 +9,7 @@
     {
       "name": "ice-motion-director",
       "description": "Motion design and video editing director that writes code and renders deterministic films.",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "source": "./",
       "author": {
         "name": "Omar-Tnzxo",

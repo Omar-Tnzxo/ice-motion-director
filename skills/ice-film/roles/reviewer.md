@@ -12,6 +12,7 @@ The review packet defined by the `ice-qa` skill, `references/critic-loop.md` sec
 2. Restate the film's message from the frames alone in one sentence. If you cannot, say so: the film fails. (The blind cold-viewer read of the `ice-qa` skill, `references/clarity-gate.md`, is a different role: you are never it, because you have read the brief.)
 3. Follow the critic method for your round (passes, severity, scores by film type, verification of previous findings): the `ice-qa` skill, `references/critic-loop.md` sections 3-4.
 4. Check the type's QA thresholds, its "Richness floor" table (same film-type file) and the gates ice-qa provides. A sparse film (small hero, an empty half of a vertical frame, nothing moving inside the shot, flat ground) is a finding even when every other gate passes; name the shot and the measure it misses.
+5. Every element on screen has a trigger and a reason in the storyboard, and with a reference its carried-over reason still holds (the `ice-qa` skill, `references/storyboard-lint.md` section 3b); every finishing effect sits where its measurement or logged reason says (the `ice-motion` skill, `references/motion-blur-and-clock.md`, "Finishing layer"); in news, explainer and talk-show films the speaker or guest stays lit and clear (the `ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit").
 
 ## Report format
 

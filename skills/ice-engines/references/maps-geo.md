@@ -15,7 +15,22 @@ Applies to map shots in any engine (data stories, industry spots, travel, logist
 | MapTiler | Borders, rivers, labels for explainers | Key that is unrestricted for headless use (domain-locked keys return 403); keep it out of shipped files |
 | CesiumJS | Terrain or photoreal city flythroughs | Render through Remotion with ANGLE (Cesium does not draw in standalone headless Playwright); loads JS from a CDN: pin it |
 
-Load only the chosen technique. Keys come from environment variables, never bundled.
+Load only the chosen technique. Keys come from environment variables or `~/.ice-motion-director/.env`, never bundled (`ice-assets/references/sourcing-and-licenses.md` section 0).
+
+**Map data and imagery with no key** (sources research, tested 2026-10-29; Ice fetches them without a question under the standing consent of `sourcing-and-licenses.md` section 0; license status per source: its section 3). Real data and dated imagery come before anything drawn; the rendering itself stays code.
+
+| Need | Route (no key unless named) | Method |
+|---|---|---|
+| Country and region outlines (admin levels 0 to 2) | geoBoundaries (CC BY 4.0); Natural Earth and world-atlas TopoJSON (public domain) for globes and coarse outlines | `geoboundaries.org/api/current/gbOpen/<ISO3>/<ADM level>/` returns the GeoJSON link |
+| A no-key vector basemap | OpenFreeMap tiles and styles for MapLibre; Protomaps daily planet PMTiles cut to the area by range reads (`pmtiles extract`, fully local) | Bake as in the plate rule (section 2) |
+| A clean satellite base for zoom shots | EOX Sentinel-2 cloudless WMTS (noncommercial: `needs purchase` commercially); Esri World Imagery (sharpest; `needs purchase` for published use) | Stitch the tiles for the area into one plate; draw the outline over it; keep the credit plate (section 5) |
+| The day's imagery (fires, smoke, floods) | NASA GIBS WMTS and the Worldview snapshot API (public domain) | One snapshot call per date and bounding box (`wvs.earthdata.nasa.gov/api/v1/snapshot` with `TIME=<date>` and `BBOX=<area>`) |
+| Dated before and after at 10 m | Element 84 Earth Search STAC (`earth-search.aws.element84.com/v1/search`, collection `sentinel-2-l2a`, a date window and a cloud filter; public COGs read by range); Copernicus Data Space for one-call images (free account: `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET`) | Name both dates on screen; full resolution needs GDAL or rasterio |
+| Event imagery | Vantor (formerly Maxar) Open Data STAC, where an event exists (CC BY-NC: `needs purchase` commercially) | Static STAC on its public bucket |
+| Relief | AWS Terrain Tiles (attribution list) | For 3D relief in Cesium or deck.gl |
+| Zoom from space as a newsroom does it | Google Earth Studio frames the user renders with their Google account (attribution burned into every frame) | A `FETCH-LIST.md` entry (`ice-assets/references/project-folders.md` section 4b); otherwise rebuild the move in CesiumJS or as a plate zoom |
+
+Fully free satellite routes for a commercial film: NASA GIBS and raw Sentinel-2 (Earth Search, Copernicus Data Space). After Effects map plugins cannot run in Ice; the code stack (MapLibre, d3-geo, Turf, CesiumJS, deck.gl, pmtiles; each pinned in `versions.json` before use) builds the same shots.
 
 ## 2. Determinism
 
@@ -34,7 +49,7 @@ Load only the chosen technique. Keys come from environment variables, never bund
 - Never clip a border to the visible frame; draw complete multi-segment borders by cumulative length. Braided rivers: route by graph shortest path, not nearest-endpoint chaining. Strip basemap label layers and inner admin borders when they clutter; keep country and disputed borders.
 - Omit absent optional layer properties (never pass `filter: undefined`) or fills vanish while halos remain.
 - Provider alignment does not prove correctness: check geometry against the editorial source; record the source and effective date of every custom or disputed geography. Data accuracy rules: the ice-assets skill (truth sheet).
-- Overpass API is often busy (use a mirror); Natural Earth is too coarse for valleys (use OSM, about 0.3 km vertex spacing; OSM data needs ODbL attribution).
+- The public Overpass API now says it is for human use and failed under automation in testing (502 at capacity, mirrors timed out, 2026-10-29): for automated OSM data use Geofabrik extracts or Protomaps PMTiles cut to the area; Nominatim allows 1 request a second. Natural Earth is too coarse for valleys (use OSM, about 0.3 km vertex spacing; OSM data needs ODbL attribution).
 
 ## 4. Cesium flythrough
 
@@ -46,4 +61,4 @@ Load only the chosen technique. Keys come from environment variables, never bund
 
 ## 5. Attribution (hard rule)
 
-Keep provider attribution visible in every rendered frame where tiles show: for example "Esri, Maxar, Earthstar Geographics" for Esri imagery, "(c) CARTO, (c) OpenStreetMap" for CARTO, and each provider's required credit for Mapbox, MapTiler and Google tiles. Never hide attribution with CSS.
+Keep provider attribution visible in every rendered frame where tiles show. Read the credit live at fetch time from the provider (its attribution or copyright endpoint, the style's `attribution` field, the tile service metadata), never from memory or from this file: credits change (Esri's read "Esri, Vantor, Earthstar Geographics, and the GIS User Community" on 2026-10-29, after Maxar became Vantor). Record the credit read and its date in the asset's sidecar (`ice-assets/references/project-folders.md` section 3b). Each provider's required credit applies to Mapbox, MapTiler, CARTO, OpenFreeMap, EOX, NASA GIBS, Copernicus and Google tiles alike. License status (noncommercial, account needed) is recorded, never a block: `ice-assets/references/sourcing-and-licenses.md` section 3. Never hide attribution with CSS.

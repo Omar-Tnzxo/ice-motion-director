@@ -21,7 +21,7 @@ try:
 except ImportError as exc:
     sys.exit(
         f"audit_motion.py needs numpy==2.4.6 and opencv-python-headless==4.10.0.84 (missing: {exc.name}). "
-        'Install them into a project virtual environment after the user agrees: python -m pip install -r "'
+        'Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): python -m pip install -r "'
         + str(Path(__file__).resolve().parent / "requirements.txt") + '"'
     )
 

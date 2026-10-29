@@ -32,7 +32,7 @@ Lock the look above the table (lines outside the table, written before it):
   Allow blue-purple: <reason>          (optional, only when the user asked for blue or purple)
   Style exception: <reason>            (optional, only for a scoped style change, see the ice-styles skill)
 Then a markdown table, one row per shot, columns:
-  Time | Object | Action | Camera | On-screen text | Method (optional, recommended) | Tags (optional)
+  Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method (optional, recommended) | Tags (optional)
 Tables inside code fences are skipped. With several tables only the first one with "Object" and "Action" columns is checked.
 
 Per row:
@@ -55,6 +55,11 @@ Per row:
   (9) With --script: a number on screen (percent, year, number with unit) that the script never says        -> red
       (the script may say it as digits or as English words: "sixty percent" = 60%, "fifteen point two" = 15.2)
   (10) With a Tags column: more than 3 tags in one shot                                                     -> yellow
+  (17) Trigger and Reason (owner decision, 2026-10-29): every row names its trigger (the script sentence or word that
+       justifies it, with its time; for a film without speech, the music or sound cue or the story event) and its
+       reason (what the element means, who or what it is on, why its colour and shape). An empty or filler cell
+       ("reference", "style", "decoration", "looks good", "as in the reference") -> red: cut the element or write both.
+       A table with no Trigger or no Reason column -> red. Rule: references/storyboard-lint.md section 3b.
 Whole table:
   (5) Text-led shots <= 30% of shots                                                                        -> red
   Method column (when present): one reusable template or clip file (.json/.html) running over 8 s in total -> red;
@@ -361,6 +366,8 @@ CAM_ACCENT = ("fast push", "slam", "whip", "punch")
 # (1) the Object column is only these words: an empty picture, not a layout element; the fix is different
 EMPTY_SCENE = re.compile(r"\b(?:empty|blank|flat colou?r|solid colou?r|black screen|white screen|black frame|white frame|"
                          r"fade to black|gradient (?:ground|background)|negative space)\b|^(?:background|ground|black|white)$", re.I)
+# (17) a reason that only points at the source or at taste is no reason (owner decision, 2026-10-29)
+FILLER_REASON = re.compile(r"^(?:the |as in the |like the |from the |copied from the |same as the )?(?:reference|ref|style|decoration|decorative|looks? (?:good|nice|cool)|aesthetic|vibe|tbd|todo|\?+)\.?$", re.I)
 EMPTY_CELL = {"", "-", "--", "none", "n/a", "na", "/", "(empty)", "empty"}
 TEMPLATE = re.compile(r"\btemplate:([A-Za-z0-9_.-]+)", re.I)
 # (12)-(14) style lock
@@ -445,6 +452,8 @@ def columns(head):
         elif hl.strip() == "role" and "role" not in col: col["role"] = k
         elif ("text" in hl or "copy" in hl) and "text" not in col: col["text"] = k
         elif ("method" in hl or "how" in hl or "technique" in hl) and "how" not in col: col["how"] = k
+        elif "trigger" in hl and "trig" not in col: col["trig"] = k
+        elif ("reason" in hl or hl.strip() == "why") and "why" not in col: col["why"] = k
     return col
 
 
@@ -685,6 +694,13 @@ def lint(text, script=None, scope=None):
             r["tags"] = tag_count(get(cells, "tags"))
             if r["tags"] > 3:
                 bad((YELLOW, "(10) tags", f"{r['tags']} tags in this shot, crowded", "at most 3 per shot; move the rest to the voiceover or the next shot; place each tag next to the object it names, never a row of glowing pills"))
+        for k, name, what in (("trig", "trigger", "the script sentence or word that justifies this element, with its time (for a film without speech: the music or sound cue, or the story event)"),
+                              ("why", "reason", "what the element means, who or what it is on, and why its colour and shape")):
+            if k in col:
+                cell = clean_cell(get(cells, k))
+                if is_empty(cell) or FILLER_REASON.match(cell):
+                    bad((RED, f"(17) {name}", f"the {name.capitalize()} cell is empty or only names the source or a taste ('{cell}')",
+                         f"write {what}; an element with no trigger and no reason is cut before 05"))
         rows.append(r)
     if not rows:
         return {"error": "The shot table is empty: one row per shot under the header."}
@@ -709,6 +725,13 @@ def lint(text, script=None, scope=None):
             r["issues"].append((RED, "(3) on-screen text", f"{r['chars']} units of on-screen text, more than {cap}{hint}", fix))
         elif r["cta_tag"] and r["chars"] > 8:
             r["note"] = f"CTA block: {r['chars']} units, allowed up to {cap} for the film type '{scope['row']}'"
+
+    # (17) trigger and reason columns (owner decision, 2026-10-29): results were blind copies of a reference; every
+    # appearance of an element is tied to the sentence that justifies it and carries its reason
+    miss_tr = [n for k, n in (("trig", "Trigger"), ("why", "Reason")) if k not in col]
+    if miss_tr:
+        table.append((RED, "(17) trigger and reason", f"no {' and no '.join(miss_tr)} column",
+                      "add a Trigger column (the script sentence or word with its time that justifies the row) and a Reason column (what the element means, who it is on, why its colour and shape); a row with no trigger and reason is cut"))
 
     # (4) first shot
     f = rows[0]

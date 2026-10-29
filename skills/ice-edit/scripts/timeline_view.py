@@ -35,7 +35,7 @@ try:
 except ImportError as _missing:
     sys.exit(
         f"timeline_view.py needs numpy==2.4.6 and pillow==12.3.0 ({_missing}). "
-        "Install them into a project virtual environment after the user agrees: "
+        "Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
         "python -m pip install -r " + str(Path(__file__).resolve().parent / "requirements.txt")
     )
 

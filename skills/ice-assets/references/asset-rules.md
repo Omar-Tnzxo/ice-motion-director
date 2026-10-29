@@ -22,9 +22,9 @@ The ice-assets rules read after stage 01: which source each shot uses (section 1
 | A real named person | Verified licensed portrait with provenance | Generated likeness, stock face as testimonial |
 | A person, place, event or mood | User footage, then real footage found on the web (agencies, official channels, press conferences, official accounts), then stock, then generated if allowed (`sourcing-and-licenses.md` sections 0 and 1a) | A repost or thumbnail when the original exists; a clip cut to change its meaning |
 | A drawn object, character or scene | The ladder of art sources, `references/sourcing-and-licenses.md` section 1b: the user's art, licensed vector libraries, AI art only when the user starts it (vectorized and rebuilt by parts), 3D with real lighting, hand-coded art last and held to the craft rules | Flat single-tone code art; an auto-traced image animated as if it had limbs |
-| Background, texture, plate | Code-built, CC0 library, found or stock images recorded with their license status, or generated if allowed | Images with a removed or cropped-out watermark |
+| Background, texture, plate | Real first (`sourcing-and-licenses.md` section 1): the user's material, real scans, photos or footage from free routes, CC0 libraries or stock, each recorded with its license status; code-built when the plate is abstract (gradients, grids, data fields) or is glitch or grain; generated only if allowed | Images with a removed or cropped-out watermark; code dust, smoke or fire as a hero element |
 | Words on screen | Code, from exact strings | Text inside a generated image |
-| Music or SFX | The user's file, a reference's own track or any available track the user wants, code-generated, or a library item, each recorded with its license status (selection: ice-audio) | A track with no record of where it came from |
+| Music or SFX | The user's file, a reference's own track, or real library tracks and recorded sounds down the ladders of the ice-audio skill (`SKILL.md`), each recorded with its license status | A track with no record of where it came from; sound made by code that the user did not ask for |
 | A font | Brand's licensed files or an open font with its license, embedded locally | Web font link at render, captured commercial fonts |
 
 ## 2. Scoped rules (sources disagree; each holds where stated)

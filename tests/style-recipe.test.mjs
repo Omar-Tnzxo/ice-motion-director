@@ -362,3 +362,107 @@ test("recipe-only: ice-state takes size not_applicable and ends on the recipe, n
   assert.match(st("set", "10", "approved", "--by", "approver").stdout, /style recipe is delivered/);
   rmSync(dir, { recursive: true, force: true });
 });
+
+// Trial lessons (owner decision, 2026-10-29): a reason for every element (lesson 4), the measured finishing layer
+// (lesson 6) and an identity that fits the content (lesson 7), written once in ice-remake and carried by the recipe.
+const section = (text, head) => { const a = text.indexOf(`\n## ${head}`); assert.ok(a >= 0, head); const b = text.indexOf("\n## ", a + 4); return text.slice(a, b < 0 ? undefined : b); };
+
+test("element reasons: REASONS.md is defined with its columns and required for any reference", () => {
+  const notes = readText("skills/ice-remake/references/notes-files.md");
+  const s6 = section(notes, "6. Element reasons");
+  assert.match(s6, /Every reference, in every mode, gets `ice\/reference\/<ref-id>\/REASONS\.md`/);
+  assert.match(s6, /\| # \| Element \| Trigger kind \| Trigger instances \(words or cue, with time\) \| Meaning \| On whom or what \(role\) \| In \(cue, time\) \| Out \(cue, time\) \| Why this colour and shape \| Evidence \|/);
+  assert.match(s6, /`unknown: <what would settle it>`/);
+  assert.match(s6, /layers-and-isolation\.md`, section "The speaker stays lit"/);
+  assert.match(notes, /REASONS\.md {2,}why each element appears/, "the layout lists REASONS.md");
+  const watching = readText("skills/ice-remake/references/watching.md");
+  assert.match(section(watching, "2. Passes"), /\| 8\. Element reasons \(every reference\) \|.*Writes `REASONS\.md`/);
+  assert.match(section(watching, "8. Where it goes"), /`REASONS\.md` \(required for every reference/);
+  const skill = readText("skills/ice-remake/SKILL.md");
+  assert.match(skill, /`TIMELINE\.md` and `REASONS\.md` \(a row per element\) are in `ice\/reference\/<ref-id>\/`/, "the 01 done-when needs REASONS.md");
+});
+
+test("shot mapping: an element carries over only with its reason row and a trigger in the new script; one with no reason is cut", () => {
+  const sm = readText("skills/ice-remake/references/shot-mapping.md");
+  const order = section(sm, "1. Order of work");
+  assert.match(order, /only with its `REASONS\.md` row/);
+  assert.match(order, /with no row, with a row whose trigger kind or meaning is `unknown`, or with no trigger in the new script is cut/);
+  assert.match(order, /never copied blind/);
+  assert.match(sm, /"elements": \[\{ "element": .*"reason_row": .*"trigger": "<word or sentence of the new script>"/);
+  assert.match(sm, /"cut_elements": \[/);
+  assert.match(readText("skills/ice-remake/references/fidelity-contract.md"), /An element with no reason is never a must-preserve item; it is cut/);
+  assert.match(readText("skills/ice-remake/references/adaptation-lenses.md"), /carries over through its reason/);
+  assert.match(readText("skills/ice-remake/SKILL.md"), /every element in `shots\.json` has its `REASONS\.md` row and our trigger, or is in `cut_elements`/);
+});
+
+test("finishing layer: measuring.md records where, how much, how measured and why for each effect, applied only where it says", () => {
+  const fin = section(readText("skills/ice-remake/references/measuring.md"), "9. Finishing layer");
+  for (const cell of ["**where**", "**how much**", "**measured how**", "**why**"]) assert.ok(fin.includes(cell), cell);
+  for (const fx of ["Motion blur on fast moves", "Blur for depth", "Blur on entrances and exits", "Grain", "Specks, scratches, dust", "Halftone", "Flicker", "Vignette", "Glow", "Grade"])
+    assert.match(fin, new RegExp(`\\n\\| ${fx}`), fx);
+  assert.match(fin, /never on everything/);
+  assert.match(fin, /`ice-motion\/references\/motion-blur-and-clock\.md`, section "Finishing layer"/);
+  assert.match(fin, /signalstats/);
+  assert.match(fin, /calibration ladder/i);
+  assert.match(readText("skills/ice-remake/references/notes-files.md"), /## Finishing layer \(measuring\.md section 9[^\n]*\n\| Effect \| Where \| How much \| Measured how \| Why \|/);
+});
+
+test("identity fits the content: rights-and-modes section 1 compares content types; the fitting identity is the auto default", () => {
+  const s1 = section(readText("skills/ice-remake/references/rights-and-modes.md"), "1. Intake");
+  assert.match(s1, /### The identity fits the content \(owner decision, 2026-10-29\)/);
+  assert.match(s1, /compare the content type of the user's film .* with the reference's content type/);
+  assert.match(s1, /\*\*Different types\*\*.*recommend the same editing principles .* with an identity that fits the content: the user's identity, or the real brand's/);
+  assert.match(s1, /In auto mode, and when the user waived the questions, this is the decision taken; log it in `ice\/DIRECTION\.md`/);
+  assert.match(s1, /\*\*The user's own words still win\*\* \(`AGENTS\.md` rule 18\)/);
+  assert.match(s1, /downloaded without a question when the download is free and needs no account/);
+  const recipe = readText("skills/ice-remake/references/style-recipe.md");
+  assert.match(recipe, /\| `Content type:` \|/);
+  assert.match(recipe, /"The identity fits the content"\)/);
+  assert.match(readText("skills/ice-remake/references/notes-files.md"), /\nContent type: </);
+});
+
+test("recipe: element reasons, the finishing layer and the content type come from REASONS.md and ANALYSIS.md", (t) => {
+  if (skip(t)) return;
+  const ref = makeRef("reasons");
+  writeFileSync(join(ref, "ANALYSIS.md"), readFileSync(join(ref, "ANALYSIS.md"), "utf8").replace("## Recipe notes\n", "## Recipe notes\nContent type: explainer\n")
+    + "\n## Finishing layer (measuring.md section 9)\n| Effect | Where | How much | Measured how | Why |\n|---|---|---|---|---|\n"
+    + "| Grain | archive passages only | ladder step 12, changes every frame | calibration ladder on frame_0412.jpg | marks old footage |\n"
+    + "| Vignette | unknown: crops of three more shots | 0.8 corner over centre | signalstats on two shots | keeps the eye centred |\n");
+  writeFileSync(join(ref, "REASONS.md"), "# Element reasons: ref1\nSources: fixture\n\n"
+    + "| # | Element | Trigger kind | Trigger instances (words or cue, with time) | Meaning | On whom or what (role) | In (cue, time) | Out (cue, time) | Why this colour and shape | Evidence |\n|---|---|---|---|---|---|---|---|---|---|\n"
+    + "| 1 | Number card, lower left | a number is said | \"<quoted words>\" 4.1 s | the figure to remember | over the subject | on the number | next sentence | accent colour marks data | frames/cues/f1.jpg |\n"
+    + "| 2 | Ring around a cutout | unknown: a denser strip at 7 s | 7.2 s | the subject of the line | the people talked about | on the name | next name | unknown | frames/cues/f2.jpg |\n");
+  const { md, json } = run(ref);
+  const er = json.grammar.element_reasons;
+  assert.equal(er.length, 2);
+  assert.equal(er[0].trigger_kind, "a number is said");
+  assert.equal(er[0].on_whom_or_what, "over the subject");
+  assert.ok(!("trigger_instances" in er[0]) && !("evidence" in er[0]), "quoted instances and evidence paths stay out of the recipe");
+  assert.equal(er[1].trigger_kind.value, "unknown");
+  assert.ok(json.unknowns.some((u) => u.field === "grammar.element_reasons[1].trigger_kind" && /denser strip/.test(u.measure_with)));
+  assert.deepEqual(json.look.finishing.map((r) => r.effect), ["Grain", "Vignette"]);
+  assert.equal(json.look.finishing[0].why, "marks old footage");
+  assert.equal(json.header.content_type, "explainer");
+  assert.match(json.prompt, /Reference content type: explainer\. If my piece is a different type, recommend the same editing principles with my identity/);
+  assert.match(json.prompt, /cut an element with no reason; apply each finishing effect only where its measured row says/);
+  assert.match(md, /Element reasons \(REASONS\.md;[^\n]*\n\n\| element \| trigger kind \| meaning \| on whom or what \|/);
+  assert.match(md, /Finishing layer \(measuring\.md section 9;[^\n]*\n\n\| effect \| where \| how much \| measured how \| why \|/);
+  assert.match(md, /- Content type: explainer/);
+});
+
+test("recipe: no REASONS.md means 'no reasons table yet', a 'none seen' finishing row means none, and the dry run asks for both", (t) => {
+  if (skip(t)) return;
+  const ref = makeRef("noreasons");
+  const { json } = run(ref);
+  assert.equal(json.grammar.element_reasons.value, "unknown");
+  assert.match(json.grammar.element_reasons.measure_with, /^no reasons table yet/);
+  assert.equal(json.look.finishing.value, "unknown");
+  assert.equal(json.header.content_type.value, "unknown");
+  const dry = spawnSync(PYTHON[0], [...PYTHON.slice(1), SCRIPT, "--ref", ref, "--dry-run"], { encoding: "utf8" });
+  assert.equal(dry.status, 0, dry.stderr);
+  assert.match(dry.stdout, /watch {3}.*grammar\.element_reasons/);
+  assert.match(dry.stdout, /watch {3}.*look\.finishing/);
+  writeFileSync(join(ref, "ANALYSIS.md"), readFileSync(join(ref, "ANALYSIS.md"), "utf8")
+    + "\n## Finishing layer\n| Effect | Where | How much | Measured how | Why |\n|---|---|---|---|---|\n| none seen | | | | |\n");
+  assert.equal(run(ref).json.look.finishing, "none seen");
+});

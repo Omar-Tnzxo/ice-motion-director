@@ -4,7 +4,7 @@ usage: python inspect_video.py video.mp4 outdir"""
 import sys, json, subprocess, os
 try: import numpy as np
 except ImportError as _missing:
-    sys.exit(f"inspect_video.py needs numpy==2.4.6 ({_missing}). Install it into a project virtual environment after the user agrees: "
+    sys.exit(f"inspect_video.py needs numpy==2.4.6 ({_missing}). Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
              "python -m pip install -r " + os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'requirements.txt'))
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):

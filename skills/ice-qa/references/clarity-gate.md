@@ -99,7 +99,7 @@ The approver (`ice-direction/references/roles.md` section 5) matches the report 
 | What happens | 1 | Nothing in it misreads the turn (the moment the change happens) or the hero moment |
 | Confusions | 5 | None of them is major |
 
-A confusion is **major** when it is about the brand, the offer, the idea, the turn or the hero moment; when a symbol was read as something other than its literal anchor; when the viewer did not see the cause of a product interaction; or when the viewer was still unsure at the end. Every other confusion is minor, and every minor one still goes on the fix list.
+A confusion is **major** when it is about the brand, the offer, the idea, the turn or the hero moment; when a symbol was read as something other than its literal anchor; when the viewer did not see the cause of a product interaction; when, in a news, explainer or talk-show film, the viewer took the speaker or guest for one of the people being talked about (a dimmed, silhouetted or circled speaker: the `ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit"); or when the viewer was still unsure at the end. Every other confusion is minor, and every minor one still goes on the fix list.
 
 On platforms that play muted first, answers 2, 3 and 4 must come from the picture alone: on-screen words and burned-in captions count, speech and sound do not (a moment the viewer marked as relying on sound does not count toward a MATCH).
 

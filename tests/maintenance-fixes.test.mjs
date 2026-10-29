@@ -183,3 +183,32 @@ test("ice-state.mjs redirect checklist on another route keeps the shared rows an
   assert.ok(!r.stdout.includes("`ice/plan/"), "film plan names are not printed for another route");
   assert.match(r.stdout, /for every stage from 01 on: the files the workflow's "## Spine stages" row names/);
 });
+
+// ---------------------------------------------------------------- 6. disk space (owner decision, 2026-10-29)
+// `ice-state.mjs space` reads free space with fs.statfsSync before downloads, installs and renders
+// (ice-engines references/engine-choice.md section 7.7): exit 0 when every path has the need, 1 when one is short,
+// 2 on a usage error. It needs no project.
+test("ice-state.mjs space reports free disk space and exits 1 when a path is short", () => {
+  const space = (...args) => spawnSync(process.execPath, [abs("skills/ice-motion-director/scripts/ice-state.mjs"), "space", ...args], { encoding: "utf8", timeout: 60000, cwd: abs(".") });
+  const tiny = space("--need", "0.000001", abs("tests"), join(abs("."), "not", "made", "yet"));
+  assert.equal(tiny.status, 0, tiny.stdout + tiny.stderr);
+  assert.match(tiny.stdout, /^Free disk space \(need 0\.000001 GB on each\):/);
+  assert.match(tiny.stdout, /\(project folder\): \d+\.\d GB free, ok/);
+  assert.match(tiny.stdout, /\[measured at [^\]]+\]: \d+\.\d GB free, ok/, "a path not made yet is measured at its nearest existing parent");
+  assert.equal(tiny.stdout.trimEnd().split("\n").length, 4, "the header plus one line per path");
+
+  const huge = space("--need", "100000000", "--json");
+  assert.equal(huge.status, 1, huge.stdout + huge.stderr);
+  const report = JSON.parse(huge.stdout);
+  assert.equal(report.ok, false);
+  assert.equal(report.need_gb, 100000000);
+  assert.equal(report.paths.length, 1);
+  assert.equal(report.paths[0].label, "project folder");
+  assert.ok(report.paths[0].free_gb >= 0 && report.paths[0].free_gb < 100000000);
+
+  const plain = space();
+  assert.equal(plain.status, 0, "without --need it only reports");
+  assert.match(plain.stdout, /^Free disk space:\n/);
+  assert.equal(space("--need", "lots").status, 2, "a need that is not a number is a usage error");
+  assert.match(readText("skills/ice-motion-director/references/state.md"), /`ice-state space --need <GB> \[<path> \.\.\.\]`/);
+});

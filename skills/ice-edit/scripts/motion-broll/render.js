@@ -2,7 +2,7 @@
 // Run from the folder that holds node_modules/playwright: node <skill>/scripts/motion-broll/render.js dist/clip.html out/clip.(mp4|mov) [fps, e.g. 30000/1001 | 25 | 60]
 // 4 subframes per frame across a 180° shutter, blended with ffmpeg tmix. Alpha clips -> ProRes 4444 .mov
 const path=require('path');const {pathToFileURL}=require('url');
-let chromium;try{({chromium}=require(require.resolve('playwright',{paths:[process.cwd()]})));}catch(e){console.error('playwright not found from '+process.cwd()+'. This script needs the npm package playwright@1.49.1 in that folder. After the user agrees, install it there: npm install --save-exact playwright@1.49.1 then npx playwright@1.49.1 install chromium (a browser download: ask the user first). See references/broll-and-motion-broll.md, section 6.');process.exit(2);}
+let chromium;try{({chromium}=require(require.resolve('playwright',{paths:[process.cwd()]})));}catch(e){console.error('playwright not found from '+process.cwd()+'. This script needs the npm package playwright@1.49.1 in that folder. Install it there (free and pinned, no question needed: ice-engines engine-choice.md section 7.6, after the disk space check of section 7.7): npm install --save-exact playwright@1.49.1 then npx playwright@1.49.1 install chromium. See references/broll-and-motion-broll.md, section 6.');process.exit(2);}
 const {spawn}=require('child_process');
 if(process.argv.length<4){console.error('usage: node render.js clip.html out.(mp4|mov) [fps]');process.exit(2);}
 (async()=>{

@@ -13,10 +13,10 @@ Voice source rules (recording as default, consent before any cloud TTS or transc
 | Source | Rule |
 |---|---|
 | Finished human recording | The script is edited to match what was said |
-| Local TTS | Check what is installed first. Installing an engine or downloading a model is disclosed (name, size) inside the stage 01 message and needs the user's yes. Without a yes (or when the user said not to ask): no install, no download; use an engine already installed, or the "voice arriving later" row; log it and say in the delivery note what a yes would add |
+| Local TTS | Check what is installed first. Once a synthetic voice is the choice, a free local engine or model with an exact pin (`ice-engines/references/versions.json`) is installed without a question and recorded (`ice-engines/references/engine-choice.md` section 7.6); one with no pin is not installed. Without an installable engine: use an engine already installed, or the "voice arriving later" row; log it and say in the delivery note what the missing engine would add |
 | Voice arriving later | Build to estimated timing, hand over the full voice script in the message (one paragraph per scene, numbers written as said, natural pace, about 1 s between paragraphs), retime on arrival (section 9) |
 
-The voice preference and every consent above (cloud TTS, transcription, an install) are asked once, inside the stage 01 message, with a short option list; never a long menu and never at a later stage. Step mode may show the audition on the 03 review card.
+The voice preference and every consent above (cloud TTS, paid hosted transcription) are asked once, inside the stage 01 message, with a short option list; never a long menu and never at a later stage. Step mode may show the audition on the 03 review card.
 
 ## 3. Trimming a human recording
 

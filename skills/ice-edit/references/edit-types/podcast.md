@@ -42,10 +42,10 @@ Hard cuts between cameras. No invented travel or establishing shots between inte
 Locked angles; listeners stay alive through their own small movements, not added camera moves.
 
 ## Sound policy
-Keep each speaker's channel clean; never let two copies of the same voice overlap. Loudness target for podcast delivery differs from social (ice-audio skill).
+Keep each speaker's channel clean; never let two copies of the same voice overlap. Any music or SFX comes from the ice-audio skill's ladder (sound made by code only when the user names it). Loudness target for podcast delivery differs from social (ice-audio skill).
 
 ## Text density
-Caption handoff on speaker turns: the `ice-type` skill, `references/captions-system.md` section 5. Lower thirds name a person once, at their first appearance.
+Caption handoff on speaker turns: the `ice-type` skill, `references/captions-system.md` section 5. Lower thirds name a person once, at their first appearance. Every overlay, keyword, lower third, mark and insert sits on the word or sentence that triggers it, with its reason (`broll-and-motion-broll.md` section 1). Speaker look and marks: the speaker stays lit and unmarked; dimming, silhouettes, rings and target marks go only on the people talked about (`layers-and-isolation.md` section 5).
 
 ## QA thresholds
 Single-subject check before any matting or embedded captions (split multi-speaker clips per shot or refuse). Seam check at every join. Re-transcription sync target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3.

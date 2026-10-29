@@ -15,7 +15,7 @@
       "why": "engine-choice.md and render-html.mjs require FFmpeg 7 or newer (ffprobe ships with it)"
     },
     "chrome": {
-      "pinned_by": "the engine: npx hyperframes browser ensure (HyperFrames, a download the user approves); HTML capture uses the installed Chrome, Chromium or Edge (render-html.mjs logs its version) or, when none exists, npx playwright-core install chromium from the project's pinned copy (a download the user approves)",
+      "pinned_by": "the engine: npx hyperframes browser ensure (HyperFrames); HTML capture uses the installed Chrome, Chromium or Edge (render-html.mjs logs its version) or, when none exists, npx playwright-core install chromium from the project's pinned copy; both are installs without a question (engine-choice.md section 7.6), recorded",
       "notes": "Remotion HtmlInCanvas preview needs Chrome 149 or newer with the canvas draw-element flag (157 or newer for nesting)"
     }
   },
@@ -123,7 +123,7 @@
     "playwright": {
       "version": "1.58.0",
       "skills": ["ice-lottie"],
-      "note": "then python -m playwright install chromium, a browser download the user approves"
+      "note": "then python -m playwright install chromium, an install without a question (engine-choice.md section 7.6), recorded"
     },
     "scenedetect": {
       "version": "0.6.7",
@@ -134,6 +134,21 @@
       "version": "0.6.15",
       "skills": ["ice-assets"],
       "note": "MIT (visioncortex); binary wheels for CPython 3.10 to 3.14 on Windows, macOS and Linux; used by vectorize.py (rung 3 of the ladder of art sources)"
+    },
+    "faster-whisper": {
+      "version": "1.2.1",
+      "skills": ["ice-edit", "ice-explainer", "ice-audio", "ice-arabic"],
+      "note": "MIT; local speech-to-text with word timestamps. In no requirements.txt: installed on demand into the project virtual environment without a question (engine-choice.md section 7.6); model files: models.whisper, cached under HF_HOME (section 7.7)"
+    },
+    "demucs": {
+      "version": "4.1.0",
+      "skills": ["ice-edit", "ice-audio", "ice-remake"],
+      "note": "MIT; voice and music separation. Pulls PyTorch, a download of several hundred MB or more: check disk space first (engine-choice.md section 7.7). In no requirements.txt: installed on demand without a question (section 7.6); model: models.demucs"
+    },
+    "yt-dlp": {
+      "version": "2026.10.26",
+      "skills": ["ice-assets", "ice-remake", "ice-edit"],
+      "note": "Unlicense; fetch tool of the official-channel route (ice-assets sourcing-and-licenses.md section 1a). In no requirements.txt: installed on demand without a question (engine-choice.md section 7.6)"
     }
   },
   "models": {
@@ -143,8 +158,13 @@
       "gpu_default": "turbo",
       "noisy_or_dialect_minimum": "medium",
       "arabic_preferred": "large-v3 or large-v3-turbo, or a dialect fine-tune when one exists",
-      "download": "local model files are downloaded only after the user agrees",
+      "download": "model files are fetched by the pinned faster-whisper on first use, without a question, into HF_HOME on a drive with room (engine-choice.md sections 7.6 and 7.7), recorded with size and folder",
       "sources": ["skills/ice-type/references/caption-timing-and-truth.md", "skills/ice-arabic/references/asr-timing.md"]
+    },
+    "demucs": {
+      "default": "htdemucs",
+      "use": "split a voice from music and noise (--two-stems vocals)",
+      "download": "weights fetched by the pinned demucs on first use, without a question, into TORCH_HOME on a drive with room (engine-choice.md sections 7.6 and 7.7), recorded with size and folder"
     }
   },
   "platform_specs": {

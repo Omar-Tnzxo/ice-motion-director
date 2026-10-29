@@ -69,7 +69,7 @@ Matrix for the default order (`01 02 03 [04 05] 06 [07 08a] 08b 09 10`). Another
 
 When the first stage that is not ready is waiting for review, the refusal is the review message ("The <stage> is waiting for review ..."), not the "Before the ..." sentence. Its own command shows its card again.
 
-Extra check: 07 also needs the engine prerequisites (`references/prerequisites.md`). When a tool is missing, tell the user the one install step for their operating system and wait for their consent.
+Extra check: 07 also needs the engine prerequisites (`references/prerequisites.md`). A missing free tool, model or package is installed without a question, told in one plain line and recorded (`ice-engines/references/engine-choice.md` section 7.6); a system tool that needs an administrator password is one plain step for the user, given once, with its fallback taken meanwhile (section 7.3).
 
 ## 4. Review card
 

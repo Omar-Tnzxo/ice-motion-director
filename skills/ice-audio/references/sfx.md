@@ -1,6 +1,6 @@
 # Sound effects: selection, placement, audibility, library
 
-Read when building the SFX pass from the cue sheet, when choosing between recorded and code-made sounds, and before delivery to prove every SFX is audible. Sources: Barty-Bart sound-effects (MIT), anidoodle sound design (MIT), motionmaxxing sound-sync (Apache-2.0), echris6 motion-video-kit (MIT), herk-edit-kit (MIT), browser-use/video-use (MIT), lemo-opuscar (MIT), mg-styles-15 (MIT), product-launch-motion (MIT), claude-motion-design (MIT), haidrrrry claude-remotion-skill (MIT), explainroo (MIT), majed video-ad-editor (MIT), hyperframes media-use (Apache-2.0), video-production-studio (founder), with ideas restated from commercial-motion-design, Mamdouh, hypit and noncommercial sources.
+Read when building the SFX pass from the cue sheet, when choosing a sound for a picture world, and before delivery to prove every SFX is audible. Sources: Barty-Bart sound-effects (MIT), anidoodle sound design (MIT), motionmaxxing sound-sync (Apache-2.0), echris6 motion-video-kit (MIT), herk-edit-kit (MIT), browser-use/video-use (MIT), lemo-opuscar (MIT), mg-styles-15 (MIT), product-launch-motion (MIT), claude-motion-design (MIT), haidrrrry claude-remotion-skill (MIT), explainroo (MIT), majed video-ad-editor (MIT), hyperframes media-use (Apache-2.0), video-production-studio (founder), with ideas restated from commercial-motion-design, Mamdouh, hypit and noncommercial sources.
 
 ## 1. Principles
 
@@ -12,15 +12,17 @@ Read when building the SFX pass from the cue sheet, when choosing between record
 6. When a graphic or component already produces its own sound, do not duplicate it with another track.
 7. Banned: a stock swoosh on every cut, trailer booms and risers everywhere, laser zaps, pitch-drop plops and sci-fi chirps in non-sci-fi films, sharp swooshes, an ending chime by reflex.
 
-## 2. Recorded or code-made
+## 2. Recorded or designed library sounds, for every picture world (owner decision, 2026-10-29)
 
-| Scope | Use |
+Effects come from the SFX ladder (`ice-audio/SKILL.md` section 5) in every film type. Sound made by code is opt-in only (`ice-audio/SKILL.md` core rule 7): code-made effects were rejected as noise, and one synthetic tone per event was rejected as cheap.
+
+| Picture world | Use |
 |---|---|
-| Physical contact in real or realistic worlds (product films with mechanics, paper and desk worlds, footage edits, brand films for clients) | Recorded sounds (CC0 or licensed). Synthesized "thocks" were rejected as a pitched tom; layered real recordings about 100 ms long (a key press plus a soft body punch) worked. One synthetic tone per event was rejected as cheap. |
-| Synthetic picture worlds (UI blips, pixel and 8-bit, HUD, glitch, liquid, cartoon, abstract graphics) and zero-asset films | Code-made SFX (mgaudio `sfx.*`, see music-by-code.md section 7). Build each effect from layers: a 1 to 4 ms filtered noise transient, a body, a tail. "A single noise burst is not an effect. It is a click." Real objects have partials and a noise transient; raw sines read as chiptune. |
-| No assets and no generator available | Never ship silent unless asked: synthesize a minimal kit (noise-burst whoosh, pitch-drop pop, sine-thump kick or bass, detuned-sine pad) and say it is a placeholder. |
+| Physical contact in real or realistic worlds (product films with mechanics, paper and desk worlds, footage edits, brand films for clients) | Recorded sounds. Synthesized "thocks" were rejected as a pitched tom; layered real recordings about 100 ms long (a key press plus a soft body punch) worked. |
+| Synthetic picture worlds (UI blips, pixel and 8-bit, HUD, glitch, liquid, cartoon, abstract graphics) and films with no other assets | Designed library sounds: the ladder's libraries carry UI, HUD, glitch, 8-bit and cartoon packs made by sound designers. Search by the interface action or the material (section 7 item 3). |
+| Nothing on the ladder fits, or no sound can be had | Skip the cue and say so in the delivery note (section 7 item 3). |
 
-Code material palette: filtered noise sweeps for air, inharmonic partials for glass, a pitched knock plus snap for wood, a saturated pitched-down sine for sub hits, a rising resonance for bubble pops. Add harmonics above any sub so landings are heard on phone speakers.
+Phone rule for any source: a landing needs harmonics above any sub so it is heard on phone speakers (section 6 rejects and levels the rest). With opt-in sound made by code, music-by-code.md section 7 holds the generators and the layering rules (a noise transient, a body, a tail; "a single noise burst is not an effect").
 
 ## 3. Event to sound map (defaults, then vary)
 
@@ -83,10 +85,10 @@ Sub-bass hits: one long quiet low hit under the thesis and one under the CTA (ab
 
 ## 7. SFX library policy
 
-1. The plugin ships no audio files. It ships code-made SFX (mgaudio) and this policy. CC0 packs (Freesound CC0 sounds, Kenney packs, the CC0 VCSL samples) are offered only in the optional, disclosed Release asset pack.
-2. Search order for recorded sounds: the user's own files, the asset pack if installed, Freesound with the CC0 filter, Kenney, then category-licensed libraries whose terms cover the use case. License classes, each library's recorded terms and the license check per file: the `ice-assets` skill, `references/sourcing-and-licenses.md` sections 2 and 3.
-3. Name effects concretely when searching (a material and an action, never "dramatic sound"); prefer clips of 15 s or less. Shortlist 3 to 5 candidates with link, creator and license for each hero sound; step mode puts them on the review card, auto mode picks by measurement (sync point, spectrum fit, audibility) and lists the others in the delivery note. No match: skip the cue and say so rather than failing or inventing.
-4. Bundled previews may be compressed: for hero sounds fetch the original into the user's project. Freesound needs a free account that only the user can create: ask for it inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"); without it, use a code-made SFX or a preview that passes the audibility check, and note it in the delivery note.
+1. The plugin ships no audio files. The optional, disclosed Release asset pack (planned) carries a recorded CC0 kit and instrument samples for opt-in music by code; it is one rung of the SFX ladder when the user installed it.
+2. Search order: the SFX ladder (`ice-audio/SKILL.md` section 5). Routes, endpoints, keys, license classes, each library's recorded terms and the license check per file: the `ice-assets` skill, `references/sourcing-and-licenses.md`.
+3. Name effects concretely when searching (a material and an action, never "dramatic sound"); prefer clips of 15 s or less. Hero sounds (the signature impact and riser): fetch 3 to 5 candidates, rank them with `scripts/match_music.py sfx --kind impact` or `--kind whoosh` (the measures of sections 5 and 6: lead-in, rise time, tail, energy under 150 Hz and over 6 kHz, peak), and lay the best 2 to 3 on the same cut; who hears them follows the options flow (`ice-audio/SKILL.md` section 5), and without a listener the best by measurement is placed and the others are listed in the delivery note. Every other effect is picked by measurement alone (sync point, spectrum fit, audibility). No match on any rung: skip the cue and say so rather than failing or inventing.
+4. Library previews may be compressed: for hero sounds fetch the original into the user's project when the route allows it. No Freesound key is never a reason for a sound made by code: Freesound through Openverse needs no key (it serves Freesound's high-quality previews, which still pass through section 6). A key or an account that only the user can create is asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"); without it, use the no-key rungs and note in the delivery note what the key would add.
 5. Library hygiene for any pack: leading silence trimmed, max 4 s (risers 6 s, ambience 20 s with 1 s fades), one-shots peak-normalized to -3 dBFS (raw generations differ by 20 dB), ambience at -35 LUFS, 48 kHz, mono when channels are identical, a manifest entry per file (file, category, duration, source URL, license, attribution) and a license row.
 6. Every recorded sound file gets one row in `ice/assets/CREDITS.md`: the `ice-assets` skill, `references/project-folders.md` section 4. An unknown license is a status (`unknown` or `needs purchase`), listed in the delivery note, never a block (`ice-assets` skill, `references/sourcing-and-licenses.md` section 0).
 7. AI SFX generators are optional and user-initiated: say the service, cost and that the sound is generated; describe the material and action specifically; keep under the service's length limit.

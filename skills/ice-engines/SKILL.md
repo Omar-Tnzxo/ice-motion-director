@@ -14,7 +14,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.2
+  version: 0.2.3
 ---
 
 # Ice Engines
@@ -42,8 +42,9 @@ This skill turns a planned film into frames and files. It decides which engine r
 ## 2. Set up (user prerequisites)
 
 - This skill owns the prerequisites of every route: `references/engine-choice.md` section 7 holds what each route needs, the check order (run it once at intake and record the results), the install command per OS, and the fallback ladder when the chosen engine is missing. Follow the ladder rung by rung; never improvise an install or a renderer.
-- Ask the user to install or approve each prerequisite: exact versions from `references/versions.json`, installed in the film project, never `@latest`, never an unpinned `npx`.
-- Never download skills or instructions at runtime. Never run telemetry commands. Any network step (browser download, registry `add`, model download, cloud render) is named with its size or cost and run only after the user agrees.
+- Free tools, models and packages (speech-to-text, voice separation, pinned Python and npm packages, the pinned Chrome build) are installed by Ice without a question, at the exact versions of `references/versions.json`, into the film project or a cache on a drive with room; never `@latest`, never an unpinned `npx`. Each install is told in one plain line and recorded in `ice/DIRECTION.md` and the delivery note: `references/engine-choice.md` section 7.6, "Installs without a question". A question only for a paid service, an account or a sign-in, or spending; a system tool that needs an administrator password is one plain step for the user (section 7.3).
+- Check free disk space before every download, install and render, and work on a drive with room: section 7.7, "Disk space". Heavy intermediates that can be rebuilt are deleted once the stage that consumes them is approved: `references/render-export.md` section 9.
+- Never download skills or instructions at runtime. Never run telemetry commands. A registry `add` (third-party code, not pinned) follows `references/hyperframes.md` section 9; a cloud render or any paid step is named with its cost and asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops").
 - Also probe that the fonts the film needs are present.
 - API keys come only from environment variables or a local `.env` the user fills; never ask for a key in chat, never print one, never put one in a shell command or a shipped file.
 
@@ -97,7 +98,7 @@ Full quality gates, critics and the delivery report belong to the ice-qa skill.
 
 | Need | Open | When |
 |---|---|---|
-| Engine table, decision procedure, license gate, runtime pick, reuse ladder, prerequisites check order, install commands per OS, fallback ladder when an engine is missing | `references/engine-choice.md` | Every new film, before code; at intake for the prerequisites |
+| Engine table, decision procedure, license gate, runtime pick, reuse ladder, prerequisites check order, system tool steps per OS, fallback ladder when an engine is missing, installs without a question, disk space | `references/engine-choice.md` | Every new film, before code; at intake for the prerequisites; before any download, install or render |
 | Determinism rules for all engines | `references/determinism.md` | Before writing any composition code |
 | HyperFrames setup, structure, composition contract, GSAP pitfalls, sub-compositions, media, adapters, registry | `references/hyperframes.md` | HyperFrames route |
 | HyperFrames dev loop, `check`, snapshots, render flags, batch, outputs | `references/hyperframes-cli.md` | HyperFrames preview, QA and render |
@@ -110,7 +111,7 @@ Full quality gates, critics and the delivery report belong to the ice-qa skill.
 | Canvas 2D and p5 | `references/canvas-and-p5.md` | Procedural or painted art |
 | FFmpeg-only jobs | `references/ffmpeg-only.md` | Cuts, reframes, speed, conversions |
 | Maps and Cesium | `references/maps-geo.md` | Any map shot |
-| Codecs, quality, alpha, GIF, posters, HDR, delivery hygiene | `references/render-export.md` | Every render |
+| Codecs, quality, alpha, GIF, posters, HDR, delivery hygiene, heavy intermediates cleanup | `references/render-export.md` | Every render |
 | Platform sizes, durations, safe zones, covers | `references/platform-specs.md` | Every delivery |
 | Performance and long-command reliability | `references/render-performance.md` | Slow, stalled or failing renders |
 | Deterministic HTML renderer (stills, drafts, finals, alpha); zero install with a local Chrome, Chromium or Edge | `scripts/render-html.mjs` | HTML canvas route and fallback rung C; run from the film project |

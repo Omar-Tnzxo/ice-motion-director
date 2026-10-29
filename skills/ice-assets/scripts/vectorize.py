@@ -102,7 +102,7 @@ def main():
         import vtracer
     except ImportError:
         sys.exit(f"vectorize.py needs vtracer==0.6.15: install the pins in {REQUIREMENTS} into a project virtual "
-                 "environment (python -m pip install -r requirements.txt) after the user agrees")
+                 "environment (python -m pip install -r requirements.txt); free pinned packages need no question (ice-engines engine-choice.md section 7.6)")
     src = Path(a.image)
     if not src.is_file():
         sys.exit(f"input not found: {src}")

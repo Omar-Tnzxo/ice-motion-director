@@ -114,7 +114,7 @@ def main() -> int:
     except ImportError as exc:
         sys.exit(
             f"render_overlay.py needs pillow==12.3.0 and numpy==2.4.6 (missing: {exc.name}). Install them into a "
-            'project virtual environment after the user agrees: python -m pip install -r "'
+            'project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): python -m pip install -r "'
             + str(Path(__file__).resolve().parent / "requirements.txt") + '"'
         )
 

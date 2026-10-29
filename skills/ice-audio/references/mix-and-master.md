@@ -5,7 +5,7 @@ Read when balancing voice, music and SFX, when choosing the loudness target, whe
 ## Contents
 1. Mixing method
 2. Frequency slots
-3. Voice over music: levels, ducking, carve
+3. Voice over music: levels, ducking, carve, the comfortable mix
 4. Silence, room tone, edges
 5. Loudness profiles (scoped)
 6. Mastering recipes and traps
@@ -39,7 +39,7 @@ Read when balancing voice, music and SFX, when choosing the loudness target, whe
 - Mono safety: widen with M/S, never Haas (1 to 30 ms delays are dangerous in mono). In 150 Hz to 2 kHz, L/R correlation at least 0.3; at most 1.5 dB of extra mono loss (mono reading lower than the stereo reading minus 3 dB).
 - Depth = quieter, darker, wetter, softer attack. Reverb: pre-delay 10 to 30 ms; one shared room for all SFX (about 1.1 s decay, 12 ms pre-delay, send 15 to 70 % by distance); delay times synced to tempo (quarter note = 60000 / BPM ms).
 
-## 3. Voice over music: levels, ducking, carve
+## 3. Voice over music: levels, ducking, carve, the comfortable mix
 
 Canonical bed level (merged from 9 sources): while speech plays, the music sits 10 to 14 dB under the voice (start at 11 to 12 dB), so the voice is about 10 to 15 dB over the music. Scoped variants:
 
@@ -69,6 +69,10 @@ A full-band sidechain duck for export only: `sidechaincompress=threshold=0.03:ra
 - When the user says the music is too loud, lower the music gain relative to the reviewed version, save the measured change, and verify after final normalization that the bed-to-voice ratio fell. A lower master level alone is not a fix.
 - When speech carries the idea, music and effects yield around names, numbers, claims, punchlines and quiet reactions, and take space in pauses and action passages. No music peak may mask a key word.
 - Drops that do not land: a 40 to 300 Hz high-pass build over the 2 s before and a -2.5 dB dip applied after the bus compressors turned a +0.2 LU drop into +2.7 LU.
+
+**The comfortable mix (every film with sound, owner decision 2026-10-29).** Two conditions, both checked before delivery (`ice-qa/references/audio-gates.md`, row "Comfortable mix"):
+1. The music sits under the speech: the bed level and ducking of this section (10 to 14 dB under the voice while it speaks, duck 8 to 12 dB, carve preferred), measured on the exported file (section 7).
+2. No repeated pulse: no music bed or SFX layer whose energy repeats as a steady throb the ear tires of. No script in this repo measures listening fatigue, so it is a named item of the human listening check (section 8). What to listen for: one low thump, kick, hit or drone that repeats unchanged for more than about 8 bars or 15 s with nothing in the arrangement moving; a bed that swells and drops on every beat (pumping from a fast duck release or a sidechain on the music bus); the same effect firing at a regular interval (sfx.md section 4 already caps repeats); a loop seam heard on every pass. A steady groove is not this fault when chords, melody or layers move over it (music-choice-and-licensing.md section 3 item 5 asks for one). The fix is a different track or section, a gentler release (section 3 timing), or fewer effects, never a lower master.
 
 ## 4. Silence, room tone, edges
 
@@ -126,7 +130,7 @@ ffmpeg -hide_banner -i film_premaster.mp4 -c:v copy -af "loudnorm=I=-14:TP=-1.5:
 - Traps: AAC encoding adds about 0.5 to 1.4 dB of true peak over the PCM it was given (measured on pilot films at 192 kbps), so a limiter set exactly at the target misses it on the exported file; `linear=true` does not back off new transients (one master peaked at +1.1 dBFS); `alimiter` adds makeup gain unless `level=disabled` (one master landed at -13.0 LUFS and 0.0 dBFS); quote the whole `-af` chain; loudnorm is unreliable on clips under 3 s (measure the whole film, not short scenes).
 - If a master stalls at -15 or -16: a light compressor (about -20 dB threshold, 3:1) before normalization, or a chain of gain, compressor, ceiling, second compressor, gain and final ceiling (one HyperFrames chain reached -13.8 LUFS and -1.3 dBTP where a single compressor plus limiter stopped near -20).
 - Quieter after an edit: find the spike with a 4x oversampled peak scan and dip that hit about 4 dB for about 60 ms instead of lowering the whole master.
-- Code scores: mgaudio exports already mastered (`m.export(lufs=..., tp=...)`); the final film mix (voice plus score plus SFX) is still measured and normalized once.
+- Opt-in code scores (`ice-audio/SKILL.md` core rule 7): mgaudio exports already mastered (`m.export(lufs=..., tp=...)`); the final film mix (voice plus score plus SFX) is still measured and normalized once.
 - Keep the user's own studio edits and levels; re-place audio on new frame times. Export music-only and voice-only stems with every delivery; keep previous versions.
 
 ## 7. Measuring the exported file
@@ -151,7 +155,7 @@ ffmpeg -hide_banner -i film.mp4 -af silencedetect=noise=-50dB:d=0.25 -f null - 2
 ## 8. Human listening check (before delivery)
 
 The agent cannot hear. It never says a mix "sounds good".
-1. Render a review file and give the user, in the delivery note (auto mode) or on the review card (step mode), never as an extra stop, the 5 riskiest timestamps to check with headphones (largest beat error, long sounds such as typing and risers, the reveal, the first sound after a silence, the loudest moment), plus one 8 s excerpt with the most important mood change.
+1. Render a review file and give the user, in the delivery note (auto mode) or on the review card (step mode), never as an extra stop, the 5 riskiest timestamps to check with headphones (largest beat error, long sounds such as typing and risers, the reveal, the first sound after a silence, the loudest moment), plus one 8 s excerpt with the most important mood change, and the repeated-pulse item of the comfortable mix (section 3): the longest stretch where one sound repeats on a steady beat.
 2. Ask them to listen once without watching, on ordinary headphones and on a phone or laptop speaker.
 3. Score feedback by timestamp, change one thing per round, isolate music complaints with a music-only render.
 4. If no human listened, the delivery report says "not listened by a human" next to the audio numbers.
@@ -168,6 +172,6 @@ Audio report
 - Loudness profile: <name>; measured on <file>: I <LUFS>, TP <dBTP>, LRA <LU>, mono I <LUFS>
 - Silences: declared <list>, unintended <none | list>
 - Speech intelligibility over music: <score or not checked>
-- Human listen: <who, device, timestamps checked | not listened by a human>
+- Human listen: <who, device, timestamps checked, repeated pulse heard or not | not listened by a human>
 - Not checked: <list>
 ```

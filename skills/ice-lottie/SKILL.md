@@ -4,7 +4,7 @@ description: "Internal part of Ice Motion Director, not a command: start with /i
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.2
+  version: 0.2.3
 ---
 
 # Ice Lottie
@@ -132,11 +132,13 @@ Index only: each stage opens the files its `## Spine stages` row marks.
 | `scripts/capture_motion_frames.py` | deterministic frames, strip and final-frame diff (Playwright) |
 | `scripts/probe_motion_continuity.py` | easing probe and ink-delta sweep (Playwright) |
 
-**Consent items.** Installing Python packages, Playwright browsers or a Lottie
-player downloads code. Name each one the run will need, with its one install
-step, inside the stage 01 message when it is known then; never install without
-the user's yes. Without a yes (no answer, "don't ask", or not known until a
-later stage): take the path that needs none (Node checks, a browser already
+**Consent items.** Pinned Python packages and the pinned Playwright browser
+install without a question and are recorded (the `ice-engines` skill,
+`references/engine-choice.md` section 7.6). Code that is not a pinned package
+(the external Lottie player project, an upstream script) is a consent item:
+name it with its one install step inside the stage 01 message when it is known
+then; never fetch it without the user's yes. Without a yes (no answer, "don't
+ask", or not known until a later stage): take the path that needs none (Node checks, a browser already
 installed), mark each check that could not run as not measured in
 `ice/review/`, log the choice in `ice/DIRECTION.md`, and say in the delivery
 note what a yes would add. Minimum Node and Python versions: `runtimes` in the

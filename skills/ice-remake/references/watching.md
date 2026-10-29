@@ -19,10 +19,11 @@ Read this after the intake of `rights-and-modes.md` section 1. First check: is t
 | 1. Whole piece | Hook, argument or story, attention shifts, payoff, intended viewer response, recurring systems | `frames.py <ref> <ice>/reference/<ref-id>/frames/overview --detail balanced` |
 | 2. Measurement | Shots, camera, look, tempo, peaks | `analyze.py` (see `measuring.md`) |
 | 3. Opening | First 3 s are dense with decisions | `frames.py ... --start 0 --end 3` (focus budget gives about 10-18 frames) |
-| 4. Seams | Frames just before and after every transition | `frames.py ... --timestamps <cut-1 minus 0.1>,<cut-1 plus 0.1>,...` or `clip_strip.py --range` at 12 fps. On a picture stored sideways, give `clip_strip.py` the file named in `report.json` "analysed" (the upright copy), since it has no `--rotate` |
+| 4. Seams | Frames just before and after every transition, and the finishing on each seam (blur, flash, texture: `measuring.md` section 9) | `frames.py ... --timestamps <cut-1 minus 0.1>,<cut-1 plus 0.1>,...` or `clip_strip.py --range` at 12 fps. On a picture stored sideways, give `clip_strip.py` the file named in `report.json` "analysed" (the upright copy), since it has no `--rotate` |
 | 5. Climax candidates | Build, held breath, hit, hold | `clip_strip.py --range <t-2>:<t+2>` at 12 fps (see `climax-duel.md`) |
 | 6. Text and UI | Read type, numbers, interface | `frames.py ... --resolution 1024 --no-dedup` over the passage |
 | 7. Puzzles | Any choice you cannot explain | Widen the window: surrounding words, earlier appearances, later consequences; then narrow and densify |
+| 8. Element reasons (every reference) | Why each element appears: what in the words switches it on, what it means, who or what it is on, when it comes and goes, why its colour and shape | The word-level transcript (section 5) beside the frames of passes 1, 3, 4 and 6; `frames.py ... --timestamps` at each trigger word; the sound map's effect times for sounds that mark an element. Writes `REASONS.md` (`notes-files.md` section 6) |
 
 Exact commands for passes 1, 3 and cue times:
 
@@ -100,4 +101,4 @@ Two-pass "look here": read the transcript, list moments where the words point at
 
 ## 8. Where it goes
 
-Write while it is fresh: the whole-piece model into `ANALYSIS.md`, time-located behavior into `TIMELINE.md`, the next open question into `PROGRESS.md`. Templates: `notes-files.md`. Keep only evidence worth reopening under `evidence/` with descriptive names.
+Write while it is fresh: the whole-piece model into `ANALYSIS.md`, time-located behavior into `TIMELINE.md`, the reason for every element into `REASONS.md` (required for every reference, `notes-files.md` section 6), the finishing measures into the "Finishing layer" table of `ANALYSIS.md` (`measuring.md` section 9), the next open question into `PROGRESS.md`. Templates: `notes-files.md`. Keep only evidence worth reopening under `evidence/` with descriptive names.

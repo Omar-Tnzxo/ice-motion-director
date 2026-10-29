@@ -31,7 +31,7 @@
 // Requirements: Node.js 22+ and FFmpeg 7+ on PATH, plus a browser:
 //   Zero install: an installed Chrome, Chromium or Edge. It is found in the usual install folders, or set ICE_CHROME
 //   to its executable. Without playwright-core the built-in Chrome DevTools driver captures the frames.
-//   Optional: `npm install --save-exact playwright-core@1.58.2` in the film project (the user agrees first) makes
+//   Optional: `npm install --save-exact playwright-core@1.58.2` in the film project (an install without a question, engine-choice.md 7.6) makes
 //   Playwright the driver; ICE_DRIVER=cdp forces the built-in driver. The first log lines name the served folder, driver, browser and compositing mode.
 //
 // Page contract (see references/html-canvas-capture.md):

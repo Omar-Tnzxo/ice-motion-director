@@ -46,7 +46,7 @@ Each row: pattern, how to detect it on the sheet or in the source, the professio
 | N8 | Pinned element through 3+ shots | The same small object at the same x,y in 3+ consecutive frames | A carrier that moves, scales or changes role at every seam |
 | N9 | Letter-typed headline with a caret | A caret in frames 0-2 on a headline; typing on a non-input element | Words arrive whole on the speech rhythm; typing only in the product's own input (ice-type skill) |
 | N10 | Technique showreel: a new effect every beat, no motif | Adjacent frames share nothing; more than 4 unrelated canvas or SVG generators | One idea and only the effects it needs |
-| N11 | Premium pastiche: near-black ground, ember or gold glow, vignette, lens flare | Radial brightness falloff to corners; warm halo behind the logo | A halo only at an event; the brand's real surface; light with a source |
+| N11 | Premium pastiche: near-black ground, ember or gold glow, vignette, lens flare | Radial brightness falloff to corners; warm halo behind the logo | A halo only at an event; the brand's real surface; light with a source; a vignette or glow passes at the place and amount a measurement or logged reason gives (section 5, "Finishing effects") |
 | N12 | Serif-italic accent word inside a sans line | One italic serif word in a caption | One family; scale carries emphasis; a serif only if it is the brand's heading face |
 | N13 | Tracked-caps tagline | Wide-spaced small caps | No tagline |
 | N14 | End card = logo + tagline + CTA pill + URL | The last frame has more than 2 text groups | The name on the voice or one hard slam, short hold, mid-motion |
@@ -55,7 +55,7 @@ Each row: pattern, how to detect it on the sheet or in the source, the professio
 | N17 | Invented proof or placeholder UI when real assets exist | Any person name, number or UI label not in the truth sheet or brief | Captured copy and screens; illustrative items declared in the delivery report |
 | N18 | Brand = hex + font only: captured photos, signature graphic and real UI unused | Captured media files not referenced by the composition (a test film used 0 of 9) | Build the ground and the proof from the capture |
 | N19 | Name-literal idea | Is the idea the dictionary meaning of the name? | One true feature or user moment from the brand inventory |
-| N20 | Ghost decoratives: giant words at 3-9% opacity, hairline rules, grid patterns, grain as "depth" | Faint large text or lines behind content; opacity 0.03-0.09 on large text; 1 px rules; repeating gradients | None; texture only as a surface from the capture |
+| N20 | Ghost decoratives: giant words at 3-9% opacity, hairline rules, grid patterns, grain as "depth" | Faint large text or lines behind content; opacity 0.03-0.09 on large text; 1 px rules; repeating gradients | None; texture only as a surface from the capture, or grain, specks or halftone at the place and amount a measurement or logged reason gives (section 5, "Finishing effects") |
 | N21 | Label chips naming the scene ("Messages", "Mail", "Editor") | Small text at x < 0.2, y < 0.14 on each UI shot | The UI shows which app it is; no caption |
 | N22 | Uniform stagger: the same small slide-in (about 24 px, 4-6 px blur, 40-80 ms) on every text | Every entry with the same distance and equal gaps | Uneven gaps, a curve per role (ice-motion skill) |
 | N23 | Hold-and-swap: each text held 1.2 s+ then replaced; frozen holds | `still.txt` stretches over 0.6 s | One living thing on every held frame; true holds only after a payoff (scoped, see `motion-density.md`) |
@@ -88,7 +88,7 @@ Self-check: would this pass the competitor swap (`identity-tests.md`), or is it 
 |---|---|---|
 | Purple-to-blue or blue-purple gradient grounds, deep purple starfields, neon cyan-purple | Fail (machine gate in `anti-sameness-gates.md`) unless the brief names those colours | All film types (huashu, Barty-Bart, charlie947, video-ad-editor, hyperframes docs, founder skills, claude-code-video-toolkit) |
 | Bouncy, elastic or back easing; continuous overshoot | Fail outside the one allowed spring per film | All types except playful character animation and logo stings whose motion personality calls for it (ice-motion skill) |
-| Glow, bloom and neon on type and UI chrome; gradients on text | Fail unless the brand's own material | All types; brand bans hold in every medium: "a spotlight that reads as a glow is a glow" (founder skills) |
+| Glow, bloom and neon on type and UI chrome; gradients on text | Fail unless the brand's own material, or a finishing glow that passes section 5, "Finishing effects" | All types; brand bans hold in every medium: "a spotlight that reads as a glow is a glow" (founder skills) |
 | Particle bursts, confetti, generic particle systems, sparkles, orbs, lens flares | Fail unless a named event needs them | All types; audio-reactive films never add equalizer bars, spectrum analyzers, waveform displays, note clip-art, rainbow cycling, white strobes on beats (hyperframes) |
 | Typewriter headlines | Fail; typing only inside the product's own input | All types; always banned for Arabic (founder skills, ice-arabic skill) |
 | Emoji as icons, stock icons, clip-art (shield, trophy, rocket, lightbulb), mismatched icon strokes | Fail | All types |
@@ -119,6 +119,7 @@ Self-check: would this pass the competitor swap (`identity-tests.md`), or is it 
 | A number counting up | The number is the real offer and its size is the point, tied to a cause |
 | Template moves | Deliberate quotation (satire: bland visuals against loaded copy) |
 | Low frame rate, no blur | Used consistently as a chosen texture |
+| Finishing effects (motion blur, blur for depth, blur on entrances and exits, grain, specks, halftone, flicker, vignette, glow, grade) | A reference measurement (the `ice-remake` skill, `references/measuring.md`, "Finishing layer") or a D-entry in `ice/DIRECTION.md` names the shots, the amount and the reason, and the film applies it there at that amount (how: the `ice-motion` skill, `references/motion-blur-and-clock.md`, "Finishing layer"). Scope: every film type (owner decision, 2026-10-29). It still fails as decoration with no source, on shots the source does not name, or above the measured amount; the rows above (N11, N20, the glow row of section 4) apply in full to an effect with no source |
 | Monospace headline | It does a job (reads like a bill or a log) and gives way to the brand font when the product arrives |
 | Fade to black, a calm ending | The brand is calm and the film breathes throughout (22 of 51 gold films end calmly) |
 | Giant cropped word | The idea wants that word huge, it arrives once with a cause, and scale is not spent again |

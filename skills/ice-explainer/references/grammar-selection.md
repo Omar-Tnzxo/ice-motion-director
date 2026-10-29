@@ -27,7 +27,7 @@ Spine stage 04 (and 02 for the film-level grammar family). A grammar is the visu
 | First-person anecdotes, fails, jokes | Storytime (reaction poses, held silences) | Keynote | Dense tutorials, data, no "I" in the script |
 | One continuous journey (route, pipeline, lifecycle) | Continuous action, one hero that never leaves frame, `references/concept-transform.md` | Cut-up slides | Many unrelated facts |
 | A long argument (over 3 min) | Persistent world, `references/long-form-explainers.md` | A new picture every few seconds | Short social films |
-| Presenter on camera plus graphics | Talking-head explainer with cards (`ice-edit` for footage, cards from `references/card-library.md`) | Full-frame host the whole time | No host footage |
+| Presenter on camera plus graphics | Talking-head explainer with cards (`ice-edit` for footage, cards from `references/card-library.md`); the presenter stays lit and clear, marks and dimming fall only on the people talked about (`ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit") | Full-frame host the whole time | No host footage |
 
 ## 3. Material fallbacks
 

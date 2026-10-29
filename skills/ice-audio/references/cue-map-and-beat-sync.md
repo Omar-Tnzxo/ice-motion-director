@@ -56,7 +56,7 @@ print({'bpm': float(np.atleast_1d(tempo)[0]), 'first_beat': float(beats[0] + shi
 
 - Beat length = 60 / BPM seconds; a bar = beats_per_bar x 60 / BPM; at 30 fps a beat is 1800 / BPM frames.
 - Prefer a tempo whose beat is whole frames: at 30 fps 90 BPM = 20 f, 100 = 18 f, 120 = 15 f, 150 = 12 f, 180 = 10 f; at 24 fps 120 BPM = 12 f, 180 = 8 f. At 120 BPM, cuts fall on x.0 and x.5 s; a sixteenth is 125 ms.
-- When the picture comes first: make each segment an integer number of beats or eighths and tweak the tempo per segment (one film used 86 to 104 BPM) so every boundary hits a downbeat; listeners do not notice tempo differences of about +/-8 % but do notice instrument changes off the downbeat. With code-generated music, `sync.fit_bpm` picks the tempo whose 8th-note grid best fits the hits.
+- When the picture comes first: make each segment an integer number of beats or eighths and tweak the tempo per segment (one film used 86 to 104 BPM) so every boundary hits a downbeat; listeners do not notice tempo differences of about +/-8 % but do notice instrument changes off the downbeat. With opt-in music made by code, `sync.fit_bpm` picks the tempo whose 8th-note grid best fits the hits.
 - Montage shot lengths are integer frame counts so nothing drifts.
 
 ## 5. Sync tolerances and lead times
@@ -93,7 +93,7 @@ Detailed motion timing (eases, holds, carry) belongs to the ice-motion skill; th
 4. For a drop on the product's big moment with a fixed song start: start = drop_in_song minus drop_in_film, starting about 3 ms before a bar's kick onset. If both the drop and the ending must land, prefer moving picture; otherwise use one bar-line splice (music-choice-and-licensing.md section 4).
 5. If you cannot retime the animation, move where the music starts: search offsets and pick the one with the smallest cut-to-beat error. Report the error per cut in ms.
 6. The final chord or tail rings to the last frame; the last voice line ends before the end card's final second.
-7. With a code score, pass `outro` (the end-card time) to the recipe so the button lands there.
+7. With a library track, back-time it so its own ending lands on the end card (music-choice-and-licensing.md section 4; `scripts/preview_options.py --align end` lays the options that way). Only with an opt-in code score (`ice-audio/SKILL.md` core rule 7), pass `outro` (the end-card time) to the recipe so the button lands there.
 
 ## 8. Audio-reactive picture
 

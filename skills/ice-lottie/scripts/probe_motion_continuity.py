@@ -39,7 +39,7 @@ import pathlib
 import sys
 
 REQUIREMENTS = pathlib.Path(__file__).resolve().parent / "requirements.txt"
-INSTALL_HINT = ("Install into a project virtual environment after the user agrees: "
+INSTALL_HINT = ("Install into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
                 f'python -m pip install -r "{REQUIREMENTS}"')
 
 
@@ -57,7 +57,7 @@ def launch_chromium(pw):
         except PlaywrightError:
             continue
     sys.exit("No browser found for Playwright. Set CHROME_PATH to an installed Chrome or Edge binary, or, "
-             "after the user agrees to a browser download, run: python -m playwright install chromium")
+             "the browser download needs no question (ice-engines engine-choice.md section 7.6); run: python -m playwright install chromium")
 
 
 def parse_args() -> argparse.Namespace:

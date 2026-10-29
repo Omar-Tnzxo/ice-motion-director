@@ -19,7 +19,7 @@ Above the table, the lock lines the `ice-qa` linter reads, named exactly `Style:
 
 ## 2. The beat table
 
-One row per beat. Write the linter's columns first, in this order: `Time | Object | Action | Camera | On-screen text | Method | Tags` (the `ice-qa` skill, `references/storyboard-lint.md` section 1). `Time` is start and end in seconds (or beats on a music grid); `Camera` names the shot size and its reason, or "locked". Then add these film columns (the linter ignores columns it does not know):
+One row per beat. Write the linter's columns first, in this order: `Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method | Tags` (the `ice-qa` skill, `references/storyboard-lint.md` section 1). `Time` is start and end in seconds (or beats on a music grid); `Camera` names the shot size and its reason, or "locked". `Trigger` quotes the script sentence or word (with its time) that justifies every element of the row, `Reason` says what each element means, who it is on and why its colour and shape; an element with neither is cut before 05 (the `ice-qa` skill, `references/storyboard-lint.md` section 3b, which also covers elements carried over from a reference). Then add these film columns (the linter ignores columns it does not know):
 
 | Column | Contents |
 |---|---|
@@ -102,6 +102,7 @@ Show one board per review, not a pile of images. Board rules, including never pr
 
 - Run the linter and the plan checks (buys, beat lengths, CTA share, seams, importance budget, strongest frame, picture audit, another brand's film, chronology, distinct jobs, CTA on mute): the `ice-qa` skill, `references/storyboard-lint.md` sections 2-3. Adjacent beats as silhouettes: the `ice-qa` skill, `references/powerpoint-tests.md`.
 - Film-side: lengths per role stay within the film type's rhythm ranges (`film-types/<type>.md`).
+- Every element has a trigger and a reason (linter check 17; with a reference, the carried-over reasons are read against the reference's `REASONS.md`): the `ice-qa` skill, `references/storyboard-lint.md` section 3b.
 - The storyboard critic is separate from the writer (`../roles/reviewer.md`).
 
 Sources: AbubakrChan/product-launch-motion, heygen-com/hyperframes (visual design, handoffs), Tejashmakwana/motionmaxxing, commercial-motion-design (Omar-Tnzxo), video-production-studio (Omar-Tnzxo), huashu-art-motion, echris6/motion-video-kit, nateherkai/herk-edit-kit, lemomo-ai/lemo-opuscar.

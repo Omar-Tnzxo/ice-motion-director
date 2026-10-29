@@ -11,13 +11,13 @@ Merged from heygen-com/hyperframes (Apache-2.0: remove-background, embedded-capt
 
 ## 2. Isolating the speaker
 
-Methods that need no model come first: they are part of FFmpeg (no download, no consent item, real time on CPU). Pick by how the footage was shot:
+Methods that need no model come first: they are part of FFmpeg (no download, no install, real time on CPU). Pick by how the footage was shot:
 
 | Footage | Method | Download |
 |---|---|---|
 | Green or blue screen, or an evenly lit plain wall | `chromakey` (or `hsvkey`) plus `despill` | None |
 | Locked-off camera with a few seconds of the empty room (at the start of the take, or as its own clip from the same tripod position) | `backgroundkey` (FFmpeg 6.1 or newer; check with `ffmpeg -filters`) | None |
-| Anything else (moving camera, busy room, no empty plate) | Person matting or prompted segmentation (table below), asked in the stage 01 message with its size | The model |
+| Anything else (moving camera, busy room, no empty plate) | Person matting or prompted segmentation (table below), installed without a question when it is free and pinned (`ingest-and-ledger.md` section 6) | The model |
 
 Commands, measured on synthetic 1280x720, 25 fps clips made with `lavfi` (FFmpeg 8.1): a 300x500 subject on a 0x00B140 green, and a 300x500 or 640x700 subject over a static bar pattern with grain added (`noise=alls=6:allf=t`). In every run below the background came out fully transparent (alpha 0) and the subject fully opaque (alpha 255); the transparent share matched the background's share of the frame (0.837 and 0.514). Read the screen's colour from the footage first (a pixel of the background in a frame without the speaker), then:
 
@@ -48,7 +48,7 @@ Model-based isolation, for footage the two keys cannot handle:
 | Prompted segmentation (SAM 2.1 class), local | Objects, props, hands, any non-person subject | Model by machine: 12 GB or more GPU large (898 MB), smaller GPU or Apple Silicon base-plus (323 MB), CPU tiny (156 MB). CPU is slow (about 5 s per frame): suggest separating only the needed range. Work at 960 px wide (the model resizes to 1024 itself, smaller is not faster). Convert variable frame rate first. Nothing is uploaded |
 | A real empty plate | Background replacement behind a locked-off speaker, and the `backgroundkey` route above | About 5 s of the empty room from the same tripod position, when the user supplied it or a stage 01 question asked for it. Auto mode with no plate: decide the fallback (keep the original room, or a hole-cut matte over a designed backdrop), log it in `ice/DIRECTION.md` and report it in the delivery note |
 
-Model downloads are large: use them only when neither key above fits the footage; name the model and its size in the stage 01 message when the need is known then, and download only after a yes. Without a yes: keep the original frame (no isolation), log it, and say in the delivery note what the download would add.
+Model downloads are large: use them only when neither key above fits the footage. A free model pinned in the `ice-engines` skill's `references/versions.json` is installed without a question once the free space check passes, and recorded (`ingest-and-ledger.md` section 6); a paid or account-bound model stays a question. When the space check fails or the install cannot finish: keep the original frame (no isolation), log it, and say in the delivery note what the model would add.
 
 Mask quality:
 - Try a short range first (about 20 frames), check it, then run the full range in chunks (60 frames, each seeded by the previous last mask).
@@ -82,3 +82,16 @@ Rules specific to edits with layers:
 - Card layouts: the caption sits fully above the video card.
 - One text at a time: when a graphic writes the spoken sentence, hide that caption; a caption below plus text above splits attention.
 - Before matting or embedded captions, split multi-speaker or hard-cut clips per shot (the matte follows one subject per shot).
+
+## 5. The speaker stays lit
+
+Rule (owner decision, 2026-10-29). Scope: news and current-affairs reels, explainers with a presenter, talk shows, podcasts and interviews, and every other edit where a person on screen talks about other people, places or groups. Other film types (drama, music video, fiction, a designed character film) follow their own treatment and are outside this section.
+
+- **Who the devices are for.** Dimming, silhouette, desaturation, a circle or ring around a face, crosshair or target marks, a warning halo or disc, a strike-through and any similar device that singles someone out belong to the people, places and groups being talked about: their photos, their footage, their cutouts. They are never applied to the speaker, presenter, host, interviewer or guest who is talking, in any shot of them.
+- **Exposure and colour.** The speaker keeps the source exposure and colour. A grade may match the speaker's shots to each other or fix a measured exposure problem (`ingest-and-ledger.md` section 5); it never darkens, desaturates or tints the speaker to set a mood.
+- **Marks.** The speaker stays clear of every mark: nothing from the list above sits on or around their face or body, and a mark aimed at someone else is placed so it does not touch the speaker's box.
+- **Isolation.** The isolated speaker layer (section 2) is composited lit, at source exposure, in front of any dimmed or marked layer behind it (section 1, layer 3). A cutout of the speaker is never placed inside a subject's ring, disc or silhouette treatment.
+- **Copying a reference.** A device seen in a reference follows the role, never the screen position: read in the reference's speech who that person is (the reasons table of the edit, see the B-roll plan in `broll-and-motion-broll.md` section 1) before copying it. In the edit it lands on the person our speech talks about, at the word that names them.
+- **Text over the speaker's shot.** Contrast for a text card comes from a scrim under the text only. A full-frame takeover that blurs or dims the whole shot behind its text is used only when the reference measurement or a logged reason shows it; it lasts only while the text is on screen, and the speaker returns at source exposure as the text leaves. It is a legibility device, never a look held on the speaker.
+- **What does not change.** A deliberate story choice the user asked for in their own words (a speaker hidden in silhouette to protect their identity, a speaker shot in the dark on purpose) is followed and logged in `ice/DIRECTION.md` with the user's words. A reference, a template or a brief written by another agent never counts as that request.
+- **Check.** At 04 the plan names, for every device, who it is on. At 07 the stills at each device's settled time show the speaker at source exposure: the mean luma of the speaker's box stays within about 5 percent of the same box in the source frame (outside a text takeover), and no mark touches that box.

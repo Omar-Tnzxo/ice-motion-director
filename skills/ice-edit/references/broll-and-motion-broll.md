@@ -6,8 +6,11 @@ Merged from nateherkai/herk-edit-kit (MIT, Use Permission: editing playbook, sho
 
 Plan a table before any build; it is approved at 04 (the user's review card in step mode, the approver role in auto mode):
 
-| # | In-out (edited time) | The line it covers | What appears, on which words | Treatment | Why |
-|---|---|---|---|---|---|
+| # | In-out (edited time) | The line it covers | Trigger: word or sentence, edited time | What appears, and who it is on | Treatment | Why |
+|---|---|---|---|---|---|---|
+
+Every element tied to its trigger (owner decision, 2026-10-29; every edit type): each insert, overlay, keyword, lower third, circle or other mark, cutout and motion B-roll in the plan has one row whose trigger is the transcript word or sentence that calls for it, with its edited time, and whose "Why" says what the element means there. An element with no trigger in our speech and no reason is cut, however good it looked in a reference. When the edit follows a reference, its element reasons table is built first (format: the "Element reasons" section of `ice-remake/references/notes-files.md`, notes file `REASONS.md`) and each row here names the reasons row it carries over; the element lands on our trigger, never on the reference's timing. A mark or dimming is on the person or thing our speech talks about, never on the speaker (`layers-and-isolation.md` section 5).
+
 
 Treatment per line:
 
@@ -28,7 +31,7 @@ Every picture must advance the argument (context, proof, action, the exact scree
 5. Licensed stock footage of the person, place or action, checked per item.
 6. Generated video last, only when the user allowed it, as concrete metaphors (an idea made literal), never generic "person at a computer" shots.
 
-Order of preference and license checks: the `ice-assets` skill, `references/sourcing-and-licenses.md` sections 1 and 3. Generated media policy: the `ice-assets` skill, `references/ai-media-policy.md` section 1.
+Order of preference and license checks: the `ice-assets` skill, `references/sourcing-and-licenses.md` sections 1 and 3. Real footage from outside is searched and fetched by Ice itself on the free no-account routes, with no question, at the output resolution (same file, sections 1a and 5); check free space first (`ingest-and-ledger.md` section 6). Generated media policy: the `ice-assets` skill, `references/ai-media-policy.md` section 1.
 
 Rules that hold everywhere:
 - Video beats images. An AI still image used as B-roll is a build error; stills only become first frames for AI video. A still with a camera move is a photographic layer, not moving B-roll.
@@ -51,7 +54,7 @@ Rules that hold everywhere:
 | Montage | Give a montage room to play once at native speed |
 | Stills bracketing | In HTML engines, bracket a video element with a poster frame before and a last frame after, to cover startup flicker and end black |
 | Background footage | Behind text: darken and desaturate (brightness about 0.35 to 0.50, saturation 0.5 to 0.7) with a scrim only under the text, never by lowering opacity; motion at most about 0.6% zoom per second |
-| Spotlight inside footage | Dim surroundings 30 to 50% and desaturate 40 to 60% (never black or gray), ramp 0.2 to 0.3 s, keep the target's original pixels, restore on time |
+| Spotlight inside footage | Dim surroundings 30 to 50% and desaturate 40 to 60% (never black or gray), ramp 0.2 to 0.3 s, keep the target's original pixels, restore on time. On B-roll and subjects' footage only, never on the speaker's shot (`layers-and-isolation.md` section 5) |
 
 Generated footage (optional, paid, disclosed, user-initiated): length, continuity, screens and inspection of generated clips: the `ice-assets` skill, `references/ai-media-policy.md` sections 5 and 6. Generation success is not asset QA.
 
@@ -85,7 +88,7 @@ For one-shape motion B-roll clips use the bundled engine (section 6). Await font
 
 Adapted from Barty-Bart/motion-graphics (MIT). Every frame is a pure function of time: springs are closed-form step responses, a value that changes target many times is the sum of one spring per change, there are no CSS transitions or timers, so any frame renders on its own. Headless Chromium captures 4 subframes per frame across a 180 degree shutter and ffmpeg blends them into motion blur. Works on Windows, macOS and Linux.
 
-Setup (once per project, network): the Playwright install below needs the user's yes, asked in the stage 01 message when motion B-roll is known then. Without a yes, build the slot with an engine that needs no install (the `ice-engines` skill, `references/engine-choice.md` section 7.4) or use a plain insert, log it, and say in the delivery note what the install would add. With a yes: in a `motion/` folder of the user's project, with Node, Python and ffmpeg present at the minimums in the `ice-engines` skill's `references/versions.json` (`runtimes`), create `package.json` containing `{"private":true}`, then run `npm install --save-exact playwright@1.49.1` (the exact version in `versions.json`, `npm.playwright`) and `npx playwright install chromium` (about 150 MB download). Python helpers need `numpy` for `inspect_video.py`. Transparent clips need an ffmpeg build with the `prores_ks` encoder (`ffmpeg -hide_banner -encoders` lists it). Run the Node scripts from the `motion/` folder (they find Playwright there); use `python` or `python3` as your system names it. `<skill>` below is this skill's folder.
+Setup (once per project, network): the Playwright install below is free and pinned, so it runs without a question after the free space check and is recorded (`ingest-and-ledger.md` section 6). When the space check fails or the install cannot finish, build the slot with an engine that needs no install (the `ice-engines` skill, `references/engine-choice.md` section 7, fallback ladder) or use a plain insert, log it, and say in the delivery note what the install would add. Install: in a `motion/` folder of the user's project, with Node, Python and ffmpeg present at the minimums in the `ice-engines` skill's `references/versions.json` (`runtimes`), create `package.json` containing `{"private":true}`, then run `npm install --save-exact playwright@1.49.1` (the exact version in `versions.json`, `npm.playwright`) and `npx playwright install chromium` (about 150 MB download). Python helpers need `numpy` for `inspect_video.py`. Transparent clips need an ffmpeg build with the `prores_ks` encoder (`ffmpeg -hide_banner -encoders` lists it). Run the Node scripts from the `motion/` folder (they find Playwright there); use `python` or `python3` as your system names it. `<skill>` below is this skill's folder.
 
 | Step | Command |
 |---|---|

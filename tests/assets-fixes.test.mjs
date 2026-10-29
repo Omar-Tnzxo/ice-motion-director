@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { pathToFileURL } from "node:url";
-import { abs } from "./helpers.mjs";
+import { abs, readText, repoFiles } from "./helpers.mjs";
 
 const CAPTURE = abs("skills/ice-assets/scripts/capture-brand.mjs");
 const VALIDATE = abs("skills/ice-assets/scripts/validate-assets.mjs");
@@ -144,6 +144,120 @@ describe("validate-assets: code-built rebuilds of several captures", () => {
   test("a share_sheet that is not a file fails", () => {
     const r = run(project("share-missing", [...base, rebuildRow("r1", "assets/capture/b/one.png", { score: 1, sheet: "s.png", share_sheet: "ice/review/fidelity/none.png" })], files));
     assert.match(r.problems.join("\n"), /share_sheet 'ice\/review\/fidelity\/none\.png' is not a file/);
+  });
+});
+
+// ---------------------------------------------------------------- sources: real first, standing consent (lessons 2 and 8)
+// Owner decision, 2026-10-29: sourcing-and-licenses.md is the one home of the per-need ladder, the standing consent for
+// free downloads, sources.json, the footage order, the download resolution and the site-terms line.
+
+const SOURCING = "skills/ice-assets/references/sourcing-and-licenses.md";
+const section = (text, head, next) => {
+  const at = text.indexOf(`\n## ${head}`);
+  assert.ok(at >= 0, `section ${head} not found`);
+  const end = text.indexOf(`\n## ${next}`, at + 4);
+  return text.slice(at, end < 0 ? undefined : end);
+};
+const rowOf = (s, start) => {
+  const line = s.split(/\r?\n/).find((l) => l.startsWith(`| ${start}`));
+  assert.ok(line, `ladder row '${start}' not found`);
+  return line.split("|").slice(1, -1).map((c) => c.trim());
+};
+
+describe("sources: real first, code last (sourcing-and-licenses.md)", () => {
+  const text = readText(SOURCING);
+
+  test("the ladder puts real items before code for footage, photos, overlays and sound; code is first only for its listed needs", () => {
+    const s1 = section(text, "1. ", "1a. ");
+    assert.match(s1, /Code is first only where code is the real thing:\*\* text, numbers, charts, UI, signature mechanisms, map and globe rendering, glitch and grain/);
+    assert.doesNotMatch(text, /Code first, captured or supplied asset second/, "the old single order is gone");
+    for (const need of ["News and event footage", "A person, place, action or emotion outside the news", "Photos of real people", "Real-matter overlays"]) {
+      const [, first, ...rest] = rowOf(s1, need);
+      assert.doesNotMatch(first, /code/i, `${need}: rung 1 is real, not code`);
+      assert.match(first, /user's/, `${need}: rung 1 is the user's own material`);
+      const codeAt = rest.findIndex((c) => /code/i.test(c));
+      if (codeAt >= 0) assert.ok(rest.slice(0, codeAt).some((c) => /real|official|Wikidata|archive|CC|stock/i.test(c)), `${need}: a real rung comes before code`);
+    }
+    const overlays = rowOf(s1, "Real-matter overlays").join(" | ");
+    assert.ok(overlays.indexOf("Real filmed elements") < overlays.indexOf("made in code"), "real filmed overlays before code-made ones");
+    assert.match(overlays, /Code dust, smoke or fire: never as a hero element/);
+    const sound = rowOf(s1, "Music and SFX").join(" | ");
+    assert.match(sound, /ice-audio skill, `SKILL\.md`/, "music and SFX point to the ladders in ice-audio");
+    assert.match(sound, /sound made by code only when the user asks for it in their own words/);
+    assert.match(rowOf(s1, "Text, numbers, charts, UI")[1], /^Built in code/);
+    assert.match(rowOf(s1, "Glitch and grain")[1], /^Code, generated at render time/);
+    assert.match(s1, /\*\*Ice does this search by itself\.\*\* For every scene that shows a real event, statement, place, person or object/);
+  });
+
+  test("section 0: free no-account downloads need no yes; sign-ins and spending still do", () => {
+    const s0 = section(text, "0. ", "1. ");
+    assert.match(s0, /Free downloads that need no account are no longer behind a yes \(standing consent below, owner decision, 2026-10-29\)/);
+    assert.match(s0, /sign-ins, accounts, subscriptions and spending still need a yes inside the router's stops \(`ice-motion-director\/SKILL\.md` section 5, "Stops"/);
+    assert.doesNotMatch(s0, /downloads, sign-ins and spending still need a yes/, "the old download stop is gone");
+    const skill = readText("skills/ice-assets/SKILL.md");
+    assert.match(skill, /Free downloads without a question; ask before signing in or spending/);
+    assert.doesNotMatch(skill, /Unknown license means do not ship/);
+  });
+
+  test("sources.json is documented once, with its downloads values, and keys never sit in a project", () => {
+    const s0 = section(text, "0. ", "1. ");
+    assert.match(s0, /`~\/\.ice-motion-director\/sources\.json`/);
+    const row = s0.split(/\r?\n/).find((l) => l.startsWith("| `downloads` |"));
+    assert.ok(row, "the downloads field has its row");
+    assert.match(row, /`allowed` \(default\)[\s\S]*`ask`[\s\S]*`off`: the same as `ICE_OFFLINE=1`/);
+    for (const f of ["max_download_mb", "routes", "local_libraries", "subscriptions"]) assert.ok(s0.includes(`| \`${f}\` |`), `field ${f}`);
+    assert.match(s0, /\*\*Keys\*\* live only in environment variables or in `~\/\.ice-motion-director\/\.env`/);
+    assert.match(s0, /Never in a project folder, a chat message, a log/);
+    assert.match(text, /\| Footage \| `youtube_official` \|/, "the route the youtube_official switch names exists in the catalog");
+    const homes = repoFiles().filter((f) => f.endsWith(".md") && readText(f).includes("| `downloads` |"));
+    assert.deepEqual(homes, [SOURCING], "the sources.json fields are documented in one file only");
+  });
+
+  test("section 1a: the owner's pages before platforms before agencies before stock, searched without being asked", () => {
+    const s1a = section(text, "1a. ", "1b. ");
+    const order = ["**The user's footage**", "**The owner's own download pages**", "**Official channels on video platforms, through yt-dlp**",
+      "**Agencies and paid libraries through the user's own login**", "**Stock video**", "**Graphics**"];
+    const pos = order.map((o) => s1a.indexOf(o));
+    pos.forEach((p, i) => assert.ok(p > 0, `1a names: ${order[i]}`));
+    assert.deepEqual([...pos].sort((a, b) => a - b), pos, "the routes are in order");
+    assert.match(s1a, /downloads it by itself, without being asked/);
+    assert.match(s1a, /Recorded `needs purchase` \(agency or broadcaster\) or `unknown`/);
+    assert.match(s1a, /Ice never signs in/);
+    assert.match(s1a, /a term that does not trace is removed, and no literal query is copied/);
+    assert.match(s1a, /fit to the scene and its words, then by being real and official, then by recency[\s\S]*then by resolution/);
+  });
+
+  test("section 5: download at the output resolution, check free disk space, seek only where ranges work", () => {
+    const s5 = section(text, "5. ", "6. ");
+    assert.match(s5, /a 1080 output fetches 1080p, not a 4K master/);
+    assert.match(s5, /frame width times the maximum zoom/, "the zoom rule stays as the one exception");
+    assert.ok(s5.includes("bv*[height<=<H>]"), "the yt-dlp format selector caps the height");
+    assert.ok(s5.includes("node <ice-motion-director>/scripts/ice-state.mjs space --need <GB>"));
+    assert.ok(s5.includes('"Disk space" subsection of `ice-engines/references/engine-choice.md` section 7'));
+    assert.match(s5, /Where the host serves byte ranges/);
+    assert.match(s5, /never a faked browser User-Agent/i);
+    assert.doesNotMatch(s5, /seeking over HTTP for a few seconds of a remote video can take many minutes/, "the unscoped seeking line is gone");
+  });
+
+  test("section 7: single official clips through yt-dlp are allowed, bulk crawlers still never", () => {
+    const s7 = section(text, "7. ", "8. ");
+    assert.match(s7, /Bulk crawlers and scrapers that harvest a library's pages or items in a loop/);
+    assert.match(s7, /whole channels or playlists pulled from a video platform/);
+    assert.match(s7, /a single official clip from an official channel on a video platform through yt-dlp, after the owner's own download pages/);
+    assert.doesNotMatch(s7, /internal or undocumented APIs/);
+  });
+
+  test("folders, sidecar and fetch list; Arabic is never burned with drawtext", () => {
+    const pf = readText("skills/ice-assets/references/project-folders.md");
+    for (const f of ["overlays/", "luts/", "inbox/", "FETCH-LIST.md", "sources/"]) assert.ok(pf.includes(f), `project-folders names ${f}`);
+    assert.match(pf, /## 3b\. Download sidecar/);
+    assert.ok(pf.includes('"license_status": "licensed | unknown | needs purchase"'));
+    assert.match(pf, /## 4b\. FETCH-LIST\.md and the inbox/);
+    assert.match(pf, /`assets\/inbox\/` is empty at the pre-render gate/);
+    const fonts = readText("skills/ice-assets/references/fonts.md");
+    assert.match(fonts, /Never burn Arabic with ffmpeg `drawtext`/);
+    assert.match(fonts, /The subset trap/);
+    assert.match(fonts, /Thmanyah's license forbids redistribution/);
   });
 });
 

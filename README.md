@@ -55,13 +55,14 @@ Every film is code (HTML, CSS, GSAP, Remotion, Lottie or FFmpeg) and renders the
 
 You can switch at any time: type a stage command in the middle of a one-prompt run, or `/ice` to let it finish the rest on its own.
 
-> **What a first film takes.** From you: one prompt that starts with the command, then the questions on every open decision (four options each, at most four per message, none if your prompt covers everything or you say "don't ask") and, if you are there, one preview. Behind it, your agent runs all ten stages with several helper agents, so even a short ad runs for a while and uses far more of your plan than a chat answer. If your agent hits a usage limit in the middle, type `/ice` (or send the same prompt) later: it resumes from `ice/state.json` where it stopped.
+> **What a first film takes.** From you: one prompt that starts with the command, then the questions on every open decision (four options each, at most four per message, none if your prompt covers everything or you say "don't ask") and, if you are there, one preview, where you also hear two or three real music options laid on the film and pick one. Behind it, your agent runs all ten stages with several helper agents, so even a short ad runs for a while and uses far more of your plan than a chat answer. If your agent hits a usage limit in the middle, type `/ice` (or send the same prompt) later: it resumes from `ice/state.json` where it stopped.
 
 ## Why it is different
 
 - **The same professional floor for every prompt.** A one-line prompt gets the full process. A detailed brief or a design file gets the same quality and every spec you gave is obeyed. Prompt length only changes who makes each decision.
 - **No two films look alike.** Each film starts with research dated today and built only from your brief, a pitch round with unexpected directions, and a check against your previous films and every bundled template. A film that drifts to the stock AI look (blue and purple everywhere, with no reason in the brief) fails its own gate.
 - **Asks only what changes the film.** At most four short multiple-choice questions, the recommended answer first. Everything else is decided and logged with its reason.
+- **Finds real material on its own.** For a real event, person or place it looks for the most recent real, official footage and photos and downloads them, and its music and sound effects are real recordings from libraries, matched to your reference or your kind of film. You never have to ask for any of this in your prompt: your prompt is the idea and your files.
 - **The builder never grades itself.** Separate critic roles review storyboards, frames, motion, sound and the exported file. Every claim in the delivery report comes with measured numbers.
 - **Arabic and right-to-left are first class.** Letterforms and dots in motion, kashida, bidi, numerals, Arabic captions and dialect as a setting.
 
@@ -197,7 +198,7 @@ What changed in each version: [CHANGELOG](CHANGELOG.md).
 
 ### Prerequisites
 
-Your agent checks these for the route you pick and tells you what is missing. Nothing is installed without your consent. Exact minimum versions live in [`versions.json`](skills/ice-engines/references/versions.json).
+Your agent checks these for the route you pick and tells you what is missing, with the one command for your system. Free packages and models a route needs (transcription, stem separation and similar) it installs on its own at pinned versions and names in the delivery note; anything paid or behind an account is asked first. Exact minimum versions live in [`versions.json`](skills/ice-engines/references/versions.json).
 
 | Need | Windows | macOS | Ubuntu or Debian | Fedora | Arch |
 |---|---|---|---|---|---|
@@ -241,9 +242,9 @@ Every film runs through the same ten stages, like a production company. With the
 3. `/ice-03-script`: the words on screen and the voiceover for each language, timed to the beats, plus the shorter cuts and other versions you will get. **You review:** the script.
 4. `/ice-04-storyboard`: every shot as a rough sketch, how it is framed, how long it lasts and how it moves to the next. **You review:** the storyboard.
 5. `/ice-05-look`: a mood board, then colors, fonts, style and motion feel, shown as a few still frames. **You review:** the mood board and the style frames. Stages 4 and 5 can run at the same time.
-6. `/ice-06-animatic`: the storyboard and the look together, as a rough, timed version of the film with temporary sound. **You review:** the animatic.
+6. `/ice-06-animatic`: the storyboard and the look together, as a rough, timed version of the film with temporary sound. **You review:** the animatic, and you pick the music from two or three real tracks laid on it.
 7. `/ice-07-build`: the full film, animated in code. **You review:** key frames and a draft.
-8. `/ice-08-sound`: in two parts. First the music, sound effects and voiceover (this can happen while the film is built), then the final mix on the draft. **You review:** each part; the mix with its loudness measured.
+8. `/ice-08-sound`: in two parts. First the music (the real track you picked), the sound effects (real recordings) and the voiceover (this can happen while the film is built), then the final mix on the draft. **You review:** each part; the mix with its loudness measured.
 9. `/ice-09-review`: quality checks and independent critics, then fixes. **You review:** each check with its measured result.
 10. `/ice-10-deliver`: the final files in every language, size and length you asked for, with captions and a delivery report that also lists the permissions a brand owner would need. **You review:** the delivered files.
 
@@ -289,7 +290,7 @@ flowchart TD
 2. **Brief (01).** Research comes first: your business, your brand's real material, and the advertising rules of your industry and platforms. Then the questions on every open decision (stop A): four options each, at most four per message, more than one message when needed, or none when your prompt covers everything or you said "don't ask".
 3. **Concept and script (02, 03).** A pitch with unexpected directions and a critic's pick; then the words for each language, with the shorter cuts and other versions planned.
 4. **Storyboard and look (04 with 05).** They run side by side: rough boards and timing next to a mood board and style frames made with your brand's real material. The animatic (06) merges them, and if you are there you see one preview before the build (stop B).
-5. **Build and sound (07 with 08a, then 08b).** The film is written as code while the music, effects and voice are made from the locked timing; the final mix is done on the draft.
+5. **Build and sound (07 with 08a, then 08b).** The film is written as code while the music, effects and voice are fitted to the locked timing; the final mix is done on the draft.
 6. **Review and deliver (09, 10).** Quality gates and fresh critics on the exported file, then every version and caption, and `ice/review/NOTE.md` with measured numbers and the permissions a brand owner would need. In one-prompt mode an approver role signs off each stage; step by step, you do.
 
 Everything lives in an `ice/` folder in your project, so any session can resume where the last one stopped.
@@ -311,7 +312,7 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Domain | [`ice-motion`](skills/ice-motion) | Timing, easing, springs, cuts, camera, composition |
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
-| Domain | [`ice-audio`](skills/ice-audio) | Music (licensed or generated by code), SFX, voiceover, mixing, loudness |
+| Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness |
 | Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
 | Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, licensed sourcing, brand assets |
@@ -350,7 +351,7 @@ Films made with Ice Motion Director from one prompt each, across different indus
 ## Privacy and network
 
 - **Runs locally.** Films render on your machine with your browser and FFmpeg. Nothing is uploaded by these skills.
-- **Network calls, all disclosed:** web research for direction (through your agent's own search tool), Google Fonts when the chosen font comes from there (turn it off with `--offline` or `ICE_OFFLINE=1`), and installs of tools you approve.
+- **Network calls, all disclosed:** web research for direction (through your agent's own search tool); downloads of free real media it picks on its own (music, sound effects, footage, photos, flags, maps, fonts) from public libraries and official sources, each recorded in the project with its source and license status; installs of free tools and models at pinned versions, named in the delivery note; Google Fonts when the chosen font comes from there. Turn the downloads off with `--offline` or `ICE_OFFLINE=1`. Before large downloads and renders it checks free disk space and works on a drive with room.
 - **Optional and only on request:** AI image, video or voice generation, hosted transcription or TTS. These may cost money and are never used without your say-so.
 - **Run log:** each project keeps a short log of your messages, reply summaries and shared files in `ice/log/`, and delivery turns it into one self-contained page, `ice/case-study/run-log.html`. Both stay on your machine and nothing is uploaded; keys, email addresses, phone numbers and folder paths are masked in the exported files only.
 - **Local memory:** a small fingerprint file at `~/.ice-motion-director/fingerprints.jsonl` stores the palette, type and structure of each finished film so the next one does not repeat it. Delete it any time.

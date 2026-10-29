@@ -42,6 +42,9 @@ Next version: <one alternative direction in one sentence>
 | Brand test and competitor swap | | each run (02, 04-05, 09) with PASS or FAIL, its round, the competitor named, frames named as the brand / masked frames | `ice/review/identity/` reports (`identity-tests.md`) |
 | Studio benchmark | | max and mean gap, the capped axes in plain words, the user's answer or the default taken | `ice/review/benchmark/` (`studio-benchmark.md`) |
 | Storyboard lint | | reds, yellows | storyboard_lint.py |
+| Element reasons | | elements with a trigger and reason / total; elements cut for no reason; with a reference, carried-over elements whose reason held / total | storyboard_lint.py check 17 and the critics (`storyboard-lint.md` section 3b) |
+| Speaker stays lit | | news, explainer and talk-show films with a speaker or guest: PASS or FAIL from the final review; n/a with the reason otherwise | critic (`ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit") |
+| Finishing layer | | each effect used (blur, grain, glow, vignette, grade), where, its amount, and its source (measurement or D-entry) | `ice-motion` skill, `references/motion-blur-and-clock.md`, "Finishing layer" |
 | Engine lint and check | | errors, warnings | <engine command> |
 | G0 render exists | | duration, picture content, motion, audio | look.py |
 | G1 proof readable | by eye | <text height, object width you measured> | sheet + stills |

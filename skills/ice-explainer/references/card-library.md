@@ -106,6 +106,8 @@ Identify which relation the sentence expresses, then pick a pattern. Topic-agnos
 
 When several images or clips share a segment: main plus two supports, triptych, compare slider (identical composition required), rack-focus pair, gallery wall, timeline strip, conveyor (5 or more items), grid to hero, stack fan-out, 60/40 split. Entrances stagger 80 to 150 ms in one direction. Shift focus by dimming the others (brightness 0.55 to 0.6, scale 0.985), switch in 0.4 s, at least 1.5 s between switches. To point at something inside a clip, freeze a still first and annotate the still; one time manipulation per shot.
 
+When a presenter or host is composited over footage, cards or a set, the presenter stays lit and clear; dimming, silhouette, circles and marks are for the people or things being talked about, never the presenter (the `ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit").
+
 Single footage or image presentation styles: full bleed (plus host badge when a host exists), framed plus text, 60/40 split, blurred same-source bed, frozen frame with pointing, multi-media arrangement, brief media takeover. Adjacent segments use different styles.
 
 ## 7. Rotation rules

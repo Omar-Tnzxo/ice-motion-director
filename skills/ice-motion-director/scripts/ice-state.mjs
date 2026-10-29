@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ice-state.mjs: read, write and check ice/state.json, the run state of an Ice Motion Director project.
 // The schema lives in ../references/state.md; this script is its only writer and refuses keys outside it.
-// Zero dependencies, Node 18 or newer, Windows, macOS and Linux.
+// Zero dependencies, Node 18.15 or newer (fs.statfsSync), Windows, macOS and Linux.
 //
 //   node ice-state.mjs init --project <slug> --route <route> [--subtype <type>] [--size <size>] [--mode <mode>]
 //                           [--order "<order>"] [--language <code>] [--commercial-use <yes|no|unknown>]
@@ -13,10 +13,12 @@
 //   node ice-state.mjs check <NN>
 //   node ice-state.mjs next [--json]
 //   node ice-state.mjs log --from user|agent (--text "<text>" | --text-file <path>) [--attach <path>]... [--note "<line>"]
+//   node ice-state.mjs space [--need <GB>] [<path> ...] [--json]
 //
 // Common options: --dir <project folder> (default: the current folder), --prefix <command prefix> (default "/").
 // Exit codes: 0 ok or ready; 1 refused (say the printed sentence to the user); 2 usage or file problem; 3 stage not needed.
-import { appendFileSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+// space: 0 every path has the need, 1 one is short.
+import { appendFileSync, closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, statSync, statfsSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -67,12 +69,16 @@ Usage:
        appends one entry to ice/log/conversation.jsonl (the run log, references/state.md "Run log"): the user's
        words in full, the agent's reply as a summary of ${AGENT_MAX} characters at most, files sent or received
        (--attach, repeatable), and --note for an image shown in chat that is not a file
+  node ice-state.mjs space [--need <GB>] [<path> ...] [--json]
+       free disk space of the project folder's drive and of each path (a path that does not exist yet is
+       measured at its nearest existing parent); with --need, exit 1 when one of them has less than <GB> free
+       (the disk space rule: ice-engines references/engine-choice.md section 7.7). Needs no project
 
 Statuses: ${STATUSES.join(", ")}.
 Order: stage numbers in run order, a parallel lane in brackets, a stage split in parts with a letter,
   for example "${DEFAULT_ORDER}" (the default). Stages left out of the order become not_used.
 Options: --dir <project folder> (default: current folder), --prefix <command prefix> (default "/", Codex uses "$").
-Exit codes: 0 ok, 1 refused, 2 usage or file problem, 3 stage not needed.`;
+Exit codes: 0 ok, 1 refused (space: a path is short), 2 usage or file problem, 3 stage not needed.`;
 
 // ---------------------------------------------------------------- arguments
 function parseArgs(argv) {
@@ -637,6 +643,51 @@ function log(p, opt) {
   });
 }
 
+// ---------------------------------------------------------------- disk space
+// Free space before downloads, installs and renders (ice-engines references/engine-choice.md section 7.7).
+const GIB = 1024 ** 3;
+function nearestExisting(target) {
+  let cur = target;
+  while (!existsSync(cur)) {
+    const up = dirname(cur);
+    if (up === cur) return null;
+    cur = up;
+  }
+  return cur;
+}
+
+function space(p, opt, targets) {
+  let need = null;
+  if (opt.need !== undefined) {
+    need = Number(opt.need);
+    if (String(opt.need).trim() === "" || !Number.isFinite(need) || need < 0) fail(`--need takes a number of GB, got "${opt.need}"`);
+  }
+  const rows = [{ path: p.dir, label: "project folder" }, ...targets.map((t) => ({ path: resolve(t), label: "" }))];
+  for (const row of rows) {
+    const at = nearestExisting(row.path);
+    if (!at) fail(`no existing folder holds ${row.path}`);
+    let st;
+    try { st = statfsSync(at); } catch (e) { fail(`cannot read the free space at ${at}: ${e.message}`); }
+    row.measured_at = at;
+    row.free_gb = Math.round((Number(st.bavail) * Number(st.bsize) / GIB) * 10) / 10;
+    row.ok = need === null || row.free_gb >= need;
+  }
+  const short = rows.filter((r) => !r.ok);
+  if (opt.json) {
+    process.stdout.write(JSON.stringify({ need_gb: need, ok: !short.length, paths: rows }, null, 2) + "\n");
+  } else {
+    const lines = [need === null ? "Free disk space:" : `Free disk space (need ${need} GB on each):`];
+    for (const r of rows) {
+      const where = `${r.path}${r.label ? ` (${r.label})` : ""}${r.measured_at !== r.path ? ` [measured at ${r.measured_at}]` : ""}`;
+      const verdict = need === null ? "" : r.ok ? ", ok" : `, short by ${Math.round((need - r.free_gb) * 10) / 10} GB`;
+      lines.push(`  ${where}: ${r.free_gb.toFixed(1)} GB free${verdict}`);
+    }
+    if (short.length) lines.push("Short: work on a drive with room, or free space first (ice-engines references/engine-choice.md section 7.7).");
+    process.stdout.write(lines.join("\n") + "\n");
+  }
+  return short.length ? 1 : 0;
+}
+
 // ---------------------------------------------------------------- main
 function main() {
   const { pos, opt } = parseArgs(process.argv.slice(2));
@@ -649,6 +700,7 @@ function main() {
     case "check": return check(p, opt, pos[1]);
     case "next": next(p, opt); return 0;
     case "log": log(p, opt); return 0;
+    case "space": return space(p, opt, pos.slice(1));
     default: return fail(`unknown command "${pos[0]}"; run with --help`);
   }
 }

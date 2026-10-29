@@ -17,6 +17,7 @@ Every Ice project keeps its run files in an `ice/` folder inside the user's proj
 | `ice-state set <key> <value>` | Any top-level key below that is not written by the tool itself, for example `mode step`, `order "<order>"`, `crew standard`, `crew_flags "real brand UI, two languages"`, `run_mode fast` |
 | `ice-state set question "<question>" --answer "<answer>" --by user` (or `--by default`) | Adds one stage 01 question and its answer to `questions` |
 | `ice-state log --from user` or `--from agent`, with `--text "<text>"` or `--text-file <path>`, plus `--attach <path>` (repeatable) and `--note "<one sentence>"` | Appends one entry to the run log, `ice/log/conversation.jsonl` (section "Run log") |
+| `ice-state space --need <GB> [<path> ...]` (optional `--json`; no project needed) | Prints the free disk space of the project folder's drive and of each path (a path not created yet is measured at its nearest existing parent). Exit 0: every one has at least `<GB>` free; exit 1: one is short; exit 2: a usage error. Run it before every download, install and render; the threshold and where to work instead: `ice-engines/references/engine-choice.md` section 7.7, "Disk space" |
 
 Codex users see commands as `$name`: add `--prefix '$'` so the printed command names match. When Node is not installed (the ideas route needs nothing else), edit the file by hand with exactly this schema and apply the rules below yourself.
 

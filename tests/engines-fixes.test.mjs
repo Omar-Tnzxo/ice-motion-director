@@ -119,3 +119,94 @@ $("logo").decode().then(() => window.renderAt(0)).then(() => { window.__ready = 
   assert.ok(a.length > 1000, "still is empty");
   assert.ok(a.equals(b), "the frame at 3 s differs between a fresh render and a render after a seek history");
 });
+
+// ---------------------------------------------------------------- lessons 1, 2, 3, 7 and 8 (owner decision, 2026-10-29)
+// Free tools, models and packages are installed without a question and recorded; free downloads and a fetchable
+// reference link are not stage 01 questions; the identity and music questions follow the new rules; disk space is
+// checked and rebuildable intermediates are cleaned up. Text checks only: no browser needed.
+const readRepo = (f) => readFileSync(abs(f), "utf8");
+const subsection = (text, heading) => {
+  const start = text.indexOf(heading);
+  assert.ok(start >= 0, `"${heading}" not found`);
+  const end = text.slice(start + heading.length).search(/\n#{2,3} /);
+  return end < 0 ? text.slice(start) : text.slice(start, start + heading.length + end);
+};
+const bankEntry = (slot) => subsection(readRepo("skills/ice-direction/references/questions.md"), `### Q-${slot}:`);
+const slotRow = (slot) => readRepo("skills/ice-direction/references/questions.md").split(/\r?\n/).find((l) => l.includes(`| \`${slot}\` |`)) ?? "";
+const ROUTER_MD = "skills/ice-motion-director/SKILL.md";
+
+test("free tools and models install without a question and are recorded", () => {
+  const engine = readRepo("skills/ice-engines/references/engine-choice.md");
+  const installs = subsection(engine, "### 7.6 Installs without a question");
+  assert.match(installs, /Owner decision, 2026-10-29/);
+  for (const pin of ["`pip.faster-whisper`", "`pip.demucs`", "`models.whisper`", "`pip.yt-dlp`"]) assert.ok(installs.includes(pin), `names ${pin}`);
+  assert.match(installs, /Record each install in `ice\/DIRECTION\.md` \(what, exact version, size on disk, folder/);
+  assert.match(installs, /delivery note/);
+  assert.match(installs, /never `@latest`, never an unpinned `npx`, never a runtime download of skills or instructions/);
+  assert.match(installs, /a paid service, anything that needs an account, a sign-in or a key the user has not set, and any spending/);
+  assert.match(installs, /administrator password is the plain step of 7\.3, not a question/);
+  const versions = JSON.parse(readRepo("skills/ice-engines/references/versions.json"));
+  for (const name of ["faster-whisper", "demucs", "yt-dlp"]) assert.match(versions.pip[name]?.version ?? "", /^\d+(\.\d+)+$/, `versions.json pins ${name}`);
+  assert.doesNotMatch(JSON.stringify(versions), /after the user agrees|the user approves/);
+
+  const old = /Never install anything without the user's yes|never install anything without their consent|Auto mode never installs software|Ask the user to install or approve each prerequisite|run only after the user agrees|wait for their consent/i;
+  for (const f of [ROUTER_MD, "skills/ice-direction/references/questions.md", "skills/ice-engines/SKILL.md", "skills/ice-engines/references/engine-choice.md",
+    "skills/ice-motion-director/references/step-mode.md", "skills/ice-motion-director/references/prerequisites.md"]) assert.doesNotMatch(readRepo(f), old, f);
+  const router = readRepo(ROUTER_MD);
+  const paragraph = router.slice(router.indexOf("In auto mode the final render needs no further approval."), router.indexOf("## 6. "));
+  assert.match(paragraph, /Auto mode never signs in, spends money or publishes on its own\./);
+  assert.match(paragraph, /installs free pinned tools and models without asking, each recorded \(`ice-engines\/references\/engine-choice\.md` section 7\.6\)/);
+  assert.match(bankEntry("tools"), /paid, needs an account or a sign-in, or has no install route on this machine/);
+  assert.match(slotRow("tools"), /installed without a question \(`ice-engines\/references\/engine-choice\.md` section 7\.6\)/);
+});
+
+test("free media downloads and a fetchable reference link are not stage 01 questions", () => {
+  const router = readRepo(ROUTER_MD);
+  const stopA = router.split(/\r?\n/).find((l) => l.startsWith("| Auto | A.")) ?? "";
+  assert.match(stopA, /never a free download or install/);
+  assert.doesNotMatch(stopA, /the download list|any install step/);
+  assert.match(router, /downloads free media from the routes of `ice-assets\/references\/sourcing-and-licenses\.md` sections 4 and 5/);
+  assert.match(router, /`ICE_OFFLINE=1` or the user's `sources\.json` turns this down/);
+  assert.match(slotRow("reference_file"), /Only when a linked reference cannot be fetched/);
+  const ref = bankEntry("reference-file");
+  assert.match(ref, /downloaded by default, with no question, so it can be measured/);
+  assert.doesNotMatch(ref, /only on the user's yes|never as a default/);
+  assert.doesNotMatch(readRepo("skills/ice-motion-director/references/routes.md"), /downloaded only with the user's yes/);
+  assert.doesNotMatch(readRepo("skills/ice-motion-director/references/harness.md"), /ask before any network or install step|Ask before installs or network calls/i);
+});
+
+test("Q-identity compares the content type with the reference type", () => {
+  const identity = bankEntry("identity");
+  assert.match(identity, /compare the content type of the user's video with the reference's content type/);
+  assert.match(identity, /`ice-remake\/references\/rights-and-modes\.md` section 1, "The identity fits the content"/);
+  assert.match(identity, /When they differ, option 1 below is recommended, and in auto mode, with a waiver or with no answer, it is the decision taken/);
+  assert.match(identity, /^1\. \(Recommended\) The same editing principles with an identity that fits your content/m);
+  assert.match(slotRow("identity"), /compares the content type with the reference's type/);
+});
+
+test("Q-music offers real library tracks heard on the film and no music made by code", () => {
+  const music = bankEntry("music");
+  assert.match(music, /`ice-audio\/SKILL\.md` section 5, "The options flow"/);
+  assert.match(music, /2 to 3 real library tracks ranked by measurement against the reference, or against the film type/);
+  assert.match(music, /Music made by code is never an option unless the user asked for it in their own words/);
+  const options = music.split(/\r?\n/).filter((l) => /^\d\. /.test(l));
+  assert.equal(options.length, 4);
+  for (const o of options) assert.doesNotMatch(o, /\bcode\b|generated|synth/i, `an option offers made music: ${o}`);
+  assert.match(options[3], /Your own track/);
+  assert.doesNotMatch(music, /made by code or licensed/);
+  const stopB = readRepo(ROUTER_MD).split(/\r?\n/).find((l) => l.startsWith("| Auto | B.")) ?? "";
+  assert.match(stopB, /2 to 3 music options laid on the film \(`ice-audio\/SKILL\.md` section 5\)/);
+});
+
+test("disk space is checked with a threshold and rebuildable intermediates are deleted after approval", () => {
+  const disk = subsection(readRepo("skills/ice-engines/references/engine-choice.md"), "### 7.7 Disk space");
+  assert.match(disk, /`need` is the estimate plus 5 GB/);
+  assert.match(disk, /ice-state\.mjs space --need <need in GB>/);
+  for (const v of ["`HF_HOME`", "`TORCH_HOME`", "`PIP_CACHE_DIR`", "`npm_config_cache`", "`PLAYWRIGHT_BROWSERS_PATH`", "`TMPDIR`"]) assert.ok(disk.includes(v), `names ${v}`);
+  assert.match(disk, /never in a shell profile or a system setting/);
+  const cleanup = subsection(readRepo("skills/ice-engines/references/render-export.md"), "## 9. Heavy intermediates");
+  assert.match(cleanup, /deleted once the stage that consumes them is approved/);
+  assert.match(cleanup, /Never deleted: the user's files and supplied sources/);
+  assert.match(cleanup, /Log each deletion in `ice\/DIRECTION\.md`/);
+  assert.match(readRepo("skills/ice-engines/SKILL.md"), /`references\/render-export\.md` section 9/);
+});

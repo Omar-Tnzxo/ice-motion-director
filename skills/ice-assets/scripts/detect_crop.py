@@ -63,7 +63,7 @@ def ui_strip_crop(path, dur, w, h):
         import numpy as np, cv2
     except ImportError:
         print("detect_crop.py: UI-band fallback skipped, it needs numpy==2.4.6 and opencv-python-headless==4.10.0.84. "
-              "Install them into a project virtual environment after the user agrees: python -m pip install -r "
+              "Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): python -m pip install -r "
               + str(REQUIREMENTS), file=sys.stderr)
         return None
     cap = cv2.VideoCapture(path)

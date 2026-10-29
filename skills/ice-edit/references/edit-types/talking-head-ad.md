@@ -14,7 +14,7 @@ A 15 to 60 s vertical ad or reel where one person speaks to camera, recomposed f
 3. Transcribe with word timestamps; correct the transcript keeping word counts; show the whole script and drop duplicate takes (the first of two identical sentences is usually the mistake).
 4. Cut silences by speaker style (`silence-and-retakes.md` section 3: fast 0.35 s, calm 1.0 to 1.2 s; deliberate speakers: decide by the rule there).
 5. Cut and zoom: locked zoom per segment; fixed head-top crop for card layouts (`vertical-conversion.md`).
-6. Design scenes: three visual ideas per sentence, keep the strongest; plan 2 to 3 depth moments for the whole ad (an element behind the speaker, a voice waveform, a brand shape in motion) and state them in one line before drawing; pick a layout mode per line.
+6. Design scenes: three visual ideas per sentence, keep the strongest; plan 2 to 3 depth moments for the whole ad (an element behind the speaker, a voice waveform, a brand shape in motion) and state them in one line before drawing; pick a layout mode per line. Every overlay, keyword, lower third, mark and insert sits on the word or sentence that triggers it, with its reason (`broll-and-motion-broll.md` section 1). Speaker look and marks: the speaker stays lit and unmarked; dimming, silhouettes, rings and target marks go only on the people talked about (`layers-and-isolation.md` section 5).
 7. Six-frame preview sheet, then mid-frame of every scene before the full render.
 8. Sound effects from the visual event map, master, SRT and TXT.
 9. Verify: safe zones, sync, loudness, eye sheet, file size; cover as first frame.
@@ -42,7 +42,7 @@ Speech joins are hard cuts. Scene or idea changes may use a fast transition of a
 Static zoom per segment. Calm premium ads keep captions still (card fades only, no word jumps).
 
 ## Sound policy
-Sound effects only on meaningful moments. SFX density, levels and the silence before the key line: the `ice-audio` skill, `references/sfx.md` sections 1 and 4. Call a background track "background audio"; its content is a stage 01 question when the brief leaves it open, otherwise the ice-audio skill decides it and the choice is logged. No track is used before its sync license check (`ice-audio/references/music-choice-and-licensing.md` section 5).
+Sound effects only on meaningful moments. SFX density, levels and the silence before the key line: the `ice-audio` skill, `references/sfx.md` sections 1 and 4. Call a background track "background audio"; its content is a stage 01 question when the brief leaves it open, otherwise it is chosen from the ice-audio skill's ladder (sound made by code only when the user names it) and the choice is logged. No track is used before its sync license check (`ice-audio/references/music-choice-and-licensing.md` section 5).
 
 ## Text density
 One text at a time: when a graphic writes the spoken sentence, hide that caption. Numbers, names, dates and percentages on screen come from the truth sheet (ice-assets skill); a value the truth sheet does not hold stays off screen.

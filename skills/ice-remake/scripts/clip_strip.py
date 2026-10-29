@@ -23,7 +23,7 @@ if not shutil.which("ffmpeg") and FFMPEG_FALLBACK and os.path.isdir(FFMPEG_FALLB
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
-    sys.exit("clip_strip.py needs pillow==12.3.0. Install it into a project virtual environment after the user agrees: "
+    sys.exit("clip_strip.py needs pillow==12.3.0. Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
              'python -m pip install -r "' + os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt") + '"')
 
 

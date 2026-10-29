@@ -2,7 +2,7 @@
 
 > Merged from heygen-com/hyperframes docs (Apache-2.0), digitalsamba/claude-code-video-toolkit, AbubakrChan/product-launch-motion, howseen-ai/claude-motion-design, haidrrrry/claude-remotion-skill, Barty-Bart/motion-graphics, nateherkai/herk-edit-kit, Vincentwei1021/mg-styles-15, alexgreensh/anidoodle, the founder's own skills; ideas from imMamdouhaboammar/motion-graphics-skills and noncommercial sources (rewritten). Changes: merged, deduplicated, scoped, dashes removed.
 
-Contents: 1 Defaults. 2 Codec and quality by purpose. 3 Colour, grain, banding. 4 Review copies. 5 Alpha output for editors. 6 GIF, loops, posters, stills. 7 HDR and 4K. 8 Delivery hygiene. Loudness targets: the ice-audio skill. Delivery gates and report: the ice-qa skill.
+Contents: 1 Defaults. 2 Codec and quality by purpose. 3 Colour, grain, banding. 4 Review copies. 5 Alpha output for editors. 6 GIF, loops, posters, stills. 7 HDR and 4K. 8 Delivery hygiene. 9 Heavy intermediates. Loudness targets: the ice-audio skill. Delivery gates and report: the ice-qa skill.
 
 ## 1. Defaults
 
@@ -90,3 +90,17 @@ Final file sanity: roughly 3 to 10 MB per 10 seconds at 1080p for typical motion
 - Keep heavy renders out of git (release assets or artifact storage); keep at most one previous draft plus the final in the repo.
 - Website video: poster first, `preload="none"`, created only when motion is allowed and near the viewport, autoplay only muted, AV1 or VP9 plus H.264 fallback, captions track attached.
 - Never publish, post or schedule: delivery is files and links.
+
+## 9. Heavy intermediates
+
+Owner decision, 2026-10-29, every route. Files the run made that a script or a render can make again are deleted once the stage that consumes them is approved, so a long run does not fill the disk (`engine-choice.md` section 7.7, "Disk space").
+
+| Intermediate | Deleted when |
+|---|---|
+| Frame sequences, render chunks, subframe captures, uncompressed or lossless intermediate renders of the film | Stage 07 (build) is approved and the draft that uses them is verified; after stage 10 for the frames of the final master, once that master is verified (section 8) |
+| Proxies, extracted frames, frame grabs made only to measure or compare | The stage that measured them is approved; the measurements and contact sheets in `ice/` stay |
+| Scratch stems, separated stems, mix previews, temp audio renders | Stage 08b (mix and master) is approved; the master mix and the stems the delivery lists stay |
+
+Never deleted: the user's files and supplied sources, downloaded sources and official files (with their sidecars), everything under `ice/` that is a record (notes, measurements, contact sheets, reviews, the run log), the approved renders, the master and every deliverable, the one previous draft kept for comparison (section 8), and the source that re-renders the film. Only files this run created, inside the project folder or its scratch folder (`engine-choice.md` section 7.7), are deleted; nothing outside them. While a stage is still open, its intermediates stay, because changes re-render only the changed range (`render-performance.md` section 2).
+
+Log each deletion in `ice/DIRECTION.md`: the path, the space freed, and the command that rebuilds it.

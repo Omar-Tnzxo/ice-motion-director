@@ -40,7 +40,7 @@ Skills from this plugin are invoked as `ice-motion-director:<skill>` when instal
 | Sub-agent for a role | Use Codex sub-agents when your version offers them. Otherwise run each role as a separate step: write the role's output to its file, then review from the files only, never from the builder's chain of thought |
 | Web research | The web search tool when it is enabled for the session. If it is off, say so, ask the user to enable it or to supply sources, and record the gap in `ice/DIRECTION.md` |
 | Stage 01 questions | A question tool when the session offers one, with the same shape as Claude Code. Otherwise one chat message per round: up to 4 numbered questions, each with options a) to d), a) marked "(Recommended)" with its reason, then "Or write your own answer" (template: `ice-direction` questions section 2), and wait for the reply |
-| Run scripts and tools | The shell tool; respect the sandbox and ask before any network or install step |
+| Run scripts and tools | The shell tool; respect the sandbox. Free pinned installs and free downloads need no question (`ice-engines/references/engine-choice.md` section 7.6); when the sandbox blocks the network, say so once and take the fallback |
 | Read and write files | The file and patch tools |
 | Other skills | Mention a skill by name (`$ice-film`) to load it; domain skills of this plugin load only when named |
 | Stage commands | The user types `$ice-01-brief` and the like; the text after it is the extra direction for the stage. Run the state tool with `--prefix '$'` so the commands it prints match |
@@ -52,7 +52,7 @@ Skills from this plugin are invoked as `ice-motion-director:<skill>` when instal
 | Sub-agent for a role | Use sub-agents when your version offers them. Otherwise run each role as a separate step and review from the files only |
 | Web research | The Google web search and web fetch tools. Every query is built from brief slots plus today's date; drop any term that does not trace to the brief |
 | Stage 01 questions | A question tool when your version offers one, with the same shape as Claude Code. Otherwise one chat message per round: up to 4 numbered questions, each with options a) to d), a) marked "(Recommended)" with its reason, then "Or write your own answer", and wait for the reply |
-| Run scripts and tools | The shell command tool; ask before any network or install step |
+| Run scripts and tools | The shell command tool. Free pinned installs and free downloads need no question (`ice-engines/references/engine-choice.md` section 7.6); paid, account or spending steps are asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops") |
 | Read and write files | The file read and write tools |
 | Stage commands | Gemini CLI: `/ice-01-brief` and the like come from the extension's `commands/` files, which name the skill to open. Antigravity: the same names as skills |
 
@@ -67,7 +67,7 @@ Cursor, GitHub Copilot, Windsurf, Cline, Roo Code, Kilo Code, OpenCode, Amp, Goo
 | Sub-agent for a role | Your agent's sub-agent or task feature if it has one. Without it, run each role as a separate step: write the output to its file, then review from the files only |
 | Web research | Your web search tool if available. Without it, ask the user for sources or to enable search, and log the gap in `ice/DIRECTION.md`. Never fill a research gap from memory and present it as research |
 | Stage 01 questions | Your agent's question tool when it has one (with the same shape as Claude Code: up to 4 questions, 4 options each, recommended first). Otherwise one chat message per round: up to 4 numbered questions, each with options a) to d), a) marked "(Recommended)" with its reason, then "Or write your own answer", and wait for the reply |
-| Run scripts and tools | Your terminal tool. Ask before installs or network calls |
+| Run scripts and tools | Your terminal tool. Free pinned installs and free downloads need no question (`ice-engines/references/engine-choice.md` section 7.6); paid, account or spending steps are asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops") |
 | Skills | Open a skill by reading `skills/<name>/SKILL.md` in the installed folder when your agent does not load skills by name |
 | Stage commands | Most agents show skills as `/ice-01-brief` and the like. When yours shows no commands, the user can write "run stage 01" or "show the status" in plain words; treat that the same way |
 

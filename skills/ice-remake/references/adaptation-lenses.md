@@ -6,6 +6,7 @@ Read this when writing the Treatment. The remake keeps what made the reference w
 
 - Keep the reference's semantic timing relationships and bind them to the target's own words and actions. Seconds change; relationships stay. Keep a literal clock interval only when the interval itself is the design.
 - Before replacing anything, list every place its role appears. A presenter may also be a voice, a B-roll subject, an image on a phone, an avatar inside a graphic. A product may be a prop, a screen, a demo, a claim and the CTA. Transform all of them, not just the most visible one.
+- An element carries over through its reason, not its look: it appears where the new script gives the same trigger its `REASONS.md` row names (`notes-files.md` section 6), and is cut where nothing does (`shot-mapping.md` section 1, item 4).
 - Keep an action's purpose, not a form that no longer fits the new subject. Confidence can be posture, gaze or framing; a product without a screen proves the same benefit with different evidence.
 - When a system is removed (no presenter, no voiceover, no captions), hand its job to another system. Never leave a narrative hole.
 

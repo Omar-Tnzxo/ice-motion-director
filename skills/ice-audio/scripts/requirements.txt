@@ -1,16 +1,17 @@
 # Exact pins for the Python scripts of the ice-audio skill. Python 3.11 or newer.
 # Single source of truth: skills/ice-engines/references/versions.json ("pip"). Keep both in sync.
 # Policy (the same in every skill's requirements.txt). The pins are the tested set: `node scripts/gates.mjs --python` installs and imports
-# them in a clean virtual environment. Install them into a project virtual environment only after the user agrees, never into
+# them in a clean virtual environment. Ice installs them itself, without a question, into a project virtual environment, never into
 # the system Python:
 #   python -m venv .venv
 #   python -m pip install -r <this file>
-# A package already installed at another version (system Python or an existing environment) when no install is
-# allowed: when it has the same major version (the same minor for a 0.x version) and is not older than the pin, use
-# it and write the versions used in the delivery note; otherwise do not use it (ask for the pinned install, or use
+# A package already installed at another version (system Python or an existing environment) when the pinned install
+# cannot run: when it has the same major version (the same minor for a 0.x version) and is not older than the pin, use
+# it and write the versions used in the delivery note; otherwise do not use it (run the pinned install, or use
 # the script's documented fallback). A script that fails under an installed version runs only with the pins.
-# mgaudio (music and SFX by code) needs only numpy; the rest is its fast path (see references/music-by-code.md section 1).
-# master_audio.py, pacing.py and qc.py need only the standard library and ffmpeg.
+# sound_map.py and match_music.py need numpy and scipy (match_music.py sfx: numpy only).
+# mgaudio (opt-in music and SFX by code, SKILL.md core rule 7) needs only numpy; the rest is its fast path (references/music-by-code.md section 1).
+# master_audio.py, pacing.py, qc.py and preview_options.py need only the standard library and ffmpeg.
 numpy==2.4.6
 scipy==1.16.3
 soundfile==0.14.0

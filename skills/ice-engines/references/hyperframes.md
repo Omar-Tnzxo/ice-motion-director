@@ -11,7 +11,7 @@ Contents: 1 Setup. 2 Project structure. 3 Composition contract. 4 Data attribute
 | Node.js | The minimum in `versions.json` (`runtimes.node`) |
 | FFmpeg and ffprobe | The minimum in `versions.json` (`runtimes.ffmpeg`), on PATH, or `HYPERFRAMES_FFMPEG_PATH` / `HYPERFRAMES_FFPROBE_PATH` |
 | HyperFrames CLI | Installed in the film project as a pinned dev dependency: `npm install --save-dev --save-exact hyperframes@0.8.174` (the exact version in `versions.json`, `npm.hyperframes`; this command and that file change together). Then every command is `npx hyperframes <cmd>` and resolves locally. If the project already pins another version, keep that version |
-| Chrome | `npx hyperframes browser ensure` installs the pinned build (pixel output drifts across Chrome versions). The user runs or approves this download |
+| Chrome | `npx hyperframes browser ensure` installs the pinned build (pixel output drifts across Chrome versions); an install without a question, recorded (`engine-choice.md` section 7.6) |
 | Telemetry | Set `HYPERFRAMES_NO_TELEMETRY=1` (or `DO_NOT_TRACK=1`) in the shell before commands |
 
 Never run `npx hyperframes skills update`, `npx skills add` or any command that downloads skills or instructions at runtime. Never run `events` (telemetry emitter) or the deprecated `validate`, `inspect`, `layout` commands. `feedback --file-issue` only with the user's consent. Never `hyperframes init` in the workspace root; never delete `.hyperframes/` wholesale (it holds project history; use `hyperframes clean --dry-run`). Name projects in kebab case from the brand or topic, never from the workspace name or a timestamp. Run every command inside the project folder in a subshell.

@@ -43,7 +43,7 @@ def missing_optional():
     missing = [m for m in OPTIONAL if importlib.util.find_spec(m) is None]
     for m in missing:
         pin, what = OPTIONAL[m]
-        print(f"warning: {pin} is not installed; skipped: {what} (install after the user agrees: "
+        print(f"warning: {pin} is not installed; skipped: {what} (install it, no question needed, ice-engines engine-choice.md section 7.6: "
               f"python -m pip install {pin})", file=sys.stderr)
     return missing
 
@@ -721,7 +721,7 @@ def main():
                     help="degrees clockwise that make a sideways picture upright; auto turns it only when the orientation check is sure")
     a = ap.parse_args()
     if importlib.util.find_spec("numpy") is None:
-        sys.exit("analyze.py needs numpy==2.4.6. Install it into a project virtual environment after the user agrees: "
+        sys.exit("analyze.py needs numpy==2.4.6. Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
                  f'python -m pip install -r "{REQUIREMENTS}"')
     for tool in ("ffmpeg", "ffprobe"):
         if not shutil.which(tool):

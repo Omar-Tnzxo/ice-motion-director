@@ -136,10 +136,12 @@ test("product job rule, app-brand tie-breaker and app ad adaptations", () => {
   assert.match(readText("skills/ice-film/references/film-types/brand-film.md"), /Product job/, "brand-film.md must point to the product job rule");
 });
 
-test("stage 01 names the brand film and the code score for music-led films", () => {
+test("stage 01 names the brand film and the real-track shortlist for music-led films", () => {
   const row = spineRows("ice-film")["01"];
   assert.match(row, /brand film by default/, "row 01 must say what a music-led brand film does at 01");
-  assert.match(row, /code score gets its tempo at 05 and is composed at 08a/, "row 01 must place a code score at 05 and 08a");
+  assert.match(row, /shortlist real tracks at 05, picked by ear from 2 to 3 options \(`ice-audio\/SKILL\.md` section 5\)/,
+    "row 01 must place the real-track shortlist at 05 and the pick by ear in the ice-audio options flow");
+  assert.doesNotMatch(row, /code score/, "row 01 must not route a music-led film to a code score");
 });
 
 test("the grounding rule has one home; every other mention points to it", () => {
