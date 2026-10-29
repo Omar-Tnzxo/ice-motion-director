@@ -12,10 +12,10 @@
 //     --case <name>      only this case (repeatable)
 //     --no-fetch         write only the cases whose inputs are already cached
 //
-// Inputs are downloaded at build time from their links (yt-dlp, FFmpeg) and trimmed to 10-45 s; no video, footage
+// Inputs are read at build time from their links (yt-dlp stream links, FFmpeg) and trimmed to 10-45 s; no video, footage
 // or third-party material is ever committed. Exit codes: 0 done, 1 a case could not be built, 2 usage error.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -249,35 +249,36 @@ function parseArgs(argv) {
   return ["list", "build"].includes(opts.cmd) ? opts : null;
 }
 
-const run = (cmd, args) => spawnSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+const run = (cmd, args) => spawnSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 600000, maxBuffer: 1 << 24 });
 const fwd = (p) => p.replaceAll("\\", "/");
 
-// One input into the cache: the local file or a section download, then a trim to exactly `seconds` from `start`.
+// One input into the cache: the local file, or the stream links from yt-dlp (no full download), trimmed by FFmpeg
+// to exactly `seconds` from `start`. A stalled network call gives up after 10 minutes.
 function fetchInput(file, input, dir, opts) {
   const out = join(dir, file);
   if (existsSync(out) && statSync(out).size > 0) return null;
   if (!opts.fetch) return "not cached (--no-fetch)";
   mkdirSync(dir, { recursive: true });
-  let src = input.local && opts.local ? join(opts.local, input.local) : null;
-  let offset = input.start;
-  if (!src || !existsSync(src)) {
-    if (!input.youtube) return `local input ${input.local} not found${opts.local ? ` in ${opts.local}` : " (pass --local <dir>)"}`;
-    const tmp = join(dir, `.download-${file}`);
-    rmSync(tmp, { recursive: true, force: true });
-    mkdirSync(tmp);
-    const end = input.start + input.seconds + 2;
-    const r = run("yt-dlp", ["-q", "--no-warnings", "--no-playlist", "-f", "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]",
-      "--merge-output-format", "mp4", "--download-sections", `*${input.start}-${end}`, "-o", join(tmp, "src.%(ext)s"),
-      `https://www.youtube.com/watch?v=${input.youtube}`]);
-    const got = existsSync(tmp) ? readdirSync(tmp).find((f) => f.startsWith("src.")) : null;
-    if (r.status !== 0 || !got) return `yt-dlp failed for ${input.youtube}: ${(r.stderr || r.error?.message || "").trim().split("\n").pop()}`;
-    src = join(tmp, got);
-    offset = 0;
+  const local = input.local && opts.local ? join(opts.local, input.local) : null;
+  let sources;
+  if (local && existsSync(local)) sources = [local];
+  else if (!input.youtube) return `local input ${input.local} not found${opts.local ? ` in ${opts.local}` : " (pass --local <dir>)"}`;
+  else {
+    // HLS first: FFmpeg seeks inside it by segment, while a DASH link is read from its start (a late `start` stalls).
+    const format = input.audio ? "ba[protocol^=m3u8]/ba[ext=m4a]/ba"
+      : "bv*[height<=1080][vcodec^=avc1][protocol^=m3u8]+ba[protocol^=m3u8]/bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]";
+    const r = run("yt-dlp", ["-q", "--no-warnings", "--no-playlist", "-f", format, "-g", `https://www.youtube.com/watch?v=${input.youtube}`]);
+    sources = r.status === 0 ? r.stdout.trim().split(/\r?\n/).filter(Boolean) : [];
+    if (!sources.length) return `yt-dlp failed for ${input.youtube}: ${(r.stderr || r.error?.message || "").trim().split("\n").pop()}`;
   }
+  const inputs = sources.flatMap((src) => ["-ss", String(input.start), "-t", String(input.seconds), "-i", src]);
+  const map = sources.length > 1 ? ["-map", "0:v:0", "-map", "1:a:0"] : [];
   const codec = input.audio ? ["-vn", "-c:a", "aac", "-b:a", "192k"] : ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart"];
-  const r = run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-ss", String(offset), "-i", src, "-t", String(input.seconds), ...codec, out]);
-  rmSync(join(dir, `.download-${file}`), { recursive: true, force: true });
+  const r = run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...inputs, ...map, ...codec, out]);
   if (r.status !== 0) { rmSync(out, { force: true }); return `ffmpeg failed on ${file}: ${(r.stderr || r.error?.message || "").trim().split("\n").pop()}`; }
+  // Every input carries speech or the reference's sound: a trim that lost its audio track is useless.
+  const probe = run("ffprobe", ["-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", out]);
+  if (!/audio/.test(probe.stdout ?? "")) { rmSync(out, { force: true }); return `${file} has no audio track after the trim`; }
   return null;
 }
 
