@@ -2,18 +2,13 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
-## Unreleased
-
-### Added
-
-- **Ice's own CC0 sound-effects pack** (founder decision D4): 128 recorded effects in 24 types (whooshes, impacts, sub drops, risers, UI, ticks, paper, typing, room tones), each file CC0 1.0 or public domain, published as the Release asset `assets-sfx-v1` and pinned by SHA-256 in `ice-engines/references/versions.json`. `match_music.py pack fetch` downloads it once into your user folder without a question (turned off by `ICE_OFFLINE=1` or `sources.json`); `pack list --type <type>` lists the sounds of a move with their sync point and levels. It comes after your own files and libraries on the SFX ladder; sound made by code stays only when you ask for it. `--profile under-speech` is the plain name of the speech-safe filter for any film.
-
 ## 0.2.5 - 2026-10-29
 
 Every video at its full capacity, without being asked. An audit of six trials found that a craft reached a film only when its type file named it, a reference measured it, the news reel package carried it, or the user asked; everything else stayed off, and about 150 taste rules were written as absolute bans. Now the director decides every craft for every video from what the content, the type, the reference and the chosen style call for, in every style, and the gates check that each decision reached the film. Each lesson is listed in `docs/maintainers/lessons.md` (L13 to L22) with its rule and its test.
 
 ### Added
 
+- **Ice's own CC0 sound-effects pack** (founder decision D4): 128 recorded effects in 24 types (whooshes, impacts, sub drops, risers, UI, ticks, paper, typing, room tones), each file CC0 1.0 or public domain, published as the Release asset `assets-sfx-v1` and pinned by SHA-256 in `ice-engines/references/versions.json`. `match_music.py pack fetch` downloads it once into your user folder without a question (turned off by `ICE_OFFLINE=1` or `sources.json`); `pack list --type <type>` lists the sounds of a move with their sync point and levels. It comes after your own files and libraries on the SFX ladder; sound made by code stays only when you ask for it. `--profile under-speech` is the plain name of the speech-safe filter for any film.
 - **The craft plan (L13).** At stage 02 the director writes `ice/plan/craft-plan.json`: one row for each of 18 crafts (camera, depth, compositing, light and focus, grade and finishing, type, transitions, data and maps, cutouts, sound effects, music, ambience, foley, silence, voice, rhythm, real footage, identity), used, used with a limit, or left out, each with its reason and source. "Not asked" is never a reason. Rows are mapped to shots at 04 and locked with the style at 05; defaults per video type and content triggers (a number becomes a counter, a place a map, a long take a moving camera) live in `ice-direction/references/treatment.md`. `AGENTS.md` rule 20.
 - **The craft gate** (`ice-qa/scripts/craft_gate.py`): `plan` checks the plan; `build` checks the render (evidence for every used craft, text over a face, flashes over the safe mode, an idle camera on a long take); `measure` gives the camera track, flashes, finishing, focus and faces of any video, a reference or a render.
 - **Text never covers a face, checked on frames (L16).** Face boxes against text and card boxes on every sample, at least 30 percent of the face uncovered in every 0.3 s window.
