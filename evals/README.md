@@ -1,3 +1,10 @@
+# Evals
+
+Two suites live here:
+
+- **Behaviour** (`behavior.mjs`): Ice runs on real inputs with a plain user prompt, stops at the stage 06 preview, and graders check that every lesson of `docs/maintainers/lessons.md` was applied without being asked. It writes its case folders into `generated/` (ignored by git) for `claude plugin eval`. Guide: [`docs/maintainers/evals.md`](../docs/maintainers/evals.md).
+- **Trigger** (`trigger-eval.json`): the router fires for video requests and stays quiet for near misses. The rest of this file is about it.
+
 # Trigger evals
 
 `trigger-eval.json` checks that the router skill (`skills/ice-motion-director`) fires for video and motion requests and stays quiet for near misses. It holds should-trigger and should-not-trigger prompts in English, Modern Standard Arabic (`ar`) and Egyptian Arabic (`ar-EG`). Each item is `{ "query", "should_trigger", "lang" }`; `query` and `should_trigger` are the format the skill-creator trigger tools read, and `lang` is only a label for the report.
@@ -19,4 +26,4 @@ python -m scripts.run_eval --eval-set <this repo>/evals/trigger-eval.json --skil
 
 ## With `claude plugin eval`
 
-`claude plugin eval` reads one folder per case (`<case>/prompt.md` plus `graders/*.md`), not this JSON file, so it finds no cases here and the file stays the single source. To run a prompt through it, make a local case folder below the plugin, for example `evals/local/<case>/`, with the prompt in `prompt.md` and a `tool_used` grader on the `Skill` tool whose input matches `ice-motion-director` (a `max: 0` grader for a should-not-trigger prompt), then run `claude plugin eval <this repo> --eval-dir evals/local`. Do not commit `evals/local/`: the plugin stays near its file budget. Check `claude plugin eval --help` for the current options first.
+`claude plugin eval` reads one folder per case (`<case>/prompt.md` plus `graders/*.md`, or a `case.yaml`), not this JSON file, so this file stays the single source of the trigger set. To run a prompt through it, make a local case folder below the plugin, for example `evals/local/<case>/`, with the prompt in `prompt.md` and a `tool_used` grader on the `Skill` tool whose input matches `ice-motion-director` (a `max: 0` grader for a should-not-trigger prompt), then run `claude plugin eval <this repo> --eval-dir evals/local`. Do not commit `evals/local/`: the plugin stays near its file budget. Check `claude plugin eval --help` for the current options first.
