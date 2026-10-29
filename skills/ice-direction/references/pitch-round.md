@@ -28,7 +28,7 @@ Everything else in direction converges. This step diverges. It has two rounds:
 - Formed requests skip it: the user's concept is the concept.
 - An ad prompt that gives facts and an occasion but no telling (no picture, scene or idea of how to show it) is unformed about the telling: it always enters the round.
 - Auto mode never skips it; the gate runs inside the run (A.4).
-- Tier sets the size: full tier 5 concepts, light tier 3 concepts. In both, at least two concepts are unexpected.
+- Tier sets the size: full tier 5 concepts, light tier 3 concepts. In both, at least two concepts are unexpected, except on the axes a look the user chose fixes (a reference, a named style, the brand's own identity, a series look: `anti-sameness.md` section 4a); there the round explores only the open axes and every concept honours the choice.
 - What the user is already picturing was asked in the stage 01 message (`questions.md` section 4); read the answer in `BRIEF.md`, never ask it here. An existing idea is one of the pitches and is never displaced.
 
 ## A.2 The sampling gate (internal, always)
@@ -63,7 +63,7 @@ Probabilities never reach the user. They are a sampling constraint, not a scorec
 Each pitch, short:
 
 - **Concept** in one sentence that predicts what happens on screen ("premium, smooth, cinematic" predicts nothing).
-- **Visual world**: the look in a line, naming the one or two capabilities it rides in plain language (never a feature or tool name). A capability that would fit all five pitches is decoration; name it only where this concept leans on it.
+- **Visual world**: the look in a line, naming the one or two capabilities it rides in plain language (never a feature or tool name). A capability that would fit all five pitches is decoration; name it only where this concept leans on it. This names the concept's signature for the pitch, not the film's craft: the craft plan holds every dimension (`references/treatment.md` section "Craft plan").
 - **Opening hook (0 to 3 s)**: what is literally on screen and heard.
 - **Literal anchors**: each symbolic or abstract device and the real, recognisable thing it stands for, seen first or with it (the grounding rule, the ice-qa skill, `references/clarity-gate.md` section 6); or "no symbolic device".
 - **Product beat** (a brand whose offer is an app, a SaaS or a product): the beat where the product does its real job, the cause seen and then the effect.

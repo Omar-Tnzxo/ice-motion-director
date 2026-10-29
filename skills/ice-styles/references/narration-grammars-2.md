@@ -2,6 +2,8 @@
 
 Every entry's examples are illustration only. Hex values record what the measured channels used; they are evidence, not a palette: keep the role structure (ground, line, hero series, signal) and take every value from the film's palette in `ice/DIRECTION.md` (the ice-direction skill).
 
+- **Craft profile (family default):** the narration-grammar line in `narration-grammars-1.md` section 1 holds for y4, y5, t2, t3 and y6.
+
 Selection rules and the catalog table are in `narration-grammars-1.md`; read them first. As in part 1, channel or company names describe a genre only: never use their logos, characters, fonts or names in a film.
 
 Contents

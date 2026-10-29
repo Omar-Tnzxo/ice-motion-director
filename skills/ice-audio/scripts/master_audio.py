@@ -1,4 +1,6 @@
 # Adapted from Omar-Tnzxo/video-production-studio tools/master_audio.py (founder-owned, licensed here under Apache-2.0). Changes: ffmpeg runs with stdin closed, clear error when ffmpeg or ffprobe is missing, --music-start (back-timing offset into the track), --music-fade-in (default 0: the music starts at full level), --music-fade-out (0 = keep the track's own ending) and --music-loop added, the applied music edges recorded in master.json, an unreadable video duration is an input error instead of a silent 10 s guess, usage path updated; loudnorm replaced by a measured linear gain plus a 4x oversampled true-peak limiter, output forced to 48 kHz, the exported file re-measured with ffmpeg ebur128 and re-rendered until the true peak meets the target (exit 1 when it cannot).
+# 2026-10-29 (0.2.5): voice or SFX energy cut at the film end is reported in master.json ("cut_at_end") and on screen, and a
+# cut voice fails the master (exit 1); a looped or short music track is recorded as before and also printed as a warning.
 """Master and normalize audio for video with multi-track mixing, loudness gain and a true-peak limiter.
 
 Method: mix, measure integrated loudness with ffmpeg ebur128, apply the linear gain to the target, limit
@@ -33,7 +35,12 @@ Inputs:
 
 Music edges: these four flags are the only things that change the start or end of the music. Nothing else
 fades, trims or delays it; voiceover and SFX are never faded. Every applied value is written to master.json
-under "music_edges", with "looped" true when the track really restarted inside the film.
+under "music_edges", with "looped" true when the track really restarted inside the film; a looped or short
+track also prints a warning (it goes on the ear list of qc.py --audit).
+
+Cut at the end: the voiceover and every SFX stop at the last frame. When one of them still carries sound after
+it (a peak over -40 dBFS), master.json records it under "cut_at_end" and a line says so; a cut voice is a
+problem (status fail, exit 1): end the line earlier or lengthen the picture.
 
 Outputs:
   OUT.mp4: Mastered video file with copied video stream and AAC audio at 48 kHz
@@ -343,6 +350,44 @@ def describe_music_edges(
     }
 
 
+CUT_TAIL_DB = -40.0  # a peak over this after the last frame counts as sound that the end cuts
+
+
+def tail_peak_db(path: pathlib.Path, start_sec: float, gain_db: float = 0.0) -> float | None:
+    """Peak level in dBFS of a file from start_sec to its end (ffmpeg volumedetect), or None when nothing is left."""
+    length = media_duration(path)
+    if length is None or start_sec >= length - 0.02:
+        return None
+    res = run_command(["ffmpeg", "-nostats", "-ss", f"{max(0.0, start_sec):.4f}", "-i", str(path), "-map", "0:a:0",
+                       "-af", "volumedetect", "-f", "null", "-"])
+    m = re.search(r"max_volume:\s*(-?[\d.]+|-inf) dB", res.stderr or "")
+    if res.returncode != 0 or not m or m.group(1) == "-inf":
+        return None
+    return float(m.group(1)) + gain_db
+
+
+def describe_cuts_at_end(
+    vo: pathlib.Path | None, vo_offset: float, sfx_items: list[dict[str, Any]], video_duration: float,
+) -> dict[str, Any]:
+    """Voice and SFX sound that the film end cuts (both are trimmed at the last frame)."""
+    out: dict[str, Any] = {"voice": None, "sfx": []}
+    if vo:
+        start = video_duration - vo_offset  # the file time that meets the last frame
+        peak = tail_peak_db(vo, start)
+        length = media_duration(vo)
+        after = None if length is None else round(max(0.0, length - start), 3)
+        out["voice"] = {"cut": peak is not None and peak > CUT_TAIL_DB, "seconds_after_end": after,
+                        "peak_db": None if peak is None else round(peak, 1)}
+    for item in sfx_items:
+        start = video_duration - float(item.get("at", 0.0))
+        peak = tail_peak_db(pathlib.Path(item["file"]), start, float(item.get("gain_db", 0.0)))
+        if peak is not None and peak > CUT_TAIL_DB:
+            length = media_duration(pathlib.Path(item["file"])) or 0.0
+            out["sfx"].append({"file": str(item["file"]), "seconds_after_end": round(max(0.0, length - start), 3),
+                               "peak_db": round(peak, 1)})
+    return out
+
+
 def master_audio(
     video: pathlib.Path,
     out: pathlib.Path,
@@ -401,6 +446,7 @@ def master_audio(
     video_duration = vid_info["duration"]
     out.parent.mkdir(parents=True, exist_ok=True)
     music_edges = describe_music_edges(music, video_duration, music_start, music_fade_in, music_fade_out, music_loop)
+    cut_at_end = describe_cuts_at_end(vo, vo_offset, sfx_items, video_duration)
 
     ffmpeg_inputs, base_filter = build_filter_graph(
         video_path=video, video_duration=video_duration, video_has_audio=vid_info["has_audio"],
@@ -446,6 +492,9 @@ def master_audio(
         problems.append(f"audio sample rate is {final['sample_rate']} Hz, not {SAMPLE_RATE}")
     if abs(final["lufs"] - target_lufs) > LUFS_TOLERANCE:
         problems.append(f"integrated loudness {final['lufs']} LUFS is more than {LUFS_TOLERANCE} LU from {target_lufs}")
+    if cut_at_end["voice"] and cut_at_end["voice"]["cut"]:
+        problems.append(f"the voiceover is cut at the film end ({cut_at_end['voice']['seconds_after_end']} s after the "
+                        f"last frame, peak {cut_at_end['voice']['peak_db']} dBFS): end the line earlier or lengthen the picture")
 
     out_info = probe_video(out)
     master_summary = {
@@ -458,6 +507,7 @@ def master_audio(
         "measured_output": final,
         "renders": renders,
         "music_edges": music_edges,
+        "cut_at_end": cut_at_end,
         "video_stream": {"codec_name": out_info["codec_name"], "nb_frames": out_info["nb_frames"], "duration": out_info["duration"]},
         "output_file": str(out.resolve()),
     }
@@ -492,6 +542,17 @@ def main() -> int:
             music_fade_in=args.music_fade_in, music_loop=args.music_loop,
         )
         sys.stdout.write(json.dumps(summary, ensure_ascii=False) + "\n")
+        edges = summary.get("music_edges") or {}
+        if edges.get("looped") or edges.get("ends_before_film"):
+            sys.stderr.write("WARNING: the music track is shorter than the film ("
+                             + ("it loops from its top" if edges.get("looped") else "it ends before the film")
+                             + "); it goes on the ear list of qc.py --audit: fix the edit or the cue first "
+                             "(mix-and-master.md section 6)\n")
+        cut = summary.get("cut_at_end") or {}
+        if (cut.get("voice") or {}).get("cut"):
+            sys.stderr.write(f"CUT: the voiceover still speaks {cut['voice']['seconds_after_end']} s after the last frame\n")
+        for s in cut.get("sfx") or []:
+            sys.stderr.write(f"CUT: {pathlib.Path(s['file']).name} still sounds {s['seconds_after_end']} s after the last frame\n")
         if summary["status"] != "pass":
             sys.stderr.write("FAIL: " + "; ".join(summary["problems"]) + "\n")
             return 1

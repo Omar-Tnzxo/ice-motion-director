@@ -32,6 +32,17 @@ The user's footage stays the spine; the job is to add inserts, motion clips, low
 | Face between cutaways | At least about 2 s |
 | Never | In the first second of the hook, or on personal, emotional or opinion lines |
 
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. Medium density is the default: the light numbers are the fail line, and a medium or heavy plan that warns under the first number is fixed before 07.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 8; 4 at light density | Density (Rhythm ranges): medium 4 to 7 inserts per minute, each entering and leaving (2 events), so 4 x 2 at the low end; light 2 to 4 per minute, so 2 x 2 |
+| `longest_bare_talk_s` | 15 s; 30 s at light density | The spacing of insert starts at the low end of each density: 60 / 4 for medium, 60 / 2 for light |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2) |
+| `broll_share` | 20 percent; 10 percent at light density | Inserts per minute at the density's low end times the shortest cutaway of 3 s (Cutaway length): 4 x 3 s and 2 x 3 s per 60 s |
+
 ## Transition policy
 Cutaways enter and leave on hard cuts against the A-roll unless the plan names a reason; within a motion clip the shape never cuts (it morphs).
 

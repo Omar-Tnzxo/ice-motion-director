@@ -10,13 +10,16 @@ Picture, captions, graphics, music and sound effects all move on one clock: the 
 
 ```json
 {"sources":{"<name>":"<path to source>"},
- "ranges":[{"source":"<name>","start":0.0,"end":0.0,"beat":"<label>","note":"<why>"}],
+ "ranges":[{"source":"<name>","start":0.0,"end":0.0,"beat":"<label>","note":"<why>",
+            "source_class":"<optional: own, outside, or a class the look step names>","grade":"<optional: this range only>"}],
  "grade":"<omit unless approved: preset name, raw filter, or auto>",
+ "grades":{"<source class>":"<preset name, raw filter, or auto>"},
  "overlays":[{"file":"<path>","start_in_output":0.0,"duration":0.0}],
  "subtitles":"<optional path to master.srt>"}
 ```
 
 - Ranges play in order; times are source times. Output offsets accumulate range by range.
+- Grade per source class (lesson L20): a range's own `grade` wins, else its `source_class` looked up in `grades`, else the EDL `grade`; without `grade` or `source_class` on any range every range takes the EDL `grade`, as before. Presets in `scripts/grade.py`: `news_clean` (clean digital studio, neutral, no grain) and one outside-material treatment per film for archive, agency footage, stills and screenshots (`outside_mono`, `outside_desat_lift`, `outside_warm_duotone`); the speaker's and the film's own ranges never take the outside treatment. Which treatment and why is a look decision at 05, logged in `ice/DIRECTION.md`. `python scripts/render.py <edl.json> -o <out> --dry-run` prints the grade and filter of every range as JSON without rendering.
 - `python scripts/render.py <edl.json> -o <out> --draft` (720p, CRF 28, cut-point check only), `--preview` (1080p, CRF 22, review), final (CRF 20, then two-pass loudnorm). `--build-subtitles` writes `master.srt` from per-source transcripts in `<edit dir>/transcripts/`; `--fps` forces one output rate.
 - `node scripts/edl-to-edited-transcript.mjs <edl.json>` writes the edited-timeline transcript every later layer reads.
 
@@ -25,26 +28,32 @@ Picture, captions, graphics, music and sound effects all move on one clock: the 
 Seconds are edited time except fields prefixed `source`. Quantize cuts and scene boundaries to 1/fps; keep precise ASR word times rather than rounding each word.
 
 ```json
-{"duration":0.0,"fps":30,
+{"duration":0.0,"fps":30,"type":"<edit type, as its edit-types file names it>",
  "reference":{"maxEventGap":0.0,"eventsPerMinute":0.0},
  "scenes":[{"id":"s00","start":0.0,"end":0.0,"layout":"face","kind":"<asset stem>",
-            "anchor":"<exact transcript phrase>","anchorTime":0.0,"holdReason":"<optional>","cut":"<optional: archive>"}],
- "events":[{"time":0.0,"type":"<real visual action>","visual":"s00","anchor":"<phrase>"}],
+            "anchor":"<exact transcript phrase>","anchorTime":0.0,"holdReason":"<optional>","cut":"<optional: archive>",
+            "craft":["<optional: craft codes this scene carries>"]}],
+ "events":[{"time":0.0,"type":"<real visual action>","visual":"s00","anchor":"<phrase>","craft":["<optional: craft codes>"]}],
+ "triggers":[{"time":0.0,"kind":"<trigger kind>","text":"<the words in the transcript>","notUsed":"<optional: why no element answers it>"}],
  "captions":[{"start":0.0,"end":0.0,"words":[{"text":"...","start":0.0,"end":0.0,"sourceStart":0.0,"sourceEnd":0.0}]}]}
 ```
 
-- Layouts: `face`, `split`, `paper`, `broll`, `broll-split`. A B-roll scene's `kind` names `assets/<kind>.mp4`.
+- Layouts: `face`, `split`, `paper`, `broll`, `broll-split`. A B-roll scene's `kind` names `assets/<kind>.mp4`. A news reel's archive, a showreel's clips and any outside material use `broll`.
+- `type` (lesson L17): the edit type (news reel, talking-head ad, shorts and reels, podcast, long-form, B-roll overlay, showreel); without it the craft plan's `type` is read. It picks the "Coverage floor" table of `edit-types/<type>.md`; the four measures and how they are counted: the `ice-qa` skill, `references/motion-density.md` section 6.2.
+- `triggers`: every content trigger found in the transcript with its edited time, one row each (the trigger kinds: the `ice-direction` skill, `references/treatment.md` section "Craft plan"). Each is answered by a visual event (an event or a scene cut) within 1.5 s of its time, or carries `notUsed` with the reason no element answers it (a string, or `{"reason", "source"}`); a banned reason from the same section counts as none.
+- `craft` on scenes and events: the codes of the craft plan (the closed list in the same section) that the scene or event carries. Every visual row of the craft plan (`camera`, `depth`, `composite`, `light`, `finish`, `type`, `transition`, `data`, `cutout`, `footage`, `identity`) whose decision is `use` or `scoped` needs at least one tagged scene or event; sound rows are checked on the mix, `rhythm` by the coverage floor. The rows come from a `craft` field at the top of the plan (the craft plan inline, same shape as the file) or else from `ice/plan/craft-plan.json`, found by walking up from the project folder.
+- Exemptions come only from the craft plan's `exemptions` rows (format and pass rule: `treatment.md` section "Craft plan"). The plan validator reads three ids: `plan:gap` (the 2.2 s gap without a reference), `plan:anchor` (the anchor window below, for a declared J or L cut or a beat cut with its offset), `plan:coverage` (a coverage floor or an unanswered trigger). It prints `exempt <rule id> by <row id> (<source kind>: <source ref>)`. The reference limits of `reference` are never lifted by these rows.
 - `events` are real visual actions, never filler entries added to satisfy cadence. In a news reel a camera move start, a graphic in or out, a flash and a colour wash each count as an event (`edit-types/news-reel.md` section 3).
 - `reference` (optional, lesson L9, every edit that follows a reference): copied from the reference's events file `ice/reference/<ref-id>/analysis/events.json` (measured with `ice-remake/references/measuring.md`, section "Pacing events"): `maxEventGap` is its longest gap between consecutive events in seconds, `eventsPerMinute` its event density, holds excluded. With it, the plan's gap limit is `maxEventGap x 1.10 + 1/fps` instead of 2.2 s and a `holdReason` does not excuse a gap above it; the plan also fails when its events per minute (events of `type` or `kind` `hold` excluded) fall below `eventsPerMinute x 0.90`. Only changed material clears a fail, or the user's own words accepting a slower pace, logged in `ice/DIRECTION.md`. The same gate runs on the render: `ice-qa/references/motion-density.md`, "Pacing against the reference". Without `reference` the 2.2 s rule below holds unchanged.
 - `cut: "archive"` (news reel archive burst, `edit-types/news-reel.md` section 4): the scene's anchor is the noun that names what the archive shows, `anchorTime` its end, and the cut sits 0.36 s after it (row "Archive cut" in section 4); the anchor tolerance below is applied around that point.
 - `assets/transcript.json` holds the retained words with text, start, end, sourceStart, sourceEnd. `assets/edit-decisions.json` holds `duration`, `fps`, `keeps` (`{sourceStart,sourceEnd,start,end}`) and the reviewed removal reasons. Every retained word maps back to one kept range without crossing a cut; when no edit was made and `sourceStart` is absent, adapt the validator explicitly.
-- Check: `node scripts/validate-plan.mjs <project>`. It fails on: caption word count or text differing from the retained words, caption times more than 0.005 s from the transcript, a word crossing a cut or mapped more than 0.006 s off (keep-range tolerance 0.016 s), scene gaps or overlaps over 0.005 s, scenes not frame-aligned, an anchor more than 0.15 s before or 0.2 s after its scene start, missing moving B-roll, a visual-event gap over 2.2 s without `holdReason` (with `reference`: a gap over the reference limit, or a density under it, whatever the hold reason), caption groups truncating words or overlapping. It reports average shot length, the largest event gap and the speaker share (with `reference`, also `eventsPerMinute`). It checks timing and coverage, not creative quality.
+- Check: `node scripts/validate-plan.mjs <project>`. It fails on: caption word count or text differing from the retained words, caption times more than 0.005 s from the transcript, a word crossing a cut or mapped more than 0.006 s off (keep-range tolerance 0.016 s), scene gaps or overlaps over 0.005 s, scenes not frame-aligned, an anchor more than 0.15 s before or 0.2 s after its scene start, missing moving B-roll, a visual-event gap over 2.2 s without `holdReason` (with `reference`: a gap over the reference limit, or a density under it, whatever the hold reason), caption groups truncating words or overlapping, a coverage measure past the type's floor (with `reference`, the first two measures are gated by the reference limits instead), a trigger with no event within 1.5 s and no `notUsed` reason, a visual `use` or `scoped` craft row with no tagged scene or event, a craft tag outside the closed list. It reports average shot length, the largest event gap and the speaker share (with `reference`, also `eventsPerMinute`), and under `coverage` the four measures, their floors and the file each floor came from (a type with no table is reported, not failed); `warnings` lists strict-line misses and `exempt` the lifted hits. It checks timing and coverage, not creative quality.
 
 ## 4. Anchor leads (scoped, all kept)
 
 | Element | Enters | Scope |
 |---|---|---|
-| Short-form scene cut | Within -0.15 to +0.2 s of its anchor word | Shorts and reels plan |
+| Short-form scene cut | Within -0.15 to +0.2 s of its anchor word by default; a declared J or L cut or a beat cut keeps its own offset through a `plan:anchor` exemption row (section 3) | Shorts and reels plan |
 | Archive cut | 0.36 s (9 f at 25 fps) after the end of the noun that names what the archive shows, inside the speech pause; never during a question. Replaces the scene-cut window above for that cut only (plan scene `cut: "archive"`) | News reel (edit type `news-reel`, style family `family-broadcast-news.md`): archive burst, `edit-types/news-reel.md` section 4 |
 | Caption or impact event | Sync target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3 | Short-form |
 | Persistent-world graphic element | 0.15 to 0.25 s before the anchor word | Long-form graphics-led |

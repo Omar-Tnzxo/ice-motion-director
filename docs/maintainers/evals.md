@@ -69,7 +69,7 @@ Facets decide which graders a case gets: `speaker` (a person speaks on camera), 
 | `l4-storyboard-linted` | L4, L12 | trace (Bash calls) | `storyboard_lint.py` ran (checks 17 and 21: triggers, reasons, cited words, depth routes) |
 | `l4-triggers-cite-the-words` | L4 | `ice/plan/storyboard.md` (LLM) | every element quotes the words it follows and gives a real reason |
 | `l4-reference-reasons` | L4 | created files | `ice/reference/<ref-id>/REASONS.md` exists |
-| `l5-speaker-stays-lit` | L5 | `ice/plan/storyboard.md` (LLM) | the speaker is never dimmed, silhouetted or put in the disc |
+| `l5-speaker-stays-lit` | L5 | `ice/plan/storyboard.md` (LLM) | the speaker is never darkened, silhouetted, blurred, turned fully grey or sepia, or ringed while speaking; a partial desaturation and scale back while an inserted image is the subject (L19) is fine |
 | `face-clear-of-text` | L5 | `ice/plan/storyboard.md` (LLM) | no text or graphic is planned over the face or hands |
 | `l6-finishing-measured` | L6 | trace | the run wrote the "Finishing layer" table of the reference's `ANALYSIS.md` |
 | `l6-finishing-by-reason` | L6 | `ice/DIRECTION.md` (LLM) | each finishing effect has its place, value and reason |
@@ -81,8 +81,17 @@ Facets decide which graders a case gets: `speaker` (a person speaks on camera), 
 | `l10-marks-in-their-slots` | L10 | `ice/plan/storyboard.md` (LLM) | each fixed mark keeps one measured slot, none invented |
 | `l12-reference-depth` | L12 | created files | the reference's `analysis/depth.json` exists |
 | `l12-depth-routes` | L12 | `ice/plan/storyboard.md` (LLM) | each depth, 3D or camera element has its `build:` route |
+| `l13-craft-plan-written` | L13 | created files | `ice/plan/craft-plan.json` exists |
+| `l13-craft-plan-checked` | L13 | trace (Bash calls) | `craft_gate.py plan` ran |
+| `l13-no-unasked-gaps` | L13 | `ice/plan/craft-plan.json` (LLM) | every craft dimension has a row; nothing is left out because the user did not ask |
+| `l14-exemptions-sourced` | L14 | `ice/plan/craft-plan.json` (LLM) | every device a default ban would flag carries its source, shots and amount |
+| `l17-edit-floor-checked` | L17 | trace (Bash calls) | `validate-plan.mjs` or `craft_gate.py` ran on the edit plan |
+| `l19-speaker-recedes-not-darkens` | L19 | `ice/plan/storyboard.md` (LLM) | the speaker recedes only while an inserted image is the subject: scale back and partial desaturation while speaking, dimming and defocus only while silent, back when the image leaves |
+| `l20-outside-material-treated` | L20 | `ice/DIRECTION.md` (LLM) | outside material gets one logged treatment, never the speaker |
+| `l21-style-needs-copied` | L21 | `ice/plan/craft-plan.json` | the plan carries `style_needs` from the chosen style's craft profile |
+| `l22-user-choice-honoured` | L22 | `ice/DIRECTION.md` (LLM) | the reference the user chose keeps its look; the film is not moved away from it to satisfy anti-sameness |
 
-Not covered, by design: L11 (captions against a fresh transcript of the delivered audio) runs at stages 09 and 10, after these cases stop, and needs a full-run case. Numbers the graders cannot compute (the longest gap in seconds, face boxes, loudness) are checked through the scripts Ice must run and the files they write.
+Not covered, by design: L11 (captions against a fresh transcript of the delivered audio), L16 (text over a face, measured on the render) and L18 (the mix audit and the ear list) run at stages 07 to 10, after these cases stop, and need a full-run case; L15 (depth as a craft) is judged inside the craft plan graders of L13 and L14. Numbers the graders cannot compute (the longest gap in seconds, face boxes, loudness) are checked through the scripts Ice must run and the files they write.
 
 ## 6. A new lesson gets a grader and a case
 

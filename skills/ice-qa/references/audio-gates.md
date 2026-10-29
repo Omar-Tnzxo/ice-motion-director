@@ -5,16 +5,20 @@ Measure the exported MP4, never the intermediate WAV or the stems: normalization
 ## 1. Commands
 
 ```
-node scripts/loudness.mjs final.mp4         # integrated I, LRA, true peak, short-term loudness per second
+python <ice-audio skill>/scripts/qc.py --audit --render final.mp4 --stems ice/audio/stems --cue-sheet ice/plan/cue-sheet.json --profile <id>   # the blocking audit and the ear list (section 2b)
+python <ice-type skill>/scripts/align_script_to_asr.py --stem <voice stem> --mix final.mp4 <script>   # masked or misheard words (A5)
+node scripts/quick-checks.mjs loudness final.mp4 --profile <id>  # integrated I, LRA, true peak, short-term loudness per second; exit 1 outside the profile
 python scripts/look.py final.mp4 --out ice/review/look --expect-audio   # AUDIO block: LUFS, LRA, TP, audible span, silent tail, dropouts, onsets vs cuts
 ffmpeg -i final.mp4 -af ebur128=peak=true -f null -    # raw measurement
 ```
+
+`<id>` is the profile logged in `ice/DIRECTION.md`, one id of the gate column of the `ice-audio` skill, `references/mix-and-master.md` section 5. Run the audit at 08b on the draft and at 10 on the delivered file; run the speech check first, so the audit reads its result and its doubtful words lead the ear list.
 
 ## 2. Checks
 
 | Check | Pass when | Source |
 |---|---|---|
-| Integrated loudness | Measured I inside the chosen profile's target and tolerance. Profiles and tolerances: the `ice-audio` skill, `references/mix-and-master.md` section 5. A news reel (edit type `news-reel`, style family `family-broadcast-news.md`) is measured against the row "News reel, speech-led" of that file, not the social profile | product-launch-motion, mg-styles-15, explainroo |
+| Integrated loudness | Measured I inside the chosen profile's target and tolerance. Profiles and tolerances: the `ice-audio` skill, `references/mix-and-master.md` section 5. A news reel (edit type `news-reel`, style family `family-broadcast-news.md`) is measured against the row "News reel, speech-led" of that file, not the social profile. Blocking: A1 of section 2b | product-launch-motion, mg-styles-15, explainroo |
 | True peak | Measured TP at or under the profile's ceiling (same owner section). AAC adds a little, so expect the measured peak about 0.2 dB above the master's limiter setting | product-launch-motion, claude-code-video-toolkit |
 | Quiet is not safe | A render well under target fails too: platforms turn loud content down but never turn quiet content up. Fail and warn floors: the `ice-audio` skill, `references/mix-and-master.md` section 5. | claude-code-video-toolkit, motion-video-kit |
 | Loudness range | Measured LRA inside the profile's LRA range: the `ice-audio` skill, `references/mix-and-master.md` section 5. | motion-video-kit |
@@ -24,8 +28,8 @@ ffmpeg -i final.mp4 -af ebur128=peak=true -f null -    # raw measurement
 | Effects present and audible | Each SFX cue is measurably present in the delivered mix (compare the same window against the previous master); solo peak at least -45 dBFS and audible in the mix; fail if more than half are masked by the voice or fewer than max(3, length / 30 s) are unmasked; re-run on the delivered file after normalization. Per-cue audibility thresholds: the `ice-audio` skill, `references/sfx.md` section 6. | product-launch-motion, PolyForm ideas |
 | Effects level | Measured in-band lift and 2 to 8 kHz spikes against the owner levels: the `ice-audio` skill, `references/sfx.md` section 6. | motion-video-kit, motionmaxxing |
 | Relative levels | Short-term loudness of the end card against the dialogue, and effects against speech: the `ice-audio` skill, `references/mix-and-master.md` section 7. A breach is a bug | video-use |
-| Voice over bed | The voice is legible without the bed sounding hollowed, and the bed comes back up between phrases; a bed that sounds notched under the voice means the ducking is too strong | hyperframes audio |
-| Comfortable mix (every film with sound) | Two halves. The music sits under the speech: the bed level and ducking of the `ice-audio` skill, `references/mix-and-master.md` section 3, measured on the exported file. No repeated pulse: no music bed or SFX layer whose energy repeats as a steady throb the ear tires of; no script in this repo measures it, so it is a named item of the human listening check (same file, sections 3 and 8, with what to listen for), and the audio report says "repeated pulse: not heard", "heard at <time>" or "not listened by a human". Heard at any time fails | owner decision, 2026-10-29 |
+| Voice over bed | The voice is legible without the bed sounding hollowed, and the bed comes back up between phrases; a bed that sounds notched under the voice means the ducking is too strong. Measured: A3 and A5 of section 2b; the notched sound is an ear-list item | hyperframes audio |
+| Comfortable mix (every film with sound) | Two halves. The music sits under the speech: the bed level and ducking of the `ice-audio` skill, `references/mix-and-master.md` section 3, measured by `qc.py --audit` (A3 of section 2b). No repeated pulse: no music bed or SFX layer whose energy repeats as a steady throb the ear tires of; no script in this repo measures it, so it is a named item of the human listening check (same file, sections 3 and 8, with what to listen for), and the audio report says "repeated pulse: not heard", "heard at <time>" or "not listened by a human". Heard at any time fails | owner decision, 2026-10-29 |
 | Arc | Judge the loudness arc per beat with K-weighted loudness, not RMS: the landing reads louder than the move into it | PolyForm ideas |
 | Spectrum (optional) | Master bands roughly sub 5-35%, bass 30-65%, presence 1-5%, brilliance 0.5-6%; warnings at sub over 45%, presence over 7% (harsh), a silence gap over 0.6 s | mg-styles-15 |
 | Hero moments audible | The hero moments are audible on a laptop at normal volume with the music on | motion-video-kit |
@@ -34,6 +38,26 @@ ffmpeg -i final.mp4 -af ebur128=peak=true -f null -    # raw measurement
 
 Before applying an audio fix, state what you would expect to measure if you are wrong, and check that too (hyperframes audio). Batch audio changes and verify once with a full render plus master (product-launch-motion).
 
+## 2b. The audit (blocking items)
+
+`qc.py --audit` (the `ice-audio` skill, `scripts/qc.py`; commands in section 1) measures the delivered mix and exits 1 on any item of the "Blocks" column; `audio-audit.json` keeps every value, threshold, source and verdict. The "Else" column never blocks: it becomes an item of the ear list (`ice/review/ear-list.json`) or a reported warning. A blocking item is fixed in the mix and the audit runs again; it is never explained away (`delivery-report.md` section 1).
+
+| Item | Blocks | Else |
+|---|---|---|
+| A1 loudness | I outside the profile's tolerance, true peak over its ceiling, LRA outside a hard range (gate column of `mix-and-master.md` section 5); also `quick-checks.mjs loudness --profile` | an LRA floor that warns: ear list |
+| A3 voice over bed | in voiced 100 ms windows, the 5th percentile of voice minus bed in 1 to 4 kHz under 0 dB; "unmeasured" (no stems, no separation, and speech not declared absent) | 5th percentile under 6 dB, voiced runs under 0 dB, a median under the type's bed band: ear list |
+| A5 masked words | `align_script_to_asr.py --stem` exits 1: a word right in the clean stem and lost or changed in the mix; a scene under 0.8 or the film under 0.85 in the mix while the stem meets the floor | misheard (wrong in both), low confidence (probability under 0.5), both under the floor: ear list |
+| A6 joins | a click (an isolated sample step, a spike over 4 kHz) or a truncation cliff at a voice join, under speech or inside a declared quiet window | the same elsewhere: ear list |
+| A8 clipping | any run of 3 samples at or over -0.1 dBFS on the render or a stem | |
+| A9 DC offset | an absolute mean over 0.001 on the render or a stem | |
+| A10 stereo | anti-phase low end (under 150 Hz) or extra mono loss over 1.5 dB | balance over 1 dB (ear list), low band correlation (report) |
+| A11 stream | not 48 kHz, not 2 channels, not AAC (broadcast profiles: per their spec), audio and video more than one frame apart | bitrate outside 192 to 256 kbps (report) |
+| A12 silences | an undeclared hole under -50 dBFS over 0.25 s; a declared `quiet` window not 6 dB under the 2 s before | more than 0.5 s of tail outside a news reel (report) |
+| A13 ending | the voice still speaking after the last frame (`master.json` `cut_at_end`, or the voice stem) | a looped or short music track, an effect cut at the end: ear list |
+| A15 effects under speech | news reel: an effect under speech with over 50 % of its energy in 150 Hz to 4 kHz | other types: an effect on a word within 6 dB of the voice: ear list |
+
+Not yet measured by a script: effects present and audible per cue, level jumps at cuts, the beat error per cut; their rows in section 2 stay checks by the procedure written there.
+
 ## 3. Honesty
 
-You cannot hear the score. Every claim about sound comes from a measurement or from a human; say which. Report the numbers, never "sounds good". A waveform establishes levels and timing, not whether the music is emotionally right (anidoodle, video-use, herk-edit-kit).
+You cannot hear the score. Every claim about sound comes from a measurement or from a human; say which. Report the numbers, never "sounds good". A waveform establishes levels and timing, not whether the music is emotionally right (anidoodle, video-use, herk-edit-kit). The human part is the ear list: its status stays "not listened by a human" until the user answers, and the answers are logged with the router's `ice-state.mjs log`.

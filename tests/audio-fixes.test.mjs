@@ -2,12 +2,16 @@
 // start offset, loop) is an explicit flag recorded in master.json. Real sound by default (owner decision,
 // 2026-10-29): no code score on a default path, the mgaudio opt-in sentence once, the options flow, and the scripts
 // match_music.py and preview_options.py (help, then a ranking and an equal-loudness run on generated tones).
+// audit (0.2.5, lesson L18): qc.py --audit blocks a bed over the voice and a DC offset and writes the ear list,
+// its profile table equals mix-and-master.md section 5 and quick-checks.mjs, loudness --profile exits 1 off the
+// profile, align_script_to_asr.py --stem tells masked from misheard, master_audio.py fails a cut voice, and
+// qc.py --diagnose finds hum and a noise floor.
 // Graph checks need Python 3.10+; the render checks also need ffmpeg and ffprobe on PATH, the ranking numpy and
 // scipy. Each test skips cleanly when its tool is missing.
 // Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -287,3 +291,228 @@ test("match_music.py sfx --profile news-reel: sub or air only under speech, the 
     const plain = JSON.parse(readFileSync(join(dir, "default", "sfx-impact-ranking.json"), "utf8"));
     assert.equal(plain.ranking[0].file, "mid hit.wav", "the default profile keeps its phone rule");
   });
+
+// ---------------------------------------------------------------- audit (0.2.5): the mix is measured, with an ear list
+const QC = join(SCRIPT_DIR, "qc.py");
+const ALIGN = abs("skills/ice-type/scripts/align_script_to_asr.py");
+const QUICK = abs("skills/ice-qa/scripts/quick-checks.mjs");
+const AUDIT_SKIP = !PYTHON ? "Python 3 not found" : !hasNumpy ? "numpy not installed" : !FFMPEG ? "ffmpeg or ffprobe not on PATH" : false;
+const runPy = (...args) => spawnSync(PYTHON[0], [...PYTHON.slice(1), ...args], { encoding: "utf8", timeout: 300000 });
+
+// 20 s at 48 kHz: a voice stem of syllable-gated tones (220, 1500 and 2600 Hz) from 1 s to 19 s, a bed stem (110 Hz,
+// 2000 Hz and noise) scaled by argv[2], and their sum plus a DC offset of argv[3] as mix.wav. Illustration only.
+const MIX_TONES = String.raw`
+import os, sys, wave
+import numpy as np
+sr, dur = 48000, 20.0
+d, gain, dc = sys.argv[1], float(sys.argv[2]), float(sys.argv[3])
+t = np.arange(int(sr * dur)) / sr
+gate = (((t % 0.3) < 0.2) & (t > 1.0) & (t < dur - 1.0)).astype(float)
+gate = np.convolve(gate, np.ones(480) / 480, mode="same")
+voice = gate * (0.12 * np.sin(2 * np.pi * 220 * t) + 0.08 * np.sin(2 * np.pi * 1500 * t) + 0.06 * np.sin(2 * np.pi * 2600 * t))
+rng = np.random.default_rng(1)
+bed = gain * (0.2 * np.sin(2 * np.pi * 110 * t) + 0.1 * np.sin(2 * np.pi * 2000 * t) + 0.05 * rng.standard_normal(len(t)))
+def write(path, x):
+    x = np.clip(x, -1, 1)
+    with wave.open(path, "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.stack([x, x], axis=1) * 32767).astype("<i2").tobytes())
+os.makedirs(d + "/stems", exist_ok=True)
+write(d + "/stems/voice.wav", voice)
+write(d + "/stems/music.wav", bed)
+write(d + "/mix.wav", voice + bed + dc)
+`;
+
+// A project folder with stems/ and film.mp4 (AAC, 48 kHz), audited against `social`; memoized per name.
+const audits = {};
+function auditRun(name, bedGain, dc = 0) {
+  if (audits[name]) return audits[name];
+  const dir = join(work, `audit ${name}`);
+  mkdirSync(dir, { recursive: true });
+  let r = runPy("-c", MIX_TONES, dir, String(bedGain), String(dc));
+  assert.equal(r.status, 0, r.stderr);
+  r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=20",
+    "-i", join(dir, "mix.wav"), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest",
+    join(dir, "film.mp4")], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  r = runPy(QC, "--audit", "--project", dir, "--render", "film.mp4", "--stems", "stems", "--profile", "social");
+  assert.ok(r.status === 0 || r.status === 1, r.stdout + r.stderr);
+  const read = (f) => JSON.parse(readFileSync(join(dir, "ice", "review", f), "utf8"));
+  audits[name] = { status: r.status, out: r.stdout, audit: read("audio-audit.json"), ear: read("ear-list.json") };
+  return audits[name];
+}
+
+test("audit: a bed louder than the voice in 1 to 4 kHz blocks A3; a bed far under the voice passes (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const loud = auditRun("loud bed", 2.0);
+  assert.equal(loud.status, 1, loud.out);
+  const a3 = loud.audit.checks.A3;
+  assert.equal(a3.pass, false);
+  assert.equal(a3.blocking, true);
+  assert.ok(a3.value.p5_band_db < 0, JSON.stringify(a3.value));
+  assert.ok(loud.audit.blocking.includes("A3"));
+  for (const key of ["value", "threshold", "source", "pass", "blocking"]) assert.ok(key in a3, `A3 has ${key}`);
+  assert.match(a3.source, /mix-and-master\.md section 3/);
+  const quiet = auditRun("quiet bed", 0.05);
+  assert.equal(quiet.audit.checks.A3.pass, true, JSON.stringify(quiet.audit.checks.A3));
+  assert.equal(quiet.audit.checks.A3.blocking, false);
+  assert.deepEqual(quiet.audit.presence, { music: true, voice: true, sfx: false, ambience: false, foley: false, silence: false });
+});
+
+test("audit: a DC offset blocks A9 (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const dc = auditRun("dc offset", 0.05, 0.02);
+  assert.equal(dc.status, 1, dc.out);
+  assert.equal(dc.audit.checks.A9.blocking, true, JSON.stringify(dc.audit.checks.A9));
+  assert.ok(dc.audit.blocking.includes("A9"));
+  assert.equal(auditRun("quiet bed", 0.05).audit.checks.A9.pass, true, "a clean mix passes A9");
+});
+
+test("audit: the ear list has 5 to 7 items, each with a time, a yes or no question, why a machine could not settle it and the fix", { skip: AUDIT_SKIP }, () => {
+  for (const run of [auditRun("loud bed", 2.0), auditRun("quiet bed", 0.05)]) {
+    const items = run.ear.items;
+    assert.ok(items.length >= 5 && items.length <= 7, `${items.length} items`);
+    assert.equal(run.ear.status, "not listened by a human");
+    items.forEach((it, i) => {
+      assert.equal(it.n, i + 1);
+      for (const key of ["start", "end", "time", "question", "why_not_machine", "fix_if_no", "source", "risk"]) {
+        assert.ok(it[key] !== undefined && it[key] !== null && it[key] !== "", `item ${it.n} has ${key}`);
+      }
+      assert.equal(it.answer, null);
+      assert.match(it.time, /^\d+:\d\d\.\d-\d+:\d\d\.\d$/);
+      assert.ok(it.end >= it.start);
+      assert.match(it.question, /\?$/);
+      if (i) assert.ok(items[i - 1].risk >= it.risk, "ranked by risk");
+    });
+    assert.match(run.out, /^## For your ears \(about \d+ minutes?; headphones, then a phone speaker; listen once without watching\)$/m);
+    assert.ok(run.out.includes('| # | Time | Listen for | Answer | Why a machine could not settle it | If "no" |'));
+    assert.match(run.out, /^Status: not listened by a human/m);
+  }
+  assert.equal(auditRun("loud bed", 2.0).ear.items[0].source, "A3", "a masked stretch leads the list");
+});
+
+test("audit: the qc.py profile table equals the gate column of mix-and-master.md section 5, and quick-checks.mjs carries the same", (t) => {
+  if (!needPython(t)) return;
+  const rows = section("skills/ice-audio/references/mix-and-master.md", 5).split(/\r?\n/).filter((l) => /^\|/.test(l)).slice(2)
+    .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
+  const num = (s) => (s === "ref" ? null : Number(s));
+  const want = {};
+  for (const cells of rows) {
+    assert.equal(cells.length, 6, `six columns: ${cells[0]}`);
+    const gate = /`([a-z-]+)` I (ref|-?\d+(?:\.\d+)?) \+\/-(\d+(?:\.\d+)?), TP (ref|-?\d+(?:\.\d+)?), LRA (any|up to (\d+(?:\.\d+)?)|(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?))( \(floor warns\))?/g;
+    const found = [...cells[5].matchAll(gate)];
+    assert.ok(found.length >= 1, `gate cell of ${cells[0]}: ${cells[5]}`);
+    for (const m of found) {
+      const p = { row: cells[0], i: num(m[2]), i_tol: Number(m[3]), tp: num(m[4]),
+        lra_min: m[7] ? Number(m[7]) : null, lra_max: m[6] ? Number(m[6]) : m[8] ? Number(m[8]) : null, lra_min_warns: Boolean(m[9]) };
+      want[m[1]] = p;
+      if (p.i !== null) assert.match(cells[1], new RegExp(`${p.i} (LUFS|LKFS)`), `${m[1]}: integrated cell names ${p.i}`);
+      if (p.tp !== null) assert.ok(cells[2].includes(`${p.tp} dBTP`), `${m[1]}: true peak cell names ${p.tp} dBTP`);
+      for (const v of [p.lra_min, p.lra_max]) if (v !== null) assert.ok(cells[3].includes(String(v)), `${m[1]}: LRA cell names ${v}`);
+    }
+  }
+  const r = runPy(QC, "--profiles");
+  assert.equal(r.status, 0, r.stderr);
+  const qc = JSON.parse(r.stdout);
+  assert.deepEqual(qc, want, "qc.py PROFILES and the gate column disagree");
+  const q = spawnSync(process.execPath, [QUICK, "loudness", "--profiles"], { encoding: "utf8" });
+  assert.equal(q.status, 0, q.stderr);
+  assert.deepEqual(JSON.parse(q.stdout), qc, "quick-checks.mjs and qc.py profile tables disagree");
+});
+
+test("audit: quick-checks.mjs loudness --profile exits 1 on a clip far from the profile, output lines kept (generated tone)", { skip: FFMPEG ? false : "ffmpeg or ffprobe not on PATH" }, () => {
+  const clip = join(work, "quiet clip.mp4");
+  const mk = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=5",
+    "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000:duration=5", "-af", "volume=-30dB", "-ac", "2",
+    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", clip], { encoding: "utf8" });
+  assert.equal(mk.status, 0, mk.stderr);
+  const r = spawnSync(process.execPath, [QUICK, "loudness", clip, "--profile", "social"], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /^ I: -?\d+(\.\d+)? LUFS$/m, "the summary lines stay as before");
+  assert.match(r.stdout, /short-term per second:/);
+  assert.match(r.stdout, /^FAIL integrated -?\d+(\.\d+)? LUFS \(target -14 \+\/-1\)$/m);
+  assert.match(r.stdout, /^profile check: FAIL$/m);
+  const plain = spawnSync(process.execPath, [QUICK, "loudness", clip], { encoding: "utf8", timeout: 120000 });
+  assert.equal(plain.status, 0, "without --profile it only reports");
+  assert.doesNotMatch(plain.stdout, /profile check/);
+});
+
+test("audit: align_script_to_asr.py --stem-words and --mix-words mark a masked word (exit 1) and send a misheard one to the ear list", (t) => {
+  if (!needPython(t)) return;
+  const dir = join(work, "speech check");
+  mkdirSync(dir, { recursive: true });
+  const put = (name, body) => { const p = join(dir, name); writeFileSync(p, typeof body === "string" ? body : JSON.stringify(body), "utf8"); return p; };
+  const script = put("script.txt", "The deal is on the table\n\ntonight in Geneva.\n");
+  const said = [["The", 0.5, 0.7], ["deal", 0.72, 1.1], ["is", 1.12, 1.25], ["on", 1.27, 1.4], ["the", 1.42, 1.55],
+    ["table", 1.57, 2.0], ["tonight", 2.4, 2.9], ["in", 2.95, 3.05], ["Geneva", 3.08, 3.6]].map(([w, s, e]) => ({ w, s, e, p: 0.95 }));
+  const stem = said.map((x) => (x.w === "Geneva" ? { ...x, w: "Geneve" } : x));
+  const mix = stem.map((x) => (x.w === "table" ? { ...x, w: "cable", p: 0.6 } : x));
+  const run = (s, m, project) => runPy(ALIGN, "--stem-words", put(`${project} stem.json`, s), "--mix-words", put(`${project} mix.json`, m),
+    script, "--project", join(dir, project));
+  const r = run(stem, mix, "masked");
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  const report = JSON.parse(r.stdout);
+  assert.deepEqual(report.words.filter((w) => w.class === "masked").map((w) => [w.w, w.mix_heard]), [["table", "cable"]]);
+  assert.deepEqual(report.words.filter((w) => w.class === "misheard").map((w) => w.w), ["Geneva."]);
+  assert.ok(report.blocking.some((b) => /masked: "table"/.test(b)), report.blocking.join("; "));
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, "masked", "ice", "review", "speech-check.json"), "utf8")).counts, report.counts);
+  const ear = JSON.parse(readFileSync(join(dir, "masked", "ice", "review", "ear-list.json"), "utf8"));
+  assert.ok(ear.items.some((i) => i.source === "A5" && /Geneva/.test(i.question)), JSON.stringify(ear.items));
+  assert.ok(!ear.items.some((i) => /table/.test(i.question)), "a masked word blocks; it is fixed in the mix, not asked");
+  const clean = run(said, said, "clean");
+  assert.equal(clean.status, 0, clean.stdout + clean.stderr);
+  assert.equal(JSON.parse(clean.stdout).ok, true);
+});
+
+test("audit: master_audio.py records a voiceover cut at the film end and fails the master (render)", { skip: FFMPEG ? false : "ffmpeg or ffprobe not on PATH" }, (t) => {
+  if (!needPython(t)) return;
+  const dir = join(work, "cut voice");
+  mkdirSync(dir, { recursive: true });
+  const mk = (args) => spawnSync("ffmpeg", ["-loglevel", "error", "-y", ...args], { encoding: "utf8" });
+  let r = mk(["-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=3", "-c:v", "libx264", "-pix_fmt", "yuv420p", join(dir, "picture.mp4")]);
+  assert.equal(r.status, 0, r.stderr);
+  r = mk(["-f", "lavfi", "-i", "sine=frequency=300:sample_rate=48000:duration=5", "-af", "volume=0.5", "-ac", "2", join(dir, "voice.wav")]);
+  assert.equal(r.status, 0, r.stderr);
+  r = runPy(SCRIPT, "--video", join(dir, "picture.mp4"), "--out", join(dir, "out", "film.mp4"), "--vo", join(dir, "voice.wav"));
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stderr, /CUT: the voiceover still speaks 2(\.0+)? s after the last frame/);
+  const summary = JSON.parse(readFileSync(join(dir, "out", "master.json"), "utf8"));
+  assert.equal(summary.status, "fail");
+  assert.equal(summary.cut_at_end.voice.cut, true);
+  assert.ok(summary.problems.some((p) => /voiceover is cut at the film end/.test(p)));
+});
+
+// Mono WAVs: a gated voice tone, clean (digital silence in the pauses) and dirty (50 Hz hum and white noise). Illustration only.
+const DIAGNOSE_TONES = String.raw`
+import sys, wave
+import numpy as np
+sr, dur = 48000, 6.0
+t = np.arange(int(sr * dur)) / sr
+gate = (((t % 0.3) < 0.2) & (t > 1.0) & (t < dur - 1.0)).astype(float)
+voice = gate * (0.2 * np.sin(2 * np.pi * 180 * t) + 0.1 * np.sin(2 * np.pi * 1200 * t))
+dirty = voice + 0.03 * np.sin(2 * np.pi * 50 * t) + 0.01 * np.random.default_rng(2).standard_normal(len(t))
+for name, x in (("clean", voice), ("dirty", dirty)):
+    with wave.open(sys.argv[1] + "/" + name + ".wav", "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
+`;
+
+test("audit: qc.py --diagnose finds mains hum and a raised noise floor, and passes a clean voice (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const dir = join(work, "diagnose");
+  mkdirSync(dir, { recursive: true });
+  const r0 = runPy("-c", DIAGNOSE_TONES, dir);
+  assert.equal(r0.status, 0, r0.stderr);
+  const diagnose = (name) => {
+    const r = runPy(QC, "--diagnose", `${name}.wav`, "--project", dir, "--json");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    return JSON.parse(readFileSync(join(dir, "ice", "audio", "voice-diagnosis.json"), "utf8"));
+  };
+  const dirty = diagnose("dirty");
+  assert.ok(dirty.candidates.includes("hum"), JSON.stringify(dirty.symptoms.hum));
+  assert.ok(dirty.candidates.includes("noise_floor"), JSON.stringify(dirty.symptoms.noise_floor));
+  assert.equal(dirty.symptoms.hum.value.frequency, 50);
+  const clean = diagnose("clean");
+  assert.ok(!clean.candidates.includes("hum") && !clean.candidates.includes("noise_floor"), JSON.stringify(clean.candidates));
+});

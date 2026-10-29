@@ -82,7 +82,7 @@ No text, no letters, no logos, no watermark.
 | Phone screens | Models write fake chats and UI on any visible screen: hide the screen (glare, tilt, face down) and composite the real captured content |
 | Faces | When a person must stay anonymous, check the whole take frame by frame, including mirrors and reflections, and cut before the first frame that shows a face |
 | Local detail | Real-world details match the setting in the brief (for example vehicles carry the country's real plate style, never blank or blurred); logos are composited, never drawn by the model |
-| Grade | One grade for all clips, matched to the real footage (see the ice-engines skill) |
+| Grade | Generated clips match the real footage they sit beside: they take the grade of the source class they stand in for (one grade per source class: the `ice-direction` skill, `references/color.md` section 5; render side: the ice-engines skill) |
 | Inspection | Download the real file and inspect full-size corners through the whole selected interval for text, logos and malformed objects |
 
 ## 7. Disclosure and records

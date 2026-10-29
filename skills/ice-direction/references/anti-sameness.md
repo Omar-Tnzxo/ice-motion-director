@@ -30,6 +30,7 @@ One JSON object per line in `~/.ice-motion-director/fingerprints.jsonl`. Local o
 
 ```json
 {"v":1,"date":"YYYY-MM-DD","project":"<slug>","brand":"<name or none>","film_type":"<type>","variant_of":null,
+ "user_chosen":null,
  "palette":{"polarity":"light|dark|color-field|photographic","accent_hue":0,"chroma":"mono-signal|duotone|multi-state|full","hues":0,"values":["#RRGGBB"]},
  "type":{"display":"<family>","body":"<family>","classes":"<class>+<class>","weights":"<e.g. 300/900>"},
  "layout":{"families":["<family>"],"density":"sparse|balanced|dense","depth":"flat|2.5d|3d"},
@@ -44,6 +45,7 @@ Field vocabularies:
 - Devices and arcs: the tables in `pitch-round.md` B.6.
 - Opening and closing states: the `ice-ideas` skill, `references/concept-menus.md` sections 3 and 4.
 - `variant_of`: the project slug when this film is a cutdown, aspect variant or language version of another film.
+- `user_chosen`: `null` when Ice chose the look; otherwise `{"kind": "reference | style | brand | series", "ref": "<the file, card or series named>", "axes": ["<axis>"]}` (section 4a).
 
 The structure line is also written in one human line in the treatment and the hand-off for later comparison: `concept · scene count · main object per scene · opening · closing`.
 
@@ -77,6 +79,22 @@ A user request to repeat ("make another like last time", "same style as my previ
 
 On failure: the director changes the axes that match, starting with structure and motion, then re-runs the check. Never satisfy the rule by changing only colors.
 
+### 4a. A look the user chose (founder decision, 2026-10-29)
+
+The anti-sameness rules guard Ice's own choices, never the user's. When the user chose the look themselves, the film follows that choice and these rules step aside for the axes it fixes. A user's choice is any of:
+- a reference the user supplied or named for its look;
+- a style the user picked by name (a catalog card, a family, a named look);
+- the brand identity the user's own brand already has (its palette, type, marks, house motion);
+- a series look: an earlier film of the same series, channel or programme with the same identity (an episode format, a recurring package).
+
+For a film with a user's choice:
+- **Template distance:** not applied to the template, demo or style card that the choice names or that matches it; still applied to every other bundled template and demo for the axes the choice leaves open.
+- **Fingerprint:** the record is written with `"user_chosen"` filled (section 2); fingerprints are compared only between films without a user's choice. A film with a choice is never failed for matching an earlier film, and it does not count against later films.
+- **Divergent pitch round:** the "at least two unexpected directions" requirement (`pitch-round.md`) does not apply to the axes the choice fixes; the round explores only the open axes (concept, structure where the choice leaves it free), and every direction honours the choice.
+- **What stays:** dated research before decisions, the decision log with every reason and source (AGENTS.md rule 2), the default-look gate (section 5, where the user's choice counts as a valid reason), and every craft, clarity and truth check.
+
+Log the case in the D-entry: which kind of choice, quoted from the user's words or the supplied file, and the axes it fixes. A choice inferred by the agent is not a user's choice: Ice's own direction keeps every rule in this file.
+
 News reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`): the genre style and the programme packages in that file are style cards.
 - Genre use (the user's identity, no package skin): the film differs from every package card on at least 4 of 6 axes, as above. Palette and type change with the user's identity; structure changes with the content; layout or sound must still make the fourth axis, because the genre fixes the motion language.
 - A remake whose stage 01 `identity` slot is "as they are" or "a mix" and whose reference is the programme a package card records: closeness to that reference is the remake mode's contract (structural fidelity, frame-locked or translation: the `ice-remake` skill, `references/rights-and-modes.md` section 3), not a failure of this rule against that card. The 4-of-6 rule still applies against every other card, template and demo; how much of the reference's structure is kept is what the mode says, and the content (concept, main objects) is the user's. Fingerprints of the outlet's own films follow the same-brand row. Log which case applies in the D-entry.
@@ -91,7 +109,7 @@ The stock AI palette (blue and purple) dominating a film fails unless the brief 
 
 **Not flagged:** navy and flat blue near hue 210; blue or purple used as a small semantic state.
 
-**Valid reasons** (logged as a D-entry, quoted from the source): the brand's own palette; the user named these colors; the subject's real colors are blue or purple (illustration only: a night sky subject, a product whose material is that color, a team's official colors). "Looks techy" or "feels premium" is not a reason.
+**Valid reasons** (logged as a D-entry, quoted from the source): the brand's own palette; the user named these colors; the palette of a reference or style the user chose (section 4a); the subject's real colors are blue or purple (illustration only: a night sky subject, a product whose material is that color, a team's official colors). "Looks techy" or "feels premium" is not a reason.
 
 ## 6. The default kit (warnings)
 

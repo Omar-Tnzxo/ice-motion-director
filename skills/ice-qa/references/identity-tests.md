@@ -20,7 +20,7 @@ Two tests prove a film belongs to its brand and not to its category: the **brand
 | **Brand test** | With the brand's name, logo, wordmark and every brand UI, HUD or interface covered, does the material still read as this brand? |
 | **Competitor swap** | Could the closest competitor run this material with only its own name, logo, UI and colours put in? If yes, it is the category's film, not this brand's |
 
-They run on every film made for a named brand, company, product, app or service, whatever the route or film type. A reference's skin used as it is (its hex values, fonts, logos, end card and fixed marks) is not a finding when the stage 01 `identity` slot is "as they are" or "a mix" (the `ice-remake` skill, `references/rights-and-modes.md` section 1): the tests then judge the film for the organisation whose identity it carries. They do not run when the film has no brand (an art film, a personal piece, a subject explainer with no sponsor); the D-entry of the concept says so in one line.
+They run on every film made for a named brand, company, product, app or service, and on every edit that carries an identity (a brand, a channel, a programme or a series, whether or not it sells), whatever the route or film type. A reference's skin used as it is (its hex values, fonts, logos, end card and fixed marks) is not a finding when the stage 01 `identity` slot is "as they are" or "a mix" (the `ice-remake` skill, `references/rights-and-modes.md` section 1): the tests then judge the film for the organisation whose identity it carries. They do not run when the film has no brand (an art film, a personal piece, a subject explainer with no sponsor); the D-entry of the concept says so in one line.
 
 The competitor is named, never imagined: the closest rival from the business brief's market and competitors section (`ice/BRIEF.md`) or research note RQ-category. When the brief names no rival, the critic takes the category's best-known brand from that research and writes which one it used.
 
@@ -49,7 +49,7 @@ A brand code is used as the brand really uses it (`ice-assets/references/brand-a
 
 The 09 run is a confirmation. A film that passed at 04 and 05 and did not change its concept or look since should pass again; a fail here means an earlier run was weaker than this file asks, and the fix ledger says which.
 
-Routes: `ice-film`, `ice-explainer` and `ice-remake` run all three; `ice-ideas` runs 02, and 04 or 05 when it draws frames; `ice-edit` runs 09 for edit types that sell or promote; `ice-lottie` runs none. Micro jobs (`clarity-gate.md` section 7) run the brand test on the style frames and the draft only.
+Routes: `ice-film`, `ice-explainer` and `ice-remake` run all three; `ice-ideas` runs 02, and 04 or 05 when it draws frames; `ice-edit` runs them whenever the edit carries an identity: at 05 on masked copies of the graded stills with their overlays (the brand test by a fresh read-only viewer who opens only those stills, the swap by the stage critic), and at 09 with read 3; `ice-lottie` runs none. Micro jobs (`clarity-gate.md` section 7) run the brand test on the style frames and the draft only.
 
 ## 4. Masking
 

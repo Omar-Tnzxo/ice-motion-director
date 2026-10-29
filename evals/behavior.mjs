@@ -38,11 +38,13 @@ const CALL = String.raw`"name":"(?:Write|Edit|MultiEdit|NotebookEdit|Bash|PowerS
 
 const STORYBOARD = { source: "file", path: "ice/plan/storyboard.md" };
 const DIRECTION = { source: "file", path: "ice/DIRECTION.md" };
+const CRAFT_PLAN = { source: "file", path: "ice/plan/craft-plan.json" };
 
 // Graders by lesson. `when` reads the case facets: speaker (a person speaks on camera), reference (a style reference
 // video), marks (the reference keeps fixed identity marks), media (the film needs outside footage, photos or brand
 // material), conflict (the content type differs from the reference's, or the reference belongs to another brand).
-// L11 (captions against a fresh transcript of the delivered audio) runs at stages 09 and 10, after these cases stop.
+// L11, L16 and L18 (captions against a fresh transcript, text over a face on the render, the mix audit) run at stages 07
+// to 10, after these cases stop; L15 is judged inside the craft plan graders of L13 and L14.
 const GRADERS = [
   {
     lesson: "case", name: "no-final-render", when: () => true,
@@ -106,7 +108,7 @@ const GRADERS = [
     lesson: "L5", name: "l5-speaker-stays-lit", when: (c) => c.facets.speaker,
     spec: {
       type: "llm", focus: STORYBOARD,
-      criteria: "This is a storyboard of a video in which a person speaks on camera (host, presenter, guest or interviewee). PASS if the speaker stays lit and clear in every planned shot while they appear as the speaker: never dimmed, darkened, silhouetted, turned to sepia or grey, blurred, or placed inside a disc or circle device; such treatments may only go on people or things being talked about. FAIL if any shot darkens, silhouettes, desaturates, blurs or rings the speaker.",
+      criteria: "This is a storyboard of a video in which a person speaks on camera (host, presenter, guest or interviewee). PASS if the speaker stays lit and clear in every planned shot while speaking: never darkened, silhouetted, blurred, turned fully grey or sepia, or placed inside a disc, circle or ring device; such treatments may only go on people or things being talked about. A partial desaturation and a scale back of the speaker while an inserted image or card of another person or thing is the subject of the frame are fine. FAIL if any shot darkens, silhouettes, blurs, turns fully grey or sepia, or rings the speaker while speaking, or desaturates the speaker when no inserted image or card is the subject.",
     },
   },
   {
@@ -155,6 +157,57 @@ const GRADERS = [
     spec: {
       type: "llm", focus: STORYBOARD,
       criteria: "This is a storyboard of a video that follows a reference with fixed identity marks (a channel logo, programme name, corner bug, progress bar or location tag that stay on screen). PASS if the plan keeps each fixed mark in one slot with its measured position and size through the film (or puts the user's own mark in the same slot when the video carries the user's identity). FAIL if a mark the reference keeps on screen is missing, moves from shot to shot, or a mark is invented.",
+    },
+  },
+  {
+    lesson: "L13", name: "l13-craft-plan-written", when: () => true,
+    spec: { type: "regex", target: "files", pattern: String.raw`ice${S}plan${S}craft-plan\.json` },
+  },
+  {
+    lesson: "L13", name: "l13-craft-plan-checked", when: () => true,
+    spec: { type: "tool_used", tool: "Bash", input_match: String.raw`craft_gate\.py\s+plan\b` },
+  },
+  {
+    lesson: "L13", name: "l13-no-unasked-gaps", when: () => true,
+    spec: {
+      type: "llm", focus: CRAFT_PLAN,
+      criteria: "This is a video's craft plan: one row per craft dimension (camera, depth, compositing, light, finishing, type, transitions, data, cutouts, sound effects, music, ambience, foley, silence, voice, rhythm, real footage, identity). PASS if every dimension has a row, every used dimension says where and why from the content, the type, the reference or the style, and every dimension left out has a real reason with a source (nothing in the content calls for it and what was looked for, the type's policy, the style's medium, a hard rule, or the user's own words). FAIL if a dimension is missing, or left out because the user did not ask, it was not in the brief, or to keep it simple.",
+    },
+  },
+  {
+    lesson: "L14", name: "l14-exemptions-sourced", when: (c) => c.facets.reference,
+    spec: {
+      type: "llm", focus: CRAFT_PLAN,
+      criteria: "This is a video's craft plan made after a style reference. PASS if every device that a default taste rule would flag and that the plan keeps (a glow, a flash, a tilted card, a corner mark, a crossfade, a dense or sparse frame, a receding speaker) is either a craft row with its source or an exemption row naming the rule it lifts, the source (the reference's measured row, the style, the content or the user's words), the shots and the amount; or if the plan keeps no such device. FAIL if such a device is planned with no source, on every shot, or with no amount.",
+    },
+  },
+  {
+    lesson: "L17", name: "l17-edit-floor-checked", when: (c) => c.facets.speaker,
+    spec: { type: "tool_used", tool: "Bash", input_match: String.raw`validate-plan\.mjs|craft_gate\.py` },
+  },
+  {
+    lesson: "L19", name: "l19-speaker-recedes-not-darkens", when: (c) => c.facets.speaker,
+    spec: {
+      type: "llm", focus: STORYBOARD,
+      criteria: "This is a storyboard of a video in which a person speaks on camera. PASS if, wherever an inserted image or card of another person or thing becomes the subject of the frame, the plan either keeps the speaker as they are or lets the speaker recede as a back plane only while that image is the subject: smaller and partly desaturated while the speaker talks, and dimmed slightly or lightly defocused only while the speaker is silent, back to normal when the image leaves or on the next stressed word; or if no such moment is planned. FAIL if the speaker is dimmed, defocused, silhouetted, turned fully grey or sepia, or ringed while speaking, or stays receded after the image leaves.",
+    },
+  },
+  {
+    lesson: "L20", name: "l20-outside-material-treated", when: (c) => c.facets.media,
+    spec: {
+      type: "llm", focus: DIRECTION,
+      criteria: "This is the decision log of a video run. Judge the decisions in force. PASS if outside material in the film (archive, agency footage, stills, screenshots, material from another time or place) gets one consistent treatment that marks it as coming from outside (monochrome, desaturation with lifted blacks, a warm duotone or a tint from the palette), logged with its reason, while the speaker and the film's own footage keep the film's grade; or if the film uses no outside material. FAIL if outside material is mixed in with no treatment decision, or a different look per clip with no reason.",
+    },
+  },
+  {
+    lesson: "L21", name: "l21-style-needs-copied", when: () => true,
+    spec: { type: "regex", target: CRAFT_PLAN, pattern: String.raw`"style_needs"\s*:` },
+  },
+  {
+    lesson: "L22", name: "l22-user-choice-honoured", when: (c) => c.facets.reference,
+    spec: {
+      type: "llm", focus: DIRECTION,
+      criteria: "This is the decision log of a video the user asked to make in the look of a reference they supplied. Judge the decisions in force. PASS if the log records the reference as the user's own choice, keeps its look on the axes the choice fixes (identity still fitting the content), and does not move the film away from that look to satisfy a rule about differing from templates, earlier films or expected directions; research and reasons are still logged. FAIL if the log changes the reference's look on purpose to differ from a template, an earlier film or a fingerprint.",
     },
   },
   {

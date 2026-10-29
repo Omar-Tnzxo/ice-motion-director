@@ -42,9 +42,9 @@ Every spoken word gets exactly one treatment:
 |---|---|---|
 | `drop` | Not shown: fillers, exact stutters, self-correction backtracks, interjections | Display about 70 to 85% of spoken words in edited social content; documentary keeps more. Scope line: the share applies to captions only; keyword mode (section 3b) shows about 27 to 29% of the words because it is a different role, and a film in keyword mode is never failed against this share |
 | `rail` | Verbatim line in front of the picture (lower third or a placed band) | Carries most of the text |
-| `embed` | A peak word composited behind the subject or into the scene | Scarce, earned peak |
+| `embed` | A peak word composited behind the subject or into the scene | Scarce, earned peak by default. When the presenter is matted for the whole take (a depth-sandwich layout, the `ice-edit` skill, `references/layers-and-isolation.md` section 3b), or the reference or the chosen style uses depth titles, the count follows the layout's reason rows or the measured count, logged |
 
-Embed scarcity, per beat or thought block (not per clip): at most 1 hero per block, never two co-visible, at least a beat of air between hero windows (warn under 0.6 s), at most one apex (the largest hero, full lockup); other heroes are minor peaks. Embedding every word is the common mistake.
+Embed scarcity, per beat or thought block (not per clip), by default: at most 1 hero per block, never two co-visible, at least a beat of air between hero windows (warn under 0.6 s), at most one apex (the largest hero, full lockup); other heroes are minor peaks. Embedding every word is the common mistake. The depth-sandwich case above counts by its reason rows; the occlusion gate (`depth-and-embedded-captions.md` section 2) holds in every case.
 
 Dropping a structure word (article, negation, preposition) is a bug, not an edit.
 

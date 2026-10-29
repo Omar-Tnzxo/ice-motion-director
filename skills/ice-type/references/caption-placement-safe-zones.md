@@ -34,7 +34,7 @@ Landscape caption positions: bottom 80 to 120 px. Portrait: about 600 to 700 px 
 
 1. Never over the mouth or chin, least of all in the first second, when the viewer decides whether the person is real. Never over the eyes (keep a 20 px margin). The caption never sits on the speaker's face.
 2. In a split screen: on the seam. In a punch-in: on the shirt, not the jaw. On a shot that is text to read: move to a clear zone.
-3. Face coverage: the face must never be 100% covered continuously; in every 0.3 s window at least 30% of the face box is uncovered. Measure the face safe zone with a detector (face box expanded upward about 60% for hair, plus a 30 px margin, union over time) when text, cards or subtitles must avoid the host entirely.
+3. Face coverage: the face must never be 100% covered continuously; in every 0.3 s window at least 30% of the face box is uncovered. Measure the face safe zone with a detector (face box expanded upward about 60% for hair, plus a 30 px margin, union over time) when text, cards or subtitles must avoid the host entirely. Items 1 and 3 are checked on frames by `craft_gate.py build` (the `ice-qa` skill's scripts) on the render at 07 and 09.
 4. Clean-zone priority for placed captions: the corner farthest from the head, then a strip above the head (30 px margin), then a lower third. Use the gaze direction's looking room as the tiebreaker. Center a crown only when the subject is within 10% of center, with at least 15% clean space each side.
 5. Never switch spatial zones mid-sentence. A caption that runs across a cut moves to the new shot's spot on the cut frame.
 6. Never cover the subject, the product, the action or the detail the shot is about. Captions stay outside the action and its consequence.

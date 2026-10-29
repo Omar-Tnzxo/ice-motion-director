@@ -36,6 +36,17 @@ A 15 to 90 s vertical video (1080x1920 by default) that convinces in the first t
 
 News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the shot caps, presence, event gap and "no intro or outro card" rows above are replaced by `news-reel.md` section 3 (one take per passage, a branded end card after the last word, held static).
 
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 30 | Event cadence of 1 to 2 s per visual event (`house-style-numbers.md` section 2), one event per 2 s at the slow end; the average shot of 1.1 to 1.4 s alone gives 43 to 55 cuts per minute |
+| `longest_bare_talk_s` | 2.2 s; 2.8 s | The 2.2 s event gap (Rhythm ranges, Event gap) as the strict line; no shot over about 2.8 s (Rhythm ranges, Shots) as the fail line |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2) |
+| `broll_share` | 80 percent; 50 percent | Layout shares: split 30 to 42 percent plus full B-roll 50 to 55 percent (the strict line), full B-roll alone at its low end (the fail line). A raw reel has no B-roll by its structure: its craft plan records an exemption row lifting `plan:coverage` for `broll_share`, with the source that chose the raw reel |
+
 ## Transition policy (scoped)
 - Footage-led reel (house style): every layout change is a hard cut; assign any designed transition by editorial purpose, never by rotation.
 - Fully graphic motion shorts (no speaker footage) follow the ice-motion skill's cut catalog; the older rule that two consecutive transitions must differ applies there, not to A-roll cuts.

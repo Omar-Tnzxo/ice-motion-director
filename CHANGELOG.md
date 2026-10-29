@@ -2,6 +2,29 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.5 - 2026-10-29
+
+Every video at its full capacity, without being asked. An audit of six trials found that a craft reached a film only when its type file named it, a reference measured it, the news reel package carried it, or the user asked; everything else stayed off, and about 150 taste rules were written as absolute bans. Now the director decides every craft for every video from what the content, the type, the reference and the chosen style call for, in every style, and the gates check that each decision reached the film. Each lesson is listed in `docs/maintainers/lessons.md` (L13 to L22) with its rule and its test.
+
+### Added
+
+- **The craft plan (L13).** At stage 02 the director writes `ice/plan/craft-plan.json`: one row for each of 18 crafts (camera, depth, compositing, light and focus, grade and finishing, type, transitions, data and maps, cutouts, sound effects, music, ambience, foley, silence, voice, rhythm, real footage, identity), used, used with a limit, or left out, each with its reason and source. "Not asked" is never a reason. Rows are mapped to shots at 04 and locked with the style at 05; defaults per video type and content triggers (a number becomes a counter, a place a map, a long take a moving camera) live in `ice-direction/references/treatment.md`. `AGENTS.md` rule 20.
+- **The craft gate** (`ice-qa/scripts/craft_gate.py`): `plan` checks the plan; `build` checks the render (evidence for every used craft, text over a face, flashes over the safe mode, an idle camera on a long take); `measure` gives the camera track, flashes, finishing, focus and faces of any video, a reference or a render.
+- **Text never covers a face, checked on frames (L16).** Face boxes against text and card boxes on every sample, at least 30 percent of the face uncovered in every 0.3 s window.
+- **A craft profile for every style (L21):** what each style family needs, when a craft serves it, and what its medium forbids, copied into the craft plan at 05; 70 thin entries carry their own line.
+- **The mix audit and a list for your ears (L18).** `qc.py --audit` measures the delivered mix (loudness by the chosen profile, voice over music in the voice band, clicks, clipping, DC, phase, stream spec, silences, the music ending) and blocks delivery on a fail; `align_script_to_asr.py --stem` tells a word the mix masked from one a model mishears; the delivery note carries a generated "For your ears" list of 5 to 7 moments to hear. `qc.py --diagnose` switches voice cleanup on by symptom.
+- **A coverage floor for edits (L17):** elements per minute, the longest bare talk, the share of content triggers answered and the B-roll share, per edit type, checked on the plan and the render.
+- **One grade per source class (L20):** outside material (archive, agency footage, stills, screenshots) takes one treatment that marks it as outside; `grade.py` presets `news_clean`, `outside_mono`, `outside_desat_lift`, `outside_warm_duotone`, applied per EDL range by `render.py`.
+
+### Changed
+
+- **Taste bans are conditions (L14).** Every craft and taste rule is a default that yields to the user's own words, a measured reference value, the chosen style's craft profile or a content trigger, recorded as an exemption row with the shots and the amount; the gate scripts read those rows. Truth, rights, safety, accessibility, legibility, Arabic correctness and the lit speaker are never lifted.
+- **Depth is a craft (L15):** card fields, 2.5D planes, push-throughs and text in depth are used when the content, the type, the reference or the style calls for them; a lone tilted card still fails.
+- **The speaker recedes, never darkens (L19):** while an inserted image or card of another person or thing is the subject, the speaker may step back as a smaller, partly desaturated plane; a dimming of at most 15 percent and a light defocus only while the speaker is silent; never darkened, defocused, fully grey or marked while speaking, and back on the frame the image leaves.
+- **Anti-sameness guards Ice's own choices (L22, founder decision):** a reference, style, brand identity or series look the user chose is exempt from the template distance, the fingerprint and the unexpected directions.
+- **Every edit gets the full review:** an independent critic, a clarity read sized to the job, the studio benchmark, and the brand test whenever the edit carries an identity.
+- `contact-sheet.mjs`, `frozen-time.mjs` and `loudness.mjs` are now one file, `ice-qa/scripts/quick-checks.mjs` (`sheet`, `frozen`, `loudness`), with `loudness --profile` exiting 1 outside the profile. The caption sync tolerance is 0.1 s (0.15 s for sentence cards).
+
 ## 0.2.4 - 2026-10-29
 
 News reels at broadcast level from a plain prompt: a measured study of six public Al Jazeera reels and sixteen editing tutorials becomes Ice's own rules, written in our words (ideas and measurements only; no footage, logo, programme mark, text or sound copied). Four new lessons from the trials become default rules with tests (`docs/maintainers/lessons.md`, L9 to L12).

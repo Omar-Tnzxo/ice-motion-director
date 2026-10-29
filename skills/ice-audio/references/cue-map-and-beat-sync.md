@@ -90,6 +90,7 @@ Detailed motion timing (eases, holds, carry) belongs to the ice-motion skill; th
 5. The sounds follow the replacement: one hit per remaining flash (`sfx.md` section 3b).
 
 Faithful mode (the reference's own strobe, frame for frame) only when the user asks for it in their own words; the request is logged in `ice/DIRECTION.md`. The delivery note states the mode in one line either way (safe mode with what it replaced, or faithful mode at the user's request with the flash count per second it reaches).
+The flashes per 1 s window are counted on the render by `craft_gate.py build` (the `ice-qa` skill's scripts).
 - One pre-drop gap (music ducked for half a beat, or dropped 8 to 15 dB or cut out for 0.2 to 0.5 s) may come before the main hit; the first sound after a silence should be one of the most important in the film.
 - Do not land every sound change on a cut: when about 60 % of cuts carried exact sound changes the edit sounded metronomic. Pros land about a third of cuts on an audible hit; one reference analysis found about 70 % of cuts within 40 ms of a hit in a music-led edit. Measure the share and report it.
 - Showreel pacing illustration (15 s at about 129 BPM, 32 beats): roughly 75 % development, 13 % flurry, 12 % resolve.

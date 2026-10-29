@@ -16,7 +16,14 @@
 # section 6). 2026-10-29 (news reel trials, lessons L9 and L12): a declared continuous take turns check 6's reds into
 # yellows; checks 18 to 21 (cited phrases in the script, subject roles, verbatim on-screen words, depth build routes);
 # hold events are read under "kind" as well as "type". This file also holds the film type helpers that look.py,
-# film_gate.py and motion_check.py import.
+# film_gate.py and motion_check.py import. 2026-10-29 (0.2.5, craft plan): the shared craft plan reader
+# (CRAFT_CODES, load_craft_plan, exemption_for) sits next to resolve_scope; checks 1, 3, 4, 5, 8 and 13 pass a hit that
+# an exemption row of ice/plan/craft-plan.json covers and print it as "exempt story:<n> by <row>"; check 17 accepts
+# "measured: <REASONS row>" as a reason and reds a "measured" reason that names no row. 2026-10-29 (0.2.5 review): the
+# reader checks the source kind each rule id accepts (allowed_kinds, the table of treatment.md 11.7) and ignores a
+# content row written at stage 07, each with a warning (exemption_issues); check 17 accepts "measured: <ref-id>
+# REASONS.md #<row>" only in the Reason cell and only when that row exists in ice/reference/<ref-id>/REASONS.md, and
+# reds "measured" in a Trigger cell.
 # See NOTICE.md.
 """storyboard_lint.py: check a shot table mechanically before any code is written.
 
@@ -65,6 +72,11 @@ Per row:
        justifies it, with its time; for a film without speech, the music or sound cue or the story event) and its
        reason (what the element means, who or what it is on, why its colour and shape). An empty or filler cell
        ("reference", "style", "decoration", "looks good", "as in the reference") -> red: cut the element or write both.
+       A measured reference element whose meaning is unknown writes "measured: <ref-id> REASONS.md #<row>" in its
+       Reason cell only (kept at its measured place and amount, named on the review card); the row must exist in
+       ice/reference/<ref-id>/REASONS.md (its "#" cell, else its place in the table), found by walking up from the
+       storyboard, then the working folder. "measured" with no row number, a row that is not there, or "measured" in
+       the Trigger cell (it still needs the real quoted words or cue) -> red.
        A table with no Trigger or no Reason column -> red. Rule: references/storyboard-lint.md section 3b.
   (18) With a Cites column and --script: every cited phrase occurs in the script as often as its occurrence says
        (Unicode normalised, combining marks removed, Arabic forms folded)                                    -> red
@@ -87,6 +99,16 @@ Whole table:
        such a figure in the Object column without one -> red; faces on coins, balls, ions -> yellow
   (16) Accent moves (fast push, slam, whip) on more than a third of shots                                   -> yellow
   Time spans that do not join, or a table with no camera move at all (only hold and cut)                    -> yellow
+
+Exemption rows: when ice/plan/craft-plan.json is found (walking up from the storyboard, then the working folder), a red
+of check 1 (a layout word or an empty picture; an empty Object cell stays red), 3, 4, 5, 8 or 13 that a row of its
+"exemptions" list covers passes and is printed as "exempt story:<n> by <row id> (<source kind>: <source ref>)"; check 17
+reads "story:filler_reason". A row covers a hit when its "lifts" names the rule id, the shot number or the shot's time
+span sits inside its "shots" ("all" covers everything) and the measured value (check 3: text units; check 5: the
+text-led share) is at most amount x (1 + tolerance). Check 5 passes when the text-led shots no row covers stay within
+30 percent. Only rows whose source kind is user, reference or style lift a story check; a row that names a never-lifted
+class, has no source, or is a content row written at stage 07 is ignored with a warning. The rule itself: the
+ice-direction skill, references/treatment.md section "Craft plan".
 
 Exit codes: 1 with any red; 0 with only yellow or all green; 2 when the file cannot be read or has no table.
 Standard library only.
@@ -256,6 +278,221 @@ def resolve_scope(type_arg=None, starts=()):
         row = "default"
     vals = dict(table[row])
     return {"type_text": text, "type_source": src, "row": vals["row"], "values": vals, "notes": notes}
+
+
+# ---------------------------------------------------------------- craft plan and exemption rows (shared, 0.2.5)
+# The craft plan, the precedence order and the exemption rows are defined once: the ice-direction skill,
+# references/treatment.md section "Craft plan". film_gate.py, look.py, motion_check.py and craft_gate.py import this
+# reader; _cdp.mjs exports its Node twin (loadCraftPlan, exemptionFor) with the same behaviour, and a test checks that
+# both agree.
+CRAFT_CODES = ("camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx", "music",
+               "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity")
+# A row whose "lifts" names a never-lifted class (truth and claims, rights, privacy, safety and the real-people limits,
+# accessibility with the contrast floors and the flash safe mode, Arabic shaping and bidi, legibility floors, required
+# labels, the speaker stays lit L5) is ignored with a warning. A lift is split into lowercase words for the test.
+NEVER_WORDS = frozenset(("truth", "claim", "claims", "rights", "license", "licence", "licensing", "privacy", "safety",
+                         "likeness", "accessibility", "a11y", "contrast", "wcag", "photosensitive", "photosensitivity",
+                         "strobe", "arabic", "shaping", "bidi", "legibility", "legible", "l5"))
+NEVER_PAIRS = frozenset(("flash safe", "safe mode", "required label", "required labels", "real people", "speaker lit"))
+NEVER_IDS = frozenset(("story:9", "story:18", "story:20", "frame:p1"))   # numbers and cited words (truth); frame P1 is L5
+SOURCE_KINDS = frozenset(("user", "reference", "style", "content"))      # a row without a source of these kinds is ignored
+# Source kinds allowed per rule id (the table of treatment.md 11.7). Lookup: the exact id, else the longest pattern ending
+# in "*" whose prefix matches, else "*". Restraint or density the agent chose is not a source, so the richness and
+# coverage floors, the art counts, the end holds and every storyboard check take no content row; only the user's own
+# words turn on the faithful strobe. A row written at stage 07 may come only from user, reference or style.
+KINDS_NO_CONTENT = ("user", "reference", "style")
+KINDS_ALL = ("user", "reference", "style", "content")
+RULE_KINDS = {
+    **dict.fromkeys(("film:hero_share", "film:frame_fill", "film:empty_half", "film:depth_layers", "film:in_shot_motion",
+                     "film:longest_still", "film:element_events_per_min", "film:longest_bare_talk_s", "film:fast_ratio",
+                     "film:blank_run_s", "lint:depth_layers", "art:tones", "art:shading", "art:shapes", "art:texture",
+                     "art:shadow", "look:g2", "look:g3", "story:*"), KINDS_NO_CONTENT),
+    "film:blue_purple_share": KINDS_ALL,       # content: the subject's real colours, logged
+    "lint:t1": KINDS_ALL,                      # content: the product's own input shown as it really works; Arabic never
+    "frame:flash": ("user",),                  # the faithful strobe
+    **dict.fromkeys(("lint:c*", "lint:d1", "lint:p1", "lint:v*", "plan:*", "contract:fade", "seam:zero-overlap", "slop:*",
+                     "frame:*", "*"), KINDS_ALL),
+}
+# An amount on a floor (a minimum: the richness keys, the fast ratio, the edit coverage measures, the art counts) passes
+# when value x (1 + tolerance) >= amount; every other rule id is a ceiling: value <= amount x (1 + tolerance).
+FLOOR_KEYS = frozenset(("hero_share", "frame_fill", "depth_layers", "in_shot_motion", "fast_ratio", "coverage",
+                        "element_events_per_min", "trigger_coverage", "broll_share", "tones", "shapes"))
+_WARNED = set()
+_RANGE = re.compile(r"^(\d+:\d+(?:\.\d+)?|\d+(?:\.\d+)?)\s*s?\s*(?:-|to|\.\.)\s*(\d+:\d+(?:\.\d+)?|\d+(?:\.\d+)?)\s*s?$")
+_SHOT = re.compile(r"^(?:shot|s)?[\s_#-]*0*(\d+)$")
+
+
+def find_craft_plan(start):
+    """Path of ice/plan/craft-plan.json found by walking up from start (a file or a folder), or None."""
+    if not start: return None
+    p = Path(start).resolve()
+    if p.is_file(): p = p.parent
+    for d in [p] + list(p.parents):
+        cands = ([d / "craft-plan.json"] if d.name == "plan" and d.parent.name == "ice" else []) + \
+                ([d / "plan" / "craft-plan.json"] if d.name == "ice" else []) + [d / "ice" / "plan" / "craft-plan.json"]
+        for c in cands:
+            if c.is_file(): return c
+    return None
+
+
+def load_craft_plan(start):
+    """The parsed ice/plan/craft-plan.json found by walking up from start (a file or a folder), or None. A file that is
+    not a JSON object is reported on stderr and read as no plan (no exemption applies)."""
+    f = find_craft_plan(start)
+    if f is None: return None
+    try:
+        plan = json.loads(f.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as e:
+        print(f"warning: craft plan {f} cannot be read as JSON ({e}): no exemption applies", file=sys.stderr)
+        return None
+    return plan if isinstance(plan, dict) else None
+
+
+def never_lifted(lift):
+    """True when a lift names a class no exemption may lift."""
+    s = str(lift).strip().lower()
+    if re.sub(r"\s+", "", s) in NEVER_IDS: return True
+    words = [w for w in re.split(r"[^a-z0-9]+", s) if w]
+    return any(w in NEVER_WORDS for w in words) or any(f"{a} {b}" in NEVER_PAIRS for a, b in zip(words, words[1:]))
+
+
+def _list(v):
+    return [v] if isinstance(v, (str, int, float)) and not isinstance(v, bool) else v if isinstance(v, list) else []
+
+
+def _secs(tok):
+    m, _, s = tok.rpartition(":")
+    return int(m) * 60 + float(s) if m else float(s)
+
+
+def _num_value(v):
+    """A number, or the first number of a string ("3 s", "0.4"); a value written with % is divided by 100."""
+    if isinstance(v, bool): return None
+    if isinstance(v, (int, float)): return float(v)
+    m = re.search(r"-?\d+(?:\.\d+)?", str(v or ""))
+    if not m: return None
+    return float(m.group(0)) / (100 if "%" in str(v) else 1)
+
+
+def exemption_amount(row):
+    """(value, tolerance) of a row's amount, or None when it gives no number. The tolerance defaults to 0.10."""
+    am = row.get("amount") if isinstance(row, dict) else None
+    if not isinstance(am, dict): return None
+    x = _num_value(am.get("value"))
+    if x is None: return None
+    tol = am.get("tolerance")
+    tol = float(tol) if isinstance(tol, (int, float)) and not isinstance(tol, bool) and tol >= 0 else 0.10
+    return x, tol
+
+
+def _covers(shots, t, shot):
+    keys = [str(x).strip().lower() for x in _list(shots) if str(x).strip()]
+    if "all" in keys: return True
+    if shot is not None:
+        m = _SHOT.match(str(shot).strip().lower())
+        sk = ("n", int(m.group(1))) if m else ("s", str(shot).strip().lower())
+        for k in keys:
+            if _RANGE.match(k): continue
+            m = _SHOT.match(k)
+            if (("n", int(m.group(1))) if m else ("s", k)) == sk: return True
+    if t is not None:
+        a, b = (float(t), float(t)) if isinstance(t, (int, float)) else (float(t[0]), float(t[1]))
+        for k in keys:
+            m = _RANGE.match(k)
+            if m and _secs(m.group(1)) - 1e-6 <= a and b <= _secs(m.group(2)) + 1e-6: return True
+    return False
+
+
+def is_floor(rule_id):
+    """True when the rule id names a floor measure (FLOOR_KEYS, read after the gate prefix)."""
+    return re.sub(r"\s+", "", str(rule_id)).lower().rpartition(":")[2] in FLOOR_KEYS
+
+
+def _rid(rule_id):
+    return re.sub(r"\s+", "", str(rule_id)).lower()
+
+
+def allowed_kinds(rule_id):
+    """The source kinds that may lift a rule id (RULE_KINDS: the exact id, else the longest matching pattern)."""
+    rid = _rid(rule_id)
+    if rid in RULE_KINDS: return RULE_KINDS[rid]
+    pats = [p for p in RULE_KINDS if p.endswith("*") and rid.startswith(p[:-1])]
+    return RULE_KINDS[max(pats, key=len)] if pats else KINDS_ALL
+
+
+def late_stage(stage):
+    """True for a row written at stage 07 ("07", "7" or 7)."""
+    return re.fullmatch(r"0*7", str(stage if stage is not None else "").strip()) is not None
+
+
+def exemption_issues(row):
+    """(why the whole row is ignored or None, {lift: why this lift is ignored}). Ignored whole: a lift that names a
+    never-lifted class, no source (kind user, reference, style or content, and a ref), a content row written at stage
+    07. Ignored for one lift: a source kind that RULE_KINDS does not allow for it."""
+    lifts = [str(x) for x in _list(row.get("lifts"))]
+    bad = [x for x in lifts if never_lifted(x)]
+    if bad: return f"it lifts a never-lifted class ({', '.join(bad)})", {}
+    src = row.get("source") if isinstance(row.get("source"), dict) else {}
+    kind = str(src.get("kind") or "").strip().lower()
+    if kind not in SOURCE_KINDS or not str(src.get("ref") or "").strip():
+        return "it has no source (source.kind user, reference, style or content, and source.ref)", {}
+    if kind not in KINDS_NO_CONTENT and late_stage(row.get("stage")):
+        return (f"a {kind} row written at stage 07 (a row written at 07 comes only from user, reference or style; a "
+                "row added after a gate failed is a paper patch)"), {}
+    return None, {x: f"a {kind} row cannot lift it (allowed: {', '.join(allowed_kinds(x))})"
+                  for x in lifts if kind not in allowed_kinds(x)}
+
+
+def exemption_for(plan, rule_id, t=None, shot=None, value=None):
+    """The first exemption row of the craft plan that covers a hit, else None. A row covers it when its "lifts" names
+    rule_id (case and spaces ignored), the hit's shot or time is inside its "shots" (a list, or "all", which covers
+    everything; t is a number or a (start, end) pair; with neither, only "all" covers) and, when value and an amount are
+    given, value is at most amount x (1 + tolerance), or for a floor rule id (is_floor) value x (1 + tolerance) is at
+    least the amount. Ignored with a warning on stderr (exemption_issues): a row that lifts a never-lifted class, has no
+    source or is a content row written at 07, and a row for a rule id its source kind may not lift (allowed_kinds)."""
+    if not isinstance(plan, dict) or not isinstance(plan.get("exemptions"), list): return None
+    rid = _rid(rule_id)
+    floor = is_floor(rid)
+    rows = []
+    for row in plan["exemptions"]:     # every ignored row is warned about once, whatever rule is asked
+        if not isinstance(row, dict): continue
+        lifts = [str(x) for x in _list(row.get("lifts"))]
+        rid_of = "?" if row.get("id") is None else row.get("id")
+        whole, per = exemption_issues(row)
+        for key, line in ([((str(row.get("id")), tuple(lifts)), f"ignored: {whole}")] if whole else
+                          [((str(row.get("id")), x), f"ignored for {x}: {why}") for x, why in per.items()]):
+            if key not in _WARNED:
+                _WARNED.add(key)
+                print(f"warning: craft plan exemption {rid_of} {line}", file=sys.stderr)
+        if not whole:
+            rows.append((row, [x for x in lifts if x not in per]))
+    for row, lifts in rows:
+        if rid not in [_rid(x) for x in lifts]: continue
+        if not _covers(row.get("shots"), t, shot): continue
+        am = exemption_amount(row) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+        if am and (value * (1 + am[1]) < am[0] - 1e-9 if floor else value > am[0] * (1 + am[1]) + 1e-9): continue
+        return row
+    return None
+
+
+def exempt_line(rule_id, row):
+    """The line a gate prints for a covered hit: exempt <rule id> by <row id> (<source kind>: <source ref>)."""
+    src = row.get("source") if isinstance(row.get("source"), dict) else {}
+    val = lambda d, k: "?" if d.get(k) is None else d.get(k)
+    return f"exempt {rule_id} by {val(row, 'id')} ({val(src, 'kind')}: {val(src, 'ref')})"
+
+
+def resolve_scope_with_plan(type_arg=None, starts=(), plan=None, plan_path=None):
+    """resolve_scope, then the craft plan's "type" when no --type was given and the project names no film type, or names
+    one that matches no row (a remake: the nearest film type the plan names)."""
+    scope = resolve_scope(type_arg, starts)
+    ptype = str(plan.get("type") or "").strip() if isinstance(plan, dict) else ""
+    if type_arg or not ptype or (scope["type_text"] and scope["row"] != "default"): return scope
+    alt = resolve_scope(ptype, ())
+    if alt["row"] == "default": return scope
+    alt["type_source"] = f"craft plan {plan_path or 'ice/plan/craft-plan.json'}" + (f" (the project's type {scope['type_text']!r} matches no row)" if scope["type_text"] else "")
+    alt["notes"] = []
+    return alt
 
 
 def project_ice(*starts):
@@ -710,12 +947,73 @@ def is_subsequence(small, big):
     return all(w in it for w in small)
 
 
-def lint(text, script=None, scope=None):
+MEASURED = re.compile(r"^measured\b", re.I)
+MEASURED_ROW = re.compile(r"^measured\s*:\s*([^\s/\\#]+)\s+REASONS\.md\s*#\s*(\d+)\b", re.I)   # measured: <ref-id> REASONS.md #<row>
+
+
+def reasons_row(ref_id, row_n, starts=()):
+    """(element text or None, why not found) for row <row_n> of ice/reference/<ref-id>/REASONS.md, the file found by
+    walking up from the start paths. The row is the one whose "#" cell is row_n, else the row_n-th row of the first
+    table with an Element column (tables in code fences do not count)."""
+    f = None
+    for st in starts if ref_id.strip(".") else ():
+        if not st: continue
+        p = Path(st).resolve()
+        for d in [p] + list(p.parents):
+            for ice in ([d] if d.name == "ice" else []) + [d / "ice"]:
+                if (ice / "reference" / ref_id / "REASONS.md").is_file():
+                    f = ice / "reference" / ref_id / "REASONS.md"
+                    break
+            if f: break
+        if f: break
+    if f is None:
+        return None, f"ice/reference/{ref_id}/REASONS.md was not found"
+    try:
+        lines = f.read_text(encoding="utf-8").splitlines()
+    except OSError as e:
+        return None, f"{f} cannot be read ({e.strerror})"
+    fence, i = False, 0
+    while i < len(lines):
+        s = lines[i].strip()
+        if s.startswith("```"):
+            fence = not fence
+        elif not fence and s.startswith("|") and i + 1 < len(lines) and re.match(r"^\s*\|?\s*:?-{2,}", lines[i + 1]):
+            head, raw = _table_after(lines, i)
+            low = [h.strip().lower() for h in head]
+            if "element" in low:
+                rows = [r for r in raw if any(not is_empty(c) for c in r)]
+                el = low.index("element")
+                pick = None
+                if "#" in low:
+                    pick = next((r for r in rows if len(r) > low.index("#") and r[low.index("#")].strip().lstrip("#") == str(row_n)), None)
+                elif 1 <= row_n <= len(rows):
+                    pick = rows[row_n - 1]
+                if pick is None:
+                    return None, f"{f} has no row #{row_n} in its element table ({len(rows)} row(s))"
+                return (pick[el] if el < len(pick) else "").strip() or f"row #{row_n}", None
+            i += 2 + len(raw)
+            continue
+        i += 1
+    return None, f"{f} has no element table (a table with an Element column)"
+
+
+def lint(text, script=None, scope=None, plan=None, reasons_from=()):
     """Returns a dict: rows (per-row results), table (whole-table results), verdict, summary. script: the full voiceover
     script (optional); check (9) runs only when it is given. scope: resolve_scope() result (film type and its values);
-    without it the default row of motion-density.md section 6 applies."""
+    without it the default row of motion-density.md section 6 applies. plan: the parsed craft plan (load_craft_plan);
+    its exemption rows pass the reds of checks 1, 3, 4, 5, 8 and 13 they cover. reasons_from: the paths from which
+    ice/reference/<ref-id>/REASONS.md is found for a "measured:" Reason cell (the storyboard file, the working folder)."""
     if scope is None:
         scope = resolve_scope()
+    table_exempt = []
+
+    def exempt(check, r, value=None):
+        """The exemption row covering check <check> on row r (None for the whole table), recorded as a printed line."""
+        rid = f"story:{check}"
+        row = exemption_for(plan, rid, t=r["span"] if r else None, shot=r["n"] if r else None, value=value) if plan else None
+        if row:
+            (r.setdefault("exempt", []) if r else table_exempt).append(exempt_line(rid, row))
+        return row
     info_cap = int(num(scope["values"].get("cta_info_units")) or 0)
     head, raw = find_table(text)
     if head is None:
@@ -741,9 +1039,11 @@ def lint(text, script=None, scope=None):
         if is_empty(obj):
             bad((RED, "(1) object", "the Object column is empty", "write one thing in the picture you could point at and say 'that one': a person, a hand, a machine, a specific object"))
         elif not obj_residue(obj) and EMPTY_SCENE.search(clean_cell(obj)):
-            bad((RED, "(1) object", f"'{r['obj']}' is an empty picture (blank, flat colour, black screen): the protagonist is not in it", "this shot also needs the protagonist or main object doing something; for a breath, let it stop or pull back, do not remove it"))
+            if not exempt(1, r):
+                bad((RED, "(1) object", f"'{r['obj']}' is an empty picture (blank, flat colour, black screen): the protagonist is not in it", "this shot also needs the protagonist or main object doing something; for a breath, let it stop or pull back, do not remove it; a designed black or colour beat is lifted only by an exemption row in ice/plan/craft-plan.json"))
         elif not obj_residue(obj):
-            bad((RED, "(1) object", f"'{r['obj']}' is a layout element, not an object", "behind every point there is a thing doing something; draw it: 'three reasons' becomes three specific things, one shot each, each doing one thing"))
+            if not exempt(1, r):
+                bad((RED, "(1) object", f"'{r['obj']}' is a layout element, not an object", "behind every point there is a thing doing something; draw it: 'three reasons' becomes three specific things, one shot each, each doing one thing"))
         if is_empty(act):
             bad((RED, "(2) action", "the Action column is empty", "write a verb: falls, cracks, slides into, gets cut off"))
         elif not act_residue(act, obj):
@@ -771,8 +1071,23 @@ def lint(text, script=None, scope=None):
             if k in col:
                 cell = clean_cell(get(cells, k))
                 if is_empty(cell) or FILLER_REASON.match(cell):
-                    bad((RED, f"(17) {name}", f"the {name.capitalize()} cell is empty or only names the source or a taste ('{cell}')",
-                         f"write {what}; an element with no trigger and no reason is cut before 05"))
+                    if not exempt("filler_reason", r):
+                        bad((RED, f"(17) {name}", f"the {name.capitalize()} cell is empty or only names the source or a taste ('{cell}')",
+                             f"write {what}; an element with no trigger and no reason is cut before 05"))
+                elif MEASURED.match(cell) and k == "trig":
+                    bad((RED, "(17) trigger", f"the Trigger cell says 'measured' ('{cell}'): a measured element still needs the words or cue that switch it on in this film",
+                         "write the quoted script words (or the music or sound cue, or the story event) with their time; 'measured: <ref-id> REASONS.md #<row>' belongs in the Reason cell only"))
+                elif MEASURED.match(cell) and not MEASURED_ROW.match(cell):
+                    bad((RED, f"(17) {name}", f"the {name.capitalize()} cell says 'measured' but names no row of the reference's REASONS.md ('{cell}')",
+                         "write 'measured: <ref-id> REASONS.md #<row>' for a measured element whose meaning is unknown (it stays at its measured place and amount and is named on the review card), or write its trigger and reason"))
+                elif MEASURED.match(cell):
+                    m = MEASURED_ROW.match(cell)
+                    element, missing = reasons_row(m.group(1), int(m.group(2)), reasons_from)
+                    if missing:
+                        bad((RED, f"(17) {name}", f"the {name.capitalize()} cell points to REASONS.md row #{m.group(2)} of reference '{m.group(1)}', but {missing}",
+                             "point to a row that exists in ice/reference/<ref-id>/REASONS.md (write the row during the watch: the ice-remake skill, references/notes-files.md section 6), or write the element's reason"))
+                    else:
+                        r.setdefault("notes", []).append(f"{name}: a measured reference element ({cell}; REASONS.md row: {element[:60]}): kept at its measured place and amount; name it on the review card")
         rows.append(r)
     if not rows:
         return {"error": "The shot table is empty: one row per shot under the header."}
@@ -783,7 +1098,9 @@ def lint(text, script=None, scope=None):
     # link) up to 8 + cta_info_units units
     for r in rows:
         cap = 8 + (info_cap if r["cta_tag"] else 0)
-        if r["chars"] > cap:
+        if r["chars"] > cap and exempt(3, r, value=r["chars"]):
+            pass
+        elif r["chars"] > cap:
             hint = ""
             if r["cta_tag"] and not info_cap:
                 hint = f" (the film type '{scope['row']}' has no CTA block allowance)"
@@ -807,13 +1124,17 @@ def lint(text, script=None, scope=None):
 
     # (4) first shot
     f = rows[0]
-    if f["texty"]:
+    if f["texty"] and exempt(4, f):
+        pass
+    elif f["texty"]:
         f["issues"].append((RED, "(4) opening", "the first shot is text-led (title or text)", "replace the first 3 seconds with a small concrete scene: a person or object doing something about the subject; give the title one shot later, or not at all"))
     elif f["chars"] >= 4:
         f["issues"].append((YELLOW, "(4) opening", f"the first shot already has {f['chars']} units of text", "let the picture speak first; keep the words for the second shot"))
     # (8) last shot
     z = rows[-1]
-    if len(rows) > 1 and z["texty"]:
+    if len(rows) > 1 and z["texty"] and exempt(8, z):
+        pass
+    elif len(rows) > 1 and z["texty"]:
         tag_hint = "" if z["cta_tag"] or not info_cap else (f"; when this row is the end card the film type '{scope['row']}' carries (a measured or branded end card), "
                                                              "tag it `CTA block` in the Tags column and name the card in the Object column ('end card ...'): a CTA block row is text-led only by its Object or Method")
         z["issues"].append((RED, "(8) ending", "the last shot is text-led (centred quote card or pure text card)",
@@ -891,8 +1212,20 @@ def lint(text, script=None, scope=None):
     n = len(rows)
     texty = [r["n"] for r in rows if r["texty"]]
     if len(texty) / n > 0.30:
-        table.append((RED, "(5) text share", f"text-led shots {len(texty)}/{n} ({len(texty) / n:.0%}), over 30%: shot(s) {', '.join(map(str, texty))}",
-                      "pick half of them and replace the words with an object doing something; give the words to the voiceover and captions"))
+        # a text-led shot an exemption row covers (its shot or span inside the row's shots, the whole text-led share within
+        # the row's amount) does not count; the check passes when the uncovered text-led shots stay within 30 percent
+        share = len(texty) / n
+        cov = {}
+        for r in rows:
+            row = exemption_for(plan, "story:5", t=r["span"], shot=r["n"], value=share) if plan and r["texty"] else None
+            if row: cov.setdefault(exempt_line("story:5", row), []).append(r["n"])
+        unc = [k for k in texty if not any(k in v for v in cov.values())]
+        if cov and len(unc) / n <= 0.30:
+            table_exempt.extend(f"{line} on shot(s) {', '.join(map(str, v))} (text-led {len(texty)}/{n}, {share:.0%})" for line, v in cov.items())
+        else:
+            note = f"; shot(s) {', '.join(str(k) for v in cov.values() for k in v)} covered by an exemption row, the others alone are over 30%" if cov else ""
+            table.append((RED, "(5) text share", f"text-led shots {len(texty)}/{n} ({share:.0%}), over 30%: shot(s) {', '.join(map(str, unc if cov else texty))}{note}",
+                          "pick half of them and replace the words with an object doing something; give the words to the voiceover and captions"))
     long_ = [r["n"] for r in rows if r["dur"] and 6 < r["dur"] <= 8]
     if len(long_) > max(1, n // 5):
         table.append((YELLOW if one_take else RED, "(6) duration", f"{len(long_)} shots run 6-8 s (shot(s) {', '.join(map(str, long_))}); only a few are allowed",
@@ -935,7 +1268,9 @@ def lint(text, script=None, scope=None):
     if pal:
         hexes = HEX.findall(pal)
         bp = [f"#{h}" for h in hexes if blue_purple_hex(h)]
-        if bp:
+        if bp and exempt(13, None):
+            table_exempt[-1] += f": blue-purple in the palette {', '.join(bp)}"
+        elif bp:
             table.append((YELLOW if lock.get("allow blue-purple") else RED, "(13) palette", f"blue-purple in the palette: {', '.join(bp)}" + (" (reason for blue-purple given)" if lock.get("allow blue-purple") else ""),
                           "move these values out of hue 225-300 deg or choose another palette (ice-direction skill); only when the user asked for blue or purple write 'Allow blue-purple: <reason>'"))
         nfam, fdesc = hue_families(hexes)
@@ -958,7 +1293,7 @@ def lint(text, script=None, scope=None):
     verdict = RED if any(x[0] == RED for x in issues) else YELLOW if issues else GREEN
     numbered = [r["n"] for r in rows if screen_numbers(r["text"])]
     return {"rows": rows, "table": table, "verdict": verdict, "total": total, "texty": texty,
-            "script": script is not None, "numbered": numbered, "scope": scope}
+            "script": script is not None, "numbered": numbered, "scope": scope, "table_exempt": table_exempt}
 
 
 def report(res):
@@ -967,18 +1302,26 @@ def report(res):
     L = [f"Film type: {sc['type_text'] or 'unknown'} ({sc['type_source'] or 'not found'}) -> row '{sc['row']}' of motion-density.md section 6; "
          f"CTA info allowance {int(num(sc['values'].get('cta_info_units')) or 0)} units"]
     L += [f"  note: {n}" for n in sc["notes"]]
+    if res.get("craft_plan"):
+        L.append(f"Craft plan: {res['craft_plan']} (exemption rows are read; rule: the ice-direction skill, references/treatment.md section \"Craft plan\")")
     for r in res["rows"]:
         light = RED if any(x[0] == RED for x in r["issues"]) else YELLOW if r["issues"] else GREEN
         span = f"{r['span'][0]:g}-{r['span'][1]:g}s" if r["span"] else "?"
         L.append(f"[{light}] shot {r['n']}  {span:<10} {r['obj'][:30]}")
         for lv, tag, what, fix in r["issues"]:
             L.append(f"      [{lv}] {tag}: {what}. Fix: {fix}")
+        for e in r.get("exempt", []):
+            L.append(f"      {e}")
         if r.get("note"):
             L.append(f"      note: {r['note']}")
+        for note in r.get("notes", []):
+            L.append(f"      note: {note}")
     L.append("")
     L.append(f"Table: {len(res['rows'])} shots, {res['total']:g} s, text-led {len(res['texty'])} shot(s)")
     for lv, tag, what, fix in res["table"]:
         L.append(f"  [{lv}] {tag}: {what}. Fix: {fix}")
+    for e in res.get("table_exempt", []):
+        L.append(f"  {e}")
     L.append("")
     L.append({RED: "Verdict: RED. Fix the shot table and run this command again; do not start code until the reds are gone.",
               YELLOW: "Verdict: YELLOW. You may start; think through a reason for each yellow and write it in the delivery report.",
@@ -1013,14 +1356,19 @@ def main(argv=None):
     except OSError as e:
         print(f"cannot read {e.filename}: {e.strerror}", file=sys.stderr); return 2
     try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
+    plan_path = find_craft_plan(p) or find_craft_plan(Path.cwd())
+    plan = load_craft_plan(plan_path) if plan_path else None
+    try:
         scope = resolve_scope(ftype, (p, Path.cwd()))
     except (OSError, ValueError) as e:
         print(f"cannot read the scoped gate table: {e}", file=sys.stderr); return 2
-    res = lint(text, script, scope)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
-        pass
+    res = lint(text, script, scope, plan, reasons_from=(p, Path.cwd()))
+    if plan is not None and "error" not in res:
+        res["craft_plan"] = str(plan_path)
     print("\n".join(report(res)))
     if "error" in res: return 2
     return 1 if res["verdict"] == RED else 0

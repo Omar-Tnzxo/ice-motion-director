@@ -13,13 +13,13 @@ Transcription is not bundled. Use a local word-level ASR (Whisper-class with wor
 | `apply-cuts.mjs` | Apply reviewed cuts, retime transcript, optional ffmpeg cut | nateherkai/herk-edit-kit | MIT + Use Permission | Changed (comments) |
 | `build-edl-review.mjs` | Self-contained HTML review page for any EDL | nateherkai/herk-edit-kit | MIT + Use Permission | Changed (title text) |
 | `edl-to-edited-transcript.mjs` | Multi-source EDL plus per-source transcripts to an edited-timeline transcript | nateherkai/herk-edit-kit (`video-use-to-hyperframes-transcript.mjs`) | MIT + Use Permission | Changed (renamed, comments) |
-| `validate-plan.mjs` | Plan validator: caption word exactness, source mapping, frame-aligned scenes, event gaps | nateherkai/herk-edit-kit | MIT + Use Permission | Unchanged (notice line added) |
+| `validate-plan.mjs` | Plan validator: caption word exactness, source mapping, frame-aligned scenes, event gaps, coverage floor, triggers, craft tags | nateherkai/herk-edit-kit | MIT + Use Permission | Changed (notice line; reference pacing L9, archive cut, coverage floor L17, triggers, craft tags, craft-plan exemptions) |
 | `validate-footage.mjs` | Footage ledger validator: sha256, repeated scenes, overlapping intervals | nateherkai/herk-edit-kit | MIT + Use Permission | Unchanged (notice line added) |
 | `beatgrid.mjs` | Showreel cut sheet on a beat grid | nateherkai/herk-edit-kit | MIT + Use Permission | Unchanged (notice line added) |
 | `music-grid.mjs` | Measured beat period, kick-band phase, per-bar energy | nateherkai/herk-edit-kit | MIT + Use Permission | Unchanged (notice line added) |
 | `analyze-reference.mjs` | Contact sheets, hard cuts, luminance, RMS, onsets, cut offset from the beat | nateherkai/herk-edit-kit | MIT + Use Permission | Unchanged (notice line added) |
-| `render.py` | EDL renderer: per-segment extract with 30 ms fades, lossless concat, PTS-shifted overlays, subtitles last, HDR tone map, two-pass loudnorm | browser-use/video-use | MIT | Changed (untyped words, paths, comments) |
-| `grade.py` | Grade presets and a bounded auto grade | browser-use/video-use | MIT | Changed (paths, comments) |
+| `render.py` | EDL renderer: per-segment extract with 30 ms fades, lossless concat, PTS-shifted overlays, subtitles last, HDR tone map, two-pass loudnorm | browser-use/video-use | MIT | Changed (untyped words, paths, comments, grade per EDL range L20, `--dry-run`) |
+| `grade.py` | Grade presets and a bounded auto grade | browser-use/video-use | MIT | Changed (paths, comments, `news_clean` and the outside-material presets) |
 | `pack_transcripts.py` | Phrase-level packed transcript (`takes_packed.md`) | browser-use/video-use | MIT | Changed (paths, comments) |
 | `timeline_view.py` | Filmstrip plus waveform plus word labels PNG for a range | browser-use/video-use | MIT | Changed (untyped words, paths, comments) |
 | `cutdown.py` | 16:9 to 9:16, 1:1 or 4:5 reframe (blur, crop, pad) with segments | digitalsamba/claude-code-video-toolkit | MIT | Changed (helper inlined, `--brand` removed, paths) |

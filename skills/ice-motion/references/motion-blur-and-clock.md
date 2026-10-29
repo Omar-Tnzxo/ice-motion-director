@@ -12,7 +12,7 @@ One clock and one blur grammar per film. This file owns the creative choice; ren
 | 12 fps drawn on a 24 fps camera | Drawn characters on a moving world | Storytime, anime-cel, pixel art (8, 6 or 4 fps sprite poses) |
 | Constant interval cuts at 30 fps | Music-led montage on a grid | Music video, hype |
 
-- Mixed step rates inside one moment read as a bug, not a style.
+- Mixed step rates inside one moment read as a bug, not a style, unless the chosen style's craft profile or the reference declares the mix (illustration only: characters on twos over a smooth world, a stepped stop-motion camera).
 - Camera and light stay smooth every frame even in stepped films; a stepped camera reads as lag. Pixel-art cameras snap to whole art pixels.
 - Stepped states (typing, glitch, dial states, discrete jumps) are never tweened: discrete jumps are instant.
 - Held duplicate frames sparingly (1-2 per film). Start stepped shots on multiples of the step.
@@ -28,7 +28,7 @@ One clock and one blur grammar per film. This file owns the creative choice; ren
 
 - Never combine shutter blur with per-element smear (double blur) or with an on-twos stepped film.
 - Smear lengths: word 8-30 px, card 15-35 px, cursor 8-25 px, whip 3-65 px (100-140 px on a whip out), a one-frame pan up to about 500 px; in practice about 0.5-1x of that frame's displacement and under about 0.15 W. One-sided smears read better than a symmetric blur for cursors.
-- RGB split only on the first word, peak 1-4 frames, gone by 9 frames; a crash-in fringe of about 15 px decaying over about 5 frames.
+- RGB split only on the first word, peak 1-4 frames, gone by 9 frames; a crash-in fringe of about 15 px decaying over about 5 frames. These are defaults: a VHS, glitch or anaglyph style, or a reference that measures a sustained split, sets its offset and length with its plan row.
 - Blur-focus reveal: blur 12 to 0 px, opacity 0.1 to 1, about 4 frames per word.
 - Blur peaks by element: card 6 px, dock 12, orb 15, button burst 25, roll 22, hero counter 12-17, whip 9, logo 18.
 
@@ -36,7 +36,7 @@ One clock and one blur grammar per film. This file owns the creative choice; ren
 
 - Blur is not polish: applied to motion that was never fast enough it reads as a soft, cheap render.
 - Do not blur: travel under about one element width per frame, fades and colour or filter beats, text meant to be read at that moment, slow drift or parallax, a whole scene.
-- Blur the beats that snap (a slam, a whip, a hard cut in position, a spin, a scale punch): one to three of them in a composition; targeted blur beats full-frame blur. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): motion blur goes on every fast fly-in (a title pill, a disc swoop, a card wiping in) and never on typed or mask-revealed text, pens, digital zooms or the camera wrapper (measured: the only blurred element in one package was the pill fly-in); the one-to-three cap does not apply there, and the measured blur still follows the finishing layer (section 6).
+- Blur the beats that snap (a slam, a whip, a hard cut in position, a spin, a scale punch): one to three of them in a composition by default; targeted blur beats full-frame blur. When a reference measures blur on every fast fly-in, or the chosen style's craft profile names it, the count follows that source through the plan's `finish` row (section 6). The news reel is the measured case (edit type `news-reel`, style family `family-broadcast-news.md`): motion blur goes on every fast fly-in (a title pill, a disc swoop, a card wiping in) and never on typed or mask-revealed text, pens, digital zooms or the camera wrapper (measured: the only blurred element in one package was the pill fly-in); the one-to-three cap does not apply there, and the measured blur still follows the finishing layer (section 6).
 - Fast moves need real motion blur: above about 80 px per frame at 1920 wide without it, motion strobes into copies; CSS blur is not motion blur. Directional blur for whips and text in or out where the grammar is smear.
 - Speed ceiling: past about 2.5 frame widths per second blur stops reading as motion; cut instead.
 - Type that must be read is sharp within 3-4 frames of landing; keep static text sharp under subframe blur (counters and typed text read the frame time, not the subframe time).
@@ -53,9 +53,9 @@ One clock and one blur grammar per film. This file owns the creative choice; ren
 
 ## 5. Grain and texture motion
 
-- Grain 0.03-0.06 only on gradient, photo or 3D films (it kills banding); skip it when the brand is crisp and flat on purpose; one grain level for the whole film.
+- Grain 0.03-0.06 on gradient, photo or 3D films by default (it kills banding); skip it when the brand is crisp and flat on purpose, unless the chosen style's craft profile or the reference names a texture (print, film stock); one grain level for the whole film.
 - Grain re-seeded every frame reads as electronic sizzle and bloats the encode (30 Hz grain about 85 MB vs about 9 MB without); seed it at about 12 Hz.
-- Film texture (grain, boil, gate weave) never touches text and never exceeds about 1 px or 0.05 stop; gate weave about 0.5 px at 8 Hz.
+- Film texture (grain, boil, gate weave) stays off text by default and never exceeds about 1 px or 0.05 stop; gate weave about 0.5 px at 8 Hz. Textured type (illustration only: letterpress, risograph, film-stock title cards) is used when the chosen style's craft profile or the reference names it, and the type still meets its legibility floor.
 - Full-screen strokes re-seeded at 8 fps flicker instead of living; keep stroke positions fixed and let a direction field vary.
 
 ## 6. Finishing layer
@@ -64,7 +64,9 @@ Owner decision, 2026-10-29. Scope: every film type; most often a film with a ref
 
 **The rule: only where measured or reasoned.** Each effect is applied only on the shots, at the amount and for the reason that one of two sources gives: the reference measurement (the `ice-remake` skill, `references/measuring.md`, section "Finishing layer": where, how much, why) or a D-entry in `ice/DIRECTION.md` with its reason for this film. Never on everything, never "for polish". Each effect is logged per shot (effect, shots, amount, source) and the delivery report lists it. An effect with no source is decoration and fails the slop scan (the `ice-qa` skill, `references/slop-scan.md` section 5, "Finishing effects").
 
-**How it fits sections 2 to 5.** A measured blur picks the film's one blur grammar (section 2): smear or shutter, never both. Section 3 still decides which beats may blur and section 5 the grain motion and the text rule. Without a measurement, the defaults of sections 3 and 5 hold; with one, the measured amount and shots win for that film. Text stays sharp and texture never touches text, so texture layers sit under the type, and captions are burned in after the texture pass.
+**Who writes the reason (0.2.5).** Every film gets one finishing decision, reference or not: the craft plan's `finish` row, locked at 05 (the `ice-direction` skill, `references/treatment.md` section "Craft plan"), names each effect with its shots, amount and source: the reference measurement, the chosen style's finishing line, the film type's register (illustration only, several kinds: grain and a grade for cinematic, photographic, 3D and gradient films; the print texture of a flat print style; motion blur on the fast beats of a smear film), or "none" with its reason. That row is the D-entry above; "not asked" is never a reason for "none".
+
+**How it fits sections 2 to 5.** A measured blur picks the film's one blur grammar (section 2): smear or shutter, never both. Section 3 still decides which beats may blur and section 5 the grain motion and the text rule. Without a measurement, the defaults of sections 3 and 5 hold; with one, the measured amount and shots win for that film. Text stays sharp and texture stays off text unless the style names textured type (section 5), so texture layers sit under the type, and captions are burned in after the texture pass.
 
 **Order of passes.** Motion blur at render time; then depth and entrance blur; then glow; then the grade; then vignette; then grain, specks, halftone and flicker last, so the grade and the blur never smear the texture.
 
@@ -81,7 +83,7 @@ Owner decision, 2026-10-29. Scope: every film type; most often a film with a ref
 | Flicker | A brightness filter driven by a seeded per-step table, at the measured depth and rate | The same | `eq` with `eval=frame` and a brightness expression of the frame number or time, with no unseeded randomness |
 | Vignette | A radial gradient overlay layer | The same | `vignette` with the measured angle |
 | Glow | A blurred copy of the glowing element behind it with `mix-blend-mode: screen` (fine in Remotion and single-page capture; HyperFrames overlay tracks ignore blend modes, so draw the glow once onto a canvas or image: `ice-engines`, `references/hyperframes.md` section 12). Limits: `composition-and-staging.md` section 6 | The same as single-page capture | `split` the stream, `gblur` one copy, blend it back with `blend` (screen) at the measured opacity |
-| Grade | One grade layer of CSS filters (contrast, saturation, warmth) on the root, or a pass in FFmpeg after render | The same | `lut3d=<file>.cube` with a LUT built for this film and recorded, or `curves`, `eq` and `colorbalance` at the measured values; one grade per film, or per act when the measurement names acts |
+| Grade | One grade layer of CSS filters (contrast, saturation, warmth) on the root, or a pass in FFmpeg after render | The same | `lut3d=<file>.cube` with a LUT built for this film and recorded, or `curves`, `eq` and `colorbalance` at the measured values; one grade per source class (the film's own world in the film grade, outside material in its one outside treatment: the `ice-direction` skill, `references/color.md` section 5), or per act when the measurement names acts |
 
 A measured effect that the chosen engine cannot make goes to the FFmpeg pass after render; when no route can make it, say so in the delivery report instead of faking it with a different effect.
 

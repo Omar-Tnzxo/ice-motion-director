@@ -1,4 +1,4 @@
-# Adapted from browser-use/video-use scripts/render.py (MIT, Copyright (c) 2026 Browser Use). Changes: words without a "type" field (Whisper-style transcripts) are treated as words when building the master SRT; usage paths point to scripts/; dash characters replaced; subtitles filter path and concat list made safe for Windows paths (drive letters, backslashes, quotes), UTF-8 text and process I/O for Windows. See NOTICE.md.
+# Adapted from browser-use/video-use scripts/render.py (MIT, Copyright (c) 2026 Browser Use). Changes: words without a "type" field (Whisper-style transcripts) are treated as words when building the master SRT; usage paths point to scripts/; dash characters replaced; subtitles filter path and concat list made safe for Windows paths (drive letters, backslashes, quotes), UTF-8 text and process I/O for Windows. 2026-10-29 (0.2.5): a grade per source class (lesson L20): an EDL range may carry `grade` (a preset name, raw filter or auto) or `source_class`, mapped to a grade by the EDL's top-level `grades` map, applied to that range only; without them every range takes the EDL `grade` as before; `--dry-run` prints the per-range grade plan as JSON and runs no ffmpeg. See NOTICE.md.
 """Render a video from an EDL.
 
 Implements the HEURISTICS render pipeline in the correct order:
@@ -13,16 +13,23 @@ Optionally builds a master SRT from the per-source transcripts + EDL
 output-timeline offsets, applies the proven force_style (2-word
 UPPERCASE chunks, Helvetica 18 Bold, MarginV=35).
 
+Grade per range: a range's own `grade` wins; else its `source_class` is
+looked up in the EDL's top-level `grades` map (for example the film's own
+footage on `news_clean` and archive on one outside-material preset); else
+the EDL `grade` applies, as it always did.
+
 Usage:
     python scripts/render.py <edl.json> -o final.mp4
     python scripts/render.py <edl.json> -o preview.mp4 --preview
     python scripts/render.py <edl.json> -o final.mp4 --build-subtitles
     python scripts/render.py <edl.json> -o final.mp4 --no-subtitles
+    python scripts/render.py <edl.json> -o final.mp4 --dry-run    # grade plan per range as JSON, no render
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
 import subprocess
@@ -103,6 +110,39 @@ def resolve_grade_filter(grade_field: str | None) -> str:
             print(f"warning: unknown preset '{grade_field}', using as raw filter")
             return grade_field
     return grade_field
+
+
+def range_grade_field(edl: dict, r: dict) -> tuple[str | None, str]:
+    """The grade field for one EDL range and where it came from: the range's own
+    `grade`, else the EDL's `grades` map entry for the range's `source_class`,
+    else the EDL's top-level `grade` (the behaviour before per-range grades)."""
+    if r.get("grade"):
+        return r["grade"], "range grade"
+    cls = r.get("source_class")
+    if cls:
+        grades = edl.get("grades") or {}
+        if cls in grades:
+            return grades[cls], f"grades[{cls}]"
+        print(f"warning: source_class '{cls}' has no entry in the EDL grades map; this range takes the EDL grade",
+              file=sys.stderr)
+    return edl.get("grade"), "EDL grade"
+
+
+def grade_plan(edl: dict) -> list[dict]:
+    """One entry per EDL range: its grade field, where it came from, and the
+    resolved filter ("__AUTO__" for auto, resolved per range at render time).
+    Runs no ffmpeg, so `--dry-run` and tests can read the plan."""
+    cache: dict = {}
+    plan: list[dict] = []
+    for i, r in enumerate(edl.get("ranges") or []):
+        field, origin = range_grade_field(edl, r)
+        if field not in cache:
+            cache[field] = resolve_grade_filter(field)
+        plan.append({
+            "range": i, "source": r.get("source"), "start": r.get("start"), "end": r.get("end"),
+            "source_class": r.get("source_class"), "grade": field, "from": origin, "filter": cache[field],
+        })
+    return plan
 
 
 def resolve_path(maybe_path: str, base: Path) -> Path:
@@ -346,10 +386,13 @@ def extract_all_segments(
 
     If the EDL `grade` is "auto", analyze each segment range with
     `auto_grade_for_clip` and apply a per-segment subtle correction.
-    Otherwise, apply the same preset/raw filter to every segment.
+    Otherwise, apply the same preset/raw filter to every segment, except
+    ranges with their own `grade` or a `source_class` in the `grades` map
+    (`grade_plan`), which take their own.
     """
-    resolved = resolve_grade_filter(edl.get("grade"))
-    is_auto = resolved == "__AUTO__"
+    grades = grade_plan(edl)
+    per_range = any(g["from"] != "EDL grade" for g in grades)
+    is_auto = not per_range and bool(grades) and grades[0]["filter"] == "__AUTO__"
     clips_dir = edit_dir / (
         "clips_draft" if draft else ("clips_preview" if preview else "clips_graded")
     )
@@ -384,14 +427,18 @@ def extract_all_segments(
         duration = end - start
         out_path = clips_dir / f"seg_{i:02d}_{src_name}.mp4"
 
-        if is_auto:
+        resolved = grades[i]["filter"]
+        range_auto = resolved == "__AUTO__"
+        if range_auto:
             seg_filter, _stats = auto_grade_for_clip(src_path, start=start, duration=duration, verbose=False)
         else:
             seg_filter = resolved
 
         note = r.get("beat") or r.get("note") or ""
         print(f"  [{i:02d}] {src_name}  {start:7.2f}-{end:7.2f}  ({duration:5.2f}s)  {note}")
-        if is_auto:
+        if per_range:
+            print(f"        grade ({grades[i]['from']}: {grades[i]['grade'] or 'none'}): {seg_filter or '(none)'}")
+        elif is_auto:
             print(f"        grade: {seg_filter or '(none)'}")
         extract_segment(src_path, start, duration, seg_filter, out_path, preview=preview, draft=draft, rate=out_rate)
         seg_paths.append(out_path)
@@ -769,6 +816,12 @@ def main() -> None:
              "(falls back to 24 if it can't be probed). Pass e.g. --fps 30 or "
              "--fps 30000/1001 to force.",
     )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the grade plan per range (grade field, where it came from, ffmpeg filter) as JSON and exit. "
+             "Runs no ffmpeg; the sources need not exist.",
+    )
     args = ap.parse_args()
 
     edl_path = args.edl.resolve()
@@ -778,6 +831,15 @@ def main() -> None:
     edl = json.loads(edl_path.read_text(encoding="utf-8"))
     edit_dir = edl_path.parent
     out_path = args.output.resolve()
+
+    if args.dry_run:
+        with contextlib.redirect_stdout(sys.stderr):  # warnings stay off the JSON
+            plan = grade_plan(edl)
+        for g in plan:
+            if g["filter"] == "__AUTO__":
+                g["filter"] = "auto (measured per range at render time)"
+        print(json.dumps({"edl": str(edl_path), "output": str(out_path), "ranges": plan}, indent=2, ensure_ascii=False))
+        return
 
     # 1. Extract per-segment (auto-grade per range if EDL grade is "auto")
     segment_paths = extract_all_segments(

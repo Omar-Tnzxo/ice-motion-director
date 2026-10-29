@@ -18,6 +18,7 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Noncommercial material | The workflow uses its `noncommercial/` folder only when `commercial_use` is `no` |
 | Prerequisites | The engine picked by `ice-engines`; see `prerequisites.md` |
 | Spine stages | 01 brief, 02 concept, 03 script, 04 storyboard, 05 look, 06 animatic, 07 build, 08 sound (08a with 07, 08b mix after it), 09 review, 10 deliver |
+| Craft plan | Drafted at 02 with the concept, mapped at 04 (storyboard rows tagged `craft:<code>`), locked at 05 with the style frames; `craft_gate.py plan` at the later of 04 and 05 and at 06, `craft_gate.py build` at 07 and 09 (`ice-direction/references/treatment.md` section "Craft plan") |
 | Changes after delivery | Reopen the stage that owns the change (script, storyboard, build, sound); never patch only the render |
 
 ## ice-explainer
@@ -32,6 +33,7 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Noncommercial material | Its `noncommercial/` folders are used only when `commercial_use` is `no` |
 | Prerequisites | Engine from `ice-engines`, FFmpeg, a local speech-to-text model for timing; TTS only if the user chose it |
 | Spine stages | 01 brief, 02 concept, 03 narration script, 04 storyboard, 05 look, 06 voice-first animatic, 07 build, 08 voice, score and mix, 09 review, 10 deliver |
+| Craft plan | Drafted at 02 with the angle, mapped at 04 on the segments and the storyboard, locked at 05 with the style frames; `craft_gate.py plan` at 04 to 06, `craft_gate.py build` at 07 and 09 (`ice-direction/references/treatment.md` section "Craft plan") |
 | Changes after delivery | A changed word retimes everything after it: reopen at the script stage |
 
 ## ice-remake
@@ -45,6 +47,7 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Output | Final MP4, analysis notes, `ice/review/NOTE.md` |
 | Prerequisites | FFmpeg, Python for the analysis scripts, the engine from `ice-engines` |
 | Spine stages | 01 brief plus reference analysis, 02 treatment mapped to the reference, 03 script, 04 shot mapping, 05 look locked to the reference, 06 animatic, 07 build, 08 sound, 09 review plus climax duel, 10 deliver |
+| Craft plan | Drafted at 01 from the reference measurement (every measured dimension is a row), mapped at 04 (`ice/plan/shots.json` rows carry `craft`), locked at 05 with the look locked to the reference; `craft_gate.py plan` at 04 to 06, `craft_gate.py build` at 07 and 09 beside the climax duel (`ice-direction/references/treatment.md` section "Craft plan") |
 | Compound | Footage plus reference: `ice-edit` runs and borrows this workflow's analysis step |
 | Style recipe | Export: stage 10 writes `ice/reference/<ref-id>/STYLE-RECIPE.md` and `style-recipe.json` (`ice-remake/references/style-recipe.md`). Recipe only: `run_mode recipe-only`, order `01 10`, delivers the recipe and its prompt block, no render. Incoming recipe: with footage `ice-edit`, without it this route in the header's mode (`classify.md`, "Style recipes") |
 
@@ -55,11 +58,12 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Trigger | The user supplies video or audio to cut, clean, caption, reframe, split into clips, or add B-roll and motion overlays to |
 | Edit types | Long-form, podcast, talking-head ad, shorts and reels, news reel, B-roll overlay, showreel (the workflow picks one) |
 | Needs at the start | The media files; brief slots: goal, platform and aspect ratio, must-keep content, language, commercial use |
-| Gates the workflow runs | Footage ledger, transcript-driven cut plan, self-review at every cut, captions matching the spoken words, loudness on the export, the cold-viewer clarity read 3 for edit types that sell or promote (`ice-qa/references/clarity-gate.md` section 1), delivery report; for those same edit types made for a brand, the brand test and competitor swap at 09 only (`ice-qa/references/identity-tests.md`); no studio benchmark |
+| Gates the workflow runs | Footage ledger, transcript-driven cut plan, self-review at every cut, then an independent critic at 09 that never ran in the builder's session (`ice-qa/references/critic-loop.md`); captions matching the spoken words, loudness on the export, the cold-viewer clarity read 3 on every edit type, sized to the job (`ice-qa/references/clarity-gate.md` sections 1 and 7), delivery report; whenever the edit carries an identity (a brand, a channel, a programme or a series, whether or not it sells), the brand test and competitor swap on masked graded stills at 05, confirmed at 09 (`ice-qa/references/identity-tests.md`); the studio benchmark at 05 on two graded stills with the overlays (`ice-qa/references/studio-benchmark.md`) |
 | Output | Final MP4, edit decision list, retimed transcript, caption files, `ice/review/NOTE.md` |
 | Noncommercial material | Never used on this route |
 | Prerequisites | FFmpeg and FFprobe, Node, Python, a local speech-to-text model with word timestamps |
 | Spine stages | 01 brief plus ingest, 02 edit approach, 03 paper edit from the transcript, 04 B-roll and overlay plan, 05 grade and caption style, 06 rough cut, 07 fine cut and overlays, 08 sound, 09 review, 10 deliver |
+| Craft plan | Drafted at 02 with the edit approach, from the transcript and the footage diagnosis; mapped at 04 (`plan.json` scenes and events carry `craft`); locked at 05 with the grade and caption style; `craft_gate.py plan` at 04 and on the 06 rough cut, `craft_gate.py build` at 07 and 09 (`ice-direction/references/treatment.md` section "Craft plan") |
 | Paid services | Hosted transcription, TTS or AI footage are optional and only with the user's consent |
 
 ## ice-lottie
@@ -73,6 +77,7 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Output | Lottie JSON or animated SVG, preview GIF or MP4, developer handoff notes |
 | Prerequisites | Node; the Lottie tools named by the workflow |
 | Spine stages | 01 brief, 02 concept, 03 not used, 04 states and frames, 05 look, 06 not used, 07 build, 08 not used, 09 review, 10 deliver |
+| Craft plan | Drafted at 02 with the dimensions a product asset has (sound and real-footage rows not used, reason: the route), mapped at 04 on the states, locked at 05; `craft_gate.py plan` at 04, `craft_gate.py build` at 07 (`ice-direction/references/treatment.md` section "Craft plan") |
 
 ## ice-ideas
 
@@ -85,3 +90,4 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | End of the run | Every stage after the last deliverable the user asked for is `not_used`, so auto mode stops there. Building the idea is a new route and starts only on the user's own word: then update `route` and `order` and continue with the build workflow (`references/state.md`, "Resume" step 4) |
 | Prerequisites | None beyond the agent itself |
 | Spine stages | 01 brief, 02 concepts, 03 script, 04 storyboard, 05 optional style frames, 06 optional animatic spec, 07 and 08 hand-off to the build route, 09 review of the idea set, 10 hand-off |
+| Craft plan | Drafted at 02 with the chosen concept, mapped at 04 on the storyboard, locked at 05 only when style frames are drawn; `craft_gate.py plan` at 04; the hand-off carries the plan to the build route (`ice-direction/references/treatment.md` section "Craft plan") |

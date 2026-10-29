@@ -6,10 +6,10 @@ Merged from heygen-com/hyperframes (Apache-2.0: embedded-captions composition cr
 
 | Technique | Use on | Never on |
 |---|---|---|
-| Embedded captions (words behind the subject) | Talking-head and interview footage with a separable person; the user asked for a cinematic or in-scene look | Multi-speaker hard-cut clips, no human subject, clips under 3 s, footage with burned captions, busy handheld |
+| Embedded captions (words behind the subject) | Talking-head and interview footage with a separable person, when the film's hook or peak word earns it, the chosen style or a reference uses it, or the user asked for a cinematic or in-scene look; the user's request is one trigger, not the only one (the plan's `type` or `cutout` row: the `ice-direction` skill, `references/treatment.md` section "Craft plan") | Multi-speaker hard-cut clips, no human subject, clips under 3 s, footage with burned captions, busy handheld |
 | Camera 3D captions (words in a 3D space around a static speaker, virtual camera moves) | A static-camera talking-head take (real or avatar), landscape, medium shot or wider, 5 to 20 s per piece | Plain subtitles, a moving or handheld camera, extreme close-ups, a subject a person-matting model cannot separate |
 
-The video is delivered untouched: never grade, recolor or scanline the footage itself (a theme's plate reaction applied after the matte composite is the one sanctioned exception, and camera 3D grades plate and front text identically).
+The person is never graded, recoloured or scanlined for a look (the `ice-edit` skill, `references/ingest-and-ledger.md` section 5, grade policy): a theme's plate reaction applied after the matte composite and a planned grade of the plate or room behind the matte are the sanctioned changes, and camera 3D grades plate and front text identically.
 
 ## 2. Embedded caption craft
 

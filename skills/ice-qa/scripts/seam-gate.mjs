@@ -6,6 +6,10 @@
 // expose window.__seek, window.renderAt(t) or window.seek(t) (sync or async: the returned promise is awaited, then two
 // animation frames pass before sampling, as in lint.mjs), window.__timelines or gsap instead of the HyperFrames player;
 // the viewport takes the composition's own size (data-width/data-height or window.DEMO); dash characters replaced.
+// 2026-10-29 (0.2.5, craft plan): the zero-overlap rule reads the exemption rows of ice/plan/craft-plan.json (found by
+// walking up from the ledger, then --project, then the working folder): a dissolve seam whose cut time or seam id sits
+// inside the shots of a row lifting seam:zero-overlap passes and prints "exempt seam:zero-overlap by <row id>
+// (<source>)" (the rule itself: the ice-direction skill, references/treatment.md section "Craft plan").
 // See NOTICE.md.
 //
 // seam-gate.mjs: numeric Seam Gate verifier for HTML motion films.
@@ -22,8 +26,9 @@
 
 import { spawn } from "node:child_process";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
+import { exemptionFor, exemptLine, findCraftPlan, loadCraftPlan } from "./_cdp.mjs";
 
 // ---------- args ----------
 const argv = process.argv.slice(2);
@@ -419,6 +424,12 @@ async function verify() {
   const ledger = JSON.parse(readFileSync(ledgerPath, "utf8"));
   const fps = ledger.fps || FPS,
     dt = 1 / fps;
+  // craft plan exemption rows (seam:zero-overlap): from the ledger's folder, then --project, then the working folder
+  const planFile =
+    findCraftPlan(dirname(resolve(ledgerPath))) ||
+    (flag("project", null) && findCraftPlan(resolve(flag("project", null)))) ||
+    findCraftPlan(process.cwd());
+  const plan = planFile ? loadCraftPlan(planFile) : null;
   const compUrl = await ensureServer();
   const { evalJs } = await openPage(compUrl);
   const results = [];
@@ -501,10 +512,20 @@ async function verify() {
         else add("speed-match", "PASS", `ratio ${ratio.toFixed(2)}`);
       }
 
-      // zero overlap
+      // zero overlap (a dissolve seam that a craft plan row lifting seam:zero-overlap covers passes)
       const enPre = S[tA2][en.selector],
         exPost = S[tB1][ex.selector];
-      if (visible(enPre))
+      const lift =
+        (visible(enPre) || visible(exPost)) && plan
+          ? exemptionFor(plan, "seam:zero-overlap", { t: cut, shot: seam.id ?? null })
+          : null;
+      if (lift)
+        add(
+          "zero-overlap",
+          "PASS",
+          `both sides visible across the cut (a dissolve): ${exemptLine("seam:zero-overlap", lift)}`,
+        );
+      else if (visible(enPre))
         add(
           "zero-overlap",
           "FAIL",

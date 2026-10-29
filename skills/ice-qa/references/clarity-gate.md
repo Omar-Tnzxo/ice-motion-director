@@ -28,7 +28,7 @@ Routes:
 | Route | Reads |
 |---|---|
 | `ice-film`, `ice-explainer`, `ice-remake` | Target, reads 1, 2 and 3. A reference's look never excuses a film the viewer cannot follow |
-| `ice-edit` | Read 3 only, for edit types that sell or promote (a talking-head ad, shorts or reels made to promote, a showreel); the footage already fixes the story. Its 02 approach writes the takeaway that read 3 is matched against |
+| `ice-edit` | Read 3 on every edit type, sized to the job (section 7); the footage already fixes the story, so reads 1 and 2 are not run. Its 02 approach writes the takeaway that read 3 is matched against (`Offer's job: none` when the edit offers nothing) |
 | `ice-ideas` | Target at 02; a micro read (section 7) at 09 only when 04 or 05 drew frames. The takeaway travels in the hand-off |
 | `ice-lottie` | None (product UI motion, not a film for an audience) |
 

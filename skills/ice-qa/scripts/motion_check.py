@@ -6,7 +6,9 @@
 # whole-frame mean, so a small element moving steadily is not a freeze; declared holds (cue-sheet quiet list, hold
 # events) are reported apart. 2026-10-29 (Obama trial, lessons L9 and L12): pacing against the reference (longest gap
 # between events and events per minute) and depth and camera against the reference, both blocking; --pacing-only runs
-# them with the standard library alone (numpy and ffmpeg load only on the video path). See NOTICE.md.
+# them with the standard library alone (numpy and ffmpeg load only on the video path). 2026-10-29 (0.2.5, craft plan):
+# black frames, white flashes and the end cut to black are labelled "exempt frame:A5 by <row>" when an exemption row of
+# ice/plan/craft-plan.json covers them (labels only: no check here fails on them). See NOTICE.md.
 # Needs: Python 3.11+; on the video path also ffmpeg/ffprobe on PATH (or FFMPEG_DIR) and numpy (pinned in
 # requirements.txt). --pacing-only needs neither.
 """motion_check.py: find the motion defects that stills can't show, in a rendered video; check the film's pacing, depth
@@ -27,6 +29,11 @@ Video path. Looks at every frame (downscaled to 192 px wide, aspect ratio kept) 
           or <video>.events.json next to the render). A freeze inside a declared hold is listed as "declared".
   black   frames that are (almost) black inside the film, and a hard cut to black at the end (no fade).
   flash   (almost) white frames: fine when designed, but they must not hide the moment they cover.
+  Labels: a black run, a white flash or the end cut to black that an exemption row of ice/plan/craft-plan.json (found by
+  walking up from the video, then the working folder) covers is printed and listed under "exempt" as
+  "exempt frame:A5 by <row id> (<source kind>: <source ref>)" (frame-checks.md row A5, flashes and dips; a black run's
+  length in seconds is checked against the row's amount); the others print "not exempt". The rule itself: the
+  ice-direction skill, references/treatment.md section "Craft plan".
 Writes <out>/motion.json and one strip per flag (<out>/<kind>_<time>.jpg, the frames around it); open the strips.
 It also lists the hard cuts, to check against the plan's shot list.
 Pops (a pose, expression or prop swapped with no in-between) are NOT detected here: frame differences can't tell them
@@ -81,7 +88,7 @@ def load_numpy():
 
 W, G, C = 192, 8, 12   # analysis width (height follows the aspect ratio); G x G grid for cuts; C px cells for freezes
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from storyboard_lint import project_ice, declared_times   # noqa: E402  (shared film-type and cue-sheet helpers, standard library)
+from storyboard_lint import project_ice, declared_times, exempt_line, exemption_for, find_craft_plan, load_craft_plan   # noqa: E402  (shared helpers and craft plan reader, standard library)
 
 
 class BadInput(Exception):
@@ -331,6 +338,19 @@ def video_check(a):
            "declared_holds": [{"from": s, "to": e, "reason": r} for s, e, r in holds], "holds_from": hsrc, "cell_eps": a.cell_eps,
            "black": [b for b in black if b["from"] > a.a + 0.2], "white_flash": white, "end_hard_cut_to_black": end_hard_black,
            "note": "open each strip. Pops are not detected here: check every action with a 12 fps strip of consecutive frames."}
+    # labels from the craft plan's exemption rows (frame:A5, flashes and dips); no new fail
+    plan_path = find_craft_plan(os.path.dirname(os.path.abspath(a.video))) or find_craft_plan(os.getcwd())
+    plan = load_craft_plan(plan_path) if plan_path else None
+    end_t = round(a.a + (len(lum) - 1) / fps, 3)
+    hits = [("black", (b["from"], b["to"]), round(b["to"] - b["from"] + 1 / fps, 3)) for b in rep["black"]] + \
+           [("white flash", w, None) for w in white] + ([("end cut to black", (max(a.a, end_t - 0.5), end_t), None)] if end_hard_black else [])
+    rep["exempt"] = []
+    for kind, at, value in hits:
+        row = exemption_for(plan, "frame:A5", t=at, value=value) if plan else None
+        rep["exempt"].append({"kind": kind, "at": list(at) if isinstance(at, tuple) else at,
+                              "label": exempt_line("frame:A5", row) if row else "not exempt"})
+    if plan is not None:
+        rep["craft_plan"] = str(plan_path)
     for z in freezes: strip(a.video, (z["from"] + z["to"]) / 2, fps, os.path.join(a.out, f"freeze_{z['from']:.2f}.jpg"))
     for b in rep["black"]: strip(a.video, b["from"], fps, os.path.join(a.out, f"black_{b['from']:.2f}.jpg"))
     blocks, failed = {}, False
@@ -341,6 +361,9 @@ def video_check(a):
     print(f"cuts {len(cuts)}  freezes {len(freezes)}  black {len(rep['black'])}  white {len(white)}  end_hard_black {end_hard_black}")
     for z in freezes: print(f"  freeze {z['from']:.2f}-{z['to']:.2f}s ({z['s']}s): no region of the frame moves")
     for z in declared: print(f"  declared hold, still {z['from']:.2f}-{z['to']:.2f}s ({z['s']}s): not a freeze")
+    for x in rep["exempt"]:
+        at = x["at"]
+        print(f"  {x['kind']} {at[0]:.2f}-{at[1]:.2f}s: {x['label']}" if isinstance(at, list) else f"  {x['kind']} {at:.2f}s: {x['label']}")
     if holds: print(f"  declared holds read from {', '.join(hsrc)}: " + ", ".join(f"{s:g}-{e:g}s" for s, e, _ in holds))
     for name, b in blocks.items(): print_block(name, b)
     print("wrote", os.path.join(a.out, "motion.json"))

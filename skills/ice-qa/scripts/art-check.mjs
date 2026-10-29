@@ -2,6 +2,9 @@
 // art-check.mjs - the art check: rejects primitive code-drawn art (flat single-tone objects with no shading, texture,
 // detail or shadow) on a style frame page, an SVG drawing or a build page. Founder decision, 2026-10-22. Craft rules:
 // the ice-styles skill, references/code-illustration-craft.md. Rule and thresholds: references/pre-render-lint.md 4b.
+// 2026-10-29 (0.2.5, craft plan): tones, shading and shapes accept "none: <reason>" (data-art-tones, data-art-shading,
+// data-art-shapes) like texture and shadow, and every measure accepts an exemption row art:<measure> of
+// ice/plan/craft-plan.json (printed "exempt art:<measure> by <row id> (<source>)").
 // Needs Node 22+ and a local Chrome or Edge (CHROME_PATH).
 //
 // Usage:  node art-check.mjs <page.html | drawing.svg> [--times 0.5,2] [--json] [--width W --height H]
@@ -28,12 +31,20 @@
 //     shadow   a drop shadow (CSS filter or box-shadow, feDropShadow, an offset blur), a shape named      none FAIL
 //              shadow, or a dark translucent shape under the object's base; data-art-shadow="none:
 //              <reason>" turns the fail into a printed lead
+//   data-art-tones, data-art-shading and data-art-shapes="none: <reason>" on the object turn those fails (and the shapes
+//   lead) into printed leads the same way (a flat-fill or few-shape style that declares it).
+//   Exemption rows: with ice/plan/craft-plan.json (found by walking up from the page, then the working folder), a measure
+//   that fails or leads passes as EXEMPT when a row lifting art:<measure> (art:tones, art:shading, art:shapes,
+//   art:texture, art:shadow) covers the object's sample time ("all", or a time range "a-b" in seconds; a page with no
+//   seek is covered only by "all") and, for tones and shapes, the count x (1 + tolerance) reaches the row's amount. It
+//   prints "exempt art:<measure> by <row id> (<source>)". The rule itself: the ice-direction skill,
+//   references/treatment.md section "Craft plan".
 // Output: one line per object with every measure, then "GATE ART: PASS|WARN|FAIL|N/A". --json prints the same as JSON.
 // Exit: 0 PASS, WARN or N/A; 1 FAIL; 2 bad usage or page failure. A PASS is a floor, never taste.
 import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { launchChrome, parseArgs, helpFrom } from './_cdp.mjs';
+import { launchChrome, parseArgs, helpFrom, findCraftPlan, loadCraftPlan, exemptionFor, exemptLine } from './_cdp.mjs';
 
 const fail2 = (m) => { console.error('error: ' + m); process.exit(2); };
 const { pos, opt } = parseArgs(process.argv.slice(2), { help: 'bool', times: 's', json: 'bool', width: 's', height: 's' });
@@ -174,7 +185,8 @@ const PAGE_LIB = String.raw`(() => {
       return { name, auto, area: b.area / (W * H), box: [b.x0 / W, b.y0 / H, b.x1 / W, b.y1 / H].map((v) => +v.toFixed(3)), shapes, tones: tones.length,
         toneList: tones.slice(0, 8).map((c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')),
         shading: [...acc.shading].slice(0, 3), texture: [...acc.texture].slice(0, 3), shadow: [...acc.shadow].slice(0, 3),
-        textureNone: g.getAttribute('data-art-texture') || '', shadowNone: g.getAttribute('data-art-shadow') || '' };
+        textureNone: g.getAttribute('data-art-texture') || '', shadowNone: g.getAttribute('data-art-shadow') || '',
+        tonesNone: g.getAttribute('data-art-tones') || '', shadingNone: g.getAttribute('data-art-shading') || '', shapesNone: g.getAttribute('data-art-shapes') || '' };
     };
     let heroes = [...document.querySelectorAll('[data-art-hero]')].map((g) => [g, g.getAttribute('data-art-hero') || g.id || 'hero', false]);
     if (!heroes.length) {
@@ -206,15 +218,29 @@ const PAGE_LIB = String.raw`(() => {
 })()`;
 
 // ---------------------------------------------------------------- node side
+// the craft plan: exemption rows art:<measure> (the ice-direction skill, references/treatment.md section "Craft plan")
+const PLAN = (() => {
+  const file = findCraftPlan(fs.existsSync(src) ? path.dirname(path.resolve(src)) : process.cwd()) || findCraftPlan(process.cwd());
+  return { file, plan: file ? loadCraftPlan(file) : null };
+})();
+const NONE = /^none\s*:\s*\S/i;
+
 function verdict(o) {
   const m = [];
-  m.push(['tones', o.tones < T.tones ? 'FAIL' : 'PASS', `${o.tones} distinct fill tone(s)${o.toneList.length ? ' ' + o.toneList.join(' ') : ''}` + (o.tones < T.tones ? ` (needs base, shadow and highlight: ${T.tones} or more)` : '')]);
-  m.push(['shading', o.shading.length ? 'PASS' : 'FAIL', o.shading.length ? o.shading.join(', ') : 'none: no gradient, lighting filter, blend layer or tone steps of one hue']);
-  m.push(['shapes', o.shapes < T.shapesFail ? 'FAIL' : o.shapes < T.shapesWarn ? 'WARN' : 'PASS', `${o.shapes} shape(s)` + (o.shapes < T.shapesWarn ? ` (fail under ${T.shapesFail}, lead under ${T.shapesWarn}: primary, secondary and tertiary forms)` : '')]);
-  const opt = (key, found, none, what) => found.length ? [key, 'PASS', found.join(', ')]
-    : /^none\s*:\s*\S/i.test(none) ? [key, 'WARN', `declared ${none} (printed lead)`] : [key, 'FAIL', `none: no ${what}`];
+  m.push(['tones', o.tones < T.tones ? 'FAIL' : 'PASS', `${o.tones} distinct fill tone(s)${o.toneList.length ? ' ' + o.toneList.join(' ') : ''}` + (o.tones < T.tones ? ` (needs base, shadow and highlight: ${T.tones} or more)` : ''), o.tonesNone, o.tones]);
+  m.push(['shading', o.shading.length ? 'PASS' : 'FAIL', o.shading.length ? o.shading.join(', ') : 'none: no gradient, lighting filter, blend layer or tone steps of one hue', o.shadingNone, null]);
+  m.push(['shapes', o.shapes < T.shapesFail ? 'FAIL' : o.shapes < T.shapesWarn ? 'WARN' : 'PASS', `${o.shapes} shape(s)` + (o.shapes < T.shapesWarn ? ` (fail under ${T.shapesFail}, lead under ${T.shapesWarn}: primary, secondary and tertiary forms)` : ''), o.shapesNone, o.shapes]);
+  const opt = (key, found, none, what) => found.length ? [key, 'PASS', found.join(', '), none, null] : [key, 'FAIL', `none: no ${what}`, none, null];
   m.push(opt('texture', o.texture, o.textureNone, 'pattern, noise filter or texture layer over the object'));
   m.push(opt('shadow', o.shadow, o.shadowNone, 'cast, contact or drop shadow'));
+  // a fail or lead: an exemption row art:<measure> covering the object's sample time (counts as floors) passes it as
+  // EXEMPT; else a declared "none: <reason>" on the object turns it into a printed lead
+  for (const x of m) {
+    if (x[1] === 'PASS') continue;
+    const row = exemptionFor(PLAN.plan, 'art:' + x[0], { t: o.t ?? null, value: x[4] });
+    if (row) { x[2] += '; ' + exemptLine('art:' + x[0], row); x[1] = 'EXEMPT'; }
+    else if (NONE.test(x[3] || '')) { x[2] = (x[1] === 'FAIL' && (x[0] === 'texture' || x[0] === 'shadow') ? '' : x[2] + '; ') + `declared ${x[3]} (printed lead)`; x[1] = 'WARN'; }
+  }
   const status = m.some((x) => x[1] === 'FAIL') ? 'FAIL' : m.some((x) => x[1] === 'WARN') ? 'WARN' : 'PASS';
   return { ...o, status, measures: Object.fromEntries(m.map(([k, s, note]) => [k, { status: s, note }])) };
 }

@@ -11,7 +11,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.4
+  version: 0.2.5
 ---
 
 # ice-styles
@@ -31,7 +31,7 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 2. If the user named a style, find it in `references/catalog-index.md` (name, alias or id) and open its family file. No clear match: show the two or three closest and ask once.
 3. Otherwise shortlist from the selection tables below: take candidates from the film-type row, cross-check against the mood, audience and industry rows, keep the ones that appear in two or more rows, and add at least one less obvious candidate from another family. Open each candidate's entry and drop any whose "Do not use when" collides with the brief.
 4. For a voiceover-led film, also pick the narration grammar per section from `references/narration-grammars-1.md`.
-5. Pass the shortlist (with one line per candidate: why it fits, what it risks) to ice-direction. After approval, write the style lock (see `references/style-method.md` section 4) into the shot table and log the choice in `ice/DIRECTION.md` with its source entry.
+5. Pass the shortlist (with one line per candidate: why it fits, what it risks) to ice-direction. After approval, write the style lock (see `references/style-method.md` section 4) into the shot table and log the choice in `ice/DIRECTION.md` with its source entry. At 05, copy the chosen entry's craft profile (its family default line plus its own line) into `ice/plan/craft-plan.json`, as the `Craft:` line of `references/style-method.md` section 4 says.
 6. During production, keep the chosen entry open; check every frame against its "Medium-specific moves" and "Common mistakes".
 
 ## Selection by film type (film types follow the ice-film and ice-edit type files)
@@ -126,7 +126,7 @@ For Arabic or right-to-left films, any style works only after its type and capti
 
 | Open | When |
 |---|---|
-| `references/style-method.md` | Always, before applying any style: fixed versus free, style lock, medium-true motion, transitions from the medium, one style per film and its exceptions, adapting a style from an image or tradition, building and validating a new style, music by family |
+| `references/style-method.md` | Always, before applying any style: fixed versus free, style lock (with the `Craft:` line), the craft profile format, medium-true motion, transitions from the medium, one style per film and its exceptions, adapting a style from an image or tradition, building and validating a new style, music by family |
 | `references/code-illustration-craft.md` | Before drawing any object, character or scene in code: construction, value and light (three tones, cast and contact shadows), surface and texture, line policy, depth, named groups and pivots, the art check |
 | `references/catalog-index.md` | To match a style the user named, or to see every entry and its file |
 | `references/family-evidence-data.md` | Satellite, LiDAR, microscope, archive, briefing board, white model, teardown, data physicalization, data storytelling, iso infographic, sticker explainer |

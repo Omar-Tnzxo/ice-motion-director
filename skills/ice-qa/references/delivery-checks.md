@@ -18,6 +18,7 @@ The user stops are the router's stops table (`ice-motion-director/SKILL.md` sect
 | Spec | `node scripts/probe-mp4.mjs final.mp4 <WxH> <fps>`: resolution exact, fps within +-0.5, duration equal to the composition duration (ffprobe), codec h264 unless the platform asks otherwise | iart motion-skills, hyperframes |
 | Frame count | Exact frame count for the planned duration; even frame spacing (no variable frame rate unless intended) | anidoodle, founder skills |
 | Audio stream | Present exactly when scored; muxed if missing | anidoodle, reelmimic |
+| Audio audit (lesson L18) | `python scripts/qc.py --audit` of the ice-audio skill exits 0 and `ice/review/ear-list.json` exists; `align_script_to_asr.py --stem` (ice-type) finds no masked word (`audio-gates.md` section 2b) | Ice |
 | Frame 0 | Not near-blank; a finished composition, not a half-entered word | anidoodle, motion-video-kit |
 | Black and NaN frames | `ffmpeg -i final.mp4 -vf blackdetect=d=0.03:pix_th=0.06 -f null -` reports 0 except intended blacks; no NaN or corrupt frames | herk-edit-kit, lemo-opuscar |
 | Colour | TV-range BT.709 for web delivery; brand colours sampled from the delivered frames match the tokens (tone mapping in 3D shifts colours, so measure) | claude-motion-design, motion-video-kit |

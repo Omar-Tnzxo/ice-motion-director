@@ -21,16 +21,16 @@
 - [ice-edit](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-edit): editing real footage (long-form, podcast, talking-head ads, shorts and reels, presenter-led news reels, B-roll overlays, showreels) with a word-level transcript
 - [ice-lottie](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-lottie): Lottie JSON and UI motion (icons, loaders, micro-interactions, logo reveals) with a developer handoff
 - [ice-ideas](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-ideas): concepts, hooks, scripts and storyboards without a render
-- [ice-direction](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-direction): brief, questions, dated research, decisions log, color, type pairing and anti-sameness
+- [ice-direction](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-direction): brief, questions, dated research, decisions log, the craft plan (every craft dimension decided for every video, without the user asking), color, type pairing and anti-sameness
 - [ice-motion](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-motion): timing, easing, springs, cuts, camera and composition
 - [ice-type](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-type): typography in motion, captions, readability and safe zones
 - [ice-arabic](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-arabic): Arabic and right-to-left motion, bidi, numerals, captions and dialect
 - [ice-audio](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-audio): real library music and recorded sound effects, picked by ear from 2 to 3 options laid on the film (music or sound made by code only when the user asks for it by name), voiceover, mixing and loudness
-- [ice-styles](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-styles): 150+ film, art, drawing and motion styles, including a measured broadcast news family
+- [ice-styles](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-styles): 150+ film, art, drawing and motion styles, each with a craft profile, including a measured broadcast news family
 - [ice-style](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-style): the style library as presets to browse or start a film in one
 - [ice-engines](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-engines): engine choice, determinism, render, export and platform specs
 - [ice-assets](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-assets): truth sheet, real-first sourcing (official footage, photos, fonts, maps) with each item's licence status recorded, and real brand material
-- [ice-qa](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-qa): quality gates, independent critics, the cold-viewer clarity gate and the delivery report
+- [ice-qa](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice-qa): quality gates (the craft gate on the render: text over faces, flashes, idle camera, finishing), independent critics, the cold-viewer clarity gate and the delivery report
 - [ice, ice-status, ice-01-brief to ice-10-deliver](https://github.com/Omar-Tnzxo/ice-motion-director/tree/main/skills/ice): step mode commands that run, resume or check one stage at a time
 
 ## Docs

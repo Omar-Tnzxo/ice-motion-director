@@ -29,7 +29,7 @@ Workflows call domain skills by name. They never restate a domain rule; they poi
 
 | Skill | Holds |
 |---|---|
-| `ice-direction` | Intake, clarifying questions, dated research, pitch round, critique, consultation and approval for every creative decision; color psychology; type pairing; the anti-sameness system |
+| `ice-direction` | Intake, clarifying questions, dated research, pitch round, critique, consultation and approval for every creative decision; color psychology; type pairing; the anti-sameness system; the treatment and the craft plan (with the precedence order and the exemption rows) |
 | `ice-motion` | Motion grammar, measured timing and easing curves, spring formulas, the cut and transition catalog, camera, composition, continuity (carry), holds; each rule scoped to film types |
 | `ice-type` | Typography in motion, kinetic type, captions and subtitles, readability gates |
 | `ice-arabic` | Arabic and RTL: letterforms and dots in motion, kashida, bidi, captions, numerals, dialect voiceover, ASR timing |
@@ -37,7 +37,7 @@ Workflows call domain skills by name. They never restate a domain rule; they poi
 | `ice-styles` | Catalogs of film styles, art styles, drawing styles, motion design styles and narration grammars, each as one reference file |
 | `ice-engines` | Engine choice and per-engine guides (HyperFrames, Remotion, HTML canvas with Playwright and FFmpeg, Three.js, Lottie, FFmpeg only, p5), determinism, render and export, platform specs and safe zones |
 | `ice-assets` | Asset sourcing (real first: the most recent real, official footage and photos found and downloaded without being asked) and license records, fonts, footage, icons, the truth sheet (names, numbers and claims rendered exactly), brand asset authenticity |
-| `ice-qa` | Every gate and critic loop: storyboard lint, pre-render lint, frame and seam checks, slop scan, motion density, captions match, loudness, climax comparison against a reference, the cold-viewer clarity gate, the brand test and competitor swap, the studio benchmark, delivery report |
+| `ice-qa` | Every gate and critic loop: storyboard lint, pre-render lint, frame and seam checks, slop scan, motion density, captions match, loudness, climax comparison against a reference, the cold-viewer clarity gate, the brand test and competitor swap, the studio benchmark, the craft gate (`craft_gate.py`), delivery report |
 
 Total: 29 skills: the router, 6 workflows, 9 domain skills and 13 command skills (`ice`, `ice-status`, `ice-01-brief` to `ice-10-deliver`, `ice-style`; 2c). File budget (AGENTS.md size limits): aim for 512 files, 600 at most; merge small files before adding new ones.
 
@@ -132,12 +132,13 @@ Each film-type file in `ice-film` and each edit-type file in `ice-edit` names it
 | Required disclaimers and restricted claims | 10: compliance gate | 01: compliance note; 04: compliance pre-check (a shot and a hold each) | `skills/ice-qa/SKILL.md` | `compliance pre-check` |
 | Official logo and real brand material | 10: assets and claims | 05: style frames with the brand's real material | `skills/ice-film/references/storyboard.md` | `real material` |
 | Captions and picture on the word | 10: captions and sync | 06: cue sheet word timings | `skills/ice-film/references/cue-sheet.md` | `captions` |
-| Loudness | 10: `loudness.mjs` | 08b: mix and master | `skills/ice-film/SKILL.md` | `loudness` |
+| Loudness | 10: `quick-checks.mjs loudness` | 08b: mix and master | `skills/ice-film/SKILL.md` | `loudness` |
 | Arabic and RTL correctness | 10: release gate | 03: script; 05: style frames | `skills/ice-film/SKILL.md` | `Arabic` |
 | Versions (languages, aspect ratios, cutdowns) | 10: every version rendered | 03: versions plan | `skills/ice-film/SKILL.md` | `versions` |
 | Pacing against the reference (longest gap and events per minute, L9) | 07 and 09: `motion_check.py --reference-events` | 04: the plan's events against the reference (`validate-plan.mjs` with `plan.reference`); 06: animatic timing | `skills/ice-qa/references/motion-density.md`, `skills/ice-edit/references/clock-and-grouping.md`, `skills/ice-edit/references/edit-types/news-reel.md` | `longest gap` |
 | Fixed identity marks (logo, programme name, corner bug in their measured slot, L10) | 07 and 09: build and draft frames | 05: the style frames | `skills/ice-qa/references/identity-tests.md`, `skills/ice-remake/references/shot-mapping.md` | `Fixed identity marks` |
 | Depth, 3D and camera against the reference (L12) | 09: `motion_check.py --reference-depth` | 04: every depth or 3D row names its build route (storyboard lint check 21) | `skills/ice-qa/references/storyboard-lint.md`, `skills/ice-motion/references/depth-and-3d.md` | `build route` |
+| Craft plan (every craft the content, the reference and the style call for, rule 20) | 09: `craft_gate.py build` | 02 draft; 04 `craft_gate.py plan`; 05 lock with the style's craft profile | `skills/ice-direction/references/treatment.md`, `skills/ice-direction/SKILL.md`, `skills/ice-film/SKILL.md`, `skills/ice-motion-director/references/routes.md`, `skills/ice-qa/SKILL.md` | `craft plan` |
 | Captions against a fresh transcript (L11) | 09 and 10: `align_script_to_asr.py --check-captions` on the final mix | 07: the draft's audio, once the voice is locked | `skills/ice-qa/references/captions-and-sync.md`, `skills/ice-type/references/caption-timing-and-truth.md` | `Fresh transcript gate` |
 | File spec, frame 0, blacks and freezes, the climax duel's motion | 07, 09, 10 | stays late: only a render shows it | - | - |
 
@@ -171,7 +172,7 @@ These shapes are fixed so the router, the workflows and the stage commands agree
 | Stage | What this workflow does in it | Files to open | Done when |
 |---|---|---|---|
 
-It also states, in that section, its depth by size (micro, standard, long) and, for `ice-film` and `ice-edit`, that each type file names its stage order in a line starting `Stage order:` (machine-readable form, 2b). Every "Files to open" cell marks each file as required or "only if <condition>", so a standard ad (7 to 60 s) reaches its first artifact having read only required files (target: under 40,000 tokens of instructions). The 01 row calls `ice-direction`'s intake explicitly (business brief, brand material plan, `ice/research/COMPLIANCE.md`). In `ice-film` and `ice-explainer` the 02 row's "Done when" names the viewer takeaway and the rows that close a clarity read (the later of 04 and 05, 06, 09) name its PASS; `ice-ideas` writes the takeaway at 02; the other routes take their reads from the route contracts in `skills/ice-motion-director/references/routes.md` and the gate file.
+It also states, in that section, its depth by size (micro, standard, long) and, for `ice-film` and `ice-edit`, that each type file names its stage order in a line starting `Stage order:` (machine-readable form, 2b). Every "Files to open" cell marks each file as required or "only if <condition>", so a standard ad (7 to 60 s) reaches its first artifact having read only required files (target: under 40,000 tokens of instructions). The 01 row calls `ice-direction`'s intake explicitly (business brief, brand material plan, `ice/research/COMPLIANCE.md`). In `ice-film` and `ice-explainer` the 02 row's "Done when" names the viewer takeaway and the rows that close a clarity read (the later of 04 and 05, 06, 09) name its PASS; Every workflow's 02 row (the remake's 01 row as well) names `ice/plan/craft-plan.json`, its 04 row the plan check and its 05 row the lock (`skills/ice-direction/references/treatment.md` section "Craft plan"). `ice-ideas` writes the takeaway at 02; the other routes take their reads from the route contracts in `skills/ice-motion-director/references/routes.md` and the gate file.
 
 **Workflows never bypass the router.** Workflow descriptions say they are started by the Ice Motion Director router and are used only when it, or the user by name, calls them; user trigger phrases live only in the router's description. Each workflow's first step checks `ice/state.json` and, when it is missing, opens the router first. The router's description is the entry point even when other video or engine skills (HyperFrames, Remotion) are installed, and carries English and Egyptian Arabic trigger phrases; `evals/trigger-eval.json` tests it.
 
@@ -226,6 +227,7 @@ All run files live in an `ice/` folder inside the user's project.
 | `ice/DIRECTION.md` | `ice-direction` | One entry per decision: options considered, choice, reason, source (research with date, brief slot, reference) |
 | `ice/research/` | `ice-direction` | Dated research notes; every query listed with the brief slots it came from |
 | `ice/plan/` | workflow | Storyboard, shot plan, cue sheet, script |
+| `ice/plan/craft-plan.json` | `ice-direction` (drafted at 02, the remake at 01; locked at 05), mapped by the workflow at 04 | One row per craft dimension (use, not used or scoped, with its reason, source and check) and the exemption rows; schema, precedence and rules: `skills/ice-direction/references/treatment.md` section "Craft plan"; read by `craft_gate.py` and the gate readers of `ice-qa` |
 | `ice/assets/` | `ice-assets` | Truth sheet, facts, manifest, credits, `BRAND-MATERIAL.md` and the one brand sheet path, `ice/assets/brand-sheet.json` |
 | `ice/review/` | `ice-qa` | Critic notes, gate outputs, the delivery report with measured numbers |
 | `~/.ice-motion-director/fingerprints.jsonl` | `ice-qa` | One line per finished film: palette, type, layout, motion language, structure, sound. Local only, disclosed in README, can be turned off |
@@ -233,6 +235,8 @@ All run files live in an `ice/` folder inside the user's project.
 ## 4. Film types and scoped rules
 
 `ice-film` holds one reference file per film type in `references/film-types/`: product launch, app ad, brand film, logo sting, kinetic type, data story, social short, hype promo, UI walkthrough, music video, art film, industry spot. `ice-edit` holds one per edit type in `references/edit-types/`: long-form, podcast, talking-head ad, shorts and reels, B-roll overlay, showreel.
+
+The per-type craft defaults (which of the 18 craft dimensions each film and edit type uses by default, which a content trigger switches on, and which the style or the reference decides) are summarized in `skills/ice-direction/references/treatment.md` section "Craft plan"; the numbers stay in the type files.
 
 Every type file declares the same fields so conflicting source rules are resolved by scope, not by deletion: purpose, structure options (several, never one), rhythm ranges, transition policy (for example whether crossfades are allowed), camera policy during holds (still or slow push), sound policy, text density, a richness floor table (hero_share, hero_width, frame_fill, empty_half, depth_layers, in_shot_motion, longest_still, surface_detail, light_events, real_material; definitions in ice-motion composition-and-staging section 7, measured by ice-qa), QA thresholds. Domain skills tag each scoped rule with the types where it holds.
 

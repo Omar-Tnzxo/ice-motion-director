@@ -35,6 +35,17 @@ Two shapes: a full episode (usually 16:9) cleaned and switched between cameras, 
 | 16:9 wide | On silence or overlap, plus about 4 s of wide every 45 s |
 | Overlay cards | Card count formula in `house-style-numbers.md` |
 
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 6.7 | Shot length: no shot over 9 s (Rhythm ranges), so at least one camera switch or element per 9 s |
+| `longest_bare_talk_s` | 9 s | The same 9 s shot ceiling; listeners stay alive by their own movement, so the cut to them or to the wide is the event (Camera policy during holds) |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2); a person's first appearance is a trigger for the lower third (Text density) |
+| `broll_share` | 0 percent | An episode cut adds no invented travel or establishing shots (Transition policy); a reel cut from the episode is planned as `shorts-reels.md` and takes that file's floor |
+
 ## Transition policy
 Hard cuts between cameras. No invented travel or establishing shots between interview setups; cut directly. J and L cuts at speaker handoffs are welcome.
 

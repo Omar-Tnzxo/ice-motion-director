@@ -29,6 +29,17 @@ A short reel (often 15 to 40 s) of the user's own clips or past work, cut so eve
 | Zoom | Only when the source is at least 1.5 times the output size |
 | Tempo of shots on speech videos | Low density, clean style, avoid the hook and number moments |
 
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. Plan the clips as `broll` scenes.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 15; 11 | A hard cut at least every 8 beats, the longest chapter of the structure in this file: 15 per minute at 120 BPM (strict line), 11 at 90 BPM (fail line); faster tracks and the flurry cut more |
+| `longest_bare_talk_s` | n/a | No speaker scenes: the clips are cut to music. A reel cut over a speaker is planned as `broll-overlay.md` and takes that file's floor |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2) |
+| `broll_share` | 80 percent | The clips are the reel; text is a title and a closing lockup at most (Text density) |
+
 ## Transition policy
 Hard cuts on the grid; letterbox moments at least 4 s apart. Transition families on the grid and the flash-safe limit: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 6.
 

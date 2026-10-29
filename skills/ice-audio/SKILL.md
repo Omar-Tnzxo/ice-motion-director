@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.4
+  version: 0.2.5
 ---
 
 # Ice Audio
@@ -24,7 +24,7 @@ Not owned here: caption timing and on-screen text (ice-type), Arabic dialect nar
 
 ## 1. Core rules
 
-1. Sound is half the film. Never deliver silent unless the user asked for "no audio". "No narration" is not "silent". When no real track or recording can be had (offline, downloads turned off, nothing fits), the bed stays empty and the delivery note says "music needed" with 3 named real tracks (section 5, last rung of the music ladder); a code score is never the fallback.
+1. Sound is half the film. Never deliver silent unless the user asked for "no audio". "No narration" is not "silent". When no real track or recording can be had, the bed stays empty and the delivery note says "music needed" (section 5, the music ladder's last rung); a code score is never the fallback.
 2. The agent cannot hear. It measures every step, never says a mix "sounds good", and ends every audio job with a human listening check (mix-and-master.md section 8).
 3. Plan in data, never adjectives: a cue sheet with times, a music brief with numbers, a sound plan with one row per event and its visible cause.
 4. One clock per film: the voice (voice-led) or the beat grid (music-led). Write it in the cue sheet.
@@ -32,7 +32,7 @@ Not owned here: caption timing and on-screen text (ice-type), Arabic dialect nar
 6. Recorded, never blocked: every music and SFX file has a recorded source, owner and license status (`licensed`, `unknown`, `needs purchase`) checked against the stated use case; rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses.md` section 0). A reference's own track, the user's track or any available track is a valid choice. Every track gets the sync license check (music-choice-and-licensing.md section 5) before it is placed in the cue sheet; its result is a status for the delivery note, never a reason to drop the track.
 7. AI voice, music or SFX generation is optional, user-initiated and disclosed. Real people's voices, clones included, follow the `ice-assets` skill, `references/ai-media-policy.md` section 9. Music and sound effects made by code (mgaudio) are opt-in only: used when the user asks for music or sound made by code in their own words; never a default, a fallback or a stand-in (owner decision, 2026-10-29).
 8. Measure the exported MP4, not the intermediate WAV.
-9. Anti-sameness: the sound axis (lead: score, sound design, voice or silence; genre; tempo band; dramaturgy) is logged in `ice/DIRECTION.md` with reasons; its definition and the distance rules: the `ice-direction` skill, `references/anti-sameness.md` section 1.
+9. Anti-sameness: the sound axis (lead, genre, tempo band, dramaturgy) is logged in `ice/DIRECTION.md` with reasons; its definition and the distance rules: the `ice-direction` skill, `references/anti-sameness.md` section 1.
 10. No extra stops. The router's stops table (`ice-motion-director/SKILL.md` section 5, "Stops") is the only list of times the run waits for the user. Picking music and hero SFX by ear rides with stops that already exist (the options flow, section 5); everywhere else a file of this skill says to ask: in auto mode decide by measurement (tempo, energy curve, landing on the end card, audibility), log the choice in `ice/DIRECTION.md`, and list the alternatives in the delivery note so the user can swap by ear later; in step mode put the options on the stage's review card. Which downloads and installs need no question: the `ice-assets` skill, `references/sourcing-and-licenses.md`, and the `ice-engines` skill, `references/engine-choice.md` section 7. A paid service or an account is asked only inside the router's allowed stops; without a yes, take the next rung of the section 5 ladders (or every word on screen instead of a voice) and say in the delivery note what a yes would add.
 
 ## 2. Inputs and outputs
@@ -74,14 +74,14 @@ Stage 08 runs in two parts: 08a beside the 07 build, from the locked cue sheet; 
 |---|---|
 | 1. Decide the mode, the clock and whether music exists (music-choice-and-licensing.md sections 1 and 2). Log it | 05 (sound lead), confirmed at 06 |
 | 2. Voice-led films: write the spoken side, estimate duration, take the voice the user chose at 01, generate or take the recording, align words, fix pace (voiceover.md). The voice comes before any frame | 03 |
-| 3. Music-led films (hype promo, music video, kinetic type cut to a track, showreel): take the user's track, or rank real candidates and offer the options with the stage 01 questions (section 5); run the sync license check, measure the beat grid with the kick-band phase check (cue-map-and-beat-sync.md section 3) | 01 |
+| 3. Music-led films (hype promo, music video, kinetic type cut to a track, showreel): take the user's track, or rank real candidates and offer them with the stage 01 questions (section 5); run the sync license check; measure the beat grid with the kick-band phase check (cue-map-and-beat-sync.md section 3) | 01 |
 | 4. Write the cue sheet before animating (cue-map-and-beat-sync.md section 2) | 06 |
 | 5. Music for the other films: rank real candidates at 05 and lay the best 2 to 3 under the animatic for the pick (section 5); then run the sync license check on the chosen track, measure its beat grid and plan the landing on the end card | 05 and 06, then 08a |
 | 6. SFX pass from the cue sheet events: select and place by sync point (sfx.md) | 08a |
 | 7. Picture locks to the cue sheet (the workflow and ice-motion do this); export real event times from the draft composition | 07 |
 | 8. Re-place SFX on the exported times, level for audibility; mix: voice priority, carve or duck, frequency slots, silences (mix-and-master.md sections 1 to 4) | 08b |
-| 9. Master once to the chosen profile; measure the exported MP4; fix and re-measure (sections 5 to 7) | 08b |
-| 10. Human listening check: 5 timestamps and one 8 s excerpt for the user, in the delivery note or the review card (section 8) | 10 |
+| 9. Master once to the chosen profile; on the exported MP4 run the speech check (the ice-type skill's `align_script_to_asr.py --stem`), then `scripts/qc.py --audit --profile <id>` with the stems and cue sheet; fix every blocking item, re-run (mix-and-master.md sections 5 to 7) | 08b, again at 10 |
+| 10. Human listening check: the ear list from `qc.py --audit` (`## For your ears`), in the delivery note or the review card (mix-and-master.md section 8) | 08b card, 10 |
 | 11. Hand the audio report to ice-qa (section 9). Add the audio rows to `ice/assets/CREDITS.md` | 08b, then 10 |
 
 ## 5. Where music and SFX come from, and who picks (owner decision, 2026-10-29)
@@ -130,14 +130,14 @@ After the pick: back-time the chosen track to the end card (music-choice-and-lic
 
 ## 7. Bundled code
 
-- `scripts/match_music.py` (Ice): `music` ranks candidate tracks against a reference's sound map by a weighted measured distance (tempo with half and double time, brightness, loudness range, key, section movement, genre, instruments; the user's confirmed tags replace the map's guesses) and writes `ranking.json`; `sfx` ranks recorded whooshes or impacts by the measures of sfx.md sections 5 and 6 (`--profile news-reel`: sub or air only, sfx.md section 3b). Local files only, no network; needs numpy and scipy (it measures with `sound_map.py`).
-- `scripts/preview_options.py` (Ice): lays 2 or 3 tracks on the same picture (or audio only at a given length), each started at its strongest section or back-timed to the last frame, at the same measured loudness, the film's own voice kept on request; writes `option-N` files, `options.json` and `compare.html`. Standard library and ffmpeg.
-- Opt-in tool, only under core rule 7: `scripts/mgaudio/`, the mgaudio Python toolkit from Vincentwei1021/mg-styles-15 (MIT): synthesized music recipes per style, SFX generators, mixer, mastering and QC. Copy it into the project (`ice/audio/lib/mgaudio/`) before use. It needs only numpy; its fast path, fallback mode and optional samples: music-by-code.md section 1.
-- `scripts/master_audio.py` (founder's tool): mixes the film's audio with voice, music (with `--music-start` back-timing offset and `--duck`; no fade-in unless `--music-fade-in` is passed, so a cold open hits at full level on frame 0; music edges are set only by the four flags in mix-and-master.md section 6 and recorded in `master.json`), SFX from a JSON cue list, then a measured linear gain and a 4x oversampled true-peak limiter to the chosen profile, AAC at 48 kHz, copies the video stream, measures the exported file with ffmpeg `ebur128` and renders again until the true peak meets the target; writes `master.json` with `status` and exits 1 on a miss (mix-and-master.md section 6).
+- `scripts/match_music.py` (Ice): `music` ranks candidate tracks against a reference's sound map by a weighted measured distance (tempo with half and double time, brightness, loudness range, key, section movement, genre, instruments; the user's confirmed tags replace the map's guesses) and writes `ranking.json`; `sfx` ranks recorded whooshes or impacts by the measures of sfx.md sections 5 and 6 (`--profile news-reel`: sub or air only, sfx.md section 3b). Local files only, no network; numpy and scipy (via `sound_map.py`).
+- `scripts/preview_options.py` (Ice): lays 2 or 3 tracks on the same picture (or audio only), each from its strongest section or back-timed to the last frame, at equal measured loudness, the film's own voice kept on request; writes `option-N` files, `options.json` and `compare.html`; stdlib and ffmpeg.
+- Opt-in tool, only under core rule 7: `scripts/mgaudio/`, the mgaudio toolkit from Vincentwei1021/mg-styles-15 (MIT): music recipes per style, SFX generators, mixer, mastering and QC; copied into `ice/audio/lib/mgaudio/` before use; numpy only; fast path, fallback mode and samples: music-by-code.md section 1.
+- `scripts/master_audio.py` (founder's tool): mixes voice, music and SFX (a JSON cue list) and masters once to the chosen profile, measured on the exported file; music edges only from its four flags (no fade-in unless `--music-fade-in`, so a cold open hits at full level on frame 0); `master.json` holds `status` and `cut_at_end` (voice or SFX sounding at the last frame); exit 1 on a miss or a cut voice. Flags, renders and traps: mix-and-master.md section 6.
 - `scripts/pacing.py` (from claude-code-video-toolkit, MIT): measures wpm per voice line and, with `--max-wpm`, slows a fast take in place with pitch-preserving atempo (floor 0.85).
-- `scripts/qc.py` (adapted from claude-code-video-toolkit, MIT): audio QC from the cue sheet or a folder of voice lines: lines longer than their slot, dead air, pace, per-line loudness spread, and the exported film against the profile (`--target-lufs`, `--true-peak`); `--fix` normalizes with backups. Exit 1 on errors.
-- `scripts/sound_map.py` (Ice): maps a reference's soundtrack into `sound_map.json`, `SOUND-MAP.md` and a timeline SVG: tempo, key, sections, energy curve, typed sound effects, voice segments, loudness, and instrument and genre proposals the user confirms at stage 01. Needs numpy and scipy plus ffmpeg; fields, rules and limits: references/sound-map.md.
-- master_audio.py, pacing.py, qc.py and preview_options.py run on Windows, macOS and Linux with Python and ffmpeg and ffprobe on PATH at the minimums in the `ice-engines` skill's `references/versions.json` (`runtimes`); stdlib only. Run them as `python "${CLAUDE_SKILL_DIR}/scripts/<name>.py" --help` first. Other steps are ffmpeg commands written in the references. No script downloads anything at runtime.
+- `scripts/qc.py` (adapted from claude-code-video-toolkit, MIT): voice lines from the cue sheet or a folder (slot fit, dead air, pace, loudness spread) and the exported film against the profile (`--profile`); `--fix` normalizes with backups; exit 1 on errors. `--audit` checks the delivered mix, writes `ice/review/audio-audit.json` and the ear list, and prints `## For your ears` (mix-and-master.md sections 7 and 8; blocking items: the `ice-qa` skill, `references/audio-gates.md` section 2b).
+- `scripts/sound_map.py` (Ice): maps a reference's soundtrack (tempo, key, sections, energy curve, typed effects, voice, loudness, and instrument and genre proposals the user confirms at stage 01) into `sound_map.json`, `SOUND-MAP.md` and a timeline SVG; numpy, scipy and ffmpeg; fields, rules and limits: references/sound-map.md.
+- master_audio.py, pacing.py, qc.py and preview_options.py run on Windows, macOS and Linux with Python, ffmpeg and ffprobe on PATH (minimums: the `ice-engines` skill's `references/versions.json`, `runtimes`); stdlib only, except `qc.py --audit` (numpy, `scripts/requirements.txt`). Run each as `python "${CLAUDE_SKILL_DIR}/scripts/<name>.py" --help` first. Other steps are ffmpeg commands in the references; no script downloads anything at runtime.
 
 ## 8. Files
 
@@ -153,4 +153,4 @@ After the pick: back-time the chosen track to the end card (music-choice-and-lic
 | Map a reference's music, effects, voice and loudness; what each field means and how to use it | `scripts/sound_map.py`, `references/sound-map.md` | When a reference video's sound is studied (remake, style recipe), before stage 01 questions about its music |
 | Mix and master a film's audio in one command | `scripts/master_audio.py` | After the SFX pass, with the profile from mix-and-master.md section 5 |
 | Measure or fix narration pace | `scripts/pacing.py` | Right after each voice line is generated or recorded |
-| Audio QC gate (slot fit, pace, loudness spread, render loudness) | `scripts/qc.py` | Before render with the cue sheet, and on the exported MP4 before delivery |
+| Audio QC gate (slot fit, pace, loudness spread, render loudness); the mix audit and ear list (`--audit`) | `scripts/qc.py` | Before render with the cue sheet; `--audit` at 08b (draft) and 10 (delivered file) |

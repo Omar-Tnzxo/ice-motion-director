@@ -4,6 +4,8 @@ Merged from nateherkai/herk-edit-kit (MIT, Use Permission: 27 top reels measured
 
 These are measured starting points, not law. They set rhythm ranges only; palette, type, look and structure come from the ice-direction skill and must differ between projects. The project brief overrides every number here; log any departure with its reason.
 
+Coverage floor: the minimum each edit must reach (elements per minute, longest bare talk, trigger coverage, B-roll share) is the "Coverage floor" table of its `edit-types/<type>.md` file, derived from the numbers below; the measures are defined in the `ice-qa` skill, `references/motion-density.md` section 6.2, and `scripts/validate-plan.mjs` fails a plan under it. A departure from the floor is an exemption row of the craft plan with its source, not a note.
+
 ## 1. Speech rate and pacing diagnostics
 
 | Measure | Value | Scope |

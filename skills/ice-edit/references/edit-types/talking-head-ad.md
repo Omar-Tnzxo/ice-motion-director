@@ -28,12 +28,23 @@ A 15 to 60 s vertical ad or reel where one person speaks to camera, recomposed f
 | Measure | Value |
 |---|---|
 | Something moves | In the first second; something happens every 2 to 4 s |
-| Zoom | Normal cycle up to 1.14; calm 1.00 to 1.06 with no change before 4 s and at most 6 changes per 30 s; never above 1.20 |
+| Zoom | Normal cycle up to 1.14; calm 1.00 to 1.06 with no change before 4 s and at most 6 changes per 30 s; never above 1.20. The calm range is the default for a calm talking-head ad with no reference and no chosen style that measures more; it is never a ceiling over a reference's or a style's measured scale range (then the only ceiling is the resolution limit, source height / output height) |
 | Pace modes | Calm, normal, hyper (hyper: layout switch every 1.5 to 2 s, effects under 15 per minute) |
 | Inserts | 3 to 4 B-roll inserts per video; one hero per scene |
 | Voice-only stretches | Once or twice, 4 to 8 s, never hook or call to action |
 | Importance budget | Grade each line 1 (connective: fast, small, a cut or word swap), 2 (supporting), 3 (the point: slower, larger, held for reading time plus 0.5 to 1 s, its own sound). At most 25% of lines are 3. Animating every line the same is the top AI tell |
 | Popped words | Stay until their sentence ends, at least 0.6 s |
+
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 15; 12 in a calm ad | Rhythm ranges: something happens every 2 to 4 s, so one event per 4 s at the slow end. A calm ad changes at most 6 times per 30 s with nothing before 4 s (`house-style-numbers.md` section 4), so its line is one event per 5 s |
+| `longest_bare_talk_s` | 4 s; 5 s in a calm ad | The same two cadences: 4 s at the slow end of "every 2 to 4 s", 5 s as the calm cycle's average spacing |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2) |
+| `broll_share` | 10 percent | Inserts: 3 to 4 B-roll inserts per video (Rhythm ranges) of about 2 s each across the 60 s upper length; voice-only stretches add to it |
 
 ## Transition policy
 Speech joins are hard cuts. Scene or idea changes may use a fast transition of about a third of a second. Never the same move twice in a row; accents only at their moment, never repeated.

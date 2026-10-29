@@ -8,7 +8,11 @@
 # huashu files; dependency versions pinned (scripts/requirements.txt); dash characters replaced; UTF-8 output on
 # Windows and a clear error when numpy or opencv is missing. Measurement logic and thresholds of gates 1-3 unchanged;
 # 2026-10-19: declared cuts from the events file or cue sheet, a correlation guard on detected cuts, and gate 4 (the
-# richness floor of the film type, read from the ice-film skill).
+# richness floor of the film type, read from the ice-film skill). 2026-10-29 (0.2.5, craft plan): gates 1 to 4 read the
+# exemption rows of ice/plan/craft-plan.json (film:fast_ratio, film:blank_run_s, film:blue_purple_share,
+# film:<richness key>); a covered hit gets the light "exempt" and prints "exempt <rule id> by <row id> (<source>)";
+# --allow-blue-purple stays as an alias of a user-sourced row; the film type for the floor may come from the craft plan;
+# gate 4 also reads an edit type's coverage floor (motion-density.md section 6.2), the render-side twin of validate-plan.mjs.
 # See NOTICE.md.
 """film_gate.py: read a finished mp4 only and measure the "page-flip slideshow" feel. Run before delivery.
 
@@ -43,8 +47,27 @@ Gate 3: blue-purple ground share (the original author: blue and purple gradients
 with >= 30% such pixels is a blue-purple frame. Share of blue-purple frames >= 0.30 red, >= 0.12 yellow.
 Calibration (2026-10-10): across 88 films the 9 approved ones peaked at 0.10, most were 0; rejected films were
 0.46-1.00 (a deep purple starfield with a white-shell robot measured 0.94). Flat navy (hue about 210) does not count.
-When the brief itself needs blue-purple (the user named it), pass --allow-blue-purple "reason": the gate drops to
-yellow and the reason is written verbatim into the facts of the delivery report.
+When the brief itself needs blue-purple (the user named it), pass --allow-blue-purple "reason": an alias of a craft plan
+exemption row sourced to the user's words; the gate passes as exempt and the reason is written verbatim into the facts
+of the delivery report.
+
+Exemption rows (2026-10-29): when ice/plan/craft-plan.json is found (walking up from the film, then the working
+folder), a red or yellow of gates 1 to 4 that a row of its "exemptions" list covers gets the light "exempt" and prints
+"exempt <rule id> by <row id> (<source kind>: <source ref>)". Rule ids: film:fast_ratio (whole film, value the fast
+ratio, a floor: value x (1 + tolerance) at least the amount), film:blank_run_s (every blank run inside the row's shots, each run's
+length at most amount x (1 + tolerance)), film:blue_purple_share (every blue-purple span inside the row's shots, the
+share at most the amount), film:<richness key> (hero_share, frame_fill, in_shot_motion as floors over the whole film,
+shares as fractions; empty_half per span and longest_still on its run as ceilings, in seconds). A share in an amount is
+a fraction (0.4) or a percent with its sign (40 %). The film type for gate 4 comes from the craft plan's "type" when no
+--type is given and the project names no film type that matches a row (remakes). The rule itself: the ice-direction
+skill, references/treatment.md section "Craft plan".
+
+Gate 4 for edit types (added 2026-10-29): when the type is an edit type of the ice-edit skill, its type file's "Coverage
+floor" table is read (references/motion-density.md section 6.2): element_events_per_min is gated on the render (the
+detected cuts, fades and fast-motion runs plus the authored events of the events file, holds and sound excluded, merged
+within 0.3 s), the longest gap between those events is held against the longest_bare_talk_s ceiling as a lead (yellow:
+the render cannot tell a speaker scene from B-roll), and trigger_coverage and broll_share are reported as checked on the
+plan by the ice-edit skill's validate-plan.mjs. A row lifting film:<measure>, or plan:coverage, lifts them.
 
 Gate 4 (added 2026-10-19 after the pilot films): the richness floor of the film type. The measures (hero_share,
 frame_fill, empty_half, in_shot_motion, longest_still) are defined by the ice-motion skill
@@ -78,7 +101,9 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from storyboard_lint import declared_times, owner_floor, project_ice, resolve_scope   # noqa: E402  (shared film-type helpers)
+from storyboard_lint import (_key, _table_after, declared_times, exempt_line, exemption_for, find_craft_plan,   # noqa: E402
+                             load_craft_plan, owner_floor, parse_floor, project_ice,   # shared film-type helpers and craft plan reader
+                             resolve_scope_with_plan)
 
 try:
     import cv2
@@ -572,7 +597,7 @@ def analyze(path, sub_band=None, vertical="auto", template=None, verbose=False, 
         "blank_runs_s": blank_runs,
         "cut_times_s": [round((i + 1) / FPS, 2) for i in np.where(cut)[0]],
         "cuts_from": "events" if event_cuts else "detected",
-        "_mov": mov, "_trans": trans, "_flip": flip_like,
+        "_mov": mov, "_trans": trans, "_flip": flip_like, "_events": [round((i + 1) / FPS, 3) for i in ev_m],
         "page_flip_times_s": [round((i + 1) / FPS, 2) for i in np.where(flip)[0]],
         "dissolve_times_s": [round(c / FPS, 2) for _, _, c in diss],
     }
@@ -706,9 +731,10 @@ def area_features(fr, BS=8):
     return float(st[k, cv2.CC_STAT_WIDTH] * st[k, cv2.CC_STAT_HEIGHT] / (gw * gh)), grid
 
 
-def richness(path, res, floors, holds, cta_start, bounds):
+def richness(path, res, floors, holds, cta_start, bounds, plan=None):
     """Measure the richness floor on the render. floors: {measure: (low, high, clause)}; holds: [(start, end, why)];
-    bounds: extra window boundaries in seconds (show events). Returns {measure: {...}} with value, light and detail."""
+    bounds: extra window boundaries in seconds (show events); plan: the craft plan, whose exemption rows film:<key> turn a
+    covered red or yellow into "exempt". Returns {measure: {...}} with value, light and detail."""
     F, (W0, H0, dur) = decode_gray(path, fps=RICH_FPS)
     vert = res["orientation"] == "vertical"
     n = len(F)
@@ -790,7 +816,30 @@ def richness(path, res, floors, holds, cta_start, bounds):
         if key in ("hero_share", "frame_fill") and m["light"] == "green" and m["weak"]:
             m["light"] = "yellow"            # the film's median passes but some beats fall under the floor
         m["floor"] = clause
+        if m["light"] in ("red", "yellow") and plan:
+            lines = richness_exemption(key, m, plan, dur)
+            if lines:
+                m["light"], m["exempt"] = "exempt", lines
     return out
+
+
+def richness_exemption(key, m, plan, dur):
+    """Exempt lines for a richness measure under its floor (or over its ceiling) that craft plan rows cover, else None.
+    Floors over the whole film (shares as fractions); empty_half per span and longest_still on its run, in seconds."""
+    rid = "film:" + key
+    if key in FLOORS:
+        v = m["value"] / 100 if UNITS.get(key) == " %" else m["value"]
+        row = exemption_for(plan, rid, t=(0.0, dur), value=v)
+        return [exempt_line(rid, row)] if row else None
+    if key == "empty_half":
+        spans = m.get("spans") or [(0.0, dur)]
+        rows = [exemption_for(plan, rid, t=(a, b), value=m["value"]) for a, b in spans]
+        return None if not all(rows) else [f"{exempt_line(rid, r)} on {a:g}-{b:g}s" for r, (a, b) in zip(rows, spans)]
+    if key == "longest_still" and m.get("at") is not None:
+        a = m["at"]
+        row = exemption_for(plan, rid, t=(a, a + m["value"]), value=m["value"])
+        return [f"{exempt_line(rid, row)} on {a:g}-{a + m['value']:g}s"] if row else None
+    return None
 
 
 BP_HUE, BP_SAT, BP_VAL, BP_FRAME = (225, 300), 0.30, (0.06, 0.90), 0.30
@@ -828,20 +877,44 @@ SHORT_S = float(os.environ.get("FILM_GATE_MIN_S", 20))  # the calibration films 
 FACT_GATES = {"blank_run_s", "blue_purple_share"}   # red however short the clip is (a palette does not change with length)
 
 
-def grade(res):
+def gate_exemption(k, res, plan):
+    """Exempt lines for gate metric k when craft plan rows (or the --allow-blue-purple alias) cover every hit, else None."""
+    dur = float(res.get("duration_s") or 0)
+    rid = "film:" + k
+    if k == "fast_ratio":
+        row = exemption_for(plan, rid, t=(0.0, dur), value=res[k])
+        return [exempt_line(rid, row)] if row else None
+    if k == "blank_run_s":
+        runs = res.get("blank_runs_s") or []
+        rows = [exemption_for(plan, rid, t=(a, b), value=round(b - a, 2)) for a, b in runs]
+        return [f"{exempt_line(rid, r)} on {a:g}-{b:g}s" for r, (a, b) in zip(rows, runs)] if runs and all(rows) else None
+    if k == "blue_purple_share":
+        spans = res.get("blue_purple_spans_s") or [(0.0, dur)]
+        rows = [exemption_for(plan, rid, t=(a, b), value=res[k]) for a, b in spans]
+        if all(rows):
+            return list(dict.fromkeys(exempt_line(rid, r) for r in rows))
+        if res.get("allow_blue_purple"):   # alias of a row sourced to the user's words, covering the whole film
+            return [f"exempt {rid} by --allow-blue-purple (user: {res['allow_blue_purple']})"]
+    return None
+
+
+def grade(res, plan=None):
     rows, red = [], False
     short = (res.get("duration_s") or 0) < SHORT_S
+    res.setdefault("exempt", [])
     for k, (name, direc, y, r, gate, unit) in METRICS.items():
         v = res.get(k)
         if v is None or direc == "info":
             rows.append((k, name, v, "--", gate, unit)); continue
         bad = (lambda t: v >= t) if direc == "high_bad" else (lambda t: v <= t)
         lv = "red" if (gate and r is not None and bad(r)) else "yellow" if (y is not None and bad(y)) else "green"
-        if lv == "red" and k == "blue_purple_share" and res.get("allow_blue_purple"):
-            lv = "yellow"
         if lv == "red" and short and k not in FACT_GATES:
             lv = "yellow"; res["short_clip_note"] = (f"clip is {res.get('duration_s')} s, shorter than {SHORT_S} s: the fast-motion gate only "
                                                      "hints and does not block (the blank gate still blocks); run it again on the assembled film")
+        if gate and lv in ("red", "yellow"):
+            lines = gate_exemption(k, res, plan)
+            if lines:
+                lv = "exempt"; res["exempt"] += lines
         red |= lv == "red"
         rows.append((k, name, v, lv, gate, unit))
     return rows, red
@@ -861,8 +934,9 @@ BLANK_FIX = ("Keep the protagonist or the main object in the frame during that s
              "0.3 s or more. Whiteboard and black-ground films are not blank as long as strokes, lines or type are on screen.")
 
 BP_FIX = ("Replace the blue-purple ground: use the film's own palette from ice/DIRECTION.md (ice-direction skill) for every scene; do not "
-          "draw deep purple starfields, blue-purple gradients or neon cyan-purple glow. Only when the brief itself needs blue-purple "
-          "(the user named it) use --allow-blue-purple \"reason\"; the reason goes into the delivery report.")
+          "draw deep purple starfields, blue-purple gradients or neon cyan-purple glow. When a source needs it (the user named it, "
+          "the brand, a measured reference palette or the chosen style's palette), record an exemption row film:blue_purple_share in "
+          "ice/plan/craft-plan.json (or, for the user's words, --allow-blue-purple \"reason\"); the source goes into the delivery report.")
 
 
 # report-only yellow items: one sentence saying where to look
@@ -888,7 +962,10 @@ LOOK = {
 def explain(res):
     """One-line verdict + why + how to fix + where to look for yellow items. Uses only numbers measured in res."""
     fr, lv = res["fast_ratio"], res["lights"]["fast_ratio"]
-    if lv == "red":
+    if lv == "exempt":
+        head = f"fast in-shot action {fr:.1%}, under the default floor and lifted by the craft plan"
+        lv = "green"
+    elif lv == "red":
         head = ("the whole film has no fast in-shot action and reads like page flips" if fr < 0.005 else
                 f"only {fr:.1%} of frames move fast inside a shot (red line 3.5%), it reads like page flips")
     elif lv == "yellow":
@@ -909,6 +986,10 @@ def explain(res):
         head = (msg + ", the most typical AI palette" + ("; also " + head if lv != "green" or blank_red else "")) if bp == "red" else head + "; " + msg
     elif res.get("allow_blue_purple") and res["blue_purple_share"] >= METRICS["blue_purple_share"][2]:
         head += f"; blue-purple ground {res['blue_purple_share']:.0%}, declared as needed by the brief: {res['allow_blue_purple']}"
+    elif bp == "exempt":
+        head += f"; blue-purple ground {res['blue_purple_share']:.0%}, lifted by the craft plan"
+    if res["lights"].get("blank_run_s") == "exempt":
+        head += "; near-blank run(s) " + ", ".join(f"{a:.2f}-{b:.2f} s" for a, b in res["blank_runs_s"]) + " lifted by the craft plan"
     why = []
     if lv != "green":
         if res["slow_zoom_share"] >= 0.3:
@@ -975,15 +1056,22 @@ def measure(path, sub_band=None, vertical="auto", template=DEFAULT_TEMPLATE, all
     res["blue_purple_share"], res["blue_purple_spans_s"] = blue_purple(path)
     if allow_blue_purple and allow_blue_purple.strip():
         res["allow_blue_purple"] = allow_blue_purple.strip()
-    scope = resolve_scope(film_type, (here, os.getcwd()))
+    plan_path = find_craft_plan(here) or find_craft_plan(os.getcwd())
+    plan = load_craft_plan(plan_path) if plan_path else None
+    if plan is not None:
+        res["craft_plan"] = str(plan_path)
+    scope = resolve_scope_with_plan(film_type, (here, os.getcwd()), plan, plan_path)
     floors, fsrc, fnotes = owner_floor(scope["row"], "vertical" if res["orientation"] == "vertical" else "landscape")
-    rich = richness(path, res, floors, holds, cta_start, shows)
-    for k in ("_mov", "_trans", "_flip"):
+    rich = richness(path, res, floors, holds, cta_start, shows, plan)
+    cover, csrc = edit_coverage(scope, res, ev_path, plan)
+    rich.update(cover)
+    for k in ("_mov", "_trans", "_flip", "_events"):
         res.pop(k, None)
     res["richness"] = {"film_type": scope["type_text"], "type_source": scope["type_source"], "row": scope["row"],
-                       "floors_from": fsrc, "notes": scope["notes"] + fnotes, "declared_holds": holds, "cta_start": cta_start,
-                       "declared_from": hsrc, "measures": rich}
-    rows, red = grade(res)
+                       "floors_from": fsrc, "coverage_from": csrc, "notes": scope["notes"] + fnotes, "declared_holds": holds,
+                       "cta_start": cta_start, "declared_from": hsrc, "measures": rich}
+    rows, red = grade(res, plan)
+    res["exempt"] += [x for m in rich.values() for x in m.get("exempt", [])]
     red = red or any(m.get("light") == "red" for m in rich.values())
     res["lights"] = {k: lv for k, _, _, lv, _, _ in rows}
     res["gate_metrics"] = [k for k, _, _, _, gate, _ in rows if gate]
@@ -992,14 +1080,118 @@ def measure(path, sub_band=None, vertical="auto", template=DEFAULT_TEMPLATE, all
     res["gate_light"] = "red" if "red" in gl else "yellow" if "yellow" in gl else "green"
     res["verdict"] = "red" if red else "pass"
     res["explain"] = explain(res)
-    thin = [f"{k} {m['value']:g}{UNITS[k]} (floor: {m['floor']})" for k, m in rich.items() if m.get("light") == "red"]
+    thin = [f"{k} {m['value']:g}{UNITS[k]} (floor: {m['floor']})" for k, m in rich.items() if m.get("light") == "red" and k not in COVER_KEYS]
     if thin:
         res["explain"]["summary"] = "the frame is under the richness floor of this film type: " + "; ".join(thin) + ". Also: " + res["explain"]["summary"]
         res["explain"]["fix"] = RICH_FIX + (" " + res["explain"]["fix"] if res["explain"]["fix"] else "")
+    bare = [f"{k} {m['value']:g}{UNITS[k]} (floor: {m['floor']})" for k, m in rich.items() if m.get("light") == "red" and k in COVER_KEYS]
+    if bare:
+        res["explain"]["summary"] = "the edit is under the coverage floor of its type: " + "; ".join(bare) + ". Also: " + res["explain"]["summary"]
+        res["explain"]["fix"] = COVER_FIX + (" " + res["explain"]["fix"] if res["explain"]["fix"] else "")
     return res, rows
 
 
-LIGHT = {"red": "[RED]   ", "yellow": "[YELLOW]", "green": "[GREEN] ", "--": "[  --  ]"}
+# ---------------------------------------------------------------- edit coverage floor, render side (added 2026-10-29)
+# The measures and the rule: references/motion-density.md section 6.2; the numbers: the "Coverage floor" table of the
+# ice-edit type file. The plan check is the ice-edit skill's validate-plan.mjs; this is its render-side twin.
+EDIT_TYPES_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "ice-edit", "references", "edit-types"))
+COVER_KEYS = ("element_events_per_min", "longest_bare_talk_s", "trigger_coverage", "broll_share")
+COVER_ON_PLAN = {"trigger_coverage": "needs the plan's triggers", "broll_share": "needs the plan's scene layouts"}
+COVER_FIX = ("Put real elements on the triggers and inside the bare stretches (a graphic on the word, a camera move, B-roll on "
+             "the named reality), from the craft plan's rows; never a floating, pulsing or idle loop added to pass the number "
+             "(references/motion-density.md section 6.2).")
+
+
+def edit_type_file(scope):
+    """The ice-edit type file for the scope's row, or None: the row name that the film type text names, matched to a file
+    by its letters ("shorts and reels" -> shorts-reels.md, "b-roll overlay" -> broll-overlay.md)."""
+    names = [n.strip() for n in scope["row"].split("/") if n.strip()]
+    text = " " + re.sub(r"[\W_]+", " ", (scope["type_text"] or "").lower()) + " "
+    hits = sorted((text.find(" " + re.sub(r"[\W_]+", " ", n.lower()).strip() + " "), n) for n in names
+                  if " " + re.sub(r"[\W_]+", " ", n.lower()).strip() + " " in text)
+    name = hits[0][1] if hits else names[0]
+    key = re.sub(r"[^a-z]", "", re.sub(r"\band\b", "", name.lower()))
+    if not os.path.isdir(EDIT_TYPES_DIR):
+        return None
+    for f in sorted(os.listdir(EDIT_TYPES_DIR)):
+        if f.endswith(".md") and re.sub(r"[^a-z]", "", f[:-3].lower()) == key:
+            return os.path.join(EDIT_TYPES_DIR, f)
+    return None
+
+
+def declared_visual_events(ev_path):
+    """Times of the events file's authored visual events (every type or kind except hold and sound)."""
+    if not ev_path or not os.path.isfile(ev_path):
+        return []
+    try:
+        with open(ev_path, encoding="utf-8") as fh:
+            ev = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    ev = ev.get("events", []) if isinstance(ev, dict) else ev
+    return [float(e["t"]) for e in ev if isinstance(e, dict) and isinstance(e.get("t"), (int, float)) and not isinstance(e.get("t"), bool)
+            and str(e.get("type") or e.get("kind") or "").strip().lower() not in ("hold", "sound")] if isinstance(ev, list) else []
+
+
+def edit_coverage(scope, res, ev_path, plan):
+    """Gate 4 for edit types: the coverage floor measures with a render measure (element_events_per_min gated; the
+    longest gap between events against the longest_bare_talk_s ceiling, a lead because the render cannot tell a speaker
+    scene from B-roll); the plan-only measures are reported as checked on the plan. -> ({measure: {...}}, file)."""
+    f = edit_type_file(scope)
+    if not f:
+        return {}, None
+    lines = open(f, encoding="utf-8", errors="replace").read().splitlines()
+    at = next((k for k, ln in enumerate(lines) if ln.lstrip().startswith("#") and "coverage floor" in ln.lower()), None)
+    head, rows = _table_after(lines, at) if at is not None else (None, [])
+    orient = "vertical" if res["orientation"] == "vertical" else "landscape"
+    floors = {}
+    for r in rows:
+        k = _key(r[0])
+        if k in COVER_KEYS and len(r) > 1:
+            floors[k] = parse_floor(r[1], orient)
+    if not floors:
+        return {}, None
+    dur = float(res.get("duration_s") or 0) or 1e-6
+    ev = sorted(set(res.get("_events", [])) | {t for t in declared_visual_events(ev_path) if 0 <= t <= dur})
+    merged = []
+    for t in ev:                     # an event and a cut in the same moment count once
+        if not merged or t - merged[-1] > 0.3:
+            merged.append(t)
+    times = [0.0] + merged + [dur]
+    gap, gat = max(((b - a, a) for a, b in zip(times, times[1:])), default=(dur, 0.0))
+    values = {"element_events_per_min": round(len(merged) / dur * 60, 1), "longest_bare_talk_s": round(gap, 2)}
+    out = {}
+    for k in COVER_KEYS:
+        if k not in floors:
+            continue
+        fl = floors[k]
+        if k in COVER_ON_PLAN:
+            out[k] = {"value": None, "light": "--", "floor": fl[2] if fl else "n/a",
+                      "note": f"checked on the plan by validate-plan.mjs ({COVER_ON_PLAN[k]})"}
+            continue
+        v = values[k]
+        m = {"value": v, "floor": fl[2] if fl else "n/a"}
+        if not fl:
+            m["light"] = "--"
+        elif k == "element_events_per_min":
+            m["light"] = "red" if v < fl[0] else "yellow" if v < fl[1] else "green"
+        else:
+            m["light"] = "yellow" if v > fl[0] else "green"
+            m["at"], m["note"] = round(gat, 2), "a lead: the render cannot tell a speaker scene from B-roll; the blocking bare-talk check is validate-plan.mjs"
+        if m["light"] in ("red", "yellow") and plan:
+            rid = "film:" + k
+            span = (m["at"], m["at"] + v) if "at" in m else (0.0, dur)
+            row = exemption_for(plan, rid, t=span, value=v)
+            if not row:      # the plan check's lift, plan:coverage, also lifts its render-side twin
+                rid = "plan:coverage"
+                row = exemption_for(plan, rid, t=span, value=v if k == "element_events_per_min" else None)
+            if row:
+                m["light"], m["exempt"] = "exempt", [exempt_line(rid, row)]
+        out[k] = m
+    return out, f
+
+
+LIGHT = {"red": "[RED]   ", "yellow": "[YELLOW]", "green": "[GREEN] ", "exempt": "[EXEMPT]", "--": "[  --  ]"}
 
 
 def report_lines(res, rows):
@@ -1016,6 +1208,11 @@ def report_lines(res, rows):
         L.append("  blue-purple timecodes: " + ", ".join(f"{a:.1f}-{b:.1f}s" for a, b in res["blue_purple_spans_s"]))
     if res.get("allow_blue_purple"):
         L.append(f"  blue-purple declared as needed by the brief: {res['allow_blue_purple']}")
+    if res.get("craft_plan"):
+        L.append(f"  craft plan: {res['craft_plan']} (exemption rows read; rule: the ice-direction skill, references/treatment.md section \"Craft plan\")")
+    # gate 1 to 3 exemptions here; the gate 4 ones print under their measure
+    under = {x for m in res["richness"]["measures"].values() for x in m.get("exempt", [])}
+    L += ["  " + e for e in res.get("exempt", []) if e not in under]
     if ex["worst_window"]:
         w = ex["worst_window"]
         L.append(f"  worst {w['end_s'] - w['start_s']:.0f} s window: {w['start_s']:.0f}-{w['end_s']:.0f}s, fast-motion share {w['fast_ratio']}; "
@@ -1028,13 +1225,16 @@ RICH_FIX = ("Re-stage the frame before anything else (the ice-motion skill, refe
             "enlarge or crop in on the hero; bring in the world the brief implies (place, props, hands, the product's real material); "
             "add a foreground layer that crosses the frame; add light; fill a vertical frame top to bottom by stacking the story. "
             "Never fill with unrelated stock objects, floating particles or extra text.")
-UNITS = {"hero_share": " %", "frame_fill": " of 16", "empty_half": " s", "in_shot_motion": " %", "longest_still": " s"}
+UNITS = {"hero_share": " %", "frame_fill": " of 16", "empty_half": " s", "in_shot_motion": " %", "longest_still": " s",
+         "element_events_per_min": " per min", "longest_bare_talk_s": " s", "trigger_coverage": " %", "broll_share": " %"}
 
 
 def richness_lines(sc, cuts_from):
     """Text block for the richness floor."""
     L = [f"Richness floor: film type {sc['film_type'] or 'unknown'} ({sc['type_source'] or 'not found'}) -> '{sc['row']}'; "
          f"floors from {sc['floors_from'] or 'no owner table (numbers reported only)'}; windows split at {cuts_from} cuts"]
+    if sc.get("coverage_from"):
+        L.append(f"  edit coverage floor (render side; references/motion-density.md section 6.2) from {sc['coverage_from']}")
     for note in sc["notes"]:
         L.append("  note: " + note)
     holds = ", ".join(f"{a:g}-{b:g}s" for a, b, _ in sc["declared_holds"]) or "none"
@@ -1043,14 +1243,20 @@ def richness_lines(sc, cuts_from):
     for k, m in sc["measures"].items():
         v = "-" if m["value"] is None else f"{m['value']:g}{UNITS[k]}"
         L.append(f"  {LIGHT[m.get('light', '--')]} gate    {k}: {v}" + (f"   floor: {m['floor']}" if m.get("floor") else "   (no floor for this type)"))
+        for e in m.get("exempt", []):
+            L.append("           " + e)
         if m.get("weak"):
             L.append("           beats under the floor: " + ", ".join(f"{w['from']:g}-{w['to']:g}s ({w[k]:.0f})" for w in m["weak"][:8]))
         if m.get("spans"):
             L.append("           empty-half spans: " + ", ".join(f"{a:g}-{b:g}s" for a, b in m["spans"][:8]))
-        if k == "longest_still" and m.get("at") is not None:
+        if k in ("longest_still", "longest_bare_talk_s") and m.get("at") is not None:
             L.append(f"           from {m['at']:g} s" + (f"; {m['note']}" if m.get("note") else ""))
-    if any(m.get("light") in ("red", "yellow") for m in sc["measures"].values()):
+        elif k in COVER_KEYS and m.get("note"):
+            L.append("           " + m["note"])
+    if any(m.get("light") in ("red", "yellow") for k, m in sc["measures"].items() if k not in COVER_KEYS):
         L.append("  How to fix a thin frame: " + RICH_FIX)
+    if any(m.get("light") in ("red", "yellow") for k, m in sc["measures"].items() if k in COVER_KEYS):
+        L.append("  How to fix a bare edit: " + COVER_FIX)
     L.append("  Not measured here: depth_layers and hero_width (lint.mjs, when the page marks them); surface_detail, light_events and "
              "real_material (critic, by eye).")
     return L
@@ -1067,8 +1273,8 @@ def main():
     ap.add_argument("--template", default=DEFAULT_TEMPLATE, help="nearest template or demo render (its first 12 s are compared by composition)")
     ap.add_argument("--no-template", action="store_true")
     ap.add_argument("--allow-blue-purple", metavar="REASON", default=None,
-                    help="the brief itself needs blue-purple (the user named it): give the reason; the blue-purple gate drops to yellow")
-    ap.add_argument("--type", default=None, help="film type for the richness floor (default: ice/state.json subtype or ice/BRIEF.md film_type)")
+                    help="the brief itself needs blue-purple (the user named it): give the reason; an alias of a craft plan exemption row sourced to the user, the blue-purple gate passes as exempt")
+    ap.add_argument("--type", default=None, help="film type for the richness floor (default: ice/state.json subtype, ice/BRIEF.md film_type, then the craft plan's type)")
     ap.add_argument("--events", default=None, help="events file with cut, show and hold entries (default: <film>.events.json if present)")
     a = ap.parse_args()
     for _stream in (sys.stdout, sys.stderr):

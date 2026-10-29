@@ -35,6 +35,17 @@ Do not add graphics just because a gap exists; add them when the narration has a
 | On-screen words (graphics-led) | About 20 per section, labels 1 to 2 words, no sentences |
 | Outro | Hold 4 to 6 s |
 
+## Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. The visual beat cadence above counts overlay beats; this floor counts every visual change, cuts and camera moves included.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 7.5 | One visible change per 8 s at least: a single take over about 8 s gets a visible change every 3 to 5 s (the `camera` row for speaker edits in the `ice-direction` skill, `references/treatment.md` section "Craft plan"); cards by the formula of `house-style-numbers.md` section 5 add to it |
+| `longest_bare_talk_s` | 5 s; 8 s | The same row: a change every 3 to 5 s inside a take (strict line), and no take over about 8 s left without one (fail line) |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2) |
+| `broll_share` | 0 percent | The structure decides (Structure options): motion B-roll at 2 to 7 clips per minute only in that structure; overlay cards and a persistent world carry the visual layer instead and count in `element_events_per_min` |
+
 ## Transition policy
 - A-roll speech joins: hard cuts.
 - Persistent world: no crossfade ever; full-bleed layers enter and exit by clip on an opaque background; camera moves and full-frame wipes run in sequence, never overlapping.

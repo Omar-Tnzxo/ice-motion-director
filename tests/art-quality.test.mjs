@@ -139,3 +139,150 @@ test("vectorize.py writes one named group per colour region", { skip: !PY ? "Pyt
   assert.equal(out.groups[0].color, "#f0ecdc", "the largest region (the background) is first");
   assert.match(out.note, /moves as one piece/);
 });
+
+// Craft profiles (0.2.5, lesson L21 "every style states its craft needs"): every style family carries one family default
+// line, entries add their own line in the same closed vocabulary, and style-method.md defines the field and the lock line.
+const STYLE_REFS = "skills/ice-styles/references/";
+const FAMILY_FILES = ["family-cartoon-film.md", "family-drawing-line.md", "family-evidence-data.md", "family-games-toys.md",
+  "family-graphic-design.md", "family-paint-wash.md", "family-print-paper-craft.md", "family-screen-tech-3d.md",
+  "family-broadcast-news.md", "art-history-eras.md", "art-history-painters.md", "narration-grammars-1.md", "narration-grammars-2.md"];
+const CRAFT_CODES = new Set(["camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx",
+  "music", "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity"]);
+// the exemption rule ids the gates print (gate prefix + rule id)
+const RULE_ID = /^(lint:(C[1-7]|D1|P1|T1|V[1-5]|depth_layers)|story:(\d+|filler_reason)|film:(fast_ratio|blank_run_s|blue_purple_share|hero_share|frame_fill|empty_half|depth_layers|in_shot_motion|longest_still)|art:(tones|shading|shapes)|look:G[23]|seam:zero-overlap|plan:(gap|anchor|coverage)|contract:fade|slop:(\d+|N\d+)|frame:[\w-]+)$/;
+const FAMILY_LINE = "- **Craft profile (family default):**";
+const ENTRY_LINE = "- **Craft profile:**";
+const styleText = (f) => readText(STYLE_REFS + f).replace(/\r\n/g, "\n");
+
+// split at a separator that sits outside parentheses
+const splitTop = (s, sep) => {
+  const out = [];
+  let depth = 0, cur = "";
+  for (const ch of s) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === sep && depth === 0) { out.push(cur); cur = ""; } else cur += ch;
+  }
+  assert.equal(depth, 0, `balanced parentheses: ${s.slice(0, 80)}`);
+  out.push(cur);
+  return out.map((x) => x.trim()).filter(Boolean);
+};
+
+// parse "needs: a (...), b (...); serves when: ...; never: ..." into code lists; every item is "<code> (<text>)"
+const parseLists = (body, where, labels) => {
+  const lists = {};
+  for (const clause of splitTop(body.trim().replace(/\.$/, ""), ";")) {
+    const m = clause.match(/^(needs also|serves when also|needs|serves when|never):\s*([\s\S]+)$/);
+    assert.ok(m && labels.includes(m[1]), `${where}: a clause starts with one of ${labels.join(", ")}: "${clause.slice(0, 60)}"`);
+    lists[m[1]] = splitTop(m[2], ",").map((item) => {
+      const im = item.match(/^([a-z]+) \(([\s\S]+)\)$/);
+      assert.ok(im, `${where}: item "${item.slice(0, 60)}" is "<code> (<how, trigger or reason>)"`);
+      assert.ok(CRAFT_CODES.has(im[1]), `${where}: "${im[1]}" is one of the 18 craft codes`);
+      assert.ok(im[2].trim().length > 2, `${where}: ${im[1]} has its text in parentheses`);
+      for (const id of im[2].matchAll(/`(\w+:[\w-]+)`/g)) assert.match(id[1], RULE_ID, `${where}: ${id[1]} is a rule id the gates print`);
+      return im[1];
+    });
+  }
+  const never = lists.never || [];
+  for (const k of ["needs", "needs also", "serves when", "serves when also"]) {
+    for (const c of lists[k] || []) assert.ok(!never.includes(c), `${where}: ${c} is in ${k} and in never`);
+  }
+  return lists;
+};
+
+const familyBody = (line) => {
+  const body = line.slice(FAMILY_LINE.length).trim();
+  const at = body.search(/(^|: )needs: /);
+  return at < 0 ? null : body.slice(at === 0 ? 0 : at + 2);
+};
+
+test("styles: every family file has one family default craft profile line in the 18 codes, every never with its reason", () => {
+  for (const f of FAMILY_FILES) {
+    const lines = styleText(f).split("\n").filter((l) => l.startsWith(FAMILY_LINE));
+    assert.equal(lines.length, 1, `${f} has exactly one family default craft profile line`);
+    const body = familyBody(lines[0]);
+    if (body === null) {
+      // a pointer line: it names another family file whose line holds the lists
+      const target = lines[0].match(/`([\w-]+\.md)`/);
+      assert.ok(target && FAMILY_FILES.includes(target[1]) && target[1] !== f, `${f}: a family line without lists points to another family file`);
+      assert.ok(familyBody(styleText(target[1]).split("\n").find((l) => l.startsWith(FAMILY_LINE))), `${target[1]} holds the lists`);
+      continue;
+    }
+    const lists = parseLists(body, f, ["needs", "serves when", "never"]);
+    assert.ok((lists.needs || []).length >= 3, `${f}: the family default names at least 3 needs`);
+  }
+  // the directions file carries the same profile as a Craft column on both of its tables
+  const dir = styleText("directions-openers-explainers.md").split("\n");
+  for (const head of ["| Direction | Background |", "| Look | Background and material |"]) {
+    const h = dir.findIndex((l) => l.startsWith(head));
+    assert.ok(h > 0 && dir[h].trim().endsWith("| Craft |"), `the table "${head}" has a Craft column`);
+    const cols = dir[h].split("|").length;
+    assert.equal(dir[h + 1].split("|").length, cols, `the table "${head}" separator has the Craft column`);
+    let rows = 0;
+    for (let i = h + 2; i < dir.length && dir[i].startsWith("| "); i++, rows++) {
+      const cells = dir[i].split(" | ");
+      assert.equal(dir[i].split("|").length, cols, `row ${i + 1} has a Craft cell`);
+      parseLists(cells[cells.length - 1].replace(/ \|$/, ""), `directions row "${cells[0].slice(2)}"`, ["needs", "serves when", "never"]);
+    }
+    assert.ok(rows >= 6, `the table "${head}" has its rows`);
+  }
+});
+
+test("styles: entry craft profile lines inherit the family default, use only the 18 codes and cover every unspecified-sound and thin entry", () => {
+  let entryLines = 0;
+  const thin = ["### Single-line engraving", "### Crayon (`balloon`", "### Ballpoint sketch", "### Coloured pencil", "### Pen-and-ink stipple",
+    "### Pencil and watercolour (`ranunculus`", "### Storybook pencil", "### Sumi-e", "### Risograph, drum by drum", "### Newsprint halftone",
+    "### Ukiyo-e colour woodblock", "### Geometric / Bauhaus Motion", "### Cyberpunk HUD", "### Pixel art, cell by cell", "### Toy brick (`toyBrick`"];
+  const seenThin = new Set();
+  for (const f of FAMILY_FILES) {
+    const lines = styleText(f).split("\n");
+    const famLine = lines.find((l) => l.startsWith(FAMILY_LINE));
+    const famBody = familyBody(famLine) ?? familyBody(styleText(famLine.match(/`([\w-]+\.md)`/)[1]).split("\n").find((l) => l.startsWith(FAMILY_LINE)));
+    const familyNeeds = parseLists(famBody, f, ["needs", "serves when", "never"]).needs || [];
+    let block = null;
+    const close = () => {
+      if (!block) return;
+      const where = `${f} "${block.head.slice(4, 60)}"`;
+      assert.ok(block.craft <= 1, `${where} has at most one craft profile line`);
+      if (block.unspecifiedSound) assert.equal(block.craft, 1, `${where}: sound not specified in source, so the entry writes its craft line`);
+      const t = thin.find((p) => block.head.startsWith(p));
+      if (t) { assert.equal(block.craft, 1, `${where}: a thin entry writes its craft line`); seenThin.add(t); }
+    };
+    for (const l of lines) {
+      if (l.startsWith("## ") || l.startsWith("### ")) { close(); block = { head: l, craft: 0, unspecifiedSound: false }; continue; }
+      if (!block) continue;
+      if (l.startsWith("- **Sound:** not specified in source")) block.unspecifiedSound = true;
+      if (!l.startsWith(ENTRY_LINE)) continue;
+      block.craft++;
+      entryLines++;
+      const body = l.slice(ENTRY_LINE.length).trim();
+      assert.match(body, /^family default(;|\.?$)/, `${f}: an entry line starts with "family default"`);
+      const rest = body.replace(/^family default;?/, "").trim();
+      if (!rest) continue;
+      const own = parseLists(rest, `${f} "${block.head.slice(4, 60)}"`, ["needs also", "serves when also", "never"]);
+      for (const c of own["serves when also"] || []) {
+        assert.ok(!familyNeeds.includes(c), `${f} "${block.head.slice(4, 60)}": ${c} is a family need, never moved down to serves when`);
+      }
+    }
+    close();
+  }
+  assert.deepEqual([...seenThin].sort(), [...thin].sort(), "every thin entry was found");
+  assert.ok(entryLines >= 68, `entries with their own line: ${entryLines}`);
+});
+
+test("styles: style-method.md requires the craft profile field and locks it with the Craft: line", () => {
+  const method = styleText("style-method.md");
+  const s4 = method.slice(method.indexOf("## 4. Writing the style lock"), method.indexOf("## 5."));
+  const lock = s4.split("\n").find((l) => l.startsWith("- `Craft:`"));
+  assert.ok(lock, "section 4 has the Craft: lock line");
+  assert.match(lock, /ice\/plan\/craft-plan\.json/);
+  assert.match(lock, /`style_needs`/);
+  assert.match(lock, /`style_never`/);
+  assert.match(lock, /source kind `style`/);
+  assert.match(lock, /`ice-direction` skill, `references\/treatment\.md` section "Craft plan"/);
+  const s10 = method.slice(method.indexOf("## 10. Building a new style entry"), method.indexOf("## 11."));
+  assert.match(s10, /^2\. Fill the entry fields[^\n]*; Sound; Craft profile/m, "section 10 lists Craft profile among the entry fields");
+  assert.match(s10, /Craft profile \(family default\):\*\* needs: <code>/);
+  for (const c of CRAFT_CODES) assert.ok(s10.includes("`" + c + "`"), `section 10 names the code ${c}`);
+  assert.match(readText("skills/ice-styles/SKILL.md"), /craft profile[^\n]*ice\/plan\/craft-plan\.json/);
+});

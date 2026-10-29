@@ -11,7 +11,7 @@
 # the script's documented fallback). A script that fails under an installed version runs only with the pins.
 # sound_map.py and match_music.py need numpy and scipy (match_music.py sfx: numpy only).
 # mgaudio (opt-in music and SFX by code, SKILL.md core rule 7) needs only numpy; the rest is its fast path (references/music-by-code.md section 1).
-# master_audio.py, pacing.py, qc.py and preview_options.py need only the standard library and ffmpeg.
+# master_audio.py, pacing.py and preview_options.py need only the standard library and ffmpeg; qc.py too, except --audit and --diagnose (numpy).
 numpy==2.4.6
 scipy==1.16.3
 soundfile==0.14.0

@@ -1,6 +1,6 @@
 # Motion language by film type, edit type, industry and brand
 
-The scope hub. Every scoped rule in this skill is summarized here by type so a workflow can set the motion language in one pass. Type names follow the type lists in the ice-film workflow's `SKILL.md` section 4 and the ice-edit workflow's `SKILL.md` section 2; the full type files (structure, sound, text density, QA thresholds) live in the ice-film and ice-edit workflows. These are defaults when the brief is silent: the brief and the direction log override them, with the reason logged.
+The scope hub. Every scoped rule in this skill is summarized here by type so a workflow can set the motion language in one pass. Type names follow the type lists in the ice-film workflow's `SKILL.md` section 4 and the ice-edit workflow's `SKILL.md` section 2; the full type files (structure, sound, text density, QA thresholds) live in the ice-film and ice-edit workflows. These are defaults when the brief is silent: the user's own words, a measured reference, the chosen style's craft profile and the direction log override them, with the reason logged (the order: the `ice-direction` skill, `references/treatment.md` section "Craft plan").
 
 ## Contents
 1. Film types
@@ -31,9 +31,9 @@ The scope hub. Every scoped rule in this skill is summarized here by type so a w
 | Type | Hold policy | Transitions | Camera | Notes |
 |---|---|---|---|---|
 | Explainer (ice-explainer) | B (camera-only life; elements dead still after landing) | Hard cuts on sentence punctuation dominate; designed transitions every 4-7 s; carry within a diagram | Manage pushes; glides free; push to read, pull out after | One subject per beat with demote-in-place; something changes every 2-4 s; one example carries the whole film |
-| Long-form | B | Hard cuts, J and L cuts; 2-3 effect transitions per film | Fixed crop per shot | Graphics 3-10 s with at least 2 s of face between |
-| Podcast | B | Cuts on speaker change | Fixed crops, zoom cycles locked per segment | Layout changes 2-4 per minute, only on new arguments |
-| Talking-head ad | B, face first | Cuts; graphics land on the spoken word | Calm: zoom 1.00-1.06, no change before 4 s, at most 6 changes per 30 s; hyper: layout switch every 1.5-2 s | Motion in the first second (a static first frame scrolls away); face safe zone never covered |
+| Long-form | B | Hard cuts, J and L cuts; 2-3 effect transitions per film | Fixed crop per shot by default; a single take over about 8 s gets a visible change every 3 to 5 s, and a continuous camera when the reference or style uses one (`camera.md` sections 1 and 8) | Graphics 3-10 s with at least 2 s of face between |
+| Podcast | B | Cuts on speaker change | Fixed crops, zoom cycles locked per segment by default; long takes as in the long-form row | Layout changes 2-4 per minute, only on new arguments |
+| Talking-head ad | B, face first | Cuts; graphics land on the spoken word | Calm: zoom 1.00-1.06, no change before 4 s, at most 6 changes per 30 s (the default for calm ads with no reference or style, not a ceiling over a measured reference or a chosen style); hyper: layout switch every 1.5-2 s; long takes as in the long-form row | Motion in the first second (a static first frame scrolls away); face safe zone never covered |
 | Shorts and reels | A | Fast cuts, one topic per short | Faster cuts, quick real-face shots | Split rather than compress long sources |
 | B-roll overlay | B | Full cutaways or transparent panels; graphics land on spoken words | Pinned to content coordinates | Final graphic clears before the video ends; alpha exports via ice-engines |
 | Showreel | A | Cut on motion, velocity-matched whips naming the matching tween | Camera never sleeps | Scenes 1.0-2.0 s; new element every 0.3-0.6 s; hold logo 1.5-2 s |
@@ -43,9 +43,11 @@ The scope hub. Every scoped rule in this skill is summarized here by type so a w
 
 Durations in ms (tap / instant / quick / fast / normal / slow / extra slow); springs as visual duration ms / bounce (snap, glide, land); stagger step / cap ms. Take the more conservative preset when two apply. Safety, money and health always win over playfulness. Glanceable contexts get fewer, calmer motions.
 
+Scope of the don'ts: they are written for product UI and app ads in the category. In a film, a device a don't names (a glow, glass, parallax, a 3D object) stays when the chosen style's craft profile or a measured reference uses it, with its plan row and reason (the `ice-direction` skill, `references/treatment.md` section "Craft plan"). A don't about safety or honesty (flash rate, fake scarcity, celebration around bad news, motion over subtitles or a timer) holds everywhere.
+
 | Category | Durations | Curve | Springs | Stagger | Metaphor and don'ts |
 |---|---|---|---|---|---|
-| Gaming, esports | 90/120/180/250/400/600/800 | (0.23,1,0.32,1); panels (0.32,0.72,0,1) | 260/0, 340/0.12, 400/0.15 | 50 / 400 | Slam in, land exactly, leave faster; no neon glows, glass, RGB gradients or wobbly bounces |
+| Gaming, esports | 90/120/180/250/400/600/800 | (0.23,1,0.32,1); panels (0.32,0.72,0,1) | 260/0, 340/0.12, 400/0.15 | 50 / 400 | Slam in, land exactly, leave faster; in product UI no neon glows, glass, RGB gradients or wobbly bounces (an esports or neon style in a film keeps them, scope note above) |
 | Fintech, banking | 100/140/200/260/360/520/700 | (0.2,0,0,1) | 280/0, 360/0, 420/0.05 | 40 / 300 | A precise instrument in a calm room; no confetti on payments, no bouncy numbers, no slot-machine digit rolls on balances |
 | Healthcare | 100/160/220/300/420/600/800 | (0.25,0.1,0.25,1) | 320/0, 400/0, 480/0.05 | 40 / 240 | Never more than 3 flashes per second; no shakes; no celebration around diagnoses or results |
 | Kids, education | 100/150/220/320/480/700/1000 | soft back (0.34,1.3,0.64,1), emphasized (0.34,1.56,0.64,1) | 300/0.2, 400/0.3, 500/0.35 | 70 / 600 | Playful overshoot allowed; no dark patterns, no punishing shakes |
@@ -54,13 +56,13 @@ Durations in ms (tap / instant / quick / fast / normal / slow / extra slow); spr
 | SaaS, developer tools | 80/100/150/200/300/450/600 | (0.2,0,0,1) | 220/0, 280/0, 340/0.08 | 30 / 200 | Speed is the feature; no bounce, no decorative in-app hero motion |
 | Media, streaming | 100/150/220/320/500/750/1000 | quint out (0.22,1,0.36,1) | 320/0, 420/0.08, 500/0.1 | 50 / 400 | Focus scale 1.05-1.1 over 150-200 ms; never animate layout over video or motion over subtitles |
 | Social, creator | 80/120/180/260/380/560/800 | quint out (0.22,1,0.36,1) | 260/0.1, 340/0.2, 420/0.25 | 40 / 320 | No endless engagement loops, no shaking notifications |
-| Travel, hospitality | 100/150/220/300/450/650/900 | quart out (0.25,1,0.5,1) | 320/0.05, 400/0.1, 480/0.12 | 60 / 480 | No heavy parallax, no price countdown pressure |
+| Travel, hospitality | 100/150/220/300/450/650/900 | quart out (0.25,1,0.5,1) | 320/0.05, 400/0.1, 480/0.12 | 60 / 480 | No heavy parallax in UI, no price countdown pressure |
 | Food delivery | 80/120/180/240/360/520/800 | quint out (0.22,1,0.36,1) | 240/0.1, 320/0.2, 400/0.25 | 40 / 320 | A warm kitchen pass: quick, appetizing, rewarding; no jumpy map markers, no celebration when an order is late |
-| Real estate | 100/150/220/320/480/700/1000 | quart out (0.25,1,0.5,1) | 340/0, 420/0.05, 500/0.08 | 60 / 420 | No bouncy springs, no spinning 3D logos |
+| Real estate | 100/150/220/320/480/700/1000 | quart out (0.25,1,0.5,1) | 340/0, 420/0.05, 500/0.08 | 60 / 420 | No bouncy springs, no spinning 3D logo for no reason (a 3D model or flythrough of the property is the product: a spatial idea, `depth-and-3d.md` section 1) |
 | Fitness, sports | 80/110/160/220/340/500/800 | broadcast out (0.23,1,0.32,1) | 220/0.1, 300/0.2, 380/0.25 | 40 / 320 | No celebrations covering the timer, no shame motion |
 | Government, public | 100/120/160/200/250/300/400 | standard (0.4,0,0.2,1) for everything | 240/0, 280/0, 320/0 (no bounce) | none | No decorative motion, no hold to confirm |
 | Crypto, web3 | 80/110/160/220/320/480/700 | (0.2,0,0,1) | 220/0, 300/0.05, 360/0.1 | 30 / 240 | Price flashes under 300 ms with colour plus an arrow, never colour only; no hype glow, no slot-machine numbers |
-| AI products | 90/130/200/280/420/640/900 | (0.32,0.72,0,1) | 300/0, 380/0.08, 460/0.1 | 30 / 300 | Honest thinking states, not an endless shimmer; no glowing orbs or purple gradients by reflex |
+| AI products | 90/130/200/280/420/640/900 | (0.32,0.72,0,1) | 300/0, 380/0.08, 460/0.1 | 30 / 300 | Honest thinking states, not an endless shimmer; no glowing orbs or purple gradients by reflex (the brand's real mark, a measured reference or the chosen style is a reason, recorded in the plan) |
 | Productivity | 70/100/140/200/280/400/560 | (0.2,0,0,1) | 200/0, 260/0.05, 320/0.1 | 25 / 200 | No confetti on every completed task |
 | Automotive | 100/150/200/280/400/600/800 | (0.2,0,0,1) | 300/0, 380/0, 440/0.05 | none | Crossfades between pages; no staggers, parallax or loops in UI while driving |
 

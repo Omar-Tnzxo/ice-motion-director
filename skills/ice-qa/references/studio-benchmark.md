@@ -22,14 +22,15 @@ At 05, after the style frames are drawn and the look critic has passed them, bef
 | `ice-remake` | Always, with the user's reference as one of the references (the remake's ruler) |
 | Micro jobs | One reference, the same axes |
 | `ice-ideas` | Only when it draws style frames |
-| `ice-edit`, `ice-lottie` | Not run (the footage or the product UI sets the look) |
+| `ice-edit` | At 05, on two graded stills of the footage with the planned overlays and captions, in place of style frames; the references are real edits of the same edit type |
+| `ice-lottie` | Not run (the product UI sets the look) |
 
 ## 2. The references
 
 Two or three real ads, never invented, taken from the run's own dated research: research note RQ-refs, else RQ-ads or RQ-category (the ice-direction skill, `references/research.md`). When none of those notes holds a fitting work, run RQ-refs now by that file's rules (queries from brief slots and the runtime date only) and record it.
 
 Each reference must be:
-- the same category as the brief, or the same film type;
+- the same category as the brief, or the same film or edit type;
 - current: released in the last 24 months before the runtime date, unless the brief asks for a period look;
 - the best craft found: an award, a shortlist, a studio or agency case study, or the work research ranks highest; never the first result;
 - viewable from an official source (the brand's or the studio's own channel or case study page), with its title, maker, date and URL recorded.
@@ -39,7 +40,7 @@ At most one reference may be the brand's own earlier work. Reference stills are 
 ## 3. The packet
 
 The director copies into `ice/review/benchmark/packet/`:
-- the current style frames, `frame-01.png` onward, in film order;
+- the current style frames, `frame-01.png` onward, in film order (for an edit: the two graded stills with their overlays);
 - 2 to 4 stills per reference, `ref-<a|b|c>-01.png` onward, taken at its hook, its densest frame and its hero moment;
 - `refs.txt`: one line per reference (title, maker, date, URL);
 - `art-check.txt`: the art check output on the style frames drawn in code (`pre-render-lint.md` section 4b), or `n/a` with the reason;

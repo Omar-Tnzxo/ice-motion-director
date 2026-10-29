@@ -50,7 +50,7 @@ Color meaning is cultural, categorical and contextual. There is no universal tab
 - Between acts the ground may change polarity as a chapter device (light to dark to light, dark bookends around a light middle). It changes only at a hard cut or through a growing or carried object; never by a flash or a crossfade between two saturated fields (the midpoint makes an off-palette third color). Transition mechanics are in `ice-motion`.
   - Scope: news reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`): a wash or flash limited to the background behind the person matte (the brand flash on the set, a few frames in steps) is a plate reaction, not a ground change; the speaker inside the matte is untouched (`ice-edit/references/layers-and-isolation.md`, "3b. Programme matte kit"; package values in `family-broadcast-news.md` section 2). Whole-frame white and red flashes on phrase boundaries are transitions of that family, owned by `ice-motion/references/cut-catalog.md`, "Broadcast transitions".
 - Otherwise keep one ground logic for the whole film and never jump between light and dark without a story reason.
-- No pure `#000000` or `#FFFFFF` grounds by default: tint neutrals toward the accent hue or the subject's warmth. Pure black and white are allowed as a deliberate monochrome direction (logo sting, kinetic type, Lottie for UI, a print-like flat brand) when the D-entry says so.
+- No pure `#000000` or `#FFFFFF` grounds by default: tint neutrals toward the accent hue or the subject's warmth. Pure black and white are allowed, with a D-entry, as a deliberate monochrome direction (logo sting, kinetic type, Lottie for UI, a print-like flat brand) or when the chosen style's craft profile or a measured reference uses them.
 
 ## 5. Palette construction
 
@@ -81,7 +81,7 @@ Color meaning is cultural, categorical and contextual. There is no universal tab
 
 **Real material**: when real photos, footage or product UI exist, take one or two accent colors from them and keep the base; product UI and real interfaces keep their own skin.
 
-**Unify mixed sources**: one grade and one light logic for all assets (handled by `ice-edit` and `ice-motion`); the palette decision names the target look.
+**One grade per source class** (lesson L20): the film's own world (the studio, the product, the user's footage, and the AI plates or stock that stand in for that world) takes the film grade and one light logic; AI plates match the real footage beside them. Outside material (archive, agency footage, quoted or discussed people's portraits, stills of past events, screenshots) takes one treatment that marks it as outside and joins the palette (monochrome, desaturation with lifted blacks, a warm duotone, or a tint from the palette), and never the speaker or the film's own footage. Each class and its grade goes in the craft plan's `finish` row (`treatment.md` section "Craft plan"); the palette decision names the target look of each class. Applying it: the `ice-edit` skill, `references/broll-and-motion-broll.md` section 3, "Outside material", and `ice-motion`'s finishing layer.
 
 ## 6. Accent discipline and color states
 
@@ -98,14 +98,14 @@ Color meaning is cultural, categorical and contextual. There is no universal tab
 | Treatment | Allowed when | Never |
 |---|---|---|
 | Gradient | It is the brand's own material, carries data, or behaves like one real light that changes with the mood | As a constant two-color backdrop; full-screen linear gradients on dark grounds (they band under compression) |
-| Glow, bloom | One real light source with a job, at low strength | The same floor glow under every scene; radial glow plus vignette plus orb around a logo on near-black (the premium pastiche) |
-| Glass, frosted panels | The brand's own UI uses it, and the base composition reads with the effect removed | As "premium" garnish |
+| Glow, bloom | One real light source with a job, at low strength; or the chosen style's medium is light (illustration only: neon, CRT, broadcast titles) or a reference measures it, at the stated or measured radius on dark grounds | The same floor glow under every scene; radial glow plus vignette plus orb around a logo on near-black (the premium pastiche) |
+| Glass, frosted panels | The brand's own UI uses it (any film type); or the chosen style or a reference uses glass and a lit plate sits behind it to refract; or a legibility plate over a busy picture; and the base composition reads with the effect removed | As "premium" garnish |
 | Grain, paper, halftone | Texture explains a material (paper for paper, film grain for footage, halftone for print); noticed after the design | As dirt, or as "depth" on flat vector |
 | Flat color | The brand is genuinely flat (printed, poster-like): stay flat on purpose with hard color, hard shadow, a ground with an edge | Flat grey mid-tone grounds |
 
-Every use needs a D-entry reason. Brand bans override all of these.
+Every use needs a D-entry reason, or the craft plan row of its style or reference source (`treatment.md` section "Craft plan"). Brand bans override all of these.
 
-Scope lines for the news reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`):
+Scope lines for the news reel, the measured case of the conditions above (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`):
 - Glass: frosted plates and cards are allowed for legibility when the digital camera sits at a wide framing over a busy area (the floor, a suit, hands), or to keep the presenter visible behind a sentence he reads; the D-entry names the framing and the contrast gained. At tight framings the text goes bare. The glass studio reel (that file, section 4) uses glass as its medium. Values and triggers: that file, section 2.
 - Glow disc: a shaded disc in the programme's attention colour behind the lit speaker's head is a programme mark with a reason row (the question disc, `ice-edit/references/layers-and-isolation.md`, "3b. Programme matte kit"; build: `ice-motion/references/atomic-moves.md`, "Broadcast news moves"), not the premium pastiche of the glow row above; it never comes with an orb or a vignette around a logo, and the pastiche rule stands everywhere else.
 - Glow on display text: allowed at the measured radius when the package measures it; still never on captions unless measured.
@@ -141,13 +141,14 @@ Before approval, run on the palette values (definitions in `anti-sameness.md`):
 | Sources disagree | Scope chosen |
 |---|---|
 | "Tech, cinema, finance dark; food, wellness, kids light" vs "tech alone is no reason for dark" vs "background not dark by default" | All film types: polarity is a logged decision from research and brief; the category mapping is a convention to verify and then meet or break |
-| "No pure black or white" vs "with no brand, prefer pure black/white contrast" | Tinted neutrals by default; pure black and white only as a declared monochrome direction (logo sting, kinetic type, Lottie, flat print brands) |
+| "No pure black or white" vs "with no brand, prefer pure black/white contrast" | Tinted neutrals by default; pure black and white as a declared monochrome direction (logo sting, kinetic type, Lottie, flat print brands) or when the chosen style or a measured reference uses them (section 4) |
 | "One accent" vs "five colors, five meanings" vs "two to five named states" | One saturated accent per frame for every type; multiple named states only in data story, explainer and UI walkthrough where each color teaches a meaning |
 | "No gradients, no glass" vs "gradients and light encouraged when they are the brand's material" | Section 7: allowed only as brand material, data, or one real light, with a reason; never as default |
 | "One accent" vs a news reel's role table | News reel: 2 to 5 role colours, one job each, from `family-broadcast-news.md` section 1.2; every other type keeps the rows above |
 | "Glass only as the brand's UI" vs glass plates in news reels | News reel: glass for legibility at wide framings, with a D-entry (section 7 scope lines); elsewhere brand material only |
 | "Never a flash between saturated fields" vs the brand wash on the set | News reel: a wash limited to the background behind the person matte is a plate reaction (section 4 scope line); a ground change still happens only at a cut or a carried object |
 | "Radial glow is pastiche" vs the glow disc behind a presenter | News reel: the disc is a programme mark with a reason row (section 7 scope lines); the pastiche rule stands for logos on near-black |
+| "One grade and one light logic for all assets" vs outside material marked as outside (archive, agency footage, stills) | One grade per source class (section 5): the film's own world in the film grade, outside material in one outside treatment, the speaker never in it |
 | "Ground never static" vs "same background across all scenes" | Same ground logic across the film; the ground itself may carry slow light or material change; polarity changes only as chapter devices at cuts or carried objects |
 
 Sources: brand-identity-studio color method (Omar-Tnzxo); video-production-studio design system (Omar-Tnzxo); heygen-com/hyperframes house style, video composition and design picker (Apache-2.0); AbubakrChan/product-launch-motion accent budget and brand-fit slots (MIT); Tejashmakwana/motionmaxxing ground strategy, accent meanings, brand capture, world rules (Apache-2.0); alchaincyf/huashu-art-motion palette rules and blue-purple thresholds (MIT, translated); bangtutorial/bang-motion palette sources (MIT, translated); herk-edit-kit semantic palette (MIT); vincentsch/explainroo same meaning same color (MIT); ideas from imMamdouhaboammar/motion-graphics-skills, Vincentwei1021/video-talkcraft and vibe-motion/skills, rewritten.

@@ -27,6 +27,7 @@ Every major decision passes through analysis, dated research, critique, consulta
 | Voice source (when speech is implied) | ice-direction (`questions.md` field Voice source) | yes, as a plain decision without critic |
 | Rhythm, motion language, transitions families | `ice-motion` | yes, same entry format, critic loop applies |
 | Music, voice casting, sound lead | `ice-audio` | yes, same entry format, critic loop applies |
+| Craft plan (one row per craft dimension, and its exemption rows) | ice-direction: drafted at 02, mapped at 04, locked at 05 (`references/treatment.md` section "Craft plan") | yes, one entry superseded at the lock; the approver checks every row against that section's decision rules (no missing dimension, no banned reason, a source on every row) |
 | Platform, aspect, engine | router and `ice-engines` | yes, as plain decisions without critic |
 
 Minor choices (a single ease, a margin) are not logged here; their owners record them.
@@ -101,6 +102,11 @@ Gates: default look <pass / fail / pass with reason D-NN>; distance <n of 6 vs t
 ## Decisions
 <entries, newest last>
 
+## Craft exemptions
+| Row | Lifts | Element | Source | Shots | Amount | Reason |
+|---|---|---|---|---|---|---|
+<one line per exemption row of ice/plan/craft-plan.json, or "none">
+
 ## Heads-up
 <for the user, see section 10>
 ```
@@ -136,6 +142,7 @@ Rules:
 - A decision made in chat is written here at once; a decision that lives only in chat is lost on resume.
 - Honest statuses only: `unresearched` when research could not run, `unresolved` when the user must decide, `sequential pass, not independent` when roles could not run separately. Never upgrade a status without the evidence.
 - Every value the workflow uses for color, type, rhythm, music and structure must trace to an approved entry. A build value with no entry is a bug to report.
+- Every exemption row of `ice/plan/craft-plan.json` is mirrored, word for word, as one line of the "Craft exemptions" table of `ice/DIRECTION.md` when it is written (04, 05 or 07); the rules of the rows live in `references/treatment.md` section "Craft plan", subsection "Precedence and exemptions".
 
 ## 9. Palette and type blocks
 
@@ -170,7 +177,7 @@ type:               # D-NN
 At hand-off write a short heads-up for the user, in their language. In auto mode it is posted while the run continues and copied into the delivery note; in step mode it is part of the review card.
 
 - The concept and direction chosen, each in one line with its reason.
-- The capabilities it rides, in plain words.
+- The capabilities it rides, in plain words, and the craft plan in one plain paragraph: the crafts used and those not used, each with its reason (`references/treatment.md` section "Craft plan").
 - The most typical direction deliberately left behind.
 - Every inferred or defaulted brief value, grouped apart from what the user stated (voice source, brand ownership and logo defaults included).
 - Anything unresearched, unresolved or not independently reviewed; real brand material still missing; official files downloaded under the default (where each came from), or the name set as text because no official file existed.

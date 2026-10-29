@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.4
+  version: 0.2.5
 ---
 
 # Ice Motion Director
@@ -46,7 +46,7 @@ The ten stages: 01 brief, 02 concept, 03 script, 04 storyboard, 05 look, 06 anim
 | 5 | A voiceover leads the film: explain, teach, narrate, document | `ice-explainer` | section `ice-explainer` | `ice-explainer/SKILL.md`, section "1. Inputs and outputs" |
 | 6 | Any other film made from scratch | `ice-film` | section `ice-film` | `ice-film/SKILL.md`, section "2. Inputs and start" |
 
-Skill paths here (`ice-film/SKILL.md` and the like) are folders next to this skill's folder. Read only the matched section of `references/routes.md` (required). Only if the request does not clearly fit one row, or combines two: read `references/classify.md`. Route once; the workflow then owns what each stage means. Workflows are opened only from here: each one's first step checks `ice/state.json` and sends the agent back to this file when it is missing.
+Skill paths here are folders next to this skill's folder. Read only the matched section of `references/routes.md` (required). Only if the request does not clearly fit one row, or combines two: read `references/classify.md`. Route once; the workflow then owns what each stage means. Each workflow's first step checks `ice/state.json` and sends the agent back to this file when it is missing.
 
 Compound requests: footage plus a style reference runs `ice-edit` and borrows the analysis step of `ice-remake`; a style recipe (`STYLE-RECIPE.md`) or a recipe-only request: `references/classify.md`, "Style recipes"; a logo sting delivered as video goes to `ice-film`, as Lottie to `ice-lottie`. When two rows fit equally and the choice changes the deliverable, the routing choice is the `kind` question at stage 01. A request outside the scope (a real person's face or voice outside `ice-assets/references/ai-media-policy.md` section 9, watermark removal): say so plainly and offer the nearest supported route.
 
@@ -65,8 +65,8 @@ Stage 01 on every route is the intake of `ice-direction/SKILL.md` section 3, Par
 - **Size** sets how deep the spine runs. Micro (6 s or less, or one asset such as a loader, an icon, a logo sting, a quote card, a caption pass): three passes, brief and look, then build and sound, then review and deliver, with one review round. Standard (7 to 60 s, single edits): the full spine with a lean crew; cutdowns and language versions of a 7 to 60 s film keep it Standard. Long or campaign (over 60 s, chapters, several films): the full spine, a larger crew, chapters planned at 03. The workflow's `## Spine stages` section says which stages each size skips; leave those out of `order`.
 - **Size decides the other dials.** The `ice-direction` tier, the workflow's crew row and the workflow's run mode follow from size, film type and the brief. Derive them; never ask the user about them.
 - **Versions and cutdowns** (other languages, aspect ratios, 15 s and 6 s cuts) are planned at 03 whenever the brief or the film type's deliverables list them, each cutdown with its own hook.
-- **Order** changes with the kind of film (story, look, music, data, real screens, footage or reference leads). Copy it from the type file's `Stage order:` line in `ice-film` or `ice-edit`, or from the workflow's `## Spine stages` section; neither gives one: `01 02 03 [04 05] 06 [07 08a] 08b 09 10`. A bracket is a parallel lane; `08a` and `08b` are the two parts of 08.
-- **Parallel lanes.** By default, after 03: 04 storyboard (rough boards, composition, timing) runs in parallel with 05 look (mood board and style frames), and 06 animatic merges both. After 06: part 08a (score, sound effects, voice from the locked cue sheet) runs in parallel with 07 build, and part 08b (mix and master) runs on the 07 draft. Films led by real screens capture them in 01 and may run 05 before 04. In 10, each language and aspect ratio renders in parallel. Agents without sub-agents run the lanes one after another.
+- **Order** changes with the kind of film (what leads it). Copy it from the type file's `Stage order:` line in `ice-film` or `ice-edit`, or from the workflow's `## Spine stages` section; neither gives one: `01 02 03 [04 05] 06 [07 08a] 08b 09 10`. A bracket is a parallel lane; `08a` and `08b` are the two parts of 08.
+- **Parallel lanes.** By default, after 03: 04 storyboard runs in parallel with 05 look, and 06 animatic merges both. After 06: part 08a (score, effects, voice) runs in parallel with 07 build, and part 08b (mix and master) runs on the 07 draft. Films led by real screens capture them in 01 and may run 05 before 04. In 10, each language and aspect ratio renders in parallel. Agents without sub-agents run the lanes one after another.
 
 ## 5. Auto mode (the default) and the stops
 
@@ -80,7 +80,7 @@ A plain prompt, short or long, or the `ice` command, runs the whole spine; the u
 
 ### Stops
 
-This table is the only list of user stops; every skill points here (`ice-motion-director/SKILL.md` section 5, "Stops") and none adds one.
+This table is the only list of user stops; every skill points here and none adds one.
 
 | Mode | Stop | When it happens |
 |---|---|---|
@@ -93,7 +93,7 @@ In auto mode the final render needs no further approval. Every other "ask the us
 
 ## 6. Step mode (for people who want to steer)
 
-The commands `ice-01-brief` to `ice-10-deliver` run one stage each, and `ice-status` shows where the project is. All of it lives in `references/step-mode.md`: the dispatcher (`ice-state check`, open the workflow's `## Spine stages` row, run it, write the artifact, `ice-state set`), the prerequisites matrix, the review card, the discussion loop, and approval only on the user's own word. Plain language in both modes: messages explain decisions without jargon, technical detail stays in the run files.
+The commands `ice-01-brief` to `ice-10-deliver` run one stage each, and `ice-status` shows where the project is. All of it lives in `references/step-mode.md`: the dispatcher (`ice-state check`, the workflow's `## Spine stages` row, `ice-state set`), the prerequisites matrix, the review card, the discussion loop, and approval only on the user's own word. Plain language in both modes: messages explain decisions without jargon, technical detail stays in the run files.
 
 ## 7. Rules that hold on every route
 
@@ -104,6 +104,7 @@ The commands `ice-01-brief` to `ice-10-deliver` run one stage each, and `ice-sta
 - No two films look alike by default: templates, styles and demos are starting references, never defaults (`ice-direction` anti-sameness rules, checked by `ice-qa`).
 - The builder never grades its own work. Reviews run in a separate role or sub-agent (`ice-qa`).
 - A stranger must get it. Before 07 and before delivery, a fresh viewer who sees only what an audience would see (no brief, concept or script) must name what the film sells, what the product does and its one idea, matching the concept's takeaway; a FAIL blocks the run in every mode, auto included. Symbols are grounded in literal things, and a product or app brand's film of any type shows the product doing its real job (`ice-qa/references/clarity-gate.md`).
+- Full capacity by default: every video gets a craft plan, one row per craft dimension with its reason, drafted at 02 (`ice/plan/craft-plan.json`), mapped at 04, locked at 05, checked by `ice-qa`; "not asked" is never a reason. Decided, never asked, no new stop; step mode shows it on the 02 and 05 review cards (`ice-direction/references/treatment.md` section "Craft plan").
 - Never claim a check passed without the measured numbers in `ice/review/NOTE.md`.
 - AI image, video or voice generation is optional, secondary and only on the user's request, disclosed in the delivery note. Text, numbers and logos are always rendered by code, never generated.
 - Rights are the user's: a reference's own media go in as they are or its style takes the user's identity, as the user chooses (`ice-remake/references/rights-and-modes.md` section 1); every outside item is recorded with its license status, never blocked (`ice-assets/references/sourcing-and-licenses.md` sections 0 and 1a). Content of other rights holders inside captured brand screens (album art, user content, photos) is replaced with licensed or neutral content (`ice-assets`). The delivery note lists the permissions a brand owner would need. Faces and voices of real people: `ice-assets` skill, `references/ai-media-policy.md` section 9.
@@ -111,7 +112,7 @@ The commands `ice-01-brief` to `ice-10-deliver` run one stage each, and `ice-sta
 
 ## 8. Skill map
 
-Commands (`ice`, `ice-status`, `ice-01-brief` to `ice-10-deliver`, `ice-style`) are thin entry points into this router, used only when the user types them. Workflows (`ice-film`, `ice-explainer`, `ice-remake`, `ice-edit`, `ice-lottie`, `ice-ideas`) are opened only from here. Domain skills (`ice-direction`, `ice-motion`, `ice-type`, `ice-arabic`, `ice-audio`, `ice-styles`, `ice-engines`, `ice-assets`, `ice-qa`) are opened from the workflow rows that name them.
+Commands (`ice`, `ice-status`, `ice-01-brief` to `ice-10-deliver`, `ice-style`): thin entry points into this router, only when typed. Workflows (`ice-film`, `ice-explainer`, `ice-remake`, `ice-edit`, `ice-lottie`, `ice-ideas`): opened only from here. Domain skills (`ice-direction`, `ice-motion`, `ice-type`, `ice-arabic`, `ice-audio`, `ice-styles`, `ice-engines`, `ice-assets`, `ice-qa`): opened from the workflow rows that name them.
 
 ## 9. Your harness
 

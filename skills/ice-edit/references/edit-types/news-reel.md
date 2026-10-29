@@ -50,6 +50,17 @@ House values from the measured packages, used only when no reference is supplied
 
 Transitions: hard cuts between passages, each hidden in a camera move; designed transitions only on phrase boundaries (19 of 20 measured within 0-3 frames of a caption change), each with its meaning: white flash into or out of B-roll, red flash on a turn to threat or conflict, a monochrome strobe only at a chapter break (rationed: 3 in a 3 min reel), a red screen flash or a blur-out with an over-exposed entry into archive. Keyframes: `ice-motion/references/cut-catalog.md`, "Broadcast transitions". Logos and the progress bar are never moved by the camera or hit by a flash.
 
+### Coverage floor
+
+Minimums the edit plan and the render must meet; the measures, the reference rule and exemptions: the `ice-qa` skill, `references/motion-density.md` section 6.2. `scripts/validate-plan.mjs` reads this table. With a reference, its measured values win: `plan.reference` replaces the first two rows (its events per minute x 0.90, its longest gap x 1.10 plus one frame; lesson L9), and its measured presenter share sets `broll_share` through an exemption row whose source is the reference.
+
+| Measure | Floor | Where the number comes from |
+|---|---|---|
+| `element_events_per_min` | 24.5; 20 | Inner events in a take: one visual event every 1.2 to 3 s (Rhythm), so one per 3 s at the slow end (the fail line); the measured talk-show package runs one every 1.76 to 2.45 s (`ice-styles/references/family-broadcast-news.md` section 2.1, Rhythm), so one per 2.45 s is the strict line |
+| `longest_bare_talk_s` | 3 s | Inner events in a take: never idle more than about 3 s (Rhythm) |
+| `trigger_coverage` | 100 percent | Every content trigger answered within 1.5 s or declined with its reason (`motion-density.md` section 6.2); the element plan's tag list (section 2, step 4) names the kinds |
+| `broll_share` | 13 percent; 10 percent | Presenter on screen at most 87 percent of the programme time, end card excluded (Rhythm): archive bursts and cutaways fill the other 13 percent or more; 10 percent of the whole runtime, end card included, is the fail line |
+
 ## 4. Archive burst
 
 A run of archive clips with no voice, in the pause after a sentence that ends on a noun naming what the clips show. It says "this is real".

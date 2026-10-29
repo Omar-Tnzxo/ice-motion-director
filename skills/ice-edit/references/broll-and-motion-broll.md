@@ -49,7 +49,7 @@ Rules that hold everywhere:
 | No blurred duplicate by reflex | Do not fill vertical frames with a blurred copy of the same clip as an automatic answer (see `vertical-conversion.md` for when blur fill is right) |
 | Web pages | A whole page shrunk to phone size is unreadable: crop to the phrase and highlight it on the spoken word. Highlight only the half sentence being spoken; split a two-line sentence into two highlights. Rectangle estimates are often off by 20 to 30%: verify on a rendered still |
 | Small UI | Small UI floating in empty space is the fastest "AI edit" tell. Zoom UI so it fills the panel |
-| Motion | Every shot moves (real motion, or a slow push-in on footage in house short-form style); no frozen frames. Inside a decorative frame in long-form explainers the footage stays untouched (no zoom, no filter) |
+| Motion | Every shot moves (real motion, or a slow push-in on footage in house short-form style); no frozen frames by default (a photo-documentary or freeze-frame style, or a reference that holds stills, declares each still or freeze with its plan row). Inside a decorative frame in long-form explainers the footage stays untouched (no zoom, no filter) |
 | Screen capture | Never accept cookie or terms dialogs while recording; close them or use another page. Browser recorders capture CSS pixels, so high-density recordings come out small: capture frame by frame instead. Some docs sites scroll an inner container: scroll with the wheel, not `window.scrollTo`. Never show real credentials or personal data |
 | Montage | Give a montage room to play once at native speed |
 | Stills bracketing | In HTML engines, bracket a video element with a poster frame before and a last frame after, to cover startup flicker and end black |
@@ -57,9 +57,26 @@ Rules that hold everywhere:
 | Spotlight inside footage | Dim surroundings 30 to 50% and desaturate 40 to 60% (never black or gray), ramp 0.2 to 0.3 s, keep the target's original pixels, restore on time. On B-roll and subjects' footage only, never on the speaker's shot (`layers-and-isolation.md` section 5) |
 | CTA desaturation (news reel) | News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the call-to-action mood switch replaces the 0.2 to 0.3 s ramp above. Trigger: the call-to-action words (measured 3 f before "follow us" to 10 f after the time line), on the whole frame or the background only as the reference shows. Ramp 26 to 36 f (1.04 to 1.44 s at 25 fps), near linear (measured saturation index from 85-102 down to 38-45); the speaker's luma is kept or raised, never lowered (measured 45 to 53), so the white icons and the platform plate become the brightest things. Holds to the cut to the end card. Reason: colour drains so the call to action reads first |
 
+### Outside material
+
+Lesson L20, scope: general, any film or edit that mixes its own footage (the speaker, the studio, the product, the user's own shoot) with outside material (archive, agency footage, quoted or discussed people's portraits, stills of past events, screenshots). Outside material looks outside: pick one outside-material treatment at 05, apply it to every outside item, and log it in the plan's `finish` row (a grade per source class) with its reason and source (the `ice-direction` skill, `references/treatment.md` section "Craft plan"). The colour principle (one grade per source class) lives in the `ice-direction` skill, `references/color.md` section 5. Presets and the per-range grade: `scripts/grade.py` (`outside_mono`, `outside_desat_lift`, `outside_warm_duotone`, `news_clean`), applied per EDL range by `scripts/render.py` (`source_class` and the `grades` map, `references/clock-and-grouping.md` section 2).
+
+| Treatment (one per film) | What it does |
+|---|---|
+| Monochrome | Full black and white, the black and white points matched to the film's own |
+| Desaturation with lifted blacks | Most of the colour removed and the black point raised, so the item reads as a print or a record |
+| Warm duotone | Shadows to a warm brown, highlights to a pale warm white (the sepia family) |
+| Palette tint | One tint taken from the film's palette over the item |
+
+- **Who chooses.** A measured reference picks the treatment and its amount (its `REASONS.md` row or its finishing measurement, `ice-remake/references/measuring.md`, section "Finishing layer"); otherwise the chosen style's craft profile may name one; otherwise choose by the content register at 05 on a before and after pair, and log the reason.
+- **Never on the film's own world.** The speaker and the film's own footage never take the treatment, and outside items never take the film grade.
+- **One per film.** A second treatment only when the film has two outside classes the viewer must tell apart (archive against current agency footage), each with its own row.
+- **Truth first.** The treatment never changes what a real clip shows or means, and labels, credits and captions over it stay readable (`ingest-and-ledger.md` section 4, the credit fields).
+- **Build.** The treatment is a grade per EDL range for the outside items (their source class), or the same filter on the item's layer in an HTML engine (`ice-motion/references/motion-blur-and-clock.md`, section "Finishing layer", Grade row).
+
 ### News reel B-roll treatments
 
-News reel (edit type `news-reel`, style family `family-broadcast-news.md`): each treatment goes only on archive or B-roll, never on the studio footage of the speaker (no grain, dust, scanlines or leaks on studio footage: 6 of 6 measured reels), each with its plan row and reason. Numbers are tutor or measured values; a reference's own measurement wins (`ice-remake/references/measuring.md`, section "Finishing layer").
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`), the measured case of "Outside material" above: each treatment goes only on archive or B-roll, never on the studio footage of the speaker (no grain, dust, scanlines or leaks on studio footage: 6 of 6 measured reels), each with its plan row and reason. Numbers are tutor or measured values; a reference's own measurement wins (`ice-remake/references/measuring.md`, section "Finishing layer").
 
 | Treatment | Where | How | Reason |
 |---|---|---|---|
@@ -90,7 +107,7 @@ A motion B-roll clip is one shape that never cuts: it morphs size, corners and c
 | End | A clip ends by holding its last state; the composite holds the last frame if its slot is longer |
 | Match the video | Clips match the video's resolution and frame rate. Name each clip file by its timeline in-point |
 | Alpha panels | Write transparent clips as ProRes 4444 `.mov` (`prores_ks -profile:v 4 -pix_fmt yuva444p10le`); opaque clips as H.264 (`-crf 14 -pix_fmt yuv420p -movflags +faststart`). Never put `will-change` on anything the camera scales (blurry text) |
-| Look | No fixed house palette or font: take the look from the project direction (ice-direction skill). Banned by default: bouncy easing, particles, glows, gradients on UI chrome, mixed icon stroke weights, dead time, template looks, made-up data |
+| Look | No fixed house palette or font: take the look from the project direction (ice-direction skill). Banned by default: bouncy easing, particles, glows, gradients on UI chrome, mixed icon stroke weights, dead time, template looks (a device the chosen style or a measured reference uses keeps its plan row); made-up data is banned always |
 
 Review: stills at each settled state and mid-morph on the key words (panels shown on black). Fix anything cramped, clipped, unreadable, off-word, or a cursor leaving the frame; check once more. Composite the clips over the source for a preview with hard cuts and the original audio, and offer a before/after compare page. Say plainly when a preview is for review and the user will place clips in their own editor.
 

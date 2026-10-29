@@ -2,6 +2,8 @@
 
 Spine stage 04, tagging step. Output: `ice/plan/semantics.json`. Tagging writes down what each sentence does, so the right visual is chosen and required elements cannot be forgotten. Reviewers who only check "is what is on screen right" miss "is what should be on screen there"; this file makes the second check possible.
 
+This tag set stays the explainer's. The content triggers that switch on a craft on every route (kinds of content such as a number with a unit, a place, a second audible voice) live in the `ice-direction` skill, `references/treatment.md` section "Craft plan"; tagging is how this route finds them, and every trigger a sentence holds gets its answer in `ice/plan/craft-plan.json` (a `use` row whose `where` covers the sentence's segment, or a `not_use` row that names it).
+
 ## 1. Record per sentence
 
 | Field | Content |

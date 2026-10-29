@@ -88,7 +88,7 @@ GSAP ease roles when that engine is used: power1/power2.out gentle secondary; po
 
 ## 7. Broadcast settle
 
-Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`) and news or programme promo reels; with a reference, its measured curves win (classify them with `nearest()` in `scripts/measured-eases.mjs`). Not a curve for other film types: `broadcastOut` in section 5 is the sport and esports slam, a different curve. One motion family, fast start and long settle, taught in two schools of sharpness; pick one school per film (or the package's, `family-broadcast-news.md` section 2) and log it.
+Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`) and news or programme promo reels, where it was measured; with a reference, its measured curves win (classify them with `nearest()` in `scripts/measured-eases.mjs`). Also available to any calm camera that must not stop (illustration only, several kinds: a brand film, a documentary, an explainer, a long take on a continuous camera), recorded in the plan's `camera` row: the calm school for camera moves, and the two-null overlap below whenever the camera must not stop. `broadcastOut` in section 5 is the sport and esports slam, a different curve. One motion family, fast start and long settle, taught in two schools of sharpness; pick one school per film (or the package's, `family-broadcast-news.md` section 2) and log it.
 
 | School | After Effects keys | Curve in code | Progress at 25 / 50 / 75 percent of the time | Use |
 |---|---|---|---|---|

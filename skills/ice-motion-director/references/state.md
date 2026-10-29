@@ -94,6 +94,7 @@ A redirect (a change request, a narrowed delivery, a new world or look after rev
 | `ice/assets/TRUTH.md`, `ice/assets/facts.json`, `ice/assets/BRAND-MATERIAL.md`, `ice/assets/brand-sheet.json` | 01 | all | 01, 02, 03 | Every claim, number, logo and screen in the new copy is on the truth sheet; the brand material still fits |
 | `ice/plan/concepts.md`, the concept D-entry | 02 | film | 01 | Message, audience and goal still match the chosen concept |
 | `ice/plan/structure.md` | 02 | film | 01, 02 | Claim, emotional change, length, option and fingerprint line |
+| `ice/plan/craft-plan.json` | 02 | film | 01, 02, 03, 04, 05 | One row per craft dimension, every trigger of the changed content answered, no banned reason (`ice-direction/references/treatment.md` section "Craft plan"); checked again at 04 (every `where` id still in the storyboard) and at 05 (the lock against the chosen style): `craft_gate.py plan` |
 | `ice/plan/script.md` | 03 | film | 01, 02, 04 | Word budget for the current length and beats, copy of changed beats, every language |
 | `ice/plan/hooks.md`, `ice/plan/open-loops.json` | 03 | film | 02, 03, 04, 05 | The openings still lead into the new content; the render study line |
 | `ice/plan/versions.md` | 03 | film | 01, 03 | Languages, aspect ratios, cutdowns and lengths match the brief now |
@@ -155,7 +156,7 @@ How:
 | `ice/BRIEF.md` | `ice-direction` | Brief slots with sources, the business brief, the brand material plan |
 | `ice/DIRECTION.md` | `ice-direction` | Decision log (created at 01 with its header) |
 | `ice/research/` | `ice-direction` | Dated research notes, `R-NN-<question code>.md`, and the compliance note `COMPLIANCE.md` |
-| `ice/plan/` | the workflow | Canonical names: `concepts.md`, `script.md`, `hooks.md` (three openings), `open-loops.json`, `storyboard.md`, `shot-plan.md`, `cue-sheet.json` (format: `ice-audio`), `sound-plan.md`, `motion-plan.md`, `TREATMENT.md` (written by `ice-direction`), `mood-board/`, `style-frames/`, `versions.md` (languages, aspect ratios and cutdowns planned at 03) |
+| `ice/plan/` | the workflow | Canonical names: `concepts.md`, `craft-plan.json` (the craft plan: drafted at 02 by `ice-direction`, mapped at 04, locked at 05; `ice-direction/references/treatment.md` section "Craft plan"), `script.md`, `hooks.md` (three openings), `open-loops.json`, `storyboard.md`, `shot-plan.md`, `cue-sheet.json` (format: `ice-audio`), `sound-plan.md`, `motion-plan.md`, `TREATMENT.md` (written by `ice-direction`), `mood-board/`, `style-frames/`, `versions.md` (languages, aspect ratios and cutdowns planned at 03) |
 | `ice/assets/` | `ice-assets` | Truth sheet, facts, credits, licensed media, `brand-sheet.json` |
 | `ice/audio/` | `ice-audio` | Score, SFX, voiceover, mixes |
 | `ice/reference/` | `ice-remake` | Reference frames, measurements, notes |

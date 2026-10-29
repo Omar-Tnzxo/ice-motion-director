@@ -386,7 +386,12 @@ test("shot mapping: an element carries over only with its reason row and a trigg
   const sm = readText("skills/ice-remake/references/shot-mapping.md");
   const order = section(sm, "1. Order of work");
   assert.match(order, /only with its `REASONS\.md` row/);
-  assert.match(order, /with no row, with a row whose trigger kind or meaning is `unknown`, or with no trigger in the new script is cut/);
+  // 0.2.5 (N13, lesson L14): no row, or a known trigger kind absent from the new script, is cut; a measured element whose
+  // meaning is unknown is kept with the reason `measured: <REASONS row>`, never cut for lacking a guessed reason.
+  assert.match(order, /An element with no row, or whose known trigger kind has no instance in the new script, is cut and listed under `cut_elements`/);
+  assert.match(order, /meaning or trigger kind is `unknown` is not cut for lacking a guessed reason: a measured fact is a reason/);
+  assert.match(order, /kept at its measured place \(the matching passage of the new film\) and amount with the reason `measured: <REASONS row>` \(written `measured: <ref-id> REASONS\.md #<row>`/);
+  assert.doesNotMatch(order, /with a row whose trigger kind or meaning is `unknown`, or with no trigger in the new script is cut/);
   assert.match(order, /never copied blind/);
   assert.match(sm, /"elements": \[\{ "element": .*"reason_row": .*"trigger": "<word or sentence of the new script>"/);
   assert.match(sm, /"cut_elements": \[/);

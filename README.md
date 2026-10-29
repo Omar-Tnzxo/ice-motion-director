@@ -308,15 +308,15 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Workflow | [`ice-edit`](skills/ice-edit) | Editing real footage, 7 edit types (news reels included) |
 | Workflow | [`ice-lottie`](skills/ice-lottie) | Lottie and UI motion |
 | Workflow | [`ice-ideas`](skills/ice-ideas) | Concepts, hooks, scripts, storyboards |
-| Domain | [`ice-direction`](skills/ice-direction) | Brief, questions, research, decisions, color, type pairing, anti-sameness |
+| Domain | [`ice-direction`](skills/ice-direction) | Brief, questions, research, decisions, the craft plan (every craft the video needs, without being asked), color, type pairing, anti-sameness |
 | Domain | [`ice-motion`](skills/ice-motion) | Timing, easing, springs, cuts, camera, composition |
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
-| Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness |
-| Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles, with a measured broadcast news family |
+| Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness, a mix audit and a short list for your ears |
+| Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
 | Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, real-first sourcing with each item's license status, brand assets |
-| Domain | [`ice-qa`](skills/ice-qa) | Quality gates, critics, delivery report |
+| Domain | [`ice-qa`](skills/ice-qa) | Quality gates (the craft gate: faces, flashes, camera, finishing), critics, delivery report |
 | Command | [`ice-style`](skills/ice-style) | The style library as presets: browse 156 styles or start a film in one |
 | Commands | [`ice`](skills/ice), [`ice-status`](skills/ice-status), [`ice-01-brief`](skills/ice-01-brief) to [`ice-10-deliver`](skills/ice-10-deliver) | Step mode: run, resume or check the production spine one stage at a time |
 

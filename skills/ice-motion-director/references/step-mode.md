@@ -105,10 +105,10 @@ What to put under Preview:
 | Stage | Preview |
 |---|---|
 | 01 | The brief as a short table of slots with where each came from, each answered decision slot marked with the user's answer. "Your choices" lists only the slots taken by default (skipped or waived), each with its three alternatives |
-| 02 | Every concept in one or two lines, the chosen one first |
+| 02 | Every concept in one or two lines, the chosen one first; the craft plan draft in plain words (the crafts the film will use and where, and each one left out with its reason: `ice-direction/references/treatment.md` section "Craft plan") |
 | 03 | The script itself, beat by beat with timing, per language; the planned versions and cutdowns |
 | 04 | The storyboard table; a contact sheet of the rough boards when they were drawn |
-| 05 | The mood board, the style frame images (how many: `ice-film/references/storyboard.md` section 7), the palette and the typefaces in one line each |
+| 05 | The mood board, the style frame images (how many: `ice-film/references/storyboard.md` section 7), the palette and the typefaces in one line each; the locked craft plan in plain words, with every exemption row as one sentence (what default it lifts, where, and its source) |
 | 06 | The animatic file and a contact sheet; the cue sheet beats in one line each |
 | 07 | A contact sheet of the draft and three to five key frames |
 | 08 | Part a: the score, effects and voice in plain words. Part b: the mix file and its loudness as measured numbers |

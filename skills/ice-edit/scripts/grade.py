@@ -1,4 +1,4 @@
-# Adapted from browser-use/video-use scripts/grade.py (MIT, Copyright (c) 2026 Browser Use). Changes: usage paths point to scripts/; dash characters replaced; the signalstats metadata file path is escaped for the ffmpeg filter (Windows drive letters), UTF-8 text and process I/O for Windows. See NOTICE.md.
+# Adapted from browser-use/video-use scripts/grade.py (MIT, Copyright (c) 2026 Browser Use). Changes: usage paths point to scripts/; dash characters replaced; the signalstats metadata file path is escaped for the ffmpeg filter (Windows drive letters), UTF-8 text and process I/O for Windows. 2026-10-29 (0.2.5): presets `news_clean` (clean digital studio) and the outside-material family `outside_mono`, `outside_desat_lift`, `outside_warm_duotone` (one treatment that marks archive, agency footage, stills and screenshots as from outside the film's world, lesson L20), values from the measured broadcast packages; the existing presets are unchanged. See NOTICE.md.
 """Apply a color grade to a video via ffmpeg filter chain.
 
 Two modes:
@@ -15,6 +15,11 @@ Two modes:
      The goal is "make it look clean without looking graded". Never applies
      creative LUTs, teal/orange splits, or filmic curves. For creative looks,
      use `--preset warm_cinematic` explicitly.
+
+  Presets for a grade per source class: `news_clean` for a clean digital
+  studio, and one outside-material treatment (`outside_mono`,
+  `outside_desat_lift`, `outside_warm_duotone`) for archive, agency footage,
+  stills and screenshots. render.py applies them per EDL range.
 
 Usage:
     python scripts/grade.py <input> -o <output>                   # auto mode
@@ -61,7 +66,45 @@ PRESETS: dict[str, str] = {
 
     # Flat:no grade. Useful as a sentinel for "skip grading this source".
     "none": "",
+
+    # Clean digital studio (news and presenter reels): neutral balance (the same levels on every channel, no colour
+    # shift), crisp contrast with crushed blacks, no grain, noise or texture. Values: the ice-styles skill,
+    # references/family-broadcast-news.md, section 1.1 rule 6 (clean digital picture, no grain, dust, leaks or
+    # scanlines on studio footage) and the measured studio grades of sections 2.1 to 2.3 (blacks crushed to p1 0-3,
+    # neutral shadows). The warm or cool highlight cast of a package is its own skin, never part of this preset.
+    "news_clean": (
+        "colorlevels=rimin=0.03:gimin=0.03:bimin=0.03:rimax=0.98:gimax=0.98:bimax=0.98,"
+        "eq=contrast=1.05"
+    ),
+
+    # Outside material (archive, agency footage, quoted portraits, stills, screenshots): one treatment per film that
+    # says "from outside the film's world", applied to every outside range and never to the speaker or the film's own
+    # footage. Grain or scratches stay opt-in by the style or the reference (a raw filter), never part of a preset.
+    # Monochrome: family-broadcast-news.md section 2.2, archive black and white (saturation 3, p1 59, p99 215 of 255).
+    "outside_mono": (
+        "hue=s=0,"
+        "curves=master='0/0.23 0.5/0.55 1/0.84'"
+    ),
+
+    # Desaturation with lifted blacks: family-broadcast-news.md section 2.3, archive desaturated (saturation 19-54
+    # against 66-104 on the studio, lifted blacks p1 28-43 of 255).
+    "outside_desat_lift": (
+        "eq=saturation=0.35,"
+        "curves=master='0/0.14 0.5/0.55 1/0.96'"
+    ),
+
+    # Warm duotone (sepia): family-broadcast-news.md section 1.2 (sepia or desaturation marks images from outside the
+    # studio) and the measured sepia of section 2.1 (mid #865E3D, median #9A7358, lifted blacks). The measured duotone
+    # sits at partial opacity; keeping 30 percent of the source saturation stands in for it.
+    "outside_warm_duotone": (
+        "eq=saturation=0.3,"
+        "curves=r='0/0.25 0.5/0.53 1/0.93':g='0/0.2 0.5/0.37 1/0.84':b='0/0.16 0.5/0.24 1/0.7'"
+    ),
 }
+
+# The outside-material family, for callers that pick one treatment per film (render.py maps a range's
+# `source_class` to a preset through the EDL's `grades` map).
+OUTSIDE_PRESETS: tuple[str, ...] = ("outside_mono", "outside_desat_lift", "outside_warm_duotone")
 
 
 def ffmpeg_filter_path(path: Path | str) -> str:

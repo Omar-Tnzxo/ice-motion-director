@@ -1,6 +1,6 @@
 # Notices for the scripts in this folder
 
-Every script here was copied from an open-source project, read in full before copying, and changed only as its first-line notice says. None of them downloads anything or installs anything. Requirements (minimum Node, Python and FFmpeg versions: `runtimes` in the ice-engines `versions.json`): ffmpeg and ffprobe on PATH for all video scripts; Python; `numpy` for the video checks of `motion_check.py` (`--pacing-only` needs only the standard library); `numpy` and `opencv-python-headless` for `film_gate.py` at the exact versions in `scripts/requirements.txt` (pinned in ice-engines `versions.json`) (ask the user before installing them); Node and a local Chrome or Edge (or `CHROME_PATH`) for `lint.mjs` and `seam-gate.mjs`; Node for the other `.mjs` files.
+Every script here except `craft_gate.py` was copied from an open-source project, read in full before copying, and changed only as its first-line notice says; `craft_gate.py` was written for this repository (0.2.5) and falls under the repository's own license. None of them downloads anything or installs anything. Requirements (minimum Node, Python and FFmpeg versions: `runtimes` in the ice-engines `versions.json`): ffmpeg and ffprobe on PATH for all video scripts; Python; `numpy` for the video checks of `motion_check.py` (`--pacing-only` needs only the standard library); `numpy` and `opencv-python-headless` for `film_gate.py` and for `craft_gate.py measure` and `build` (`craft_gate.py plan` needs only the standard library) at the exact versions in `scripts/requirements.txt` (pinned in ice-engines `versions.json`) (ask the user before installing them); Node and a local Chrome or Edge (or `CHROME_PATH`) for `lint.mjs` and `seam-gate.mjs`; Node for the other `.mjs` files.
 
 | File | Source | License | Status |
 |---|---|---|---|
@@ -12,9 +12,7 @@ Every script here was copied from an open-source project, read in full before co
 | `storyboard_lint.py` | alchaincyf/huashu-art-motion, `scripts/storyboard_lint.py` | MIT | adapted (ported to English tables) |
 | `motion_check.py` | edenfunf/reelmimic, `.claude/skills/video-clone/scripts/motion_check.py` | MIT | adapted |
 | `validate-beat-sync.mjs` | nateherkai/herk-edit-kit, `scripts/validate-beat-sync.mjs` | MIT | adapted |
-| `frozen-time.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/frozen-time.sh` | MIT | ported to Node |
-| `loudness.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/loudness.sh` | MIT | ported to Node |
-| `contact-sheet.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/contact-sheet.sh` | MIT | ported to Node |
+| `quick-checks.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/frozen-time.sh`, `loudness.sh` and `contact-sheet.sh` | MIT | ported to Node, merged into one file with the subcommands `frozen`, `loudness` and `sheet` (0.2.5) |
 | `probe-mp4.mjs` | iart-ai/motion-skills, `tools/verify/probe-mp4.sh` | MIT | ported to Node |
 
 The prompts in `../references/critic-prompts.md` come from echris6/motion-video-kit (MIT) and Vincentwei1021/mg-styles-15 (MIT) under the same terms.

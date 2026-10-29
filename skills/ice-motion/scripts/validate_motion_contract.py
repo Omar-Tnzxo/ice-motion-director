@@ -5,12 +5,18 @@
 # a UTF-8 byte order mark (Windows editors add one); an honest referencesWaiver {reason, researchNote} when dated
 # research found no watchable reference; a literalMechanism field that admits a generic verb when the object really
 # is that mechanism; NOTE lines on PASS for both. Standard library only; Python 3.9+ on Windows, macOS and Linux.
+# 2026-10-29 (0.2.5): the generic transition method failure (fade, visibility toggle, opacity overlap) is lifted for a
+# scene by an exemption row of ice/plan/craft-plan.json naming `contract:fade` (a style or reference that needs the fade,
+# found by walking up from --project-root or the contract's folder; pass rule: ice-direction/references/treatment.md
+# section "Craft plan"); the PASS output then prints the exemption. 2026-10-29 (0.2.5 review): the inline reader checks
+# the source kinds each rule id takes, ignores a row with no valid source or a content row written at stage 07 (each
+# with a warning), and reads "shots": "all" as a string.
 # Usage: python validate_motion_contract.py <contract.json> [--project-root <project folder>]
 #   With --project-root every declared evidence path must exist. Exit 1 lists every failure; exit 0 prints PASS.
 """Strict validation for a commercial motion contract; ranges are [start,end)."""
 
 from __future__ import annotations
-import argparse, json, sys
+import argparse, json, re, sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -64,6 +70,78 @@ def artifact_path(value, where, errors):
     if Path(value).suffix.casefold() not in ARTIFACT_SUFFIXES: errors.append(f"{where} must point to an evidence artifact")
 
 NOTES = []
+CRAFT = None  # the project's craft plan (ice/plan/craft-plan.json), read in main()
+NEVER_LIFTED = re.compile(r"^(truth|claims?|rights|privacy|safety|people|real-people|accessibility|contrast|flash|photosensitivity|arabic|bidi|legibility|labels?|l5)$", re.I)
+NEVER_IDS = {"story:9", "story:18", "story:20", "frame:p1"}
+WARNED = set()
+# Source kinds per rule id (treatment.md 11.7): the exact id, else the longest "<prefix>*" pattern, else all four kinds.
+KINDS = ("user", "reference", "style", "content")
+NO_CONTENT = ("user", "reference", "style")
+RULE_KINDS = {**dict.fromkeys(("film:hero_share", "film:frame_fill", "film:empty_half", "film:depth_layers", "film:in_shot_motion",
+                               "film:longest_still", "film:element_events_per_min", "film:longest_bare_talk_s", "film:fast_ratio",
+                               "film:blank_run_s", "lint:depth_layers", "art:tones", "art:shading", "art:shapes", "art:texture",
+                               "art:shadow", "look:g2", "look:g3", "story:*"), NO_CONTENT), "frame:flash": ("user",)}
+
+def _rid(value):
+    return re.sub(r"\s+", "", str(value)).lower()
+
+def allowed_kinds(rule_id):
+    rid = _rid(rule_id)
+    if rid in RULE_KINDS: return RULE_KINDS[rid]
+    pats = [p for p in RULE_KINDS if p.endswith("*") and rid.startswith(p[:-1])]
+    return RULE_KINDS[max(pats, key=len)] if pats else KINDS
+
+def _warn(key, text):
+    if key not in WARNED: WARNED.add(key); print(f"WARNING: {text}")
+
+# Inline reader that mirrors storyboard_lint.load_craft_plan and exemption_for in the ice-qa skill (same pass rule), so
+# this skill runs on its own.
+def load_craft_plan(start):
+    """ice/plan/craft-plan.json found by walking up from start (a file or folder), parsed, or None."""
+    p = Path(start).resolve()
+    for d in [p, *p.parents]:
+        f = d / "ice" / "plan" / "craft-plan.json"
+        if f.is_file():
+            try: return json.loads(f.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError): return None
+    return None
+
+def _as_list(value):
+    return value if isinstance(value, list) else [] if value in (None, "") else [value]
+
+def exemption_for(plan, rule_id, t=None, shot=None, value=None):
+    """The first exemption row that lifts rule_id for this hit (its shot id or time inside the row's shots, a list or
+    "all"; its value within amount.value x (1 + tolerance) when both are given), else None. Ignored with a warning: a
+    row naming a never-lifted class, a row with no valid source, a content row written at stage 07, and a row whose
+    source kind the rule id does not take."""
+    want = _rid(rule_id)
+    for row in (plan or {}).get("exemptions") or [] if isinstance(plan, dict) else []:
+        if not isinstance(row, dict): continue
+        lifts = [str(x) for x in _as_list(row.get("lifts"))]
+        if want not in [_rid(x) for x in lifts]: continue
+        if any(NEVER_LIFTED.match(x.split(":")[0]) or _rid(x) in NEVER_IDS for x in lifts):
+            _warn(("never", str(row.get("id"))), f"exemption {row.get('id')} ignored: it names a class that is never lifted"); continue
+        src = row.get("source") if isinstance(row.get("source"), dict) else {}
+        kind = str(src.get("kind") or "").strip().lower()
+        if kind not in KINDS or not str(src.get("ref") or "").strip():
+            _warn(("source", str(row.get("id"))), f"exemption {row.get('id')} ignored: it has no source (source.kind user, reference, style or content, and source.ref)"); continue
+        if kind not in NO_CONTENT and re.fullmatch(r"0*7", str(row.get("stage") if row.get("stage") is not None else "").strip()):
+            _warn(("late", str(row.get("id"))), f"exemption {row.get('id')} ignored: a {kind} row written at stage 07 (a row written at 07 comes only from user, reference or style)"); continue
+        if kind not in allowed_kinds(want):
+            _warn(("kind", str(row.get("id")), want), f"exemption {row.get('id')} ignored for {rule_id}: a {kind} row cannot lift it (allowed: {', '.join(allowed_kinds(want))})"); continue
+        shots = [str(s).strip() for s in _as_list(row.get("shots"))]
+        def inside(s):
+            m = re.match(r"^\s*(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*$", s)
+            return bool(m) and t is not None and float(m.group(1)) <= t <= float(m.group(2))
+        if not (any(s.lower() == "all" for s in shots) or (shot is not None and str(shot) in shots) or any(inside(s) for s in shots)): continue
+        amount = row.get("amount") if isinstance(row.get("amount"), dict) else None
+        if amount and value is not None and amount.get("value") is not None:
+            m = re.search(r"-?\d+(?:\.\d+)?", str(amount.get("value")))
+            try: tol = float(amount.get("tolerance", 0.10))
+            except (TypeError, ValueError): tol = 0.10
+            if m and value > float(m.group(0)) * (1 + tol): continue
+        return row
+    return None
 
 def literal_mechanism(item, where, errors):
     """A generic verb is accepted when the object literally is that mechanism (a door that slides, a lift that
@@ -212,7 +290,10 @@ def validate_scene(scene, fps, no_vo, max_groups, errors):
 
     transition=obj(need(scene,"transition",where,errors),f"{where}.transition",errors)
     for key in ("owner","destinationScene","destinationAnchor","method","semanticId"): need(transition,key,f"{where}.transition",errors,str)
-    if str(transition.get("method","")).casefold() in {"fade","visibility-toggle","opacity-overlap"}: errors.append(f"{where} uses generic transition method")
+    if str(transition.get("method","")).casefold() in {"fade","visibility-toggle","opacity-overlap"}:
+        row = exemption_for(CRAFT, "contract:fade", t=start/fps if fps else None, shot=sid)
+        if row: src = row.get("source") if isinstance(row.get("source"), dict) else {}; NOTES.append(f"exempt contract:fade by {row.get('id')} ({src.get('kind')}: {src.get('ref')}) for {where}")
+        else: errors.append(f"{where} uses generic transition method (a fade is lifted only by a craft-plan exemption row naming contract:fade with its source)")
     boundary=need(transition,"boundaryType",f"{where}.transition",errors,str); need(transition,"continuityChannel",f"{where}.transition",errors,str)
     if boundary not in BOUNDARY_TYPES: errors.append(f"{where}.transition boundaryType must be one of {sorted(BOUNDARY_TYPES)}")
     get_transform(transition.get("endTransform"),f"{where}.transition.endTransform",errors)
@@ -257,7 +338,9 @@ def main():
     for _stream in (sys.stdout, sys.stderr):
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors="replace")
+    global CRAFT
     parser=argparse.ArgumentParser(); parser.add_argument("contract",type=Path); parser.add_argument("--project-root",type=Path); args=parser.parse_args()
+    CRAFT=load_craft_plan(args.project_root or args.contract)
     try: data=json.loads(args.contract.read_text(encoding="utf-8-sig"))
     except (OSError,json.JSONDecodeError) as exc: fail([f"cannot read contract: {exc}"])
     if not isinstance(data,dict): fail(["contract root must be an object"])

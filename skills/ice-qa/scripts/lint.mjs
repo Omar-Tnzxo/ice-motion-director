@@ -5,12 +5,18 @@
 // size), so a renderAt film is sampled at many times instead of read as one frozen frame; a richness line reads
 // depth_layers, hero_share and hero_width from pages that mark them, against the film type's floor read from the ice-film
 // type file. 2026-10-21 (Spotify pilot): C6 judges the on-screen box, skips tilted 3D planes and asks what a bar holds;
-// text size is the drawn (projected) size. Needs Node 22+ and a local Chrome or Edge (CHROME_PATH). See NOTICE.md.
+// text size is the drawn (projected) size. 2026-10-29 (0.2.5, craft plan): every G5 rule and the depth_layers floor
+// read the exemption rows of ice/plan/craft-plan.json (lint:<rule id>); [data-identity-mark] passes C1, C6 and P1 when
+// the plan's identity row is "use"; data-ice-craft codes seen in the samples are reported under craft_marks;
+// --boxes-out writes the visible text and card boxes per sample. 2026-10-29 (0.2.5 review): T1 takes every source kind
+// the craft plan rule allows (the reader checks them; Arabic letter growth is still never lifted); --boxes-out leaves out
+// text and cards behind the subject and the frame that holds the speaker's own video. Needs Node 22+ and a local Chrome
+// or Edge (CHROME_PATH). See NOTICE.md.
 //
 // lint.mjs - gate G5 "no page chrome": a DOM-level lint for HUD / slide-deck / vibe-coded-UI patterns in a film's index.html.
 //
 // Usage:  node lint.mjs <index.html> [--times 0.5,2,4.2] [--samples N] [--json] [--width W --height H] [--duration S]
-//                        [--type "film type"] [--broadcast-measured]
+//                        [--type "film type"] [--broadcast-measured] [--boxes-out boxes.json]
 //
 // Loads the page in headless Chrome (scripts/_cdp.mjs), seeks it with the renderers' contracts (window.renderAt(t) or
 // window.seek(t) of the ice-engines render-html.mjs page; __seek / __timelines / gsap of HyperFrames pages), waits for
@@ -64,6 +70,24 @@
 //   Hits print fs (drawn) and, when a transform makes them differ, fsCss (the CSS font-size).
 //   Visibility: display, visibility, opacity, overflow clipping of ancestors and clip-path (inset, polygon, circle, ellipse)
 //   of the element and its ancestors; text or shapes fully clipped by a mask reveal are not counted.
+//   Exemption rows: with ice/plan/craft-plan.json (found by walking up from the page, then the working folder), a hit of
+//   rule <id> whose every sample time sits inside the shots of a row lifting lint:<id> ("all", or time ranges "a-b" in
+//   seconds) passes and is listed under the exemptions as "exempt lint:<id> by <row id> (<source>)" (and under the rule's
+//   "exempt" in --json); a depth_layers median under the floor passes with a row lifting lint:depth_layers whose amount
+//   it reaches within the tolerance (an unmarked page still fails). Each rule id takes only the source kinds the craft
+//   plan rule allows for it (lint:depth_layers: user, reference or style; T1: also content, the product's own input
+//   shown as it really works); Arabic text that grows by letters is never lifted (Arabic typing is a mask reveal over
+//   the shaped line). [data-broadcast] and --broadcast-measured stay as aliases. [data-identity-mark="<name>"] marks the recurring identity mark chosen at 01: it passes C1, C6 and P1 when
+//   the plan's "identity" row has decision "use", else the mark is ignored and said so. The rule itself: the
+//   ice-direction skill, references/treatment.md section "Craft plan".
+//   Craft marks: elements marked data-ice-craft="<code> [<code>]" (codes from the craft plan's closed list) that are
+//   visible in a sample (an <audio> element always counts) are reported under craft_marks: {code: [sample times]}.
+//   --boxes-out <json>: writes, per sample time, the visible text and card (UI surface) boxes as
+//   [{"t": s, "boxes": [[x, y, w, h], ...], "width": W, "height": H}] in pixels (read by craft_gate.py build --boxes).
+//   Left out, so they never read as covering the face: text and cards behind the subject ([data-behind-subject] on the
+//   element or an ancestor, or painted under the person matte layer, an element marked data-matte or whose
+//   data-ice-layer names a matte), and the frame that holds the speaker's own video (a UI surface whose visible <video>
+//   fills at least half of it). Text inside that frame is still written.
 //
 // Output: PASS / WARN / FAIL per rule with the sample times, an element snippet and the bbox [x0,y0,x1,y1] (0-1 of the frame),
 // then "GATE G5: PASS|FAIL". --json prints the same as JSON. Text drawn into <canvas>/<img> is invisible to it; lint is a lead,
@@ -72,10 +96,10 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { launchChrome, parseArgs, helpFrom } from './_cdp.mjs';
+import { launchChrome, parseArgs, helpFrom, findCraftPlan, loadCraftPlan, exemptionFor, exemptLine, CRAFT_CODES } from './_cdp.mjs';
 
 const fail2 = (m) => { console.error('error: ' + m); process.exit(2); };
-const { pos, opt } = parseArgs(process.argv.slice(2), { help: 'bool', times: 's', samples: 's', json: 'bool', width: 's', height: 's', duration: 's', type: 's', 'broadcast-measured': 'bool' });
+const { pos, opt } = parseArgs(process.argv.slice(2), { help: 'bool', times: 's', samples: 's', json: 'bool', width: 's', height: 's', duration: 's', type: 's', 'broadcast-measured': 'bool', 'boxes-out': 's' });
 if (opt.help || !pos[0]) { console.log(helpFrom(import.meta.url)); process.exit(opt.help ? 0 : 2); }
 const src = pos[0];
 const url = /^(https?|file):/i.test(src) ? src : (fs.existsSync(src) ? pathToFileURL(path.resolve(src)).href : fail2(`input not found: ${src}`));
@@ -141,6 +165,7 @@ const PAGE_LIB = String.raw`(() => {
   window.__lintScan = () => {
     const W = innerWidth, H = innerHeight;
     const bcOf = (e) => { const m = e && e.closest ? e.closest('[data-broadcast]') : null; return m ? (m.getAttribute('data-broadcast') || 'broadcast element') : ''; };
+    const idmOf = (e) => { const m = e && e.closest ? e.closest('[data-identity-mark]') : null; return m ? (m.getAttribute('data-identity-mark') || 'identity mark') : ''; };
     const cs = (e) => getComputedStyle(e);
     const rgba = (c) => {
       let m = /^rgba?\(([^)]+)\)/.exec(c || '');
@@ -264,6 +289,25 @@ const PAGE_LIB = String.raw`(() => {
       surfCache.set(a, res); return res;
     };
     const surfaceOf = (e) => { for (let n = e; n && n !== document.body; n = n.parentElement) if (isSurface(n)) return n; return null; };
+    // behind the subject (left out of --boxes-out): [data-behind-subject] on the element or an ancestor, or painted under
+    // the person matte layer ([data-matte], or a data-ice-layer naming a matte). Paint order: the z-index of the two
+    // branches under their nearest common ancestor, then document order.
+    const mattes = [...document.querySelectorAll('[data-matte], [data-ice-layer]')]
+      .filter((e) => (e.hasAttribute('data-matte') || /matte/i.test(e.getAttribute('data-ice-layer') || '')) && !hidden(e) && opacity(e) >= 0.05);
+    const zOf = (n) => { const z = parseInt(cs(n).zIndex, 10); return Number.isFinite(z) ? z : 0; };
+    const paintsOver = (m, e) => {
+      if (m === e || m.contains(e) || e.contains(m)) return false;
+      const up = []; for (let n = e; n; n = n.parentElement) up.push(n);
+      let cm = m, pm = null; while (cm && !up.includes(cm)) { pm = cm; cm = cm.parentElement; }
+      const pe = cm ? up[up.indexOf(cm) - 1] : null; if (!pm || !pe) return false;
+      const zm = zOf(pm), ze = zOf(pe);
+      return zm !== ze ? zm > ze : !!(pe.compareDocumentPosition(pm) & Node.DOCUMENT_POSITION_FOLLOWING);
+    };
+    const behindOf = (e) => !!(e.closest && e.closest('[data-behind-subject]')) || mattes.some((m) => paintsOver(m, e));
+    // a frame that holds the speaker's own video: a visible <video> fills at least half of the surface
+    const holdsVideo = (e) => { const r = e.getBoundingClientRect(), a = r.width * r.height; if (!(a > 0)) return false;
+      return [...e.querySelectorAll('video')].some((v) => { if (hidden(v) || cs(v).visibility === 'hidden' || opacity(v) < 0.05) return false;
+        const q = v.getBoundingClientRect(); return Math.max(0, Math.min(q.right, r.right) - Math.max(q.left, r.left)) * Math.max(0, Math.min(q.bottom, r.bottom) - Math.max(q.top, r.top)) >= 0.5 * a; }); };
     const blocks = [], shapes = [], surfaces = [];
     // ---- text blocks: group visible text nodes by their nearest block-level ancestor
     const groups = new Map();
@@ -300,7 +344,7 @@ const PAGE_LIB = String.raw`(() => {
         up: s.textTransform === 'uppercase' || (letters.length >= 3 && letters === letters.toUpperCase()),
         mono: /mono|menlo|courier|consolas/i.test(s.fontFamily), w: +s.fontWeight || 400, color: rgba(s.color).map((v, i) => (i < 3 ? Math.round(v) : +(v * opacity(p)).toFixed(2))),
         ta: cont.textAlign, lines: g.tops.size, ui: sf ? id(sf) : 0, uiCaptured: !!(sf && sf.getAttribute && sf.closest('[data-ui="captured"]')), snip: snip(g.c, text),
-        req: !!g.c.closest('[data-required-label]'), bc: bcOf(g.c) });
+        req: !!g.c.closest('[data-required-label]'), bc: bcOf(g.c), idm: idmOf(g.c), behind: behindOf(g.c) });
     }
     // ---- shapes: filled / bordered boxes, media, dots
     for (const e of document.body.querySelectorAll('*')) {
@@ -323,8 +367,8 @@ const PAGE_LIB = String.raw`(() => {
       const inner = wide ? blockEls.filter((c) => e.contains(c)).length : 0;
       shapes.push({ id: id(e), tag, snip: snip(e), x0: r.left / W, y0: r.top / H, x1: r.right / W, y1: r.bottom / H, w: r.width, h: r.height,
         vb: vis ? [vis.x0 / W, vis.y0 / H, vis.x1 / W, vis.y1 / H] : null, aligned: aligned(frameOf(e)), ctrl, inner,
-        fill: !!fill, alpha: +(bg[3] * op).toFixed(2), bg: bg.slice(0, 3).map(Math.round), border, media: !!media, radiusPct: Math.round(radius), req: !!e.closest('[data-required-label]'), bc: bcOf(e), ui: (() => { const sf = surfaceOf(e.parentElement || e); return sf ? id(sf) : 0; })(), selfSurface: isSurface(e) });
-      if (isSurface(e)) surfaces.push({ id: id(e), x0: r.left / W, y0: r.top / H, x1: r.right / W, y1: r.bottom / H });
+        fill: !!fill, alpha: +(bg[3] * op).toFixed(2), bg: bg.slice(0, 3).map(Math.round), border, media: !!media, radiusPct: Math.round(radius), req: !!e.closest('[data-required-label]'), bc: bcOf(e), idm: idmOf(e), ui: (() => { const sf = surfaceOf(e.parentElement || e); return sf ? id(sf) : 0; })(), selfSurface: isSurface(e) });
+      if (isSurface(e)) surfaces.push({ id: id(e), x0: r.left / W, y0: r.top / H, x1: r.right / W, y1: r.bottom / H, behind: behindOf(e), videoFrame: holdsVideo(e) });
       if (shapes.length > 2500) break;
     }
     // richness marks: data-ice-layer (or data-layer) names, the [data-hero] box, and the widest headline-size text
@@ -343,7 +387,17 @@ const PAGE_LIB = String.raw`(() => {
     const heads = blocks.filter((b) => b.fs >= 0.05);
     const textW = heads.reduce((m, b) => Math.max(m, Math.min(1, b.x1) - Math.max(0, b.x0)), 0);
     const marked = layers.size > 0 || typeof window.__layers === 'function';
-    return { blocks, shapes, surfaces, rich: { layers: [...layers], marked, hero, textW } };
+    // craft marks: data-ice-craft codes on elements visible at this sample (an <audio> element always counts)
+    const craft = new Set();
+    for (const e of document.querySelectorAll('[data-ice-craft]')) {
+      if (e.tagName.toLowerCase() !== 'audio') {
+        if (hidden(e) || cs(e).visibility === 'hidden' || opacity(e) < 0.05) continue;
+        const r = e.getBoundingClientRect(); if (r.width < 1 || r.height < 1 || r.right < 0 || r.left > W || r.bottom < 0 || r.top > H) continue;
+        if (visFrac(e, r, false) === 0) continue;
+      }
+      for (const c of (e.getAttribute('data-ice-craft') || '').toLowerCase().split(/[\s,]+/)) if (c) craft.add(c);
+    }
+    return { blocks, shapes, surfaces, craft: [...craft], rich: { layers: [...layers], marked, hero, textW } };
   };
   return true;
 })()`;
@@ -393,6 +447,12 @@ function evalSample(t, A, B, hits) {
     blocks = blocks.filter((b) => !b.bc); shapes = shapes.filter((x) => !x.bc);
   } else if (marked.length) hits.exempt.add('[data-broadcast] ignored on ' + marked.length + ' element(s): ' + BROADCAST.why +
     '; a broadcast package element is allowed only in a news reel or when the reference measures it (--broadcast-measured)');
+  // the recurring identity mark chosen at 01 ([data-identity-mark]): passes C1, C6 and P1 when the craft plan's identity
+  // row is "use"; every other rule still reads it
+  const idms = [...blocks.filter((b) => b.idm), ...shapes.filter((x) => x.idm)];
+  if (idms.length && IDENTITY.allowed) for (const b of idms) hits.exempt.add('[data-identity-mark="' + b.idm + '"] exempt from C1, C6 and P1 (' + IDENTITY.why + '): ' + (b.text ? JSON.stringify(b.text.slice(0, 60)) + ' ' : '') + 'at ' + bb(b).join(','));
+  else if (idms.length) hits.exempt.add('[data-identity-mark] ignored on ' + idms.length + ' element(s): ' + IDENTITY.why);
+  const markOk = (x) => IDENTITY.allowed && !!x.idm;
   const free = blocks.filter((b) => !b.ui);                       // outside any UI surface
   const maxFs = free.reduce((m, b) => Math.max(m, b.fs), 0);
   const clusterKinds = new Map();                                  // surface id (0 = page) -> {kinds:Set, ex:[], captured}
@@ -407,7 +467,7 @@ function evalSample(t, A, B, hits) {
     // page chrome
     const stab = stable(b);
     const corner = (cx < 0.2 || cx > 0.8) && (cy < 0.14 || cy > 0.86), edge = b.y1 < 0.07 || b.y0 > 0.93 || b.x1 < 0.05 || b.x0 > 0.95;
-    if (small && stab && (corner || edge)) addHit('C1', t, b.text, d);
+    if (small && stab && (corner || edge) && !markOk(b)) addHit('C1', t, b.text, d);
     if (b.up && b.ls >= 0.05 && b.fs <= 0.045 && b.text.replace(/[^A-Za-z]/g, '').length >= 2) addHit('C2', t, b.text, { ...d, note: 'letter-spacing ' + b.ls.toFixed(2) + 'em' });
     if (b.fs <= 0.06 && (RX.counterNum.test(b.text) || RX.counterWord.test(b.text) || (b.fs <= 0.05 && RX.counterBare.test(b.text))) && !/^\s*24\s*\/\s*7\b/.test(b.text)) addHit('C3', t, b.text, d);
     if ((RX.meta.test(b.text) && b.fs <= 0.06) || (RX.ver.test(b.text) && b.fs <= 0.04)) addHit('C4', t, b.text, d);
@@ -417,14 +477,14 @@ function evalSample(t, A, B, hits) {
   // box (projected, clipped to the frame), a screen-aligned plane (scene geometry on a tilted 3D plane is skipped), and
   // what the bar holds (text or controls = FAIL; an empty bar or rule = WARN, a lead to check by eye)
   for (const s of shapes) {
-    if (s.media || s.ui || s.selfSurface || !s.vb) continue;
+    if (s.media || s.ui || s.selfSurface || !s.vb || markOk(s)) continue;
     const [x0, y0, x1, y1] = s.vb, w = x1 - x0, h = y1 - y0, cy = (y0 + y1) / 2;
     const band = cy < 0.12 || cy > 0.88, bandR = cy < 0.14 || cy > 0.86;
     const bar = w >= 0.6 && h <= 0.14 && band && (s.alpha >= 0.1 || s.border);
     const rule = !bar && w >= 0.5 && s.h <= 4 && bandR;
     if (!bar && !rule) continue;
     if (s.aligned === false) { hits.tilted.set(s.id, s.snip); continue; }
-    const on = free.filter((b) => !b.tilt && b.fs <= 0.06 && (b.x0 + b.x1) / 2 >= x0 && (b.x0 + b.x1) / 2 <= x1 &&
+    const on = free.filter((b) => !b.tilt && !markOk(b) && b.fs <= 0.06 && (b.x0 + b.x1) / 2 >= x0 && (b.x0 + b.x1) / 2 <= x1 &&
       (bar ? (b.y0 + b.y1) / 2 >= y0 && (b.y0 + b.y1) / 2 <= y1 : Math.abs((b.y0 + b.y1) / 2 - cy) <= 0.05));
     const held = [s.inner ? s.inner + ' text block(s) inside' : '', s.ctrl ? 'controls' : '', on.length ? 'text "' + on[0].text.slice(0, 30) + '"' : ''].filter(Boolean);
     const box = [x0, y0, x1, y1].map(r2), where = cy < 0.5 ? 'top' : 'bottom';
@@ -433,7 +493,7 @@ function evalSample(t, A, B, hits) {
       note: what + (held.length ? ', holding ' + held.join(', ') : ', empty (page chrome when it frames text or controls; check by eye)') });
   }
   for (const band of ['top', 'bottom']) {
-    const row = free.filter((b) => !b.tilt && b.fs <= 0.045 && (band === 'top' ? (b.y0 + b.y1) / 2 < 0.12 : (b.y0 + b.y1) / 2 > 0.88));
+    const row = free.filter((b) => !b.tilt && !markOk(b) && b.fs <= 0.045 && (band === 'top' ? (b.y0 + b.y1) / 2 < 0.12 : (b.y0 + b.y1) / 2 > 0.88));
     const L = row.filter((b) => (b.x0 + b.x1) / 2 < 0.35), Rr = row.filter((b) => (b.x0 + b.x1) / 2 > 0.65);
     for (const a of L) for (const c of Rr) if (Math.abs((a.y0 + a.y1) / 2 - (c.y0 + c.y1) / 2) < 0.03 && stable(a) && stable(c))
       addHit('C6', t, 'row ' + a.text + '|' + c.text, { text: a.text + '  ...  ' + c.text, snippet: a.snip + ' + ' + c.snip, bbox: bb({ x0: a.x0, y0: Math.min(a.y0, c.y0), x1: c.x1, y1: Math.max(a.y1, c.y1) }), note: band + ' row: left and right small labels on one line' });
@@ -568,12 +628,19 @@ function richnessFromDom(samples, W, H, src, given) {
   // A floor that names depth_layers on a page with no layer marks is unmeasured, and unmeasured fails (never n/a).
   if (floors.depth_layers && !marked) res.measures.depth_layers = { value: null, light: 'FAIL', floor: floors.depth_layers.clause,
     note: 'UNMEASURED: the film type has a depth_layers floor but the page marks no layers; add data-ice-layer="<name>" to each layer or expose window.__layers(t)' };
+  // a measured depth_layers median under the floor passes with a craft plan row lifting lint:depth_layers (over the whole
+  // film, a floor: the median x (1 + tolerance) at least the amount); unmeasured still fails
+  const dl = res.measures.depth_layers;
+  if (dl.value !== null && (dl.light === 'FAIL' || dl.light === 'WARN')) {
+    const xr = exemptionFor(PLAN.plan, 'lint:depth_layers', { t: [0, DUR], value: dl.value });
+    if (xr) { dl.light = 'EXEMPT'; dl.exempt = exemptLine('lint:depth_layers', xr); }
+  }
   if (res.measures.depth_layers.light === 'FAIL') res.status = 'FAIL';
   else if (Object.values(res.measures).some((m) => m.light === 'FAIL' || m.light === 'WARN')) res.status = 'WARN';
   res.lines.push(`RICHNESS (DOM): ${res.status === 'PASS' && !marked && !heroS.length ? 'N/A' : res.status}   film type ${ft.text || 'unknown'} (${ft.src || 'not found'}) -> '${row}', floors from ${file || 'no owner table'}`);
   for (const [k, m] of Object.entries(res.measures)) {
     res.lines.push(`  ${k.padEnd(13)} ${m.value === null ? (m.light === 'FAIL' ? m.note : 'n/a (' + m.note + ')') : m.value + (m.unit || '') + ' median over samples' + (m.samplesUnder ? ', ' + m.samplesUnder + ' sample(s) under the floor' : '')}` +
-      (m.floor ? `   floor: ${m.floor}   ${k === 'depth_layers' ? m.light : { FAIL: 'UNDER (lead)', WARN: 'CHECK (lead)', PASS: 'ok' }[m.light]}` : ''));
+      (m.floor ? `   floor: ${m.floor}   ${k === 'depth_layers' ? m.light : { FAIL: 'UNDER (lead)', WARN: 'CHECK (lead)', PASS: 'ok' }[m.light]}` : '') + (m.exempt ? '   ' + m.exempt : ''));
   }
   res.lines.push('  hero_share and hero_width are leads here (gated on the render by film_gate.py); depth_layers below the floor, or unmarked when the type has a floor, fails. Canvas films: expose window.__layers(t).');
   return res;
@@ -588,6 +655,19 @@ const BROADCAST = (() => {
   if (opt['broadcast-measured']) return { allowed: true, why: '--broadcast-measured: the reference measures it' };
   return { allowed: false, why: "film type '" + (ft.text || 'unknown') + "' is not a news reel" };
 })();
+// the craft plan (exemption rows, the identity row): the ice-direction skill, references/treatment.md section "Craft plan"
+const PLAN = (() => {
+  const file = findCraftPlan(fs.existsSync(src) ? path.dirname(path.resolve(src)) : process.cwd()) || findCraftPlan(process.cwd());
+  return { file, plan: file ? loadCraftPlan(file) : null };
+})();
+const IDENTITY = (() => {
+  const rows = PLAN.plan && Array.isArray(PLAN.plan.rows) ? PLAN.plan.rows : [];
+  const row = rows.find((r) => r && String(r.dimension || '').toLowerCase() === 'identity');
+  if (row && String(row.decision || '').toLowerCase() === 'use') return { allowed: true, why: 'craft plan identity row: use' };
+  return { allowed: false, why: !PLAN.plan ? 'no craft plan found (ice/plan/craft-plan.json)' : row ? "the craft plan's identity row is '" + (row.decision || 'empty') + "', not use" : 'the craft plan has no identity row' };
+})();
+let DUR = 0;
+const ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 let br, exitCode = 0;
 (async () => {
   br = await launchChrome({ args: ['--allow-file-access-from-files'] });
@@ -603,6 +683,7 @@ let br, exitCode = 0;
   if (info.seek === 'none') console.error('warn: no seek mechanism found (renderAt / seek / __seek / __timelines / gsap): the page is read as a static frame');
   let dur = numOpt(opt.duration, 'duration') || info.duration;
   if (!(dur > 0)) { dur = 10; console.error('warn: duration unknown (set window.__duration or pass --duration); assuming 10 s'); }
+  DUR = dur;
   let times = userTimes;
   if (!times) {
     const n = numOpt(opt.samples, 'samples') || Math.max(12, Math.min(36, Math.round(dur * 1.5)));
@@ -610,11 +691,17 @@ let br, exitCode = 0;
   }
   const hits = { exempt: new Set(), tilted: new Map() };
   const barSeries = new Map();                                      // shape id -> [{t, w, snip, bbox}]
-  const richSamples = [];
+  const richSamples = [], craftSeen = new Map(), boxes = [];
+  const px = (v, n) => +Math.min(n, Math.max(0, v * n)).toFixed(1);
   for (const t of times) {
     await page.eval(`window.__lintT = ${t}; window.__lintSeek(${t})`, { timeout: 40000 });
     const A = JSON.parse(await page.eval('JSON.stringify(window.__lintScan())', { timeout: 30000 }));
     richSamples.push({ t, ...A.rich });
+    for (const c of A.craft || []) { const a = craftSeen.get(c) || []; a.push(t); craftSeen.set(c, a); }
+    // visible text and card boxes in pixels, clipped to the frame (for craft_gate.py build --boxes); text and cards
+    // behind the subject and the frame of the speaker's own video are left out, so they never read as covering the face
+    boxes.push({ t, boxes: [...A.blocks.filter((b) => !b.behind), ...A.surfaces.filter((s) => !s.behind && !s.videoFrame)].map((b) => { const x = px(b.x0, W), y = px(b.y0, H); return [x, y, +(px(b.x1, W) - x).toFixed(1), +(px(b.y1, H) - y).toFixed(1)]; })
+      .filter((b) => b[2] > 0 && b[3] > 0), width: W, height: H });
     const t2 = t + 0.1 <= dur ? t + 0.1 : Math.max(0, t - 0.1);
     await page.eval(`window.__lintSeek(${t2})`, { timeout: 40000 });
     const B = JSON.parse(await page.eval('JSON.stringify(window.__lintScan())', { timeout: 30000 }));
@@ -622,7 +709,7 @@ let br, exitCode = 0;
     const [P, Q] = t2 >= t ? [A, B] : [B, A];
     evalSample(t, A, t2 >= t ? B : A, hits);
     evalTyping(t, P, Q);
-    for (const s of A.shapes) if (!s.media && !s.ui && !s.selfSurface && !(BROADCAST.allowed && s.bc) && (s.h <= 0.016 * H) && s.w >= 2 && (s.alpha >= 0.2 || s.border)) {
+    for (const s of A.shapes) if (!s.media && !s.ui && !s.selfSurface && !(BROADCAST.allowed && s.bc) && !(IDENTITY.allowed && s.idm) && (s.h <= 0.016 * H) && s.w >= 2 && (s.alpha >= 0.2 || s.border)) {
       const a = barSeries.get(s.id) || []; a.push({ t, w: s.x1 - s.x0, snip: s.snip, bbox: bb(s) }); barSeries.set(s.id, a);
     }
   }
@@ -640,16 +727,39 @@ let br, exitCode = 0;
   if (hits.tilted.size) hits.exempt.add('C6 skipped ' + hits.tilted.size + ' bar or rule shape(s) on a tilted 3D plane (scene geometry, not page chrome): ' +
     [...new Set(hits.tilted.values())].slice(0, 4).join(', ') + (new Set(hits.tilted.values()).size > 4 ? ', ...' : ''));
   const out = { file: path.resolve(src.replace(/^file:\/\//, '')), width: W, height: H, duration: dur, samples: times, rules: [], exemptions: [...hits.exempt] };
+  if (PLAN.file) out.craftPlan = PLAN.file;
   let failed = [];
   for (const r of Object.values(RULE)) {
-    const hs = [...r.hits.values()].map((h) => ({ ...h, times: h.times.sort((a, b) => a - b) })).sort((a, b) => a.times[0] - b.times[0]);
+    const all = [...r.hits.values()].map((h) => ({ ...h, times: h.times.sort((a, b) => a - b) })).sort((a, b) => a.times[0] - b.times[0]);
+    // craft plan rows lifting lint:<id>: a hit passes when every sample time it was seen at is covered (the reader checks
+    // the source kinds each rule id accepts). Arabic text that grows by letters is never lifted: Arabic typing is a mask
+    // reveal over the shaped line
+    const hs = [], ex = [];
+    for (const h of all) {
+      const arabicGrowth = r.id === 'T1' && h.sev === 'FAIL' && ARABIC.test(h.text || '');
+      const rows = arabicGrowth ? [null] : h.times.map((t) => exemptionFor(PLAN.plan, 'lint:' + r.id, { t }));
+      if (arabicGrowth && PLAN.plan) out.exemptions.push('T1 not lifted: Arabic text grew by letters (' + JSON.stringify((h.text || '').slice(0, 40)) + '); Arabic typing is a mask reveal over the shaped line, whatever the craft plan says');
+      if (PLAN.plan && rows.every(Boolean)) {
+        const line = [...new Set(rows.map((row) => exemptLine('lint:' + r.id, row)))].join('; ') + ': ' + (h.text ? JSON.stringify(h.text.slice(0, 60)) + ' ' : '') + 'at ' + h.bbox.join(',') + ', t=' + h.times.join(',');
+        ex.push({ ...h, exempt: line }); out.exemptions.push(line);
+      } else hs.push(h);
+    }
     const status = !hs.length ? 'PASS' : hs.some((h) => h.sev === 'FAIL') ? 'FAIL' : 'WARN';
     if (status === 'FAIL') failed.push(r.id);
-    out.rules.push({ id: r.id, name: r.name, status, hits: hs });
+    out.rules.push({ id: r.id, name: r.name, status, hits: hs, ...(ex.length ? { exempt: ex } : {}) });
   }
   out.gate = failed.length ? 'FAIL' : (info.seek === 'none' ? 'WARN' : 'PASS'); out.failed = failed;
   out.seek = info.seek;
   out.richness = richnessFromDom(richSamples, W, H, src, opt.type);
+  out.craft_marks = Object.fromEntries([...craftSeen].sort((a, b) => a[0].localeCompare(b[0])));
+  const unknown = Object.keys(out.craft_marks).filter((c) => !CRAFT_CODES.includes(c));
+  if (unknown.length) out.craft_marks_unknown = unknown;
+  if (opt['boxes-out']) {
+    const f = path.resolve(opt['boxes-out']);
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(f, JSON.stringify(boxes));
+    out.boxesOut = f;
+  }
   if (opt.json) console.log(JSON.stringify(out, null, 1));
   else {
     console.log(`lint.mjs ${out.file}  ${W}x${H}  duration ${dur}s  ${times.length} samples (${times.slice(0, 8).join(', ')}${times.length > 8 ? ', ...' : ''})`);
@@ -662,6 +772,11 @@ let br, exitCode = 0;
       if (r.hits.length > 6) console.log(`    ... ${r.hits.length - 6} more (use --json)`);
     }
     for (const e of out.exemptions) console.log('note: ' + e);
+    if (out.craftPlan) console.log('craft plan: ' + out.craftPlan + ' (exemption rows and the identity row read)');
+    const cm = Object.entries(out.craft_marks);
+    console.log('craft marks (data-ice-craft): ' + (cm.length ? cm.map(([c, ts]) => c + ' at ' + ts.length + ' sample(s)').join(', ') : 'none seen') +
+      (out.craft_marks_unknown ? '; not craft plan codes: ' + out.craft_marks_unknown.join(', ') : ''));
+    if (out.boxesOut) console.log('boxes: ' + out.boxesOut);
     console.log(`GATE G5: ${out.gate}${failed.length ? '  (' + failed.join(', ') + ')' : ''}   (a lead, not a verdict: text inside images/canvas is not seen)` +
       (out.gate === 'WARN' ? '\n  WARN: the page has no seek mechanism, so only one frame was read; expose window.renderAt(t) or window.__seek(t)' : `  seek: ${info.seek}, ${times.length} samples`));
     for (const line of out.richness.lines) console.log(line);

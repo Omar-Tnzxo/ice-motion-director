@@ -4,7 +4,9 @@
 # and process I/O and UTF-8 output so Windows does not fail on non-ASCII paths or text. 2026-10-19 (pilot films): the
 # end-hold limit is scoped by film type (references/motion-density.md section 6) instead of a fixed 1.4 s, a declared CTA
 # start (cue sheet or events file) sets the CTA share and the CTA reading-time limit, and local motion inside the end hold
-# (water, light) is reported. See NOTICE.md.
+# (water, light) is reported. 2026-10-29 (0.2.5, craft plan): G2 (flat-frame runs) and G3 (end hold, CTA share) read
+# the exemption rows of ice/plan/craft-plan.json (look:G2, look:G3) and print a covered hit as "exempt <rule id> by
+# <row id> (<source>)"; the film type may come from the craft plan when the project names none. See NOTICE.md.
 """look.py - make a finished film inspectable: contact sheet, cuts, frozen stretches, end hold, pre-cut frames, loudness. stdlib + ffmpeg.
 
 Usage:
@@ -46,6 +48,11 @@ GATES block (printed last, also written to look/gates.json): the gates this scri
      frame) is a FAIL with its times; runs of <= 3 frames (a dip inside a transition) are ignored.
   G3 end card: the picture-unchanged end hold must be <= the scoped limit above; a hold under 0.6 s is a NOTE (the film ends
      mid-motion: fine when intended); the CTA share (declared CTA start -> end, else last cut -> end) must be <= 25 % of the film.
+  Exemption rows (ice/plan/craft-plan.json, found by walking up from the film, then the working folder): a G2 run that a
+     row lifting look:G2 covers (the run inside the row's shots, its length in seconds at most amount x (1 + tolerance)),
+     and a G3 end hold (its span inside the shots, its length at most the amount) or CTA share (the CTA span inside the
+     shots) that a row lifting look:G3 covers, pass and print "exempt <rule id> by <row id> (<source>)". The rule itself:
+     the ice-direction skill, references/treatment.md section "Craft plan".
   G1 (proof readable), G4 (one hero per frame) are judged by eye on sheet.jpg; G5 (no page chrome) is lint.mjs.
 AUDIO block (when the film has sound): integrated LUFS / LRA / true peak (peak above -1 dBTP is flagged), audible span (leading and
   trailing silence, dropouts of digital silence in the middle), silent tail > 0.5 s at the end, and audio onsets next to the picture
@@ -59,7 +66,8 @@ from __future__ import annotations
 import argparse, json, math, operator, os, re, shutil, subprocess, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from storyboard_lint import REQUIRED_LABEL, cta_block_text, declared_times, num, project_ice, reading_time, resolve_scope   # noqa: E402
+from storyboard_lint import (REQUIRED_LABEL, cta_block_text, declared_times, exempt_line, exemption_for,   # noqa: E402
+                             find_craft_plan, load_craft_plan, num, project_ice, reading_time, resolve_scope_with_plan)
 
 # A web address on the end card: a scheme or www, or a lowercase domain such as name.tld with an optional path.
 URL_RE = re.compile(r"https?://\S+|\bwww\.\S+|(?<![\w@.])[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.[a-z]{2,6}(?:/\S*)?(?![\w.])")
@@ -383,15 +391,26 @@ def compute_gates(a, dur, fps, nf, M, C, vs, au, cut_times, hold, final_dur, pro
         runs.append((s0, n - 1))
     bad = [(s, e) for s, e in runs if e - s + 1 > FLAT_MAX_OK]
     ign = [(s, e) for s, e in runs if e - s + 1 <= FLAT_MAX_OK]
+    plan = getattr(a, "plan", None)
+    # a declared black or flat beat that a craft plan row lifting look:G2 covers (span and length) passes
+    ex2 = {(s, e): exemption_for(plan, "look:G2", t=(s / fps, (e + 1) / fps), value=round((e - s + 1) / fps, 3)) if plan else None for s, e in bad}
+    lifted = ["%s on %.2f-%.2f s" % (exempt_line("look:G2", ex2[(s, e)]), s / fps, (e + 1) / fps) for s, e in bad if ex2[(s, e)]]
+    bad = [(s, e) for s, e in bad if not ex2[(s, e)]]
     if bad:
         d = "; ".join("%.2f-%.2f s (%d f, luma %.0f)" % (s / fps, (e + 1) / fps, e - s + 1, mean[s]) for s, e in bad[:8])
-        G.append(("G2", "no empty frame", "FAIL", "flat-field runs of > %d frames: %s" % (FLAT_MAX_OK, d)))
+        G.append(("G2", "no empty frame", "FAIL", "flat-field runs of > %d frames: %s" % (FLAT_MAX_OK, d) + "".join("; " + x for x in lifted)))
     else:
-        G.append(("G2", "no empty frame", "PASS", "no run of > %d flat frames%s" % (FLAT_MAX_OK, ("; %d short dip(s) ignored: %s" % (len(ign), ", ".join("%.2fs" % (s / fps) for s, _ in ign[:6]))) if ign else "")))
+        G.append(("G2", "no empty frame", "PASS", ("no run of > %d flat frames%s" if not lifted else "no run of > %d flat frames outside the lifted ones%s") % (FLAT_MAX_OK, ("; %d short dip(s) ignored: %s" % (len(ign), ", ".join("%.2fs" % (s / fps) for s, _ in ign[:6]))) if ign else "") + "".join("; " + x for x in lifted)))
     # ---- G3
     share = final_dur / dur if dur else 0
     st, why = "PASS", []
-    if a.hold_warn > 0 and hold > a.hold_warn:
+    # a measured or declared end hold, or a long CTA beat, that a craft plan row lifting look:G3 covers passes: the hold's
+    # span and length (seconds), the CTA span (its share is bounded by the row's time range)
+    row_hold = exemption_for(plan, "look:G3", t=(dur - hold, dur), value=round(hold, 3)) if plan and hold > 0 else None
+    row_cta = exemption_for(plan, "look:G3", t=(dur - final_dur, dur)) if plan and final_dur > 0 else None
+    if a.hold_warn > 0 and hold > a.hold_warn and row_hold:
+        why.append("end hold %.2f s > %.2f s (%s), %s" % (hold, a.hold_warn, a.hold_src, exempt_line("look:G3", row_hold)))
+    elif a.hold_warn > 0 and hold > a.hold_warn:
         st = "FAIL"; why.append("end hold %.2f s > %.2f s (%s)" % (hold, a.hold_warn, a.hold_src))
     elif hold < 0.6:
         why.append("end hold %.2f s: ends mid-motion (NOTE: fine when intended)" % hold)
@@ -401,7 +420,9 @@ def compute_gates(a, dur, fps, nf, M, C, vs, au, cut_times, hold, final_dur, pro
         why.append("end hold %.2f s (no limit: %s)" % (hold, a.hold_src))
     what = "CTA from the declared start" if a.cta_start is not None else "final shot"
     if cut_times or a.cta_start is not None:
-        if share > 0.25:
+        if share > 0.25 and row_cta:
+            why.append("%s %.2f s = %.0f %% of the film (> 25 %%), %s" % (what, final_dur, 100 * share, exempt_line("look:G3", row_cta)))
+        elif share > 0.25:
             st = "FAIL"; why.append("%s %.2f s = %.0f %% of the film (> 25 %%)" % (what, final_dur, 100 * share))
         else:
             why.append("%s %.2f s = %.0f %% of the film (<= 25 %%)" % (what, final_dur, 100 * share))
@@ -571,7 +592,9 @@ def main():
     here = os.path.dirname(os.path.abspath(a.film))
     ice = project_ice(here, os.getcwd())
     _, a.cta_start, decl_src = declared_times(ice, ev_path)
-    scope = resolve_scope(a.type, (here, os.getcwd()))
+    plan_path = find_craft_plan(here) or find_craft_plan(os.getcwd())
+    a.plan = load_craft_plan(plan_path) if plan_path else None
+    scope = resolve_scope_with_plan(a.type, (here, os.getcwd()), a.plan, plan_path)
     cta_text, tagged = cta_block_text(ice)
     use_cta = tagged or a.cta_start is not None
     col = "end_hold_cta" if use_cta else "end_hold_max"
@@ -635,7 +658,12 @@ def main():
         live = sum(1 for v in loc if v >= 1.0) / max(1, len(loc))
         if live >= 0.5:
             print("            inside the end hold a region still moves in %.0f %% of the frames (water, light, a loop): the layout is resolved, the frame is alive" % (100 * live))
-    if a.hold_warn > 0 and hold > a.hold_warn:
+    if a.plan is not None:
+        print("craft plan  %s (exemption rows read for G2 and G3)" % plan_path)
+    hold_row = exemption_for(a.plan, "look:G3", t=(dur - hold, dur), value=round(hold, 3)) if a.plan and hold > 0 else None
+    if a.hold_warn > 0 and hold > a.hold_warn and hold_row:
+        print("end hold    %.2fs > %.2fs, %s" % (hold, a.hold_warn, exempt_line("look:G3", hold_row)))
+    elif a.hold_warn > 0 and hold > a.hold_warn:
         print("WARNING     end hold %.2fs > %.2fs: the last element sits resolved from %.2fs to the end. Trim: ffmpeg -i %s -t %.2f -c copy trimmed.mp4  (or keep the exit moving)" % (hold, a.hold_warn, dur - hold, a.film, min(dur, dur - hold + 0.8)))
     if au:
         print("audio       %s %s Hz ch %s   integrated %s LUFS   LRA %s LU   true peak %s dBFS" % (au.get("codec_name"), au.get("sample_rate"), au.get("channels"), loud["integrated_lufs"], loud["lra_lu"], loud["true_peak_dbfs"]))

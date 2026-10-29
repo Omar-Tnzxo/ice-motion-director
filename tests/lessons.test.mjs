@@ -145,6 +145,8 @@ test("lessons: the README prompts stay the idea and the files", () => {
     const ing = readText(`${EDIT}/references/ingest-and-ledger.md`);
     const s = ing.slice(ing.indexOf("### Finishing layer"), ing.indexOf("\n## 6."));
     assert.match(s, /owner decision, 2026-10-29/);
+    assert.match(s, /the craft plan's `finish` row, written at 05 for every edit/, "0.2.5: the finishing reason has an owner");
+    assert.match(s, /outside a recede window/, "an effect never darkens the speaker outside a recede window");
     assert.match(s, /`ice-remake\/references\/measuring\.md`, section "Finishing layer"/);
     assert.match(s, /`ice-motion\/references\/motion-blur-and-clock\.md`, section "Finishing layer"/);
     assert.match(s, /never on everything/);
@@ -293,6 +295,10 @@ test("lessons: the README prompts stay the idea and the files", () => {
     assert.match(fin, /Never on everything/);
     assert.match(fin, /measuring\.md`, section "Finishing layer"/);
     assert.match(fin, /D-entry in `ice\/DIRECTION\.md`/);
+    // 0.2.5: the reason has an owner, the craft plan's `finish` row written for every film at 05
+    assert.match(fin, /the craft plan's `finish` row, locked at 05/);
+    assert.match(fin, /or "none" with its reason/);
+    assert.match(fin, /"not asked" is never a reason for "none"/);
     for (const effect of ["Motion blur on fast moves", "Blur for depth", "Blur on entrances and exits", "Grain", "Specks",
       "Halftone", "Flicker", "Vignette", "Glow", "Grade"]) {
       assert.match(fin, new RegExp(`\\n\\| ${effect}`), `finishing table has a row for ${effect}`);
@@ -469,4 +475,168 @@ test("lessons: depth, 3D and camera are measured, mapped with a build route and 
     "within plus or minus 30 percent"]);
   has("skills/ice-qa/references/storyboard-lint.md", ["| 21 | A row whose Object, Action, Camera, Method or Tags names a depth or 3D element"]);
   has("skills/ice-edit/SKILL.md", ['"Build routes for depth and 3D"']);
+});
+
+// Lessons L14, L15, L19 and L20 (0.2.5): taste bans become conditional defaults. A ban stays the default for the types
+// it names and yields to a recorded source (the user's words, a measured reference, the chosen style, a content trigger),
+// written as a plan or exemption row; truth, rights, safety, legibility, Arabic correctness and L5 are never lifted.
+const CRAFT_PLAN = /the `ice-direction` skill, `references\/treatment\.md` section "Craft plan"/;
+const SLOP_DOC = "skills/ice-qa/references/slop-scan.md";
+const FRAME_DOC = "skills/ice-qa/references/frame-checks.md";
+const DEPTH_DOC = "skills/ice-motion/references/depth-and-3d.md";
+const LAYERS_DOC = "skills/ice-edit/references/layers-and-isolation.md";
+
+test("lessons: taste bans are conditions: the slop scan says delete the element or show its plan or exemption row (L14)", () => {
+  const slop = readText(SLOP_DOC);
+  assert.doesNotMatch(slop, /delete the element, do not justify it/, "the absolute wording is gone");
+  assert.equal(slop.split("delete the element or show its plan or exemption row").length - 1, 2, "the opening and section 7 both say it");
+  assert.match(slop.slice(0, slop.indexOf("## Contents")), CRAFT_PLAN, "the opening points to the one home of the precedence and row format");
+  assert.match(slop, /"Justified" with no recorded source still fails/);
+  assert.match(slop, /the speaker staying lit are never lifted/);
+  const general = section(SLOP_DOC, "### Measured and declared packages");
+  assert.match(general, /Scope: every film type \(lesson L14, 0\.2\.5\)/);
+  for (const p of [/\*\*It has its row\.\*\*/, /`slop:<item number or N id>`/, /\*\*It follows its numbers\*\*/,
+    /\*\*It keeps the never rules and is well made\*\*/, /Decoration without a source still fails, in every film type/]) assert.match(general, p);
+  assert.match(general, /the never-lifted rules of the `ice-direction` skill, `references\/treatment\.md` section 11\.7 stay absolute/, "a pointer, not a partial list");
+  assert.ok(slop.indexOf("### Measured and declared packages") < slop.indexOf("### Broadcast package (news reel)"));
+  assert.match(section(SLOP_DOC, "### Broadcast package (news reel)"), /one case of "Measured and declared packages" above/);
+  assert.match(section(SLOP_DOC, "## 7. How to report"), CRAFT_PLAN);
+  // the reflexive bans stay: typing, glass and glow fail as a reflex and pass only with a source
+  const row = (start) => slop.split("\n").find((l) => l.startsWith(start));
+  assert.match(row("| Typewriter headlines |"), /Fail as a reveal style on every line\. Passes when typing is the medium or the meaning, with its plan row/);
+  assert.match(row("| Typewriter headlines |"), /letters are never added one by one; a typed Arabic line is always a mask reveal over the whole shaped line/);
+  assert.match(row("| Glassmorphism, frosted glass panels |"), /Fail as default "premium" \| Passes, with its plan row, when the brand's own UI uses glass \(any film type\)/);
+  assert.match(row("| Glow, bloom and neon on type and UI chrome; gradients on text |"), /the chosen style's medium is light .* or a reference measures it, at the stated or measured radius, on dark grounds, with its plan row/);
+  assert.match(row("| N24 |"), /A dissolve passes where the type's transition policy allows it .* or the reference measures it/);
+  assert.match(row("| Page chrome |"), /Never as decoration\. Passes with its row: a recurring identity mark chosen at 01/);
+  assert.match(readText(FRAME_DOC), /A gate that fails is fixed, or cleared by an exemption row with a measured or declared source/);
+  assert.doesNotMatch(readText(FRAME_DOC), /A gate that fails is fixed, not argued;/);
+  // one canonical home: each rewritten file points to it in one line instead of restating the precedence
+  for (const f of [DEPTH_DOC, LAYERS_DOC, FRAME_DOC, "skills/ice-motion/references/composition-and-staging.md",
+    "skills/ice-motion/references/camera.md", "skills/ice-motion/references/transition-policy.md",
+    "skills/ice-motion/references/motion-blur-and-clock.md", "skills/ice-edit/references/broll-and-motion-broll.md"]) {
+    assert.match(readText(f), CRAFT_PLAN, `${f} points to the craft plan`);
+  }
+});
+
+test("lessons: news reel allowances are one case of general rules: long takes, a second voice hue, sound under speech, flashes (L14)", () => {
+  has("skills/ice-motion/references/camera.md", ["a single take over about 8 s gets a visible change every 3 to 5 s",
+    "The news reel numbers of section 8 are the measured case of this rule", "## 8. Digital camera on one take (news reel)"]);
+  assert.doesNotMatch(readText("skills/ice-motion/references/camera.md"), /\| Talking-head reframes \| Fixed crop per shot, never a per-frame face follow/);
+  has("skills/ice-motion/references/holds-and-stillness.md", ["This creep is the floor, not the ceiling"]);
+  has("skills/ice-motion/references/springs-and-curves.md", ["Also available to any calm camera that must not stop"]);
+  assert.doesNotMatch(readText("skills/ice-motion/references/springs-and-curves.md"), /Not a curve for other film types/);
+  has("skills/ice-type/references/caption-styles.md", ["A second hue marks a second audible voice, in any film",
+    "a quote the narrator reads keeps the narrator's colour", "The hue marks whose voice is heard, not quotation"]);
+  has("skills/ice-audio/references/sfx.md", ["Under speech, in any film: while a voice talks, an effect sits in the sub band (under 150 Hz) or the air band (over 4 kHz)",
+    "This band filter and reject rule never apply to an effect under speech"]);
+  has("skills/ice-motion/references/cut-catalog.md", ["A white flash is not a ground change or a filler between beats; it passes when it carries a meaning the plan states"]);
+  assert.doesNotMatch(readText("skills/ice-motion/references/cut-catalog.md"), /never a white flash or crossfade \(news reel/);
+  const a5 = readText(FRAME_DOC).split("\n").find((l) => l.startsWith("| A5 |"));
+  assert.match(a5, /A flash passes when it carries a meaning the plan states/);
+  assert.match(a5, /in strobe safe mode unless the user asked for the faithful one/, "photosensitivity is never lifted");
+  has("skills/ice-motion/references/motion-language-by-type.md", ["Scope of the don'ts: they are written for product UI and app ads in the category",
+    "A don't about safety or honesty"]);
+  has("skills/ice-type/references/depth-and-embedded-captions.md", ["the user's request is one trigger, not the only one"]);
+  has("skills/ice-type/references/type-effects-specs.md", ["or while the speaker says the number (the counter lands on the spoken word"]);
+});
+
+test("lessons: depth is a craft: N16 and depth-and-3d pass a card field with parallax and fail a lone tilted card (L15)", () => {
+  const dim = section(DEPTH_DOC, "## 1. Choose the dimension");
+  assert.match(dim, /Depth is a craft, not an exception \(lesson L15\)/);
+  assert.match(dim, CRAFT_PLAN);
+  assert.match(dim, /the script names several items that should be seen together/);
+  assert.match(dim, /A rotated single flat image is not depth/);
+  assert.match(dim, /Planes at their own depth inside one perspective camera \(the `css-3d` route, section 7\), with parallax, occlusion and contact shadows, are valid 2\.5D/);
+  assert.match(dim, /When the chosen style, the reference or the direction's Depth dial .* is deep, depth is the medium/);
+  assert.match(dim, /a lone tilted card \(one flat card skewed by perspective with nothing else at depth/, "the lone tilted card stays slop");
+  assert.match(dim, /3D bar charts and rotating pies/);
+  assert.match(dim, /A card field passes: cards posed at angles inside a field of planes with measured parallax \(the nearest plane moves at least about 1\.5x the farthest\), occlusion, contact shadows/);
+  assert.match(dim, /The execution check stays/);
+  assert.doesNotMatch(dim, /typography and UI stay crisp 2D/);
+  assert.doesNotMatch(dim, /Real depth, lighting or camera motion means a real 3D engine/);
+  assert.doesNotMatch(dim, /a tilted card as "depth"/);
+  assert.doesNotMatch(readText(DEPTH_DOC), /Chrome-on-black with bloom is a house style to avoid/);
+  const slop = readText(SLOP_DOC);
+  const n16 = slop.split("\n").find((l) => l.startsWith("| N16 |"));
+  assert.match(n16, /A lone tilted card: one flat card skewed by perspective with nothing else at depth/);
+  assert.match(n16, /red 3D bars and pies/);
+  assert.match(n16, /a card field: cards posed at angles inside a field of planes with measured parallax/);
+  assert.match(n16, /A card field passes; a lone tilted card fails/);
+  const tell = slop.split("\n").find((l) => l.startsWith("| 3D, depth or tilted UI |"));
+  assert.match(tell, /Never a lone tilted card as "depth"/);
+  assert.match(tell, /a card field/);
+  assert.match(readText("skills/ice-motion/references/cut-catalog.md"), /About once per film in a flat direction, only when motivated; when depth is the medium/);
+});
+
+test("lessons: the speaker recedes inside a planned window and is never darkened while speaking (L19)", () => {
+  const s5 = section(LAYERS_DOC, "\n## 5. The speaker stays lit");
+  assert.match(s5, /This rule is never lifted by an exemption row, a reference or a style/, "L5 stays a hard rule");
+  assert.match(s5, /\*\*Recede window \(any speaker-led video\)\.\*\* The speaker recedes, never darkens\./);
+  assert.match(s5, /The window: an inserted image or card of another person or thing is the subject of the frame \(foregrounded\)/);
+  assert.match(s5, /While the speaker talks inside the window: only a scale back \(push back, about 0\.7 to 1\.0 of the framing\) and a partial desaturation, at the reference's measured amounts when one measures them; never fully grey or sepia, never dimmed, never defocused\./);
+  assert.match(s5, /While the speaker is silent inside the window: also a dimming of at most 15 percent luma and a light defocus\. The 15 percent cap holds even when a reference measures more: a darker measured value is clipped to 15 percent and the delivery note says so\./);
+  assert.match(s5, /Never a silhouette, a ring, a disc or a mark on the speaker, in or out of the window/);
+  assert.match(s5, /on the frame the image leaves or on the next stressed word/);
+  assert.doesNotMatch(s5, /or the amount a reference measures/, "a measured dimming never goes past the 15 percent cap");
+  assert.match(s5, /Each window is listed in the plan's `cutout` row/);
+  assert.match(s5, /never darkens, desaturates or tints the speaker to set a mood/);
+  assert.match(s5, /outside the recede windows and text takeovers, the mean luma of the speaker's box stays within about 5 percent/);
+  assert.match(s5, /inside a window it stays within about 5 percent and sharp while the speaker talks, at most 15 percent darker while the speaker is silent \(never more, whatever a reference measures\)/);
+  assert.doesNotMatch(s5, /Measured exception \(news reel\)/);
+  const kit = section(LAYERS_DOC, "## 3b. Programme matte kit");
+  assert.match(kit, /are recede windows of section 5 at the reference's measured amounts/);
+  assert.doesNotMatch(kit, /the luma check of section 5 still holds/, "the 0.2.4 conflict: its own luma check failed the measured device");
+  assert.match(kit, /is section 5, "Recede window" and "Check"/, "the kit points to the one home instead of restating the amounts");
+  const p1 = readText(FRAME_DOC).split("\n").find((l) => l.startsWith("| P1 |"));
+  assert.match(p1, /stays lit and clear while speaking/);
+  assert.match(p1, /Recede window \(an inserted image or card of another person or thing is the subject of the frame\): while the speaker talks, only a scale back and a partial desaturation, never fully grey or sepia, never dimmed or defocused; while the speaker is silent, also a dimming of at most 15 percent luma \(a cap, even when a reference measures more\) and a light defocus/);
+  assert.match(p1, /Outside the windows the speaker's box stays within about 5 percent of the source luma/);
+  assert.match(p1, /never a silhouette, never a mark/);
+  has("skills/ice-edit/references/ingest-and-ledger.md", ["Never alter the person's skin, exposure or identity for a mood"]);
+  const depth = readText("skills/ice-motion/references/depth-and-3d.md");
+  assert.match(depth, /the speaker stays sharp while speaking and takes a light defocus only while silent inside a recede window/);
+  assert.match(depth, /The presenter is defocused only while silent inside such a window, .*and stays lit and sharp while speaking\./);
+  const item5 = readText("skills/ice-qa/references/critic-prompts.md").split("\n").find((l) => l.startsWith("5. <For news, explainer and talk-show films with a speaker"));
+  assert.match(item5, /that section's "Recede window" allows while the speaker talks and while the speaker is silent/, "the critic points to section 5");
+  assert.doesNotMatch(item5, /15 percent/, "the critic does not repeat the recede numbers");
+});
+
+test("lessons: outside material looks outside, in any film, with one treatment and never on the speaker (L20)", () => {
+  const broll = "skills/ice-edit/references/broll-and-motion-broll.md";
+  const om = section(broll, "### Outside material");
+  assert.match(om, /Lesson L20, scope: general, any film or edit that mixes its own footage/);
+  for (const t of ["| Monochrome |", "| Desaturation with lifted blacks |", "| Warm duotone |", "| Palette tint |"]) assert.ok(om.includes(t), t);
+  assert.match(om, /pick one outside-material treatment at 05, apply it to every outside item, and log it in the plan's `finish` row \(a grade per source class\)/);
+  assert.match(om, /The speaker and the film's own footage never take the treatment/);
+  assert.match(om, /\*\*Truth first\.\*\*/);
+  assert.match(section(broll, "### News reel B-roll treatments"), /the measured case of "Outside material" above/);
+  const color = readText("skills/ice-direction/references/color.md");
+  assert.match(color, /\*\*One grade per source class\*\* \(lesson L20\)/);
+  assert.doesNotMatch(color, /one grade and one light logic for all assets \(handled/);
+  const ai = readText("skills/ice-assets/references/ai-media-policy.md");
+  assert.doesNotMatch(ai, /One grade for all clips/);
+  assert.match(ai, /they take the grade of the source class they stand in for/);
+  assert.match(readText("skills/ice-motion/references/motion-blur-and-clock.md"), /one grade per source class \(the film's own world in the film grade, outside material in its one outside treatment/);
+  has("skills/ice-edit/references/ingest-and-ledger.md", ["| Outside material (archive, agency footage, quoted portraits, stills, screenshots) |"]);
+});
+
+test("lessons: anti-sameness guards Ice's own choices; a look the user chose is exempt on its axes (L22)", () => {
+  const owner = section("skills/ice-direction/references/anti-sameness.md", "### 4a. A look the user chose (founder decision, 2026-10-29)");
+  for (const kind of ["a reference the user supplied or named", "a style the user picked by name", "the brand identity the user's own brand already has", "a series look"]) {
+    assert.ok(owner.includes(kind), `4a names the kind of choice: ${kind}`);
+  }
+  assert.match(owner, /\*\*Template distance:\*\* not applied to the template, demo or style card that the choice names/);
+  assert.match(owner, /fingerprints are compared only between films without a user's choice/);
+  assert.match(owner, /\*\*Divergent pitch round:\*\* the "at least two unexpected directions" requirement/);
+  assert.match(owner, /\*\*What stays:\*\* dated research before decisions, the decision log/);
+  assert.match(owner, /A choice inferred by the agent is not a user's choice/);
+  assert.match(readText("skills/ice-direction/references/anti-sameness.md"), /"user_chosen":null/);
+  const agents = readText("AGENTS.md");
+  assert.match(agents, /These mechanisms guard Ice's own choices, never the user's \(founder decision, 2026-10-29\)/);
+  assert.match(agents, /`skills\/ice-direction\/references\/anti-sameness\.md` section 4a/);
+  const gates = readText("skills/ice-qa/references/anti-sameness-gates.md");
+  assert.match(gates, /skip variants and records with `user_chosen` filled/);
+  assert.match(gates, /When the user chose the reference for its look \(owner section 4a\), the skin is the request/);
+  assert.match(readText("skills/ice-direction/references/pitch-round.md"), /at least two concepts are unexpected, except on the axes a look the user chose fixes/);
 });
