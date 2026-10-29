@@ -12,6 +12,7 @@ Presence in the reference is not prominence. A texture that appears in every fra
 | Secondary motifs | What supports the dominant language (grain, paper edges, tape, a color accent, a sound tic) |
 | May translate | Surfaces that may change freely: copy, language, product, logo, accent color, legal substitutes |
 | Forbidden shortcuts | The easier substitutes this particular reference tempts (section 3) |
+| Never | Copied from the `## Never` block of the reference's `REASONS.md` (`notes-files.md` section 6): what the reference never does, each with its count of 0 over the chances measured. Written as a `Never:` field, one rule per line; the plan, the build and the review are checked against every line |
 
 A mechanism or motif enters this contract with its reason: the element rows it uses in `REASONS.md` (`notes-files.md` section 6). An element with no reason is never a must-preserve item; it is cut (`shot-mapping.md` section 1, item 4).
 
@@ -66,6 +67,8 @@ When the reference is hard, build 2-3 short opening studies (the first 2-4 s) an
 - Did a component library or engine default decide the art direction?
 - Did a secondary motif get promoted?
 - Does every element carried over have its `REASONS.md` row and a trigger in the new script, and does every finishing effect sit only where its measured row says (`measuring.md` section 9)?
+- Does any planned or built element break a line of the `Never:` field?
+- Did the pace, the fixed marks, the depth, 3D and camera movement of the reference carry over (`measuring.md` sections 10 to 12), or did the film come out slower, without the marks, and flat where the reference had depth?
 - Is every must-preserve mechanism visible in motion? Compare it on a 12 fps strip, never on a paired contact sheet of stills.
 
 Any yes or failed check returns to the plan.

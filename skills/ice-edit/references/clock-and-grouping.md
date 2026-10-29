@@ -26,22 +26,26 @@ Seconds are edited time except fields prefixed `source`. Quantize cuts and scene
 
 ```json
 {"duration":0.0,"fps":30,
+ "reference":{"maxEventGap":0.0,"eventsPerMinute":0.0},
  "scenes":[{"id":"s00","start":0.0,"end":0.0,"layout":"face","kind":"<asset stem>",
-            "anchor":"<exact transcript phrase>","anchorTime":0.0,"holdReason":"<optional>"}],
+            "anchor":"<exact transcript phrase>","anchorTime":0.0,"holdReason":"<optional>","cut":"<optional: archive>"}],
  "events":[{"time":0.0,"type":"<real visual action>","visual":"s00","anchor":"<phrase>"}],
  "captions":[{"start":0.0,"end":0.0,"words":[{"text":"...","start":0.0,"end":0.0,"sourceStart":0.0,"sourceEnd":0.0}]}]}
 ```
 
 - Layouts: `face`, `split`, `paper`, `broll`, `broll-split`. A B-roll scene's `kind` names `assets/<kind>.mp4`.
-- `events` are real visual actions, never filler entries added to satisfy cadence.
+- `events` are real visual actions, never filler entries added to satisfy cadence. In a news reel a camera move start, a graphic in or out, a flash and a colour wash each count as an event (`edit-types/news-reel.md` section 3).
+- `reference` (optional, lesson L9, every edit that follows a reference): copied from the reference's events file `ice/reference/<ref-id>/analysis/events.json` (measured with `ice-remake/references/measuring.md`, section "Pacing events"): `maxEventGap` is its longest gap between consecutive events in seconds, `eventsPerMinute` its event density, holds excluded. With it, the plan's gap limit is `maxEventGap x 1.10 + 1/fps` instead of 2.2 s and a `holdReason` does not excuse a gap above it; the plan also fails when its events per minute (events of `type` or `kind` `hold` excluded) fall below `eventsPerMinute x 0.90`. Only changed material clears a fail, or the user's own words accepting a slower pace, logged in `ice/DIRECTION.md`. The same gate runs on the render: `ice-qa/references/motion-density.md`, "Pacing against the reference". Without `reference` the 2.2 s rule below holds unchanged.
+- `cut: "archive"` (news reel archive burst, `edit-types/news-reel.md` section 4): the scene's anchor is the noun that names what the archive shows, `anchorTime` its end, and the cut sits 0.36 s after it (row "Archive cut" in section 4); the anchor tolerance below is applied around that point.
 - `assets/transcript.json` holds the retained words with text, start, end, sourceStart, sourceEnd. `assets/edit-decisions.json` holds `duration`, `fps`, `keeps` (`{sourceStart,sourceEnd,start,end}`) and the reviewed removal reasons. Every retained word maps back to one kept range without crossing a cut; when no edit was made and `sourceStart` is absent, adapt the validator explicitly.
-- Check: `node scripts/validate-plan.mjs <project>`. It fails on: caption word count or text differing from the retained words, caption times more than 0.005 s from the transcript, a word crossing a cut or mapped more than 0.006 s off (keep-range tolerance 0.016 s), scene gaps or overlaps over 0.005 s, scenes not frame-aligned, an anchor more than 0.15 s before or 0.2 s after its scene start, missing moving B-roll, a visual-event gap over 2.2 s without `holdReason`, caption groups truncating words or overlapping. It reports average shot length, the largest event gap and the speaker share. It checks timing and coverage, not creative quality.
+- Check: `node scripts/validate-plan.mjs <project>`. It fails on: caption word count or text differing from the retained words, caption times more than 0.005 s from the transcript, a word crossing a cut or mapped more than 0.006 s off (keep-range tolerance 0.016 s), scene gaps or overlaps over 0.005 s, scenes not frame-aligned, an anchor more than 0.15 s before or 0.2 s after its scene start, missing moving B-roll, a visual-event gap over 2.2 s without `holdReason` (with `reference`: a gap over the reference limit, or a density under it, whatever the hold reason), caption groups truncating words or overlapping. It reports average shot length, the largest event gap and the speaker share (with `reference`, also `eventsPerMinute`). It checks timing and coverage, not creative quality.
 
 ## 4. Anchor leads (scoped, all kept)
 
 | Element | Enters | Scope |
 |---|---|---|
 | Short-form scene cut | Within -0.15 to +0.2 s of its anchor word | Shorts and reels plan |
+| Archive cut | 0.36 s (9 f at 25 fps) after the end of the noun that names what the archive shows, inside the speech pause; never during a question. Replaces the scene-cut window above for that cut only (plan scene `cut: "archive"`) | News reel (edit type `news-reel`, style family `family-broadcast-news.md`): archive burst, `edit-types/news-reel.md` section 4 |
 | Caption or impact event | Sync target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3 | Short-form |
 | Persistent-world graphic element | 0.15 to 0.25 s before the anchor word | Long-form graphics-led |
 | Overlay card (lower third, takeover) | 0.2 to 0.6 s before the anchor; stays until the topic ends; clears 0.1 to 0.5 s before the next card | Long-form talking head |

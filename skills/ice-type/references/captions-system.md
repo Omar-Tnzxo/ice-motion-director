@@ -13,6 +13,7 @@ Read this before deciding whether a film gets captions, what kind, and how words
 | Lower third / name plate | Who or where | Separate text role, never inside the caption track |
 | Paraphrase / promoted line | A distilled point | Separate role; never shown at the same time as the caption that says the same words |
 | Diegetic text | Signs, screens, plates inside the world | Part of the picture, not a caption |
+| Keyword text (keyword mode) | Single spoken content words or noun phrases shown large as the speech names them | Its own role, never a caption with words dropped: section 3b |
 
 - Visible motion-graphics text is short copy (hero word, stat, one emphasis word), never a sentence from the narration. When the narration should be readable, turn captions on and do not also show the same sentence as display type (two texts split attention: the viewer asks "read above or below?").
 - When motion text writes a sentence, hide that sentence's caption. After a partial effect (some words shown by the effect), the caption shows only the words the effect did not show. Whole sentence in the effect: no caption for it.
@@ -39,13 +40,29 @@ Every spoken word gets exactly one treatment:
 
 | Treatment | What it is | Share |
 |---|---|---|
-| `drop` | Not shown: fillers, exact stutters, self-correction backtracks, interjections | Display about 70 to 85% of spoken words in edited social content; documentary keeps more |
+| `drop` | Not shown: fillers, exact stutters, self-correction backtracks, interjections | Display about 70 to 85% of spoken words in edited social content; documentary keeps more. Scope line: the share applies to captions only; keyword mode (section 3b) shows about 27 to 29% of the words because it is a different role, and a film in keyword mode is never failed against this share |
 | `rail` | Verbatim line in front of the picture (lower third or a placed band) | Carries most of the text |
 | `embed` | A peak word composited behind the subject or into the scene | Scarce, earned peak |
 
 Embed scarcity, per beat or thought block (not per clip): at most 1 hero per block, never two co-visible, at least a beat of air between hero windows (warn under 0.6 s), at most one apex (the largest hero, full lockup); other heroes are minor peaks. Embedding every word is the common mistake.
 
 Dropping a structure word (article, negation, preposition) is a bug, not an edit.
+
+## 3b. Keyword mode
+
+Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`) whose package or reference runs no full captions, or any film whose reference measures it. Keyword text is its own text role: it shows chosen spoken words large, in the room, instead of a caption track.
+
+| Rule | Value |
+|---|---|
+| Share of words shown | About 27 to 29 percent of the spoken words (measured 14 of 52, and about 20 of 68), about 1 word in 4 |
+| Which words | The content noun phrase or strong adjective that carries each clause (topic, place, action); never verbs alone, never function words; it refers to the topic, never to a person (people get their own elements) |
+| Text | Verbatim from the transcript, in the spoken form and order; never paraphrased, never summarized, never translated into another wording |
+| Timing | Never late: first frame 20 f early to 3 f late against the word onset at 25 fps, median 4 f early (`caption-timing-and-truth.md` section 3, "Broadcast text leads and lags") |
+| Look and exit | Pointer reveal (RTL), glass subtitle box at wide framings, blink exit: `type-effects-specs.md`, table "Broadcast text" |
+| One at a time | One keyword element on screen at a time; never two boxes at once |
+| Captions with it | Keyword text and a caption never show the same words at once (section 1). When the brief or platform needs captions for muted viewing, the captions stay a separate rail and the keyword copy of those words hides the caption for its window, or the film runs captions only; the choice is logged |
+
+Keyword words are picked from the fresh word-timed transcript and named per element in `plan/shots.json` (`cites` = the exact spoken phrase, `cites_occurrence`, `subject`, `lead_frames`).
 
 ## 4. Routing a caption request
 
@@ -96,7 +113,7 @@ Minimum cue: 2 words and 0.5 s on screen (single-word styles excepted: those sti
 - Repeated tiny handoffs make viewers reacquire the text too often; an overfull block overloads one state. Wrong reading unit: change the handoff. Wrong size, wrap or placement: change the style.
 - One caption group visible at a time. No two groups overlap in time and region.
 - On a speaker turn, the previous speaker's caption hands off even if their face is still visible.
-- Captions never blink out: on shots full of text to read, move to a clear zone instead of disappearing.
+- Captions never blink out: on shots full of text to read, move to a clear zone instead of disappearing. Scope line: the blink exit of `type-effects-specs.md` "Broadcast text" is for titles and keyword text, never for captions; this rule holds in the news reel too.
 - Never back-fill silence: if the speaker pauses 1.5 s or more, leave the screen without a caption. No `[laughs]` or `[sighs]` tags in styled social captions (accessibility subtitles may need them: brief decides).
 
 ## 6. Emphasis inside captions
@@ -108,6 +125,7 @@ Minimum cue: 2 words and 0.5 s on screen (single-word styles excepted: those sti
 - Per-word styling candidates: brand names (larger or unique color), numbers (bold accent), emotional keywords (overshoot), the call to action. Group a compound or name as one unit when highlighting it; do not annotate every word.
 - Speaker-colored captions clarify who speaks, even over full-frame B-roll; coordinate the colors with the scene palette.
 - Keyword emphasis must preserve the speaker's wording.
+- Inverse colour logic (scoped): the crimson-to-white title of `type-effects-specs.md` "Broadcast text" is crimson while its word is being said and white once said, the opposite of accent-on-active karaoke. It is a title role, not a caption; never mix the two logics in one caption track.
 
 ## 7. Head-following captions
 

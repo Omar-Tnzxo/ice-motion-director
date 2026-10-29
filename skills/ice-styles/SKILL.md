@@ -4,13 +4,14 @@ description: >-
   Internal part of Ice Motion Director, not a command: start with /ice.
   Style catalogs for motion films: 51 film styles, 15 motion design styles, 32 drawing styles (hands),
   36 implemented art-history styles plus 17 research recipes, 9 narration grammars for voiceover-led
-  explainers, 10 opener style directions and 6 explainer looks, and a credited index of the community
+  explainers, 10 opener style directions and 6 explainer looks, a broadcast news family (the presenter
+  news reel genre, three measured programme packages, sub-brand patterns, the glass studio reel), and a credited index of the community
   Opus 5.5 prompt library. Each entry gives look, medium-specific moves, palette, sound, when to use,
   when not to use and common mistakes. Called by Ice Motion Director workflows; use only when called by name.
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # ice-styles
@@ -52,7 +53,8 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 | Narrated explainer | pick a grammar per section (narration-grammars-1 and -2); then a look: whiteboard, chalkboard, blueprint (drawing-line); isometric (graphic-design); the six explainer looks (directions) |
 | Process or "drawing itself" film | any anidoodle hand (drawing-line, paint-wash, print-paper-craft): each ships a medium order whose last frame is the still |
 | Same scene across eras | the speedrun mechanism and era specimens (art-history-eras) |
-| Footage edits needing a graphic layer (shorts, B-roll overlays) | variety-show captions (cartoon-film); halftone dossier (print-paper-craft); y2 investigator collage (narration-grammars-1); caption rules are owned by ice-type |
+| News reel (presenter-led news or explainer reel, edit type `news-reel`) | presenter news reel and, only when the `identity` slot is "as they are" or "a mix", the measured programme package of the reference (broadcast-news); glass studio reel when the footage was shot for it (broadcast-news); visual journalism look (directions); y2 investigator collage (narration-grammars-1) |
+| Footage edits needing a graphic layer (shorts, B-roll overlays) | variety-show captions (cartoon-film); halftone dossier (print-paper-craft); y2 investigator collage (narration-grammars-1); presenter news reel when the footage is a presenter take with news or explainer content (broadcast-news); caption rules are owned by ice-type |
 
 ## Selection by mood
 
@@ -100,7 +102,7 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 | Energy, climate, environment | satellite briefing, lidar survey (evidence-data); data storytelling (evidence-data); woodcut (print-paper-craft) |
 | Gaming | pixel RPG, pixel sprite diorama, microgame (games-toys); 80s cel anime (cartoon-film); low-poly island (screen-tech-3d) |
 | Music and events | synthwave (screen-tech-3d); risograph (print-paper-craft); pictogram motion, Bauhaus (graphic-design); 80s cel anime (cartoon-film) |
-| News, media, public sector | y2 investigator collage (narration-grammars-1); halftone newsprint (print-paper-craft); visual journalism look (directions); satellite briefing (evidence-data) |
+| News, media, public sector | presenter news reel, glass studio reel (broadcast-news); y2 investigator collage (narration-grammars-1); halftone newsprint (print-paper-craft); visual journalism look (directions); satellite briefing (evidence-data) |
 | Culture, museums, heritage | archive light table (evidence-data); shadow puppetry, red paper-cut, stained glass (print-paper-craft); art-history entries |
 | Crafts and handmade goods | embroidery, toy theatre (print-paper-craft); oil on canvas (paint-wash); coloured pencil (drawing-line) |
 
@@ -135,6 +137,7 @@ For Arabic or right-to-left films, any style works only after its type and capti
 | `references/family-screen-tech-3d.md` | Dark keynote, living screencast, sci-fi HUD, ASCII CRT, synthwave and vaporwave, aurora glass, glass product, 3D render, ray-traced CGI, low-poly |
 | `references/family-cartoon-film.md` | Rubber hose, 80s cel anime, cel boil, sci-fi sitcom toon, mid-century toon, marker comic, variety-show captions, silent film, found footage |
 | `references/family-games-toys.md` | Pixel art, pixel sprite diorama, microgame, game show, toy bricks, tilt-shift miniature |
+| `references/family-broadcast-news.md` | Presenter news reel (the genre: house grammar, colour-role contract, decision procedure per transcript line), three programme packages by the numbers (colours, type, motion, depth and 3D, sound, rhythm, fixed marks, reason rules; a package skin only when the `identity` slot is "as they are" or "a mix"), sub-brand patterns, glass studio reel |
 | `references/art-history-painters.md` | Painter and movement styles applied to a new subject |
 | `references/art-history-eras.md` | The same-scene changing-style mechanism, era specimens, research recipes |
 | `references/narration-grammars-1.md` | Grammar selection rules; y1, y2, y3, t1 |

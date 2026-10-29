@@ -4,6 +4,8 @@
 
 Applies to map shots in any engine (data stories, industry spots, travel, logistics). Map look and restraint (no decorative glows, particles, lens flares or gratuitous bloom on maps) belong with the ice-motion and ice-styles skills; the rules below make maps render correctly.
 
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the broadcast map replaces "no decorative glows" with lights that carry a job, each one only on what the line names. Measured in broadcast editors' builds and reels (ideas only): the named country glows or carries the accent while its neighbours stay grey (a red or dusty red country, one measured at #644242 with a gradient ramp, beside grey neighbours); an edge light sweep along the named border (one measured in gold #FFA200); the subject country in dark red on a desaturated teal-grey satellite plate; a top-down satellite plate in black and white (levels gamma about 0.34) with the named area filled in red (#FF0000) through a soft feathered mask; country silhouettes rising from behind the presenter; a black and white map video at about 13 % Hard Light on the set wall. These hex values are one package's skin: they are used as they are only when the stage 01 `identity` answer is "as they are" or "a mix"; otherwise the same roles take the user's accent and neutrals (`family-broadcast-news.md` section 2). Still banned on a broadcast map: glow on anything the line does not name, particles, lens flares, bloom over the whole map. Blend modes on the map plate follow `hyperframes.md` section 12, "Glass, backdrop blur and blend modes".
+
 ## 1. Pick one technique per shot
 
 | Technique | Use | Needs |
@@ -22,7 +24,7 @@ Load only the chosen technique. Keys come from environment variables or `~/.ice-
 | Need | Route (no key unless named) | Method |
 |---|---|---|
 | Country and region outlines (admin levels 0 to 2) | geoBoundaries (CC BY 4.0); Natural Earth and world-atlas TopoJSON (public domain) for globes and coarse outlines | `geoboundaries.org/api/current/gbOpen/<ISO3>/<ADM level>/` returns the GeoJSON link |
-| A no-key vector basemap | OpenFreeMap tiles and styles for MapLibre; Protomaps daily planet PMTiles cut to the area by range reads (`pmtiles extract`, fully local) | Bake as in the plate rule (section 2) |
+| A no-key vector basemap | OpenFreeMap tiles and styles for MapLibre; Protomaps daily planet PMTiles cut to the area by range reads (`pmtiles extract` of the go-pmtiles binary pinned in `versions.json` `binaries`, fully local) | Bake as in the plate rule (section 2) |
 | A clean satellite base for zoom shots | EOX Sentinel-2 cloudless WMTS (noncommercial: `needs purchase` commercially); Esri World Imagery (sharpest; `needs purchase` for published use) | Stitch the tiles for the area into one plate; draw the outline over it; keep the credit plate (section 5) |
 | The day's imagery (fires, smoke, floods) | NASA GIBS WMTS and the Worldview snapshot API (public domain) | One snapshot call per date and bounding box (`wvs.earthdata.nasa.gov/api/v1/snapshot` with `TIME=<date>` and `BBOX=<area>`) |
 | Dated before and after at 10 m | Element 84 Earth Search STAC (`earth-search.aws.element84.com/v1/search`, collection `sentinel-2-l2a`, a date window and a cloud filter; public COGs read by range); Copernicus Data Space for one-call images (free account: `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET`) | Name both dates on screen; full resolution needs GDAL or rasterio |

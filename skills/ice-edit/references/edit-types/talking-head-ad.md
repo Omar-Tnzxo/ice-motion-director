@@ -39,7 +39,7 @@ A 15 to 60 s vertical ad or reel where one person speaks to camera, recomposed f
 Speech joins are hard cuts. Scene or idea changes may use a fast transition of about a third of a second. Never the same move twice in a row; accents only at their moment, never repeated.
 
 ## Camera policy during holds
-Static zoom per segment. Calm premium ads keep captions still (card fades only, no word jumps).
+Static zoom per segment. Calm premium ads keep captions still (card fades only, no word jumps). News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the zoom row above and this static zoom are replaced by the continuous digital camera of `ice-motion/references/camera.md`, "Digital camera on one take (news reel)" (`news-reel.md` section 6).
 
 ## Sound policy
 Sound effects only on meaningful moments. SFX density, levels and the silence before the key line: the `ice-audio` skill, `references/sfx.md` sections 1 and 4. Call a background track "background audio"; its content is a stage 01 question when the brief leaves it open, otherwise it is chosen from the ice-audio skill's ladder (sound made by code only when the user names it) and the choice is logged. No track is used before its sync license check (`ice-audio/references/music-choice-and-licensing.md` section 5).

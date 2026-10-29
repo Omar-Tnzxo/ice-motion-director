@@ -42,7 +42,7 @@ One router skill reads your request and sends it to the right workflow:
 | A film made from scratch: launch film, app ad, brand film, logo sting, kinetic type, data story, social short | `ice-film` | A finished MP4 plus a delivery report |
 | A video where a voice explains something | `ice-explainer` | A narrated explainer with captions |
 | "Make it like this" with a reference video, site or images | `ice-remake` | A new film in that style, with your content |
-| An edit of your own footage: YouTube, podcast clips, talking-head ads, shorts, B-roll | `ice-edit` | The cut, captions, vertical versions |
+| An edit of your own footage: YouTube, podcast clips, talking-head ads, shorts, news reels, B-roll | `ice-edit` | The cut, captions, vertical versions |
 | Lottie, loaders, icons, UI motion for an app or site | `ice-lottie` | Lottie JSON or animated SVG plus a developer handoff |
 | Ideas, hooks, scripts, storyboards | `ice-ideas` | A concept set and a script, ready to build |
 
@@ -305,7 +305,7 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Workflow | [`ice-film`](skills/ice-film) | Films from scratch, 12 film types |
 | Workflow | [`ice-explainer`](skills/ice-explainer) | Voiceover-led explainers |
 | Workflow | [`ice-remake`](skills/ice-remake) | A new film in the style of a reference |
-| Workflow | [`ice-edit`](skills/ice-edit) | Editing real footage, 6 edit types |
+| Workflow | [`ice-edit`](skills/ice-edit) | Editing real footage, 7 edit types (news reels included) |
 | Workflow | [`ice-lottie`](skills/ice-lottie) | Lottie and UI motion |
 | Workflow | [`ice-ideas`](skills/ice-ideas) | Concepts, hooks, scripts, storyboards |
 | Domain | [`ice-direction`](skills/ice-direction) | Brief, questions, research, decisions, color, type pairing, anti-sameness |
@@ -313,11 +313,11 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
 | Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness |
-| Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles |
+| Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles, with a measured broadcast news family |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
-| Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, licensed sourcing, brand assets |
+| Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, real-first sourcing with each item's license status, brand assets |
 | Domain | [`ice-qa`](skills/ice-qa) | Quality gates, critics, delivery report |
-| Command | [`ice-style`](skills/ice-style) | The style library as presets: browse 151 styles or start a film in one |
+| Command | [`ice-style`](skills/ice-style) | The style library as presets: browse 156 styles or start a film in one |
 | Commands | [`ice`](skills/ice), [`ice-status`](skills/ice-status), [`ice-01-brief`](skills/ice-01-brief) to [`ice-10-deliver`](skills/ice-10-deliver) | Step mode: run, resume or check the production spine one stage at a time |
 
 ## Gallery

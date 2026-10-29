@@ -1,15 +1,17 @@
 // skills/ice-qa/scripts/lint.mjs on local fixture pages (Spotify pilot fixes): rule C6 skips scene geometry on a
-// tilted 3D plane but still fails a flat header bar that holds text; text size is the drawn (projected) size.
-// The fixture pages are written to a temp folder. Skips when no Chrome or Edge is found (set CHROME_PATH).
+// tilted 3D plane but still fails a flat header bar that holds text; text size is the drawn (projected) size; a
+// data-broadcast element passes G5 only in a news reel. Then the reference gates of motion_check.py (lessons L9 and
+// L12, standard library only) and the news reel checks of storyboard_lint.py. Fixtures are written to a temp folder.
+// The lint tests skip when no Chrome or Edge is found (set CHROME_PATH); the Python tests skip without Python 3.10+.
 // Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { after, test } from "node:test";
-import { abs } from "./helpers.mjs";
+import { abs, findPython } from "./helpers.mjs";
 
 const LINT = abs("skills/ice-qa/scripts/lint.mjs");
 const probe = spawnSync(process.execPath, ["--input-type=module", "-e",
@@ -101,4 +103,127 @@ test("text size is the projected size of a scaled 3D word", { skip: NO_CHROME },
   assert.ok(Math.abs(tiny.fs - 3) <= 0.2, "drawn size of the scaled word: " + tiny.fs + " % H");
   const head = c1.hits.find((h) => h.text === "One big idea");
   assert.equal(head, undefined);
+});
+
+// Broadcast package exemption (slop-scan.md section 4, "Broadcast package (news reel)"): a programme name in the top
+// band marked data-broadcast passes G5 only when the film type is a news reel; elsewhere the mark is ignored.
+test("a data-broadcast programme name passes G5 in a news reel and fails in a product launch", { skip: NO_CHROME }, () => {
+  const f = page("broadcast", `
+<div id="prog" class="abs" data-broadcast="programme name" style="left:1500px;top:40px;font-size:30px;letter-spacing:0.1em;text-transform:uppercase">THE RIVER DESK</div>
+<div class="abs" style="left:0;top:470px;width:1920px;text-align:center;font-size:120px;line-height:1">Dry wells</div>`);
+  const run = (type) => {
+    const r = spawnSync(process.execPath, [LINT, f, "--times", "0.5", "--json", "--type", type], { encoding: "utf8", timeout: 120000 });
+    assert.ok(r.status === 0 || r.status === 1, `lint.mjs exit ${r.status}: ${r.stderr}`);
+    return { status: r.status, out: JSON.parse(r.stdout) };
+  };
+  const news = run("news reel");
+  assert.equal(news.out.gate, "PASS", JSON.stringify(news.out.rules.filter((x) => x.status !== "PASS")));
+  assert.ok(news.out.exemptions.some((e) => e.startsWith('[data-broadcast="programme name"] exempt')), JSON.stringify(news.out.exemptions));
+  const launch = run("product launch");
+  assert.equal(launch.status, 1);
+  assert.equal(launch.out.gate, "FAIL");
+  assert.ok(launch.out.exemptions.some((e) => e.startsWith("[data-broadcast] ignored")), JSON.stringify(launch.out.exemptions));
+});
+
+// motion_check.py reference gates (lessons L9 and L12), run with --pacing-only and numpy blocked, so they need only the
+// standard library. The reference has events every 1 s with one 3 s gap (longest gap 3 s, 54 events per minute).
+const PY = findPython();
+const NO_PY = PY ? false : "Python 3.10+ not found";
+const MOTION = abs("skills/ice-qa/scripts/motion_check.py");
+const json = (name, data) => { const f = join(dir, name); writeFileSync(f, JSON.stringify(data)); return f; };
+const every = (from, to, step, kind = "cut", key = "kind") => {
+  const out = [];
+  for (let t = from; t <= to + 1e-9; t += step) out.push({ t: +t.toFixed(3), [key]: kind });
+  return out;
+};
+const motion = (args) => {
+  const wrapper = "import runpy, sys; sys.modules['numpy'] = None; s = sys.argv[1]; sys.argv = sys.argv[1:]; runpy.run_path(s, run_name='__main__')";
+  const r = spawnSync(PY[0], [...PY.slice(1), "-c", wrapper, MOTION, "--pacing-only", ...args], { encoding: "utf8", timeout: 60000 });
+  assert.ok(r.status === 0 || r.status === 1, `motion_check.py exit ${r.status}: ${r.stdout}${r.stderr}`);
+  return { status: r.status, out: JSON.parse(r.stdout), err: r.stderr };
+};
+// stored summary fields (longest_gap_at as a pair, as recipe.py writes it) are ignored: everything is recomputed
+const refEvents = () => json("ref.events.json", { duration: 30, fps: 25, longest_gap: 99, longest_gap_at: [0, 99], events_per_minute: 1, events: [...every(1, 25, 1), { t: 28, kind: "graphic" }, { t: 29, kind: "flash" }] });
+
+test("motion_check pacing: a 19.75 s gap fails against a 3 s reference gap even inside a declared hold", { skip: NO_PY }, () => {
+  const film = json("gap.events.json", { duration: 60, fps: 25, events: [...every(1, 20, 1), { t: 20, kind: "hold", end: 39.75 }, ...every(39.75, 59.75, 1)] });
+  const outDir = join(dir, "pacing-gap");
+  const r = motion(["--events", film, "--reference-events", refEvents(), "--out", outDir]);
+  assert.equal(r.status, 1, r.err);
+  const p = r.out.pacing;
+  assert.equal(p.ok, false);
+  assert.equal(p.blocking, true);
+  assert.equal(p.reference.longest_gap, 3);
+  assert.equal(p.film.longest_gap, 19.75);
+  assert.deepEqual(p.film.longest_gap_at, [20, 39.75]);
+  assert.ok(p.reasons.some((x) => /declared hold does not excuse it/.test(x)), JSON.stringify(p.reasons));
+  assert.ok(existsSync(join(outDir, "pacing.json")), "pacing.json written");
+});
+
+test("motion_check pacing: a film within the reference's gap and density passes", { skip: NO_PY }, () => {
+  // the older film events format: a bare list, the kind under "type", the duration from --duration
+  const film = json("ok.events.json", every(1, 29, 1, "cut", "type"));
+  const r = motion(["--events", film, "--reference-events", refEvents(), "--duration", "30"]);
+  assert.equal(r.status, 0, r.err);
+  assert.equal(r.out.pacing.ok, true);
+  assert.deepEqual(r.out.pacing.reasons, []);
+});
+
+test("motion_check pacing: a film under 0.9 of the reference's events per minute fails", { skip: NO_PY }, () => {
+  const film = json("sparse.events.json", { duration: 30, events: every(3, 27, 3) });
+  const r = motion(["--events", film, "--reference-events", refEvents()]);
+  assert.equal(r.status, 1, r.err);
+  assert.equal(r.out.pacing.ok, false);
+  assert.ok(r.out.pacing.film.longest_gap <= r.out.pacing.limits.max_gap, "the gap alone passes");
+  assert.ok(r.out.pacing.reasons.some((x) => /events per minute is under the limit/.test(x)), JSON.stringify(r.out.pacing.reasons));
+});
+
+test("motion_check depth: a film with no 3D fails against a reference with a card field and camera share 0.5", { skip: NO_PY }, () => {
+  const ref = json("ref.depth.json", { camera_moving_share: 0.5, layers: 3, parallax_ratio: 2, push_through: 1, elements_3d: ["card_field"],
+    dof: { present: false, blur_px: null }, triggers: [{ kind: "card_field", t: 12, words: "every town" }] });
+  const flat = json("flat.depth.json", { camera_moving_share: 0.5, layers: 1, parallax_ratio: null, push_through: 0, elements_3d: [], dof: { present: false } });
+  const r = motion(["--reference-depth", ref, "--depth", flat]);
+  assert.equal(r.status, 1, r.err);
+  assert.equal(r.out.depth.ok, false);
+  assert.equal(r.out.depth.blocking, true);
+  assert.ok(r.out.depth.reasons.some((x) => /card_field/.test(x)), JSON.stringify(r.out.depth.reasons));
+});
+
+test("motion_check depth: the same kinds pass at camera share 0.4 and fail at 0.3", { skip: NO_PY }, () => {
+  const ref = json("ref2.depth.json", { camera_moving_share: 0.5, layers: 3, parallax_ratio: 2, push_through: 1, elements_3d: ["card_field"], dof: { present: false } });
+  const film = (share) => json(`film-${share}.depth.json`, { camera_moving_share: share, layers: 3, parallax_ratio: 2, push_through: 1, elements_3d: ["card_field"], dof: { present: false } });
+  const near = motion(["--reference-depth", ref, "--depth", film(0.4)]);
+  assert.equal(near.status, 0, near.err);
+  assert.equal(near.out.depth.ok, true);
+  const far = motion(["--reference-depth", ref, "--depth", film(0.3)]);
+  assert.equal(far.status, 1, far.err);
+  assert.ok(far.out.depth.reasons.some((x) => /camera_moving_share/.test(x)), JSON.stringify(far.out.depth.reasons));
+});
+
+test("storyboard_lint: cites must be said, subjects come from the vocabulary, depth rows name a build route, a continuous take is declared", { skip: NO_PY }, () => {
+  const sb = join(dir, "news-reel-storyboard.md");
+  writeFileSync(sb, `Style: presenter news reel on one locked take
+Palette: #E85D3A accent, #F4EFE6 ground, #1F1F1F text
+Characters: none
+Style exception: continuous take of the presenter, reframed digitally
+
+| Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method | Tags | Cites | Subject |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0-12 | the presenter at the desk | leans in to the lens | slow push | water ran out | "the water ran out" at 0.4 s | the hook names the shortage | footage | | "the water ran out" | speaker |
+| 12-16 | a field of photo cards in 2.5D | the camera passes through the cards | push through | | "every town" at 12 s | each card is a town the line names | code scene | | "every town on the river" | place |
+| 16-20 | a 3D flag of the region | waves on its pole | glide | dry wells | "the wells are dry" at 16 s | the region the line names | code scene, build: css-3d | | "the wells were empty" | region |
+| 20-26 | end card with the programme logotype | the title block builds line by line | hold | the river programme tonight | the sign-off at 20 s | the programme's end card | code scene | CTA block | | programme |
+`, "utf8");
+  const script = join(dir, "news-reel-script.txt");
+  writeFileSync(script, "The water ran out last summer. Every town on the river felt it. The wells are dry now.\n", "utf8");
+  const r = spawnSync(PY[0], [...PY.slice(1), abs("skills/ice-qa/scripts/storyboard_lint.py"), sb, "--script", script, "--type", "news reel"], { encoding: "utf8", timeout: 60000 });
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /row 'news reel' of motion-density\.md section 6/);
+  assert.match(r.stdout, /\[YELLOW\] \(6\) duration: this shot is 12 s, over 8 s \(continuous take declared/);
+  assert.match(r.stdout, /\(21\) depth route: a depth or 3D element with no build route/);
+  assert.match(r.stdout, /\(18\) cites: the cited phrase 'the wells were empty' is never said/);
+  assert.match(r.stdout, /\(19\) subject: subject role 'region' is not in the vocabulary/);
+  assert.match(r.stdout, /\(20\) verbatim/);
+  assert.match(r.stdout, /\[GREEN\] shot 4/);
+  assert.doesNotMatch(r.stdout, /\(18\) cites: the cited phrase 'the water ran out'/);
 });

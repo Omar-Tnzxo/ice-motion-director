@@ -19,10 +19,13 @@ sfx mode: the selection rules of references/sfx.md sections 5 and 6 as numbers, 
 rise time, tail, energy share under 150 Hz and over 6 kHz, peak. Rejects: over 50 % of the energy under 150 Hz
 (whoosh), over 40 % over 6 kHz (any). Whooshes score on an 80 to 400 ms rise and a short lead-in; impacts on a
 0.6 to 1.0 s tail and a fast transient. Lower score is better.
+--profile news-reel (references/sfx.md section 3b): under speech a broadcast effect is sub or air, so the two band
+rejects and the phone note are replaced by one reject: over 50 % of the energy in the 150 Hz to 4 kHz voice band
+(any kind). Impacts score on a 0.6 to 1.4 s tail (the sub booms on edits); whooshes keep their rise and lead-in.
 
 Usage (Windows, macOS, Linux; needs ffmpeg on PATH, ffprobe too for sfx, and numpy plus scipy from requirements.txt):
     python match_music.py music --ref <sound_map.json or reference file> --out <folder> <track> <track> [...]
-    python match_music.py sfx --kind whoosh|impact [--out <folder>] <file> <file> [...]
+    python match_music.py sfx --kind whoosh|impact [--profile default|news-reel] [--out <folder>] <file> <file> [...]
 
 Exit code: 0 on success, 2 for bad input (a missing file, no candidate that could be measured),
 3 for a missing package or a missing ffmpeg or ffprobe.
@@ -234,11 +237,26 @@ def measure_sfx(np, path: Path) -> dict:
             "rise_ms": round(rise * 1000), "tail_s": round((end - sync) / SFX_SR, 2),
             "low_share": round(float(spec[freqs < 150].sum()) / total, 2),
             "high_share": round(float(spec[freqs > 6000].sum()) / total, 2),
+            "voice_band_share": round(float(spec[(freqs >= 150) & (freqs <= 4000)].sum()) / total, 2),
             "peak_db": round(20 * math.log10(max(peak, 1e-12)), 1), "rms_db": round(20 * math.log10(rms), 1)}
 
 
-def score_sfx(kind: str, m: dict) -> tuple[float, list[str]]:
+def score_sfx(kind: str, m: dict, profile: str = "default") -> tuple[float, list[str]]:
     notes, s = [], 0.0
+    if profile == "news-reel":
+        if m["voice_band_share"] > 0.5:
+            notes.append("reject: over 50% of the energy in the 150 Hz to 4 kHz voice band (sfx.md section 3b)")
+            s += 10
+        if kind == "whoosh":
+            s += 0 if 80 <= m["rise_ms"] <= 400 else min(abs(m["rise_ms"] - 240) / 160, 3)
+            s += min(m["lead_in_s"] / 0.1, 2)
+        else:
+            s += 0 if 0.6 <= m["tail_s"] <= 1.4 else min(abs(m["tail_s"] - 1.0) / 0.4, 3)
+            s += min(m["rise_ms"] / 40, 2)
+        if m["peak_db"] <= -12:
+            notes.append("quiet file: level it before use (sfx.md section 6)")
+            s += 1
+        return round(s, 2), notes
     if kind == "whoosh" and m["low_share"] > 0.5:
         notes.append("reject: over 50% of the energy under 150 Hz (high-pass it and measure again)")
         s += 10
@@ -273,7 +291,7 @@ def run_sfx(args: argparse.Namespace) -> int:
         except ValueError as exc:
             skipped.append({"file": path.name, "reason": str(exc)})
             continue
-        s, notes = score_sfx(args.kind, m)
+        s, notes = score_sfx(args.kind, m, args.profile)
         rows.append({**m, "path": str(path.resolve()), "score": s, "notes": notes})
     if not rows:
         sys.stderr.write("error: no file could be measured: " + "; ".join(f"{s['file']}: {s['reason']}" for s in skipped) + "\n")
@@ -281,13 +299,14 @@ def run_sfx(args: argparse.Namespace) -> int:
     rows.sort(key=lambda r: r["score"])
     for i, r in enumerate(rows, 1):
         print(f"{i}. {r['score']:5.2f} {r['file']}: rise {r['rise_ms']} ms, sync {r['sync_s']} s, tail {r['tail_s']} s, "
-              f"under 150 Hz {r['low_share']}, over 6 kHz {r['high_share']}, peak {r['peak_db']} dB {' '.join(r['notes'])}")
+              f"under 150 Hz {r['low_share']}, over 6 kHz {r['high_share']}, voice band {r['voice_band_share']}, "
+              f"peak {r['peak_db']} dB {' '.join(r['notes'])}")
     for s in skipped:
         print(f"skipped {s['file']}: {s['reason']}")
     if args.out:
         args.out.mkdir(parents=True, exist_ok=True)
         target = args.out / f"sfx-{args.kind}-ranking.json"
-        target.write_text(json.dumps({"version": 1, "kind": args.kind, "ranking": rows, "skipped": skipped}, indent=2,
+        target.write_text(json.dumps({"version": 1, "kind": args.kind, "profile": args.profile, "ranking": rows, "skipped": skipped}, indent=2,
                                      ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"wrote {target}")
     return 0
@@ -305,6 +324,8 @@ def main(argv: list[str] | None = None) -> int:
     mu.add_argument("candidates", type=Path, nargs="+", help="local candidate tracks")
     sx = sub.add_parser("sfx", help="rank recorded sound effects of one kind")
     sx.add_argument("--kind", choices=("whoosh", "impact"), required=True)
+    sx.add_argument("--profile", choices=("default", "news-reel"), default="default",
+                    help="news-reel: sub or air only under speech (references/sfx.md section 3b)")
     sx.add_argument("--out", type=Path, help="folder for sfx-<kind>-ranking.json (optional)")
     sx.add_argument("files", type=Path, nargs="+", help="local candidate sound files")
     args = ap.parse_args(argv)

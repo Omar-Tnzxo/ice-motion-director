@@ -4,7 +4,7 @@ description: "Internal part of Ice Motion Director, not a command: start with /i
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # ice-arabic
@@ -39,10 +39,10 @@ The dialect is a setting, never a constant. No rule in this skill assumes Egypti
 
 ## 2. Hard rules (every film type)
 
-1. **Animate Arabic by line, phrase, word or whole shaped run.** Never split Arabic into single characters, never type it letter by letter. Letter-level effects work only on connected components of a fully shaped line. See `references/letterforms-in-motion.md`.
+1. **Animate Arabic by line, phrase, word or whole shaped run.** Never split Arabic into single characters, never type it letter by letter. Letter-level effects work only on connected components of a fully shaped line. A pointer-led mask reveal and a coloured-head typewriter built as a mask over a pre-shaped line are not letter typing (`references/letterforms-in-motion.md` section 1). See `references/letterforms-in-motion.md`.
 2. **No letter-spacing on Arabic.** Create air with size, leading, word spacing, width, weight and layout. Never animate letter-spacing on Arabic.
 3. **Never clip a letter that is read.** Dots, hamza, diacritics, descenders and final forms stay whole. Any overlapping card, sheet, mask edge or polygon stays above the dot and descender zone of a word meant to be read.
-4. **Kashida only by its placement rules** (`references/kashida.md`), only as a deliberate display effect, never as justification filler, never on sacred text, never on numbers.
+4. **Kashida only by its placement rules** (`references/kashida.md`), only as a deliberate display effect, never as justification filler, never on sacred text, never on numbers. Note (scoped): in a news reel (edit type `news-reel`) or when a reference measures it, multi-line display blocks and end-card lines are justified to one width with kashida (`references/kashida.md` section 4b); that is a display layout, never applied to captions, numbers, Latin, sacred text or UI copy, and its count follows the reference.
 5. **Isolate every Latin run and every number** inside Arabic lines so bidi never reorders them; punctuation sits outside the isolated run.
 6. **One digit system per film,** taken from the profile, checked in rendered pixels.
 7. **Break lines by meaning.** A number stays on one line with its unit. Shorten copy before shrinking it.
@@ -60,6 +60,7 @@ Type names follow the film types of the `ice-film` skill (`references/film-types
 | Topic | Rule A and where it holds | Rule B and where it holds |
 |---|---|---|
 | Kashida stretch | Allowed as a display effect, at most twice per video, under the placement rules: talking-head ad, shorts and reels, social short, kinetic type, hype promo | Banned as justification or decoration in body text and captions: every type. Banned on product UI text in UI walkthrough and app ad screens |
+| Justified display block (news reel) | Display blocks and end-card lines justified to one width with kashida, the count following the reference: news reel (edit type `news-reel`) and any film whose reference measures it (`references/kashida.md` sections 4b and 4c) | Never in captions, numbers, Latin, sacred text or UI copy; with no reference, a news reel keeps the twice-per-video limit |
 | Digits | Western digits: default for social ads and edits when the profile does not say otherwise | Arabic-Indic digits: when the brand, market or formal register uses them, and for verse numbers in sacred text |
 | Reading hold for a word | At least 0.6 s for any word on screen and for a highlighted caption word (it stays to its sentence end): talking-head ad, shorts and reels, podcast, motion films with captions | At least 0.9 s for an important standalone Arabic line (54 frames at 60 fps) unless it stays legible through a handoff: product launch, app ad, brand film, kinetic type, hype promo, industry spot, logo sting |
 | Caption sync tolerance | Sentence start within 0.1 s of the re-transcribed audio: word-highlight (karaoke) captions | Within about 0.15 s: sentence or card captions |

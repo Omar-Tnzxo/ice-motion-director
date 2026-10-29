@@ -55,6 +55,22 @@ Rules that hold everywhere:
 | Stills bracketing | In HTML engines, bracket a video element with a poster frame before and a last frame after, to cover startup flicker and end black |
 | Background footage | Behind text: darken and desaturate (brightness about 0.35 to 0.50, saturation 0.5 to 0.7) with a scrim only under the text, never by lowering opacity; motion at most about 0.6% zoom per second |
 | Spotlight inside footage | Dim surroundings 30 to 50% and desaturate 40 to 60% (never black or gray), ramp 0.2 to 0.3 s, keep the target's original pixels, restore on time. On B-roll and subjects' footage only, never on the speaker's shot (`layers-and-isolation.md` section 5) |
+| CTA desaturation (news reel) | News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the call-to-action mood switch replaces the 0.2 to 0.3 s ramp above. Trigger: the call-to-action words (measured 3 f before "follow us" to 10 f after the time line), on the whole frame or the background only as the reference shows. Ramp 26 to 36 f (1.04 to 1.44 s at 25 fps), near linear (measured saturation index from 85-102 down to 38-45); the speaker's luma is kept or raised, never lowered (measured 45 to 53), so the white icons and the platform plate become the brightest things. Holds to the cut to the end card. Reason: colour drains so the call to action reads first |
+
+### News reel B-roll treatments
+
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): each treatment goes only on archive or B-roll, never on the studio footage of the speaker (no grain, dust, scanlines or leaks on studio footage: 6 of 6 measured reels), each with its plan row and reason. Numbers are tutor or measured values; a reference's own measurement wins (`ice-remake/references/measuring.md`, section "Finishing layer").
+
+| Treatment | Where | How | Reason |
+|---|---|---|---|
+| Black and white | Archive and B-roll that sits behind the cut-out or under a title | Full monochrome tint (100 percent) | Marks the picture as from outside the studio; keeps the lit presenter the only colour |
+| Grain and scratches | Archive only, never on footage shot for the reel | Film grain and scratch overlay at a low strength measured on the reference | Says "archive"; on new footage it would lie about its age |
+| Red wash | Crowds, war, army or violence footage named in the speech, never on the people the story sympathises with | Red multiply on the first frame of each clip, or a held tint that decays over about 8 f | Heat and alarm; the package's red used as a meaning, not a decoration |
+| Mosaic on a map flag | A flag laid over a map shape | Mosaic (tutor value 150) plus a soft glow | Turns the flag into a texture on the land instead of a second picture |
+| Over-exposed entry | The first 2-4 f of an archive burst after a blur-out | Luma lifted to about 150-175, then the clip's own grade | The archive arrives "burnt", a cue that it is real footage |
+| Behind the cut-out | B-roll on layer 3 behind the presenter | About 25 percent opacity, feathered mask 73-173 px (`layers-and-isolation.md` section 3b) | Context without competing with the lit presenter |
+
+Archive burst timing and flashes: `edit-types/news-reel.md` section 4.
 
 Generated footage (optional, paid, disclosed, user-initiated): length, continuity, screens and inspection of generated clips: the `ice-assets` skill, `references/ai-media-policy.md` sections 5 and 6. Generation success is not asset QA.
 

@@ -37,6 +37,7 @@ The scope hub. Every scoped rule in this skill is summarized here by type so a w
 | Shorts and reels | A | Fast cuts, one topic per short | Faster cuts, quick real-face shots | Split rather than compress long sources |
 | B-roll overlay | B | Full cutaways or transparent panels; graphics land on spoken words | Pinned to content coordinates | Final graphic clears before the video ends; alpha exports via ice-engines |
 | Showreel | A | Cut on motion, velocity-matched whips naming the matching tween | Camera never sleeps | Scenes 1.0-2.0 s; new element every 0.3-0.6 s; hold logo 1.5-2 s |
+| News reel (edit type `news-reel`) | A, carried by inner events on one take | Hard cuts mostly; broadcast seams with their meanings (`cut-catalog.md` section 13) | Digital camera on one take, 15.8-27.8 moves per minute, face-anchored (`camera.md` section 8) | Broadcast settle curves (`springs-and-curves.md` section 7); package moves (`atomic-moves.md` section 7); pacing against the reference; style family `family-broadcast-news.md` |
 
 ## 3. Industry personality presets
 

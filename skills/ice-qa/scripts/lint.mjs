@@ -10,7 +10,7 @@
 // lint.mjs - gate G5 "no page chrome": a DOM-level lint for HUD / slide-deck / vibe-coded-UI patterns in a film's index.html.
 //
 // Usage:  node lint.mjs <index.html> [--times 0.5,2,4.2] [--samples N] [--json] [--width W --height H] [--duration S]
-//                        [--type "film type"]
+//                        [--type "film type"] [--broadcast-measured]
 //
 // Loads the page in headless Chrome (scripts/_cdp.mjs), seeks it with the renderers' contracts (window.renderAt(t) or
 // window.seek(t) of the ice-engines render-html.mjs page; __seek / __timelines / gsap of HyperFrames pages), waits for
@@ -55,6 +55,10 @@
 //   [data-ui="captured"] marks a faithful rebuild of a captured product screen: V5 is skipped inside it (the exemption is printed).
 //   [data-required-label] marks a label the rules require on screen ("Example data", the unofficial-concept line; ice-assets
 //   truth-sheet.md section 9): exempt from every rule above, printed under exemptions with its size and box for the critic.
+//   [data-broadcast="<element>"] marks a broadcast package element (logo bug, programme name, progress bar, location tag,
+//   lower third, glass plate or pill, question card...; slop-scan.md section 4, "Broadcast package (news reel)"): exempt
+//   from every rule above, printed under exemptions with its name and box, only when the film type is a news reel or the
+//   run passes --broadcast-measured (the reference measures the element); anywhere else the mark is ignored and said so.
 //   Text size (every "% H" above) is the drawn size: the CSS font-size times the projected scale of the text's box (drawn
 //   box height over layout height, rotation corrected), so a word on a scaled or tilted 3D plane counts as small as it looks.
 //   Hits print fs (drawn) and, when a transform makes them differ, fsCss (the CSS font-size).
@@ -71,7 +75,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { launchChrome, parseArgs, helpFrom } from './_cdp.mjs';
 
 const fail2 = (m) => { console.error('error: ' + m); process.exit(2); };
-const { pos, opt } = parseArgs(process.argv.slice(2), { help: 'bool', times: 's', samples: 's', json: 'bool', width: 's', height: 's', duration: 's', type: 's' });
+const { pos, opt } = parseArgs(process.argv.slice(2), { help: 'bool', times: 's', samples: 's', json: 'bool', width: 's', height: 's', duration: 's', type: 's', 'broadcast-measured': 'bool' });
 if (opt.help || !pos[0]) { console.log(helpFrom(import.meta.url)); process.exit(opt.help ? 0 : 2); }
 const src = pos[0];
 const url = /^(https?|file):/i.test(src) ? src : (fs.existsSync(src) ? pathToFileURL(path.resolve(src)).href : fail2(`input not found: ${src}`));
@@ -136,6 +140,7 @@ const PAGE_LIB = String.raw`(() => {
   };
   window.__lintScan = () => {
     const W = innerWidth, H = innerHeight;
+    const bcOf = (e) => { const m = e && e.closest ? e.closest('[data-broadcast]') : null; return m ? (m.getAttribute('data-broadcast') || 'broadcast element') : ''; };
     const cs = (e) => getComputedStyle(e);
     const rgba = (c) => {
       let m = /^rgba?\(([^)]+)\)/.exec(c || '');
@@ -295,7 +300,7 @@ const PAGE_LIB = String.raw`(() => {
         up: s.textTransform === 'uppercase' || (letters.length >= 3 && letters === letters.toUpperCase()),
         mono: /mono|menlo|courier|consolas/i.test(s.fontFamily), w: +s.fontWeight || 400, color: rgba(s.color).map((v, i) => (i < 3 ? Math.round(v) : +(v * opacity(p)).toFixed(2))),
         ta: cont.textAlign, lines: g.tops.size, ui: sf ? id(sf) : 0, uiCaptured: !!(sf && sf.getAttribute && sf.closest('[data-ui="captured"]')), snip: snip(g.c, text),
-        req: !!g.c.closest('[data-required-label]') });
+        req: !!g.c.closest('[data-required-label]'), bc: bcOf(g.c) });
     }
     // ---- shapes: filled / bordered boxes, media, dots
     for (const e of document.body.querySelectorAll('*')) {
@@ -318,7 +323,7 @@ const PAGE_LIB = String.raw`(() => {
       const inner = wide ? blockEls.filter((c) => e.contains(c)).length : 0;
       shapes.push({ id: id(e), tag, snip: snip(e), x0: r.left / W, y0: r.top / H, x1: r.right / W, y1: r.bottom / H, w: r.width, h: r.height,
         vb: vis ? [vis.x0 / W, vis.y0 / H, vis.x1 / W, vis.y1 / H] : null, aligned: aligned(frameOf(e)), ctrl, inner,
-        fill: !!fill, alpha: +(bg[3] * op).toFixed(2), bg: bg.slice(0, 3).map(Math.round), border, media: !!media, radiusPct: Math.round(radius), req: !!e.closest('[data-required-label]'), ui: (() => { const sf = surfaceOf(e.parentElement || e); return sf ? id(sf) : 0; })(), selfSurface: isSurface(e) });
+        fill: !!fill, alpha: +(bg[3] * op).toFixed(2), bg: bg.slice(0, 3).map(Math.round), border, media: !!media, radiusPct: Math.round(radius), req: !!e.closest('[data-required-label]'), bc: bcOf(e), ui: (() => { const sf = surfaceOf(e.parentElement || e); return sf ? id(sf) : 0; })(), selfSurface: isSurface(e) });
       if (isSurface(e)) surfaces.push({ id: id(e), x0: r.left / W, y0: r.top / H, x1: r.right / W, y1: r.bottom / H });
       if (shapes.length > 2500) break;
     }
@@ -381,6 +386,13 @@ function evalSample(t, A, B, hits) {
   for (const b of blocks.filter((x) => x.req)) hits.exempt.add('[data-required-label] exempt: ' + JSON.stringify(b.text.slice(0, 60)) + ' at ' + bb(b).join(',') + ', ' + fsPct(b) + ' % H' +
     ((b.up && b.ls >= 0.05) || b.mono ? ' (set in tracked caps or mono: the rule asks for the body font in sentence case)' : ''));
   blocks = blocks.filter((b) => !b.req); shapes = shapes.filter((s) => !s.req);
+  // broadcast package elements ([data-broadcast]): exempt only in a news reel or with --broadcast-measured
+  const marked = [...blocks.filter((b) => b.bc), ...shapes.filter((x) => x.bc)];
+  if (marked.length && BROADCAST.allowed) {
+    for (const b of marked) hits.exempt.add('[data-broadcast="' + b.bc + '"] exempt (' + BROADCAST.why + '): ' + (b.text ? JSON.stringify(b.text.slice(0, 60)) + ' ' : '') + 'at ' + bb(b).join(','));
+    blocks = blocks.filter((b) => !b.bc); shapes = shapes.filter((x) => !x.bc);
+  } else if (marked.length) hits.exempt.add('[data-broadcast] ignored on ' + marked.length + ' element(s): ' + BROADCAST.why +
+    '; a broadcast package element is allowed only in a news reel or when the reference measures it (--broadcast-measured)');
   const free = blocks.filter((b) => !b.ui);                       // outside any UI surface
   const maxFs = free.reduce((m, b) => Math.max(m, b.fs), 0);
   const clusterKinds = new Map();                                  // surface id (0 = page) -> {kinds:Set, ex:[], captured}
@@ -464,7 +476,7 @@ function evalSample(t, A, B, hits) {
 
 // T1 letter-typed headlines: pair readings, mid-word growth; plus caret next to a headline-size block
 function evalTyping(t, A, B) {
-  const head = A.blocks.filter((b) => !b.ui && !b.req && b.fs >= 0.05);
+  const head = A.blocks.filter((b) => !b.ui && !b.req && !(BROADCAST.allowed && b.bc) && b.fs >= 0.05);
   for (const b of head) {
     const g = B.blocks.find((c) => !c.ui && Math.abs(c.y0 - b.y0) < 0.02 && (Math.abs(c.x0 - b.x0) < 0.03 || Math.abs((c.x0 + c.x1) / 2 - (b.x0 + b.x1) / 2) < 0.03) && c.text.length > b.text.length && c.text.startsWith(b.text));
     if (g) {
@@ -568,6 +580,14 @@ function richnessFromDom(samples, W, H, src, given) {
 }
 
 // ---------------------------------------------------------------- main
+// broadcast package exemption (slop-scan.md section 4, "Broadcast package (news reel)")
+const BROADCAST = (() => {
+  const ft = filmType(fs.existsSync(src) ? path.dirname(path.resolve(src)) : process.cwd(), opt.type);
+  const row = typeRow(ft.text);
+  if (row === 'news reel') return { allowed: true, why: "film type '" + ft.text + "' -> news reel" };
+  if (opt['broadcast-measured']) return { allowed: true, why: '--broadcast-measured: the reference measures it' };
+  return { allowed: false, why: "film type '" + (ft.text || 'unknown') + "' is not a news reel" };
+})();
 let br, exitCode = 0;
 (async () => {
   br = await launchChrome({ args: ['--allow-file-access-from-files'] });
@@ -602,7 +622,7 @@ let br, exitCode = 0;
     const [P, Q] = t2 >= t ? [A, B] : [B, A];
     evalSample(t, A, t2 >= t ? B : A, hits);
     evalTyping(t, P, Q);
-    for (const s of A.shapes) if (!s.media && !s.ui && !s.selfSurface && (s.h <= 0.016 * H) && s.w >= 2 && (s.alpha >= 0.2 || s.border)) {
+    for (const s of A.shapes) if (!s.media && !s.ui && !s.selfSurface && !(BROADCAST.allowed && s.bc) && (s.h <= 0.016 * H) && s.w >= 2 && (s.alpha >= 0.2 || s.border)) {
       const a = barSeries.get(s.id) || []; a.push({ t, w: s.x1 - s.x0, snip: s.snip, bbox: bb(s) }); barSeries.set(s.id, a);
     }
   }

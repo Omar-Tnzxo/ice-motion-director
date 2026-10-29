@@ -77,6 +77,10 @@ A user request to repeat ("make another like last time", "same style as my previ
 
 On failure: the director changes the axes that match, starting with structure and motion, then re-runs the check. Never satisfy the rule by changing only colors.
 
+News reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`): the genre style and the programme packages in that file are style cards.
+- Genre use (the user's identity, no package skin): the film differs from every package card on at least 4 of 6 axes, as above. Palette and type change with the user's identity; structure changes with the content; layout or sound must still make the fourth axis, because the genre fixes the motion language.
+- A remake whose stage 01 `identity` slot is "as they are" or "a mix" and whose reference is the programme a package card records: closeness to that reference is the remake mode's contract (structural fidelity, frame-locked or translation: the `ice-remake` skill, `references/rights-and-modes.md` section 3), not a failure of this rule against that card. The 4-of-6 rule still applies against every other card, template and demo; how much of the reference's structure is kept is what the mode says, and the content (concept, main objects) is the user's. Fingerprints of the outlet's own films follow the same-brand row. Log which case applies in the D-entry.
+
 ## 5. The default-look gate
 
 The stock AI palette (blue and purple) dominating a film fails unless the brief gives a reason.

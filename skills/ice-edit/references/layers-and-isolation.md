@@ -9,6 +9,8 @@ Merged from heygen-com/hyperframes (Apache-2.0: remove-background, embedded-capt
 3. The speaker (matte or the original video).
 4. Foreground UI, overlays and captions. Captions are never behind the speaker, except a deliberate embedded peak word designed with the ice-type skill.
 
+News reel: the six-layer order of section 3b.
+
 ## 2. Isolating the speaker
 
 Methods that need no model come first: they are part of FFmpeg (no download, no install, real time on CPU). Pick by how the footage was shot:
@@ -63,8 +65,49 @@ Mask quality:
 - A cutout and its original background must stay frame-aligned: give both media the same start and playback offset, and show or hide them through wrappers, not by retiming one of them. Different starts cause a one-frame jitter at the cut.
 - In HyperFrames, timed elements are forced visible; wrap the video in an untimed div and animate the wrapper for push-ins and picture-in-picture. Do overlays in post with ffmpeg against a PNG sequence when WebM alpha decoding is flaky; decode alpha WebM with the explicit VP9 decoder or the transparent area renders black.
 - Full frame to picture-in-picture: swap the backdrop first, hold, then scale and move the speaker, then reveal the information that needed the space. Never all on one frame (it shows a double speaker).
-- Text behind subject: real occlusion by the matte, with slight opposite drift on the two layers. Use it as a scarce peak (once or twice per video, 1 to 3 words). Cutout effects need segmentation and run at most once or twice per video.
+- Text behind subject: real occlusion by the matte, with slight opposite drift on the two layers. Use it as a scarce peak (once or twice per video, 1 to 3 words). Cutout effects need segmentation and run at most once or twice per video. News reel (edit type `news-reel`, style family `family-broadcast-news.md`), or any edit whose reference measures more uses: the cap is the measured count of the reference (or of the package, `family-broadcast-news.md` section 2), logged in `ice/DIRECTION.md` with the count and its source; the occlusion and edge checks still apply (section 3b).
 - Speaker badge (long-form explainer with B-roll): once placed it is locked (no drift or breathing) while the speaker keeps moving inside it; in the lower third, bottom on the action-safe margin; badge and captions on opposite sides; in vertical video the badge goes bottom-left because the right edge holds the platform's buttons. Establish the speaker full or half body for the hook (about the first 8 s) before shrinking to a badge.
+
+## 3b. Programme matte kit
+
+Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`; `edit-types/news-reel.md`), or an edit whose reference measures these devices. Everywhere else the scarcity rules of section 3 hold. Numbers are measured at 25 fps; with a reference, its own values win. Each device gets its plan row with the trigger word and the role it is on (`broll-and-motion-broll.md` section 1, roles from `ice-remake/references/notes-files.md` section 6).
+
+**The depth sandwich is the layout, not a peak.** In this scope the presenter is matted for the whole take (5 of 6 measured reels) and every room graphic of every beat sits between the plate and the cut-out. Segment the presenter once and keep the matte as a track for the take (section 2); feather it (tutor value: feather 5 with contrast 80 percent on a 2160 wide plate) and run the three-hard-frame edge check of section 2 before the full render.
+
+Layer order (back to front):
+
+| # | Layer | What sits there | Camera |
+|---|---|---|---|
+| 1 | Plate | The studio take, or a virtual set (below) | rig |
+| 2 | Plate reactions | Background wash, brand flash, room darkening for a spotlight, room desaturation | rig |
+| 3 | Behind the person | Question disc, ghost programme title, titles behind the head, sepia portrait, B-roll behind the cut-out, maps and flags | rig |
+| 4 | The person (matte) | The presenter, lit at source exposure (section 5) | rig |
+| 5 | In front of the room | Glass plates, quote cards, pills, a discussed person's silhouette, anonymous silhouettes of a force | rig |
+| 6 | Screen | Captions, logo bug, programme name, progress bar, location tag | screen (never moved by the camera, never hit by a flash) |
+
+Room and screen tags: `layer: rig` or `layer: screen` in `plan/shots.json` (`ice-motion/references/camera.md`, "Digital camera on one take (news reel)").
+
+**Background wash and brand flash.** On layer 2 only, so the person is untouched: measured, the saturation inside the matte moved -6 to +4 while the background moved +40 to +144. Envelope 10 f (0.4 s: deep 4 f, light 2 f, lifted pale 4 f) or 6 f (three steps of 2 f), often with a pale rectangle of about 8 percent white on its middle frames, laid over the start of a big zoom. Trigger: frames 1 to 5 of the reel, and the clause that opens a topic, turns a premise into a question, or starts the tune-in line, -7 to +3 f against the clause's first word (2 to 3 per reel). It is a plate reaction (the `ice-type` skill, `references/depth-and-embedded-captions.md` section 1), not a ground change. Its colour is the package's brand colour or the user's (`family-broadcast-news.md` section 2).
+
+**Question disc.** Layer 3, behind the lit presenter's head. Trigger: each new opening question (3 of 3 question plates against 0 of 2 statement plates and 0 of 2 follow-up questions); also the programme title at the sign-off, and weakly a violent hook clause or the flag on a country's name. It enters with the question's plate, 5-20 f (0.2-0.8 s) after the question's first word, settles behind the head on its last word, and leaves 7 f (0.28 s) after the question ends, as a follow-up starts. Never on a statement, a follow-up or a darkened person. Look and motion: `ice-motion/references/atomic-moves.md`, "Broadcast news moves".
+
+**Ghost programme title.** Layer 3, on the spoken programme name (-29 to 0 f against the name), white at 20-30 percent opacity behind the head, sliding across at 25-44 px per frame, blink-in 5 f, blink-out 4-5 f before the first keyword or at the next flash. It never competes with the face or a keyword.
+
+**Discussed-person silhouette with the symbol flip.** For an actor of the story named as the subject of the sentence (a leader, a state, a group), never the speaker: a dark rim-lit cut-out made from a licensed portrait (curves to near black, rim glow; provenance in the footage ledger), on layer 5 in front of a symbol or the disc, a headline behind it. It rises about 30 f (1.2 s) before the name; the symbol behind it flips from its own colours to the house palette on the frame of the spoken name (about 14 f, lead 0); it falls out (about 21 f) when the speech moves to the next person. Groups named as new actors are shown as words beside the lit head instead; a collective force acting gets anonymous near-black silhouettes in front with sepia archive behind (weak, one instance each).
+
+**Sepia portrait of a quoted or discussed person.** Layer 3, behind the speaker, recognisable (not dark): on the word naming the person's statement or title (-2 to -17 f), in over 12-34 f, out over 3-6 f as the speech moves on; sepia at 60-70 percent opacity. Sepia is reserved for pictures from outside the studio. Licensed portrait or still, logged.
+
+**B-roll behind the cut-out.** Layer 3: footage at about 25 percent opacity with a feathered mask of 73-173 px (tutor values, scale with the frame width), usually black and white; a map video on the wall at about 13 percent in a hard-light blend. Treatments: `broll-and-motion-broll.md` section 3, "News reel B-roll treatments".
+
+**Spotlight on a discussed person.** For a clause about targeting or striking a discussed person: the room (layer 2) goes to about half its luma through a radial mask that excludes the matte, at the noun that names the target, and is relit 7-15 f after the clause ends; the presenter's face keeps its source luma. A target mark (a crosshair, a ring) goes on the discussed person's picture, never on the presenter, even where a reference placed it over the presenter's head (section 5, "Copying a reference"). Weak: one instance.
+
+**Virtual set.** When the room is not the set: a keyed or matted presenter over a built backdrop (gradient, a still, a render) with the disc behind the head, props as layers in depth and parallax from the camera wrapper. Ground the person with a fake floor shadow made from their own matte (extract the alpha, squash it vertically, shear it away from the key light, blur it, tint it 2 to 3 shades darker than the floor) or with a real shadow catcher. Routes and limits: `ice-motion/references/depth-and-3d.md`, "Build routes for depth and 3D". Match the light: the key's direction and colour on the person must agree with the set.
+
+**The split seam.** Presenter on top, evidence below a feathered seam: `vertical-conversion.md` section 3, "Split (news reel)".
+
+**The speaker in this kit.** The speaker or guest is never darkened, silhouetted or tinted while speaking, and never placed inside the disc, a symbol or a mark. Desaturation and a push-back (scale down) of the speaker are used only where the reference measures them: while a discussed person's image is foregrounded (measured: over 45 f, back to full colour as the image leaves) and in the call-to-action mood switch (`broll-and-motion-broll.md` section 3, "CTA desaturation (news reel)"); the luma check of section 5 still holds. One measured exception to "never dark": a presenter seen as a silhouette for under 1 s before the first word of a cold open, lit 2-3 f before speaking (`edit-types/news-reel.md` section 5).
+
+Check: at 04 the plan names each device's layer, trigger word and role; at 07 the stills at each device's settled time show the speaker at source exposure (section 5), the matte edges clean on three hard frames, and no layer 3 element covering the face.
 
 ## 4. Caption layer placement on footage
 
@@ -93,5 +136,6 @@ Rule (owner decision, 2026-10-29). Scope: news and current-affairs reels, explai
 - **Isolation.** The isolated speaker layer (section 2) is composited lit, at source exposure, in front of any dimmed or marked layer behind it (section 1, layer 3). A cutout of the speaker is never placed inside a subject's ring, disc or silhouette treatment.
 - **Copying a reference.** A device seen in a reference follows the role, never the screen position: read in the reference's speech who that person is (the reasons table of the edit, see the B-roll plan in `broll-and-motion-broll.md` section 1) before copying it. In the edit it lands on the person our speech talks about, at the word that names them.
 - **Text over the speaker's shot.** Contrast for a text card comes from a scrim under the text only. A full-frame takeover that blurs or dims the whole shot behind its text is used only when the reference measurement or a logged reason shows it; it lasts only while the text is on screen, and the speaker returns at source exposure as the text leaves. It is a legibility device, never a look held on the speaker.
+- **Measured exception (news reel).** In the scope of section 3b only, the speaker may be desaturated and pushed back where the reference measures it (a discussed person's image foregrounded, the call-to-action mood switch), never darkened or silhouetted while speaking; the check below still holds.
 - **What does not change.** A deliberate story choice the user asked for in their own words (a speaker hidden in silhouette to protect their identity, a speaker shot in the dark on purpose) is followed and logged in `ice/DIRECTION.md` with the user's words. A reference, a template or a brief written by another agent never counts as that request.
 - **Check.** At 04 the plan names, for every device, who it is on. At 07 the stills at each device's settled time show the speaker at source exposure: the mean luma of the speaker's box stays within about 5 percent of the same box in the source frame (outside a text takeover), and no mark touches that box.

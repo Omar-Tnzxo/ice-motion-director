@@ -57,7 +57,7 @@ Times are seconds; distances are fractions of frame width, so cards hold at any 
 | Subtract | workhorse | Motion slows, parts leave, music stops on a bar line, a breath, one soft sound on the last picture | A few-second sting (it is all ending) |
 | Mark from actor | accent | The travelling thing lands as part of the mark and the end card opens from it | The actor resembles the mark in no way |
 
-Refused names (with the replacement): glitch with no cause (a cut on the beat, or one shake on a real impact); light sweep over chrome (light that belongs to the world); fade-in standing in for making (drawn on, from behind, written); particle burst on everything (contact born at a real contact point); cross dissolve between unrelated pictures (shape becomes, actor carries, or the gentle move); lens flare painted on (one named light, reveal by light).
+Refused names (with the replacement; News reel (edit type `news-reel`, style family `family-broadcast-news.md`): a light sweep inside a named glass card or along a named map, and a measured glitch clip on a card-to-photo cut, are package moves with their triggers, `composition-and-staging.md` section 6 and `cut-catalog.md` section 13): glitch with no cause (a cut on the beat, or one shake on a real impact); light sweep over chrome (light that belongs to the world); fade-in standing in for making (drawn on, from behind, written); particle burst on everything (contact born at a real contact point); cross dissolve between unrelated pictures (shape becomes, actor carries, or the gentle move); lens flare painted on (one named light, reveal by light).
 
 ## 2. Seam mechanisms by intent
 

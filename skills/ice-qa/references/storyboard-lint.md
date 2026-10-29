@@ -8,7 +8,7 @@ Write `ice/plan/storyboard.md` with the style lock above the table (lock lines a
 
 `Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method | Tags`
 
-`Trigger` and `Reason` are required in every film type (section 3b).
+`Trigger` and `Reason` are required in every film type (section 3b). Two optional columns are read when present: `Cites` (the exact spoken phrase the row's text or graphic follows, quoted, with `#2` for its second occurrence; the storyboard twin of `cites` and `cites_occurrence` in `plan/shots.json`) and `Subject` (one role word: `speaker`, `discussed person`, `voice`, `place`, `object`, `programme`, `whole frame`; the `ice-remake` skill, `references/notes-files.md` section 6). A row that shows a depth or 3D element names its build route in the Method cell as `build: <route>`.
 
 Workflows may add columns (Buys, Role, Carrier, Sound); the linter ignores columns it does not know. Run:
 
@@ -20,18 +20,18 @@ Exit 1 = red: fix and re-run; do not start building. Exit 0 with yellows: start,
 
 The first line names the film type and the row of `motion-density.md` section 6 it used (from `--type "<film type>"`, else `ice/state.json` `subtype`, else the `film_type` row of `ice/BRIEF.md`). Write the On-screen text cell exactly as the script has it, diacritics included: the linter removes combining marks before counting, so never make a stripped copy of the table to pass it.
 
-## 2. The 17 machine checks
+## 2. The 21 machine checks
 
 | # | Check | Light |
 |---|---|---|
 | 1 | Object column names a concrete thing, not a layout word (title, bullet, card, background) and not an empty picture (blank, flat colour, black screen) | red |
 | 2 | Action column has the object's own verb, not appears, shows, fades in | red |
-| 3 | On-screen text is at most 8 units (a CJK character or a word counts one; Arabic harakat, shadda and other combining marks never split a word). Scoped exception: end-card rows tagged `CTA block` in the Tags column may carry the facts a viewer needs to act (name, date, time, place, store line, link) up to 8 + the type's `cta_info_units` (16 for product launch, app ad, industry spot, social short, hype promo, UI walkthrough, brand film, talking-head ad, shorts and reels; no exception elsewhere: `motion-density.md` section 6). The exception itself and how to split a long block across at most three end shots: the `ice-film` skill, `references/film-types/industry-spot.md`, Text density. Never shorten an address or a date to pass | red |
+| 3 | On-screen text is at most 8 units (a CJK character or a word counts one; Arabic harakat, shadda and other combining marks never split a word). Scoped exception: end-card rows tagged `CTA block` in the Tags column may carry the facts a viewer needs to act (name, date, time, place, store line, link) up to 8 + the type's `cta_info_units` (16 for product launch, app ad, industry spot, social short, hype promo, UI walkthrough, brand film, talking-head ad, shorts and reels, news reel; no exception elsewhere: `motion-density.md` section 6). The exception itself and how to split a long block across at most three end shots: the `ice-film` skill, `references/film-types/industry-spot.md`, Text density. Never shorten an address or a date to pass | red |
 | 4 | First shot is not text-led (a text noun heads the Object phrase, "headline over a photo"; a text word inside a description, "the stroke of the word", does not count) | red (4+ units of text on shot 1: yellow) |
 | 5 | Text-led shots are at most 30% of shots | red |
-| 6 | Shot length 2-6 s; 6-8 s or under 2 s yellow; over 8 s red; more than a fifth of shots at 6-8 s red | red/yellow |
+| 6 | Shot length 2-6 s; 6-8 s or under 2 s yellow; over 8 s red; more than a fifth of shots at 6-8 s red. Scoped exception (news reel on one locked studio take, edit type `news-reel`): a declared `Style exception:` line naming the continuous take turns both reds into yellows; the take's inner events are then gated by the pacing check (`motion-density.md`, "Pacing against the reference"; with no reference, `news-reel.md` section 3 "Rhythm") | red/yellow |
 | 7 | Three shots in a row with the same camera value (hold and glide excepted) | yellow |
-| 8 | Last shot is not text-led (quote card, pure text card); a `CTA block` row is text-led only by its Object or Method, not by its text count | red |
+| 8 | Last shot is not text-led (quote card, pure text card); a `CTA block` row is text-led only by its Object or Method, not by its text count. A news reel's branded end card (and any measured end card) is tagged `CTA block` in the Tags column and named as the card in the Object column ("end card ..."), so it passes; its hold is the `news reel` row of `motion-density.md` section 6 | red |
 | 9 | Every on-screen number (percent, year, number with unit) is said in the script (digits or English words) | red |
 | 10 | At most 3 tags per shot | yellow |
 | 11 | No separate number card in the middle of the film | yellow |
@@ -41,10 +41,16 @@ The first line names the film type and the row of `motion-density.md` section 6 
 | 15 | No three inward pushes in a row | yellow |
 | 16 | Accent moves (fast push, slam, whip) on at most a third of shots | yellow |
 | 17 | Every row has a `Trigger` and a `Reason` cell that is not empty and not only a pointer to the source or a taste ("reference", "style", "decoration", "looks good"); a table without both columns is red (section 3b) | red |
+| 18 | With a `Cites` column and `--script`: every cited phrase occurs in the script at least as often as its occurrence says, compared after Unicode normalisation with combining marks removed and Arabic forms folded (tatweel; alef, hamza-carrier, alef maqsura and taa marbuta forms). A Cites column without `--script` is a yellow (not checked) | red |
+| 19 | With a `Subject` column: the subject is one role word of the vocabulary above (underscores and hyphens read as spaces); an empty cell or another word is yellow | yellow |
+| 20 | With a `Cites` column: the row's on-screen words are words of its cited phrase, in order (spoken words are never paraphrased on screen; digits are left to check 9). Rows tagged `CTA block` use their own wording and are exempt | yellow |
+| 21 | A row whose Object, Action, Camera, Method or Tags names a depth or 3D element (2.5D, 3D, parallax, push-through, card field, cards in space, extruded text, wrapped text or text on a cylinder, virtual set, depth planes; "no 3D" does not count) names its build route as `build: <route>`, one of `css-3d`, `threejs-hyperframes`, `remotion-three`, `blender` (only when Blender is installed); no route or an unknown one is red (lesson L12; routes: the `ice-motion` skill, `references/depth-and-3d.md`, "Build routes for depth and 3D") | red |
 
 Plus: one reusable template or clip file running over 8 s in total is red; more than 2 template families mixed is red (yellow with a declared style exception); time spans that do not join, and a table with no camera move at all, are yellow.
 
 Arabic number words are not parsed by check 9: write digits in the script or confirm those numbers by hand. Arabic-Indic and Persian digits are read.
+
+Checks 18 to 21 come from the reference-reasons validator proposal (cited phrase in the transcript, subject role, verbatim on-screen words, depth build route); the checks that need a face track, colour sampling or the reasons table (face box, colour roles, NEVER predicates, flash windows, camera scale) run on the frames instead: `frame-checks.md` section 4 (R2, R3, P1, A5) and the `ice-remake` skill's fidelity checks.
 
 ## 3. Plan checks a person or critic runs (not machine-checkable)
 

@@ -114,6 +114,7 @@ Exit with new motion, never the entry reversed (it reads as an undo).
 | First kinetic word | 1.94x |
 | Cursor | 1.5-2.2x, up to 5.1x |
 | Camera on UI | 1.4-4.39x |
+| Presenter after a cut back (news reel) | about 2.1x (2.05-2.10x), pulled out to 1.0 over 26-28 frames at 25 fps: `camera.md` section 8, "Re-entry pull-out" |
 
 Rule: start at 1.4-5x and scale down to rest; never grow from zero, never fade up. Spend scale once per film and let the ending get smaller. Growth is allowed for cascades, a growing object that is the next scene, a loader dot becoming a code, and identity objects not smaller than about 0.30-0.60x. Scope: product launch, app ad, logo sting, hype promo; calm brand films and data stories use the 1.1x variant or plain entries.
 

@@ -11,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # ice-type
@@ -45,7 +45,7 @@ Read `ice/BRIEF.md` slots: film or edit type, platform, aspect ratio, language, 
 
 ## 3. Non-negotiables
 
-1. Captions spell the approved words; ASR supplies timing only. Align script to ASR with `scripts/align_script_to_asr.py`; a match below 60% means a stale script: stop and ask.
+1. Captions spell the approved words; ASR supplies timing only. Align script to ASR with `scripts/align_script_to_asr.py`; a match below 60% means a stale script: stop and ask. Before delivery, check the captions against a fresh transcript of the final audio with `scripts/align_script_to_asr.py --check-captions` (`references/caption-timing-and-truth.md` section 6).
 2. Never invent speech, numbers, names or lyrics. Lyrics come only from the user.
 3. Visible display text is not the transcript: 1 to 5 key words, never the narration sentence twice on screen.
 4. Every text holds long enough to read (section 4); count from the frame it is whole.
@@ -53,7 +53,7 @@ Read `ice/BRIEF.md` slots: film or edit type, platform, aspect ratio, language, 
 6. No text inside platform UI zones; never over the mouth, eyes or the detail the shot is about.
 7. Measure contrast from the real pixels behind the text; never white on light.
 8. Fonts ship as files, load before frame 0, and are asserted; no fallback font or missing glyph in any frame.
-9. Headline typing (letter by letter with a caret) is banned outside a real input, console or typewriter look.
+9. Headline typing (letter by letter with a caret) is banned outside a real input, console or typewriter look. The pointer reveal and the coloured-head typewriter of `references/type-effects-specs.md` "Broadcast text" are mask reveals, not typing (news reel and measured references only).
 10. One caption look per video; one family and at most two weights for captions.
 
 ## 4. Quick numbers (defaults until a reference says otherwise)
@@ -86,6 +86,6 @@ When two references give different numbers, use the row scoped to the current fi
 | `references/type-system.md` | Setting weights, families count, tracking, case, punctuation, numbers | Type roles, weight systems, scoped family rules, tracking and alignment, emphasis, numerals |
 | `references/text-density.md` | Writing on-screen copy; storyboarding text | Density rules, words per film type, callouts, text over picture |
 | `references/kinetic-type.md` | Animating display text | Principles, onset gaps, entry mechanics, exits, holds, typing rules, beat type, named techniques |
-| `references/type-effects-specs.md` | The storyboard names an effect | Numbers for depth, glow, sweeps, counters, odometers, markers, write-on, Lottie text |
+| `references/type-effects-specs.md` | The storyboard names an effect | Numbers for depth, glow, sweeps, counters, odometers, markers, broadcast text (pointer reveal, coloured-head typewriter, blink exit, scanline headline, lower third, location tag, source credit, glass subtitle box, crimson-to-white title), write-on, Lottie text |
 | `references/font-loading-and-measuring.md` | Before any render with text | Font files, loading, glyph coverage, measuring and fitting, determinism |
-| `scripts/align_script_to_asr.py` | A script exists and ASR timings exist | Aligns script words onto ASR timings, exit 3 on a stale script |
+| `scripts/align_script_to_asr.py` | A script exists and ASR timings exist; before delivery of any captioned film | Aligns script words onto ASR timings, exit 3 on a stale script; `--check-captions` checks delivered captions against a fresh transcript, exit 4 on a mismatch |

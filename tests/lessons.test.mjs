@@ -7,8 +7,9 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { test } from "node:test";
-import { abs, readText } from "./helpers.mjs";
+import { abs, findPython, readText } from "./helpers.mjs";
 
 const LESSONS = "docs/maintainers/lessons.md";
 const FIELDS = ["Note", "Trial", "Scope", "Rule", "Test"];
@@ -361,4 +362,111 @@ test("lessons: a request for the reference's identity on another content type is
   assert.match(s, /take the fitting identity, log it/);
   const q = readText("skills/ice-direction/references/questions.md");
   assert.match(q, /a conflict that leaves this slot open/);
+});
+
+// Lesson L11: captions are checked against a fresh transcript of the final audio (align_script_to_asr.py --check-captions).
+test("lessons: --check-captions passes exact captions and blocks a missing word, a late cue and bad input; Arabic folds", { skip: !findPython() && "no Python 3.10+" }, () => {
+  const py = findPython();
+  const script = abs("skills/ice-type/scripts/align_script_to_asr.py");
+  const dir = mkdtempSync(join(tmpdir(), "ice-l11-"));
+  try {
+    const put = (name, body) => { const p = join(dir, name); writeFileSync(p, typeof body === "string" ? body : JSON.stringify(body), "utf8"); return p; };
+    const heard = put("heard.json", [["the", 0.5, 0.7], ["deal", 0.72, 1.1], ["is", 1.12, 1.25], ["on", 1.27, 1.4], ["the", 1.42, 1.55],
+      ["table", 1.57, 2.0], ["tonight", 2.4, 2.9], ["in", 2.95, 3.05], ["Geneva", 3.08, 3.6]].map(([w, s, e]) => ({ w, s, e })));
+    const run = (caps, ...extra) => {
+      const r = spawnSync(py[0], [...py.slice(1), script, "--check-captions", caps, heard, ...extra], { encoding: "utf8" });
+      let report = null;
+      try { report = JSON.parse(r.stdout); } catch { /* exit 2 prints no report */ }
+      return { status: r.status, report, out: r.stdout + r.stderr };
+    };
+    const srt = (a, b) => `1\n00:00:00,420 --> 00:00:02,100\n${a}\n\n2\n00:00:02,320 --> 00:00:03,700\n${b}\n`;
+    const exact = run(put("exact.srt", srt("The deal is on the table", "tonight in Geneva.")));
+    assert.equal(exact.status, 0, exact.out);
+    assert.equal(exact.report.ok, true);
+    const missing = run(put("missing.srt", srt("The new deal is on the table", "tonight in Geneva.")));
+    assert.equal(missing.status, 4, missing.out);
+    assert.ok(missing.report.mismatches.some((m) => m.kind === "missing" && m.caption === "new"), missing.out);
+    const late = run(put("late.vtt", "WEBVTT\n\n00:00.420 --> 00:02.100\nThe deal is on the table\n\n00:02.800 --> 00:03.700\ntonight in Geneva.\n"));
+    assert.equal(late.status, 4, late.out);
+    assert.ok(late.report.offsets.some((o) => o.heard_word === "tonight" && Math.abs(o.offset - 0.4) < 0.01), late.out);
+    assert.equal(run(put("bad.txt", "not captions")).status, 2);
+    const arHeard = put("heard_ar.json", [["إلى", 0.3, 0.6], ["أين", 0.62, 0.9], ["تتجه", 0.92, 1.3], ["الأزمة", 1.32, 1.9], ["السودانية", 1.92, 2.6]]
+      .map(([word, start, end]) => ({ word, start, end })));
+    const ar = spawnSync(py[0], [...py.slice(1), script, "--check-captions",
+      put("ar.json", [{ text: "إِلَى أَيْنَ تَتَّجِهُ", start: 0.25, end: 1.3 }, { text: "الأزمـــة السودانيه؟", start: 1.3, end: 2.7 }]), arHeard], { encoding: "utf8" });
+    assert.equal(ar.status, 0, ar.stdout + ar.stderr);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// Lessons L9 to L12 (0.2.4): pacing, fixed identity marks, captions and depth are measured on the reference and gated.
+const has = (relPath, phrases) => {
+  const text = readText(relPath);
+  for (const p of phrases) assert.ok(text.includes(p), `${relPath}: "${p}"`);
+};
+
+test("lessons: validate-plan blocks a gap over the reference's even with a holdReason, and a slower density (L9)", async () => {
+  const { validatePlan } = await import(pathToFileURL(abs("skills/ice-edit/scripts/validate-plan.mjs")).href);
+  const transcript = { words: [{ text: "hello", start: 0.1, end: 0.5, sourceStart: 10.1, sourceEnd: 10.5 }] };
+  const edl = { keeps: [{ sourceStart: 10, sourceEnd: 50, start: 0, end: 40 }] };
+  const times = [...Array.from({ length: 13 }, (_, i) => i + 1), 13.25, 33, 34, 35, 36, 37, 38, 39];
+  const plan = (reference) => ({
+    duration: 40, fps: 25, ...(reference ? { reference } : {}),
+    scenes: [{ id: "s00", start: 0, end: 40, layout: "face", kind: "talk", anchor: "hello", anchorTime: 0.1, holdReason: "presenter hold" }],
+    events: times.map((time) => ({ time, type: "graphic", visual: "s00" })),
+    captions: [{ start: 0.1, end: 0.5, words: [{ text: "hello", start: 0.1, end: 0.5 }] }],
+  });
+  const plain = validatePlan(plan(null), transcript, edl);
+  assert.equal(plain.ok, true, plain.errors.join("; "));
+  assert.equal(plain.metrics.eventsPerMinute, undefined, "no reference: the 0.2.3 output is unchanged");
+  const gap = validatePlan(plan({ maxEventGap: 3, eventsPerMinute: 30 }), transcript, edl);
+  assert.equal(gap.ok, false);
+  assert.ok(gap.errors.some((e) => /19\.75s .*exceeds the reference limit .*a holdReason does not excuse it/.test(e)), gap.errors.join("; "));
+  const slow = validatePlan(plan({ maxEventGap: 25, eventsPerMinute: 60 }), transcript, edl);
+  assert.ok(slow.errors.some((e) => /^Event density .* is below the reference limit 54\.00/.test(e)), slow.errors.join("; "));
+  assert.ok(validatePlan(plan({ maxEventGap: 3 }), transcript, edl).errors.some((e) => /^Invalid plan\.reference/.test(e)));
+});
+
+test("lessons: the pacing gate is measured on the reference and blocks the plan and the render (L9)", () => {
+  has("skills/ice-remake/references/measuring.md", ["## 10. Pacing events"]);
+  has("skills/ice-qa/references/motion-density.md", ["## 7. Pacing against the reference (lesson L9, blocking)",
+    "A declared hold does not excuse a gap", "x 1.10 plus one frame", "x 0.90"]);
+  has("skills/ice-edit/references/clock-and-grouping.md", ['"reference":{"maxEventGap":0.0,"eventsPerMinute":0.0}']);
+  has("skills/ice-qa/references/delivery-checks.md", ["| Pacing against the reference (L9) |"]);
+  has("skills/ice-remake/references/notes-files.md", ["Pacing:"]);
+});
+
+test("lessons: fixed identity marks are measured, placed by the identity choice and checked from 05 (L10)", () => {
+  has("skills/ice-remake/references/measuring.md", ["## 11. Fixed marks"]);
+  has("skills/ice-remake/references/notes-files.md", ["Fixed marks:"]);
+  has("skills/ice-remake/references/rights-and-modes.md", ["### Fixed identity marks (owner decision, 2026-10-29)",
+    "the same mark, in the same slot, at the same size", "the user's mark in the same slot, at the same size",
+    "A slot is never left empty because the mark was not fetched"]);
+  has("skills/ice-remake/references/shot-mapping.md", ["`fixed_marks` row of the plan on the screen layer"]);
+  has("skills/ice-qa/references/identity-tests.md", ["## 8. Fixed identity marks",
+    "position within 2 percent of the frame width and height, size within 10 percent"]);
+  has("skills/ice-qa/references/frame-checks.md", ["| R3 | Fixed identity marks |"]);
+  has("skills/ice-motion/references/composition-and-staging.md", ["fixed identity marks measured from a reference"]);
+});
+
+test("lessons: captions face a fresh transcript of the final audio, blocking at 09 and 10 (L11)", () => {
+  has("skills/ice-qa/references/captions-and-sync.md", ["## 1b. Fresh transcript gate",
+    "never the transcript the captions were built from", "--check-captions"]);
+  has("skills/ice-qa/references/delivery-checks.md", ["| Fresh transcript gate (L11) |"]);
+  has("skills/ice-type/references/caption-timing-and-truth.md", ["Fresh transcript gate (lesson L11, blocking at 09 and 10)"]);
+  has("skills/ice-edit/SKILL.md", ['"Fresh transcript gate" (blocking)']);
+});
+
+test("lessons: depth, 3D and camera are measured, mapped with a build route and gated against the reference (L12)", () => {
+  has("skills/ice-remake/references/measuring.md", ["## 12. Depth, 3D and camera",
+    "Every aspect of a reference is measured and carried over", "a move of 21 to 80 frames"]);
+  has("skills/ice-remake/references/notes-files.md", ["Depth:"]);
+  has("skills/ice-remake/references/shot-mapping.md", ["An element with no route is a finding, never a silent drop"]);
+  has("skills/ice-motion/references/depth-and-3d.md", ["## 7. Build routes for depth and 3D", "| `threejs-hyperframes` |",
+    "| Card field push-through |"]);
+  has("skills/ice-qa/references/motion-density.md", ["## 8. Depth and camera against the reference (lesson L12, blocking)",
+    "within plus or minus 30 percent"]);
+  has("skills/ice-qa/references/storyboard-lint.md", ["| 21 | A row whose Object, Action, Camera, Method or Tags names a depth or 3D element"]);
+  has("skills/ice-edit/SKILL.md", ['"Build routes for depth and 3D"']);
 });

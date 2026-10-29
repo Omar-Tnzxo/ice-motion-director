@@ -63,9 +63,27 @@ Lead and tail:
 
 Group windows must envelop their words. Hard kill every group at its end (set opacity 0 and visibility hidden at `group.end`), so no caption survives a seek.
 
+Broadcast text leads and lags (news reel, edit type `news-reel`, and films whose reference measures them; measured at 25 fps; lead or lag = element first frame minus word onset frame, negative = before the word, stored per element as `lead_frames` in `plan/shots.json`). Canonical rows: `type-effects-specs.md`, table "Broadcast text".
+
+| Element | Lead or lag | Leaves |
+|---|---|---|
+| Keyword text and pointer reveal | -20 to +3 f (-0.80 to +0.12 s), median -4 f (-0.16 s); never later than +3 f | Blink exit timed to the next phrase: -13 to +3 f against its onset, median -4 f; or 7 to 12 f after its own phrase |
+| Glass subtitle box around a keyword | -10 to +2 f, built with the pointer | Blink exit, plate variant |
+| Two-line headline stack | each line 1 to 11 f before its word | first line first, 4 to 6 f apart |
+| Crimson-to-white title (a deliberate lag) | +4 to +20 f after the word starts, median about +8 f; crimson phase ends -10 to +5 f of the word end | white 15 to 40 f, then a 12 f fade |
+| Type-on phrase caption (horizontal) | -2 to +4 f after the first content word | +2 to +18 f after its last word, median +7 f, hard 1-frame off |
+| News sentence caption, other-voice hue | the hue starts on the soundbite's cut frame (0 f) | at the chunk change |
+| Scanline headline | lands 0 to 11 f before the lead-in caption changes | phrase end, often about 2 f before the next caption |
+| Lower third | 2 to 6 f after the speaker's first cut | the frame before the cut, or 0.6 to 3.6 s before the shot ends |
+| Location and date tag | 9 f after the cut | about 1.5 s before the cut |
+
+These leads replace the 2-frame caption lead of the Lead and tail table for these elements only; captions keep it. A keyword lead measured on the user's own reference wins over these values (median per reel ranged from -7.5 f to -2.5 f).
+
 ## 4. Script alignment script
 
 `scripts/align_script_to_asr.py` maps script words onto ASR word timings (sequence matching on normalized words, unmatched runs interpolated between their matched neighbors, minimum 0.12 s per interpolated word) and reports the match ratio. Inputs: the script text and an ASR words JSON (`[{"w","s","e"}]` or `[{"word","start","end"}]`). Output: the timed script words. It is standard-library Python and Unicode-aware, so it works for any script that separates words with spaces. It does not transcribe: run ASR with whatever engine the project uses (see the `ice-audio` skill), then align.
+
+The same script checks delivered captions (`.srt`, `.vtt`, or `.json` words or cues) against a fresh transcript with `--check-captions` (section 6, fresh transcript gate). It folds Arabic before comparing (diacritics and tatweel removed, alef forms, alef maqsura and yaa, taa marbuta and haa, Arabic-Indic digits) and reports `missing` (in the captions, not heard), `extra` (heard, not in the captions), `changed` words and cue start offsets.
 
 ## 5. Timeline rules for edits
 
@@ -82,3 +100,4 @@ Group windows must envelop their words. Hard kill every group at its end (set op
 - A plain `.txt` transcript for the post description when the platform uses one.
 - An un-captioned master.
 - Watch once with sound for sync and once muted for readability.
+- Fresh transcript gate (lesson L11, blocking at 09 and 10): the final mixed audio of the delivered render is transcribed again (a new run, never the transcript the captions were built from) and the captions are checked against it with `python scripts/align_script_to_asr.py --check-captions CAPTIONS FRESH_ASR_WORDS.json -o ice/review/captions-check.json` (exit 0 pass, 4 mismatch or a cue start more than `--max-offset`, default 0.25 s, from its first heard word, 2 bad input; `--allow-extra` only for planned drops). How mismatches are resolved: the `ice-qa` skill, `references/captions-and-sync.md`, "Fresh transcript gate".

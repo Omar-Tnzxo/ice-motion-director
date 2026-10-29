@@ -92,6 +92,7 @@ Ending rules:
 - The ending echoes: bookend the opening, reveal the scale, or let the hero do the thing right the second time; never a summary list or a farewell.
 - The payoff reuses earlier visual logic (the recurring line, object, material, type behaviour, camera direction); no new effect at the climax. End on an action of the hero or the main object, not a centred quote card.
 - Choose the close from the idea, not by habit; one ending beats two. Logo plus CTA stacked in the centre only when the brief asks for an explicit CTA.
+- News reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`): the branded end card is the genre's close (6 of 6 measured reels), not an extra CTA: a hard cut, a short dissolve or a mask from the presenter into a designed card (programme or brand mark, title, when and where to watch or follow), built in reading order and held still with no fade. Package values: that file, section 2; the end-hold limit: the `ice-qa` skill, `references/motion-density.md`.
 
 End holds, scoped by film type (owner: the `ice-motion` skill, `references/holds-and-stillness.md` section 3):
 
@@ -101,6 +102,7 @@ End holds, scoped by film type (owner: the `ice-motion` skill, `references/holds
 | CTA with a URL, offer, date or address | Readable at phone size at least about 1.5 s (3 s in launch recipes, or the reading time of the CTA block in industry spots and event invites) |
 | Calm brand and art films | May end calmly or fade |
 | Standalone logo sting file | Ends on 10-20 frames of exactly the static logo (`film-types/logo-sting.md`) |
+| News reel branded end card (edit type `news-reel`) | Built over 1.7-3.5 s (78-88 frames at 25 fps in the Arabic packages), then still for 2.2-6.5 s as the package measures, no fade to black (`ice-styles/references/family-broadcast-news.md` section 2; check row: `ice-qa/references/motion-density.md`) |
 
 - Declare the CTA's start as its own event in the cue sheet (and in the events file the ice-qa end-hold check reads), so the check measures the CTA hold, not the length of the last shot.
 - Idle motion ends about 0.3 s before the last frame when the film does not loop.

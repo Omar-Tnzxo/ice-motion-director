@@ -2,6 +2,25 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.4 - 2026-10-29
+
+News reels at broadcast level from a plain prompt: a measured study of six public Al Jazeera reels and sixteen editing tutorials becomes Ice's own rules, written in our words (ideas and measurements only; no footage, logo, programme mark, text or sound copied). Four new lessons from the trials become default rules with tests (`docs/maintainers/lessons.md`, L9 to L12).
+
+### Added
+
+- **Broadcast news style family** (`ice-styles/references/family-broadcast-news.md`): the "presenter news reel" genre (one studio take reframed digitally, graphics on the speaker's words, archive in the pauses, a designed end card) with its colour-role contract and per-line decision order, and three programme packages by the numbers (Al Jazeera Arabic shorts, Al Jazeera English, "Mohawalat Fahm" on Al Jazeera 360): colours and the job of each, fonts and free alternatives, type scale, moves with frames and easing, sound effects timed to the moves, music, rhythm, depth and camera, fixed marks, reasons and finishing. A package skin is used as it is only when you choose the reference's identity; otherwise the roles carry your own palette, fonts and marks. Sub-brand patterns and the glass studio reel are included.
+- **News reel edit type** (`ice-edit/references/edit-types/news-reel.md`): pipeline, rhythm, archive bursts, and how to cut a long episode into a reel (picking the strongest passage, the payoff, a hook of a few seconds). A programme matte kit for the depth sandwich, background washes, the question disc, silhouettes and sepia portraits of the people discussed, always with the speaker lit.
+- **Moves and type with their values:** the digital camera on one take, the glow disc, counter, tapered glow arc, scanline title texture (Venetian blinds, jitter and glow), title pill, broadcast transitions and the broadcast settle curve; the pointer reveal and the coloured-head typewriter as mask reveals, the blink exit, the two-box lower third, the glass subtitle box, news sentence captions coloured by voice, keyword mode, and justified and hollow kashida blocks.
+- **Sound by the numbers:** a speech-led news reel loudness and ducking profile, sound effects tied to each move type, news reel music, a broadcast voice chain, and strobes safe by default (the reference's own strobe only when you ask). `match_music.py sfx --profile news-reel`.
+
+### Changed
+
+- **The QA gates let a measured broadcast package pass and still fail decoration.** Logo bug, programme name, progress bar, location tag, glass plates, glow and scanline titles, flashes, typed question cards, the glow disc and the branded end card are allowed in a news reel or when the reference measures them, each with its reason row; every older rule stays for the other film types.
+- **No gap without an event (L9).** The longest gap and the event density are measured on the reference; a film that exceeds them is not delivered, and a declared hold does not excuse it (`motion_check.py --reference-events`, `validate-plan.mjs` with `plan.reference`, `recipe.py --events`).
+- **Fixed identity marks keep their slot (L10).** A reference's corner logo, programme name or bug is measured and placed at the same position and size, or your own mark takes that slot; checked from the style frames on.
+- **Captions face a fresh transcript (L11).** The final audio is transcribed again and compared with the captions before delivery, a blocking gate (`align_script_to_asr.py --check-captions`).
+- **Depth, 3D and camera carry over (L12).** Every aspect of a reference is measured and carried over, not only its colours and text: depth planes and parallax, push-throughs, the share of frames where the camera moves, 3D elements and depth of field, each with its trigger and a build route (CSS 3D, Three.js, Remotion three or Blender), gated within 30 percent of the reference.
+
 ## 0.2.3 - 2026-10-29
 
 Lessons from four trials of 0.2.2 on raw news footage become default rules: your prompt stays the idea and your files, and Ice applies what the trials taught on its own. Each lesson is listed in `docs/maintainers/lessons.md` with the trial it came from, its scope, where the rule lives and the test that guards it (founder decision, `AGENTS.md` rule 19).

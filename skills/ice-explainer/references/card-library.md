@@ -40,7 +40,7 @@ Key rules per family, written to be engine-neutral.
 |---|---|
 | Name plate | Bar expands, name reveals by clip, role follows; exit reverses; one line of about 12 characters; sits above the caption band |
 | Chapter card | Full-frame color block lands in about 0.3 s, a large number (about 40 percent of frame height) lands, name reveals about 0.18 s later; hold about 1.2 s; total 2.5 s or less. Each chapter card gets its own ground color and a motif tied to its content; never the same card four times |
-| Quote card | Opaque plate, up to 5 lines appearing line by line, source visible, quiet exit |
+| Quote card | Opaque plate, up to 5 lines appearing line by line, source visible, quiet exit. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): a sentence the presenter reads from his paper is a frosted glass card with a pin that keeps him visible, words verbatim (that file, section 2.3); a primary source the narrator reads sits as a card inside the set with a marker (section 2.2) |
 | Number counter | Eases out and settles; units appear after the number settles; under two digits pops instead of rolling; tabular digits always |
 | Number slab | Color block lands first, then the number; decimals and units after; caption outside the block |
 | Metric with sparkline | Number and line start together; arrow and unit only after counting ends |
@@ -70,6 +70,12 @@ Key rules per family, written to be engine-neutral.
 | Schematic companion | For text-only shots: outline line art drawn to the line's meaning (section 6 of `references/minimal-motion.md`) |
 | Framed footage | One frame style per film; footage inside untouched (no filter, zoom or fade); frame decoration draws in within about 1.35 s then stays; never fake a video player (no progress bar, play button, timecode) |
 | Call to action | Given link or offer only; held long enough to read |
+| Bullet card that grows per spoken bullet | Opens on the sentence that announces the list; each bullet's dot appears on the key noun of its item and its text a few frames later; the card grows from its centre to fit, earlier bullets moving up by half the new height; stays to the cut. Measured news reel values (at 1080 wide, 25 fps): heavy uppercase sans (Montserrat 800-900 caps, 53 px, cap height 37-40 px, line height 1.09), dark translucent card x 222-862 with radius about 40, fact dots 38 px; dot first, text 6-9 frames later, each bullet 9-18 frames after its spoken item starts, card growth 10-13 frames from its centre. Home of these values and their skin: the `ice-styles` skill, `references/family-broadcast-news.md` section 2.2 |
+| Fact pin | A number with a unit gets its own pin: a dot (64 px) flickers in, then the words one by one about 2 frames apart, the text complete just before the caption shows the number; heavy uppercase (Montserrat 800-900 caps, cap height 45 px); only for a number that traces to the facts list. Measured once (weak): use when the reference shows it. Home: `family-broadcast-news.md` section 2.2 |
+| "Day N" archive title | A running count (the day of an event, a count of events) in the attention colour over desaturated archive; only when the speech gives the count, and the number traces to the facts list; the count is the only colour on the frame. Values: `family-broadcast-news.md` section 2.2 |
+| Portrait pop on a spoken name | A cut-out portrait of a person discussed (licensed photo, provenance logged) with a thin light sticker edge pops on the name, about 0 frames from its onset, and stays while that person is the subject; never the presenter (the presenter stays lit, rule above). Values: `family-broadcast-news.md` section 2.2 |
+| Lower third (two-box name super), location and date tag, vertical source credit | Build: the `ice-type` skill, `references/type-effects-specs.md`, table "Broadcast text". Triggers: the name super on the first on-screen appearance of a person who speaks (not when a name is only said); the tag and credit on agency or archive footage only (`family-broadcast-news.md` section 2.2) |
+| Branded end card (news reel) | Built in a fixed reading order, then held still with no fade: package values in `family-broadcast-news.md` section 2; the end-hold limit row: the `ice-qa` skill, `references/motion-density.md` |
 
 ## 5. Shot patterns by visual relation
 

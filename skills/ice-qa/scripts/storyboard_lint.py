@@ -13,7 +13,10 @@
 # with combining marks removed (an Arabic word with a shadda is one unit); the Object column is text-led only when a text
 # noun heads the phrase; rows tagged `CTA block` get a larger text cap scoped by film type; the palette limit counts hue
 # families, not tonal steps; the film type is read from --type or the project (scoped values: motion-density.md
-# section 6). This file also holds the film type helpers that look.py, film_gate.py and motion_check.py import.
+# section 6). 2026-10-29 (news reel trials, lessons L9 and L12): a declared continuous take turns check 6's reds into
+# yellows; checks 18 to 21 (cited phrases in the script, subject roles, verbatim on-screen words, depth build routes);
+# hold events are read under "kind" as well as "type". This file also holds the film type helpers that look.py,
+# film_gate.py and motion_check.py import.
 # See NOTICE.md.
 """storyboard_lint.py: check a shot table mechanically before any code is written.
 
@@ -33,6 +36,7 @@ Lock the look above the table (lines outside the table, written before it):
   Style exception: <reason>            (optional, only for a scoped style change, see the ice-styles skill)
 Then a markdown table, one row per shot, columns:
   Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method (optional, recommended) | Tags (optional)
+  | Cites (optional: the exact spoken phrase, quoted, '#2' for its second occurrence) | Subject (optional: one role word)
 Tables inside code fences are skipped. With several tables only the first one with "Object" and "Action" columns is checked.
 
 Per row:
@@ -48,9 +52,11 @@ Per row:
   (4) The first shot is not text-led (a text noun heads the Object phrase, or text >= 7 units outside a CTA block
       row, or method is kinetic type)                                                                          -> red
   (6) Shot 2-6 s; 6-8 s or under 2 s -> yellow; over 8 s -> red; more than a fifth of shots at 6-8 s -> red
+      (both reds -> yellow when a "Style exception:" line names a continuous take: a news reel on one locked take)
   (7) Three shots in a row with the same Camera value ("hold" and "glide" excepted)                          -> yellow
   (15) Three shots in a row all pushing in (slow push, fast push, push in, slam, zoom in, punch in)          -> yellow
   (8) The last shot is not text-led (centred quote card, pure text card; same test as 4)                    -> red
+      (an end card tagged `CTA block` and named as the card in the Object column is text-led only by Object or Method)
   (11) A middle shot that is a text-led number card                                                         -> yellow
   (9) With --script: a number on screen (percent, year, number with unit) that the script never says        -> red
       (the script may say it as digits or as English words: "sixty percent" = 60%, "fifteen point two" = 15.2)
@@ -60,6 +66,15 @@ Per row:
        reason (what the element means, who or what it is on, why its colour and shape). An empty or filler cell
        ("reference", "style", "decoration", "looks good", "as in the reference") -> red: cut the element or write both.
        A table with no Trigger or no Reason column -> red. Rule: references/storyboard-lint.md section 3b.
+  (18) With a Cites column and --script: every cited phrase occurs in the script as often as its occurrence says
+       (Unicode normalised, combining marks removed, Arabic forms folded)                                    -> red
+  (19) With a Subject column: one role of speaker, discussed person, voice, place, object, programme, whole
+       frame                                                                                                -> yellow
+  (20) With a Cites column: the on-screen words are words of the cited phrase, in order (CTA block rows
+       exempt)                                                                                              -> yellow
+  (21) A row naming a depth or 3D element (2.5D, 3D, parallax, push-through, card field, cards in space,
+       extruded or wrapped text, virtual set, depth planes) names "build: <route>" (css-3d, threejs-hyperframes,
+       remotion-three, blender)                                                                             -> red
 Whole table:
   (5) Text-led shots <= 30% of shots                                                                        -> red
   Method column (when present): one reusable template or clip file (.json/.html) running over 8 s in total -> red;
@@ -256,7 +271,7 @@ def project_ice(*starts):
 
 def declared_times(ice, events_path=None):
     """Declared holds and the CTA start, from ice/plan/cue-sheet.json (the `quiet` list; an event whose kind is "cta" or
-    whose text names the CTA) and from an events file (type "hold" with t and end; type "show" or "cta" labelled cta).
+    whose text names the CTA) and from an events file (type or kind "hold" with t and end; "show" or "cta" labelled cta).
     -> (holds [(start, end, reason)], cta_start or None, sources [])."""
     holds, cta, src = [], None, []
     def cta_ev(e):
@@ -280,7 +295,7 @@ def declared_times(ice, events_path=None):
             ev = ev.get("events", []) if isinstance(ev, dict) else ev
             for e in ev if isinstance(ev, list) else []:
                 if not isinstance(e, dict) or not isinstance(e.get("t"), (int, float)): continue
-                ty = str(e.get("type", "")).lower()
+                ty = str(e.get("type") or e.get("kind") or "").lower()   # the reference events format writes "kind"
                 if ty == "hold" and isinstance(e.get("end"), (int, float)):
                     holds.append((float(e["t"]), float(e["end"]), str(e.get("label", "hold"))))
                 elif ty in ("show", "cta") and cta_ev(e):
@@ -454,6 +469,8 @@ def columns(head):
         elif ("method" in hl or "how" in hl or "technique" in hl) and "how" not in col: col["how"] = k
         elif "trigger" in hl and "trig" not in col: col["trig"] = k
         elif ("reason" in hl or hl.strip() == "why") and "why" not in col: col["why"] = k
+        elif hl.strip() in ("cites", "cite", "cited phrase") and "cite" not in col: col["cite"] = k
+        elif hl.strip() in ("subject", "subject role") and "subj" not in col: col["subj"] = k
     return col
 
 
@@ -644,6 +661,55 @@ def hue_families(hexes):
     return len(fams) + neutral, desc + (", neutrals" if neutral else "")
 
 
+# (18)-(20) cited phrases and subject roles (lesson L9 trial, STYLE-BIBLE 11.3 V2, V5, V10): words are compared after
+# Unicode normalisation, combining marks removed, and Arabic folding (tatweel; alef, hamza-carrier, alef maqsura and taa
+# marbuta forms), so a phrase written with or without diacritics or kashida matches the script.
+AR_FOLD = str.maketrans({"\u0623": "\u0627", "\u0625": "\u0627", "\u0622": "\u0627", "\u0671": "\u0627", "\u0649": "\u064a",
+                         "\u0629": "\u0647", "\u0624": "\u0648", "\u0626": "\u064a", "\u0640": None})
+SUBJECT_ROLES = ("speaker", "discussed person", "voice", "place", "object", "programme", "whole frame")
+QUOTED = re.compile(r"[\"\u201c\u201d\u00ab\u00bb]([^\"\u201c\u201d\u00ab\u00bb]+)[\"\u201c\u201d\u00ab\u00bb]")
+OCCURRENCE = re.compile(r"(?:#|\(\s*)(\d+)\s*\)?\s*$")
+# (21) depth and 3D rows (lesson L12): the shot names a depth or 3D element, so it must name its build route
+DEPTH_ROW = re.compile(r"(?<![\w.])(?:2\.5d|3d|three[- ]d|parallax|push[- ]through|card field|cards in space|extruded (?:text|type|letters)|"
+                       r"wrapped text|text on a cylinder|virtual set|depth planes?)(?![\w])", re.I)
+NOT_DEPTH = re.compile(r"\b(?:no|not|without|non)[- ]+(?:3d|2\.5d|parallax|depth)\b", re.I)
+BUILD_ROUTE = re.compile(r"\bbuild\s*:\s*([a-z0-9-]+)", re.I)
+BUILD_ROUTES = ("css-3d", "threejs-hyperframes", "remotion-three", "blender")
+CONTINUOUS_TAKE = re.compile(r"continuous|one take|single take|long take|locked take|oner\b|one shot", re.I)
+
+
+def fold_words(t):
+    """Words of a text for phrase matching: NFKC, lower case, combining marks removed, Arabic forms folded."""
+    t = strip_marks(unicodedata.normalize("NFKC", clean_cell(t or ""))).translate(AR_FOLD).lower()
+    return re.findall(r"[^\W_]+", t)
+
+
+def cited_phrases(cell):
+    """A Cites cell -> [(phrase words, occurrence)]. The phrase is the quoted part when quotes are used; several phrases
+    are separated by ';'; '#2' or '(2)' at the end names the occurrence (1 = the first time it is said)."""
+    out = []
+    for part in [p for p in re.split(r";", clean_cell(cell)) if p.strip()]:
+        m = OCCURRENCE.search(part)
+        occ = int(m.group(1)) if m else 1
+        body = part[:m.start()] if m else part
+        q = QUOTED.search(body)
+        words = fold_words(q.group(1) if q else body)
+        if words: out.append((words, max(1, occ)))
+    return out
+
+
+def count_phrase(words, script_words):
+    n, k = 0, len(words)
+    for i in range(len(script_words) - k + 1):
+        if script_words[i:i + k] == words: n += 1
+    return n
+
+
+def is_subsequence(small, big):
+    it = iter(big)
+    return all(w in it for w in small)
+
+
 def lint(text, script=None, scope=None):
     """Returns a dict: rows (per-row results), table (whole-table results), verdict, summary. script: the full voiceover
     script (optional); check (9) runs only when it is given. scope: resolve_scope() result (film type and its values);
@@ -660,13 +726,17 @@ def lint(text, script=None, scope=None):
         return {"error": "Shot table is missing column(s): " + ", ".join(miss) + ". Columns: Time | Object | Action | Camera | On-screen text | Method."}
     get = lambda cells, k: cells[col[k]] if k in col and col[k] < len(cells) else ""
     rows, table = [], []
+    lock = read_lock(text, raw[0][0] - 2 if raw else None)
+    # (6) scoped exception (R18): a declared "Style exception:" line naming a continuous take (a news reel cut on one
+    # locked studio take) turns the over-8 s red into a yellow; the take's inner events are gated by the pacing check
+    one_take = bool(CONTINUOUS_TAKE.search(lock.get("style exception", "")))
     for n, (lineno, cells) in enumerate(raw, 1):
         if all(is_empty(c) for c in cells): continue
         obj, act, cam, txt, how = (get(cells, k) for k in ("obj", "act", "cam", "text", "how"))
         span = parse_span(get(cells, "time"))
         r = {"n": len(rows) + 1, "line": lineno, "obj": clean_cell(obj), "act": clean_cell(act), "cam": clean_cell(cam),
              "text": clean_cell(txt), "how": clean_cell(how), "span": span, "dur": (span[1] - span[0]) if span else None,
-             "chars": text_len(without_required_labels(txt)), "issues": [], "cta_tag": is_cta_block(get(cells, "tags"))}
+             "chars": text_len(without_required_labels(txt)), "issues": [], "cta_tag": is_cta_block(get(cells, "tags")), "cells": cells}
         bad = r["issues"].append
         if is_empty(obj):
             bad((RED, "(1) object", "the Object column is empty", "write one thing in the picture you could point at and say 'that one': a person, a hand, a machine, a specific object"))
@@ -682,8 +752,10 @@ def lint(text, script=None, scope=None):
         r["texty"] = is_texty_object(r["obj"]) or (r["chars"] >= 7 and not r["cta_tag"]) or how_kind(how) == "kinetic"
         if span is None:
             bad((RED, "(6) duration", f"time span '{clean_cell(get(cells, 'time'))}' cannot be read", "write it as 0-3 or 0:03-0:07"))
+        elif r["dur"] > 8 and one_take:
+            bad((YELLOW, "(6) duration", f"this shot is {r['dur']:g} s, over 8 s (continuous take declared in the Style exception line)", "keep it only if inner events (camera moves, graphics in and out) keep every gap within the reference's longest gap: motion-density.md, \"Pacing against the reference\""))
         elif r["dur"] > 8:
-            bad((RED, "(6) duration", f"this shot is {r['dur']:g} s, over 8 s", "split it into two or three shots of 2-6 s each, with a new picture or a new camera move"))
+            bad((RED, "(6) duration", f"this shot is {r['dur']:g} s, over 8 s", "split it into two or three shots of 2-6 s each, with a new picture or a new camera move; a news reel on one locked take declares it with a 'Style exception: continuous take' line"))
         elif r["dur"] > 6:
             bad((YELLOW, "(6) duration", f"this shot is {r['dur']:g} s (6-8 s is allowed only rarely)", "split it if you can; if not, make something new happen in it: the object's next action, a glide to the next thing, a pull back to the whole"))
         elif r["dur"] < 2:
@@ -742,8 +814,10 @@ def lint(text, script=None, scope=None):
     # (8) last shot
     z = rows[-1]
     if len(rows) > 1 and z["texty"]:
+        tag_hint = "" if z["cta_tag"] or not info_cap else (f"; when this row is the end card the film type '{scope['row']}' carries (a measured or branded end card), "
+                                                             "tag it `CTA block` in the Tags column and name the card in the Object column ('end card ...'): a CTA block row is text-led only by its Object or Method")
         z["issues"].append((RED, "(8) ending", "the last shot is text-led (centred quote card or pure text card)",
-                            "end on the protagonist or main object doing something (puts it away, closes the book, pull back to the whole); words may sit on an object in the picture, never a separate text card"))
+                            "end on the protagonist or main object doing something (puts it away, closes the book, pull back to the whole); words may sit on an object in the picture, never a separate text card" + tag_hint))
     # (11) a number card in the middle: blind reviews kept reading a separate flat number card as "a slide was inserted"
     for r in rows[1:-1]:
         if r["texty"] and screen_numbers(r["text"]):
@@ -757,6 +831,45 @@ def lint(text, script=None, scope=None):
             if miss:
                 r["issues"].append((RED, "(9) numbers", f"on-screen number(s) {', '.join(repr(m) for m in miss)} not found in the script: screen and voiceover disagree",
                                     "check the source and make the screen say the number the voiceover says (or change the voiceover); both must be the same number. Arabic number words are not parsed: confirm those by hand"))
+    # (18) every Cites phrase occurs in the script (as often as its occurrence says) -> red
+    if "cite" in col:
+        sw = fold_words(SRT_NOISE.sub(" ", script)) if script is not None else None
+        for r in rows:
+            r["cites"] = cited_phrases(get(r["cells"], "cite"))
+            if sw is None: continue
+            for words, occ in r["cites"]:
+                said = count_phrase(words, sw)
+                if said < occ:
+                    what = "is never said in the script" if not said else f"is said {said} time(s), not {occ}"
+                    r["issues"].append((RED, "(18) cites", f"the cited phrase '{' '.join(words)}' {what}",
+                                        "quote the exact spoken words from the script (or the fresh transcript) and their occurrence; on-screen text and graphics follow what is said"))
+        if script is None and any(r["cites"] for r in rows):
+            table.append((YELLOW, "(18) cites", "a Cites column but no --script: the cited phrases were not checked", "run again with --script <script or transcript>"))
+        # (20) on-screen words come from the cited phrase, in order (never paraphrase spoken words); end cards exempt
+        for r in rows:
+            words = [w for w in fold_words(without_required_labels(r["text"])) if not w.isdigit()]
+            if not words or not r["cites"] or r["cta_tag"]: continue
+            if not any(is_subsequence(words, c) for c, _ in r["cites"]):
+                r["issues"].append((YELLOW, "(20) verbatim", "the on-screen words are not the cited spoken words in order",
+                                    "show the words as they are said (a keyword is a word of the cited phrase); only an end card tagged `CTA block` uses its own wording"))
+    # (19) the subject role is one word of the vocabulary -> yellow
+    if "subj" in col:
+        for r in rows:
+            cells = r["cells"]
+            role = re.sub(r"[_\-\s]+", " ", clean_cell(get(cells, "subj")).lower()).strip()
+            if role not in SUBJECT_ROLES:
+                r["issues"].append((YELLOW, "(19) subject", f"subject role '{clean_cell(get(cells, 'subj'))}' is not in the vocabulary" if role else "the Subject cell is empty",
+                                    "write one role: " + ", ".join(SUBJECT_ROLES) + " (the ice-remake skill, references/notes-files.md section 6)"))
+    # (21) a depth or 3D row names its build route -> red (lesson L12)
+    for r in rows:
+        cells = r["cells"]
+        blob = " ".join(clean_cell(get(cells, k)) for k in ("obj", "act", "cam", "how", "tags"))
+        if not DEPTH_ROW.search(NOT_DEPTH.sub(" ", blob)): continue
+        routes = [m.group(1).lower() for m in BUILD_ROUTE.finditer(" ".join(cells))]
+        bad_routes = [x for x in routes if x not in BUILD_ROUTES]
+        if not routes or bad_routes:
+            r["issues"].append((RED, "(21) depth route", "a depth or 3D element with no build route" if not routes else f"unknown build route(s): {', '.join(bad_routes)}",
+                                "write 'build: <route>' in the Method cell, one of " + ", ".join(BUILD_ROUTES) + " (blender only when Blender is installed); routes: the ice-motion skill, references/depth-and-3d.md, \"Build routes for depth and 3D\""))
     # (7) three shots in a row with the same camera
     for k in range(2, len(rows)):
         c = rows[k]["cam"].lower()
@@ -782,7 +895,7 @@ def lint(text, script=None, scope=None):
                       "pick half of them and replace the words with an object doing something; give the words to the voiceover and captions"))
     long_ = [r["n"] for r in rows if r["dur"] and 6 < r["dur"] <= 8]
     if len(long_) > max(1, n // 5):
-        table.append((RED, "(6) duration", f"{len(long_)} shots run 6-8 s (shot(s) {', '.join(map(str, long_))}); only a few are allowed",
+        table.append((YELLOW if one_take else RED, "(6) duration", f"{len(long_)} shots run 6-8 s (shot(s) {', '.join(map(str, long_))}); only a few are allowed",
                       "split them, 2-6 s per shot"))
     if not any(any(w in r["cam"].lower() for w in CAM_MOVE) for r in rows):
         table.append((YELLOW, "camera", "no camera move in the whole table, only holds and cuts", "the delivery gate measures in-shot motion and an all-hold film usually goes red; put a slow push, a glide or a pull back where the viewer's eye must be led (an object's own action also counts as motion)"))
@@ -791,7 +904,6 @@ def lint(text, script=None, scope=None):
         table.append((YELLOW, "(16) accents", f"fast push / slam / whip on {len(acc)}/{n} shots (shot(s) {', '.join(map(str, acc))}): too many accents means no accent",
                       "keep them for the reveal, the turn and the key number; make the rest a slow push, a glide, a pull back or a hold"))
     total = sum(r["dur"] or 0 for r in rows)
-    lock = read_lock(text, raw[0][0] - 2 if raw else None)
     if "how" in col:
         clips = {}
         for r in rows:

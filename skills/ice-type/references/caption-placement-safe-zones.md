@@ -43,6 +43,7 @@ Landscape caption positions: bottom 80 to 120 px. Portrait: about 600 to 700 px 
 9. Text to be read is drawn on top, last, regardless of its object's layer (photos, clips or later cards covering text is the most common bug). Captions also sit above any dim or spotlight layer.
 10. Subtitle band moves wait until host geometry transitions finish (about 0.45 s).
 11. In 3D or camera-moving shots, captions and HUD sit on a screen layer outside the camera rig and never move with the camera.
+    Scope line, news reel (edit type `news-reel`, style family `family-broadcast-news.md`) and a digital camera on one take: graphics that belong to the room (keyword text, glass plates, titles, discs, pills) sit inside the rig as `layer: rig` and ride the zoom with the same anchor, ease and frames (measured: plates follow within 1 to 4 px; a keyword shrank from 830 to 676 px and rose 84 px with a pull-out); captions, the logo bug, the programme name, the progress bar, lower thirds, location tags and the end card stay outside it as `layer: screen`. Every element is tagged in `plan/shots.json`. Canonical numbers: `skills/ice-motion/references/camera.md`, section "Digital camera on one take (news reel)". Legibility of room graphics at the smallest camera scale: `sizes-and-scale.md` section 4.
 
 Arabic layouts (caption above a video card, RTL positions): see the `ice-arabic` skill.
 

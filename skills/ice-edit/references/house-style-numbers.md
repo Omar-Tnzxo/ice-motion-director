@@ -28,6 +28,8 @@ Narration rate for generated voiceover is owned by the ice-audio skill.
 | Dead screen | Any stretch over about 1.5 s with nothing happening in a graphics-led video | Long-form persistent-world graphics |
 | Visual beat cadence | Early video: no more than 20 to 30 s without a visual beat; main body: 30 to 45 s | Long-form talking head with overlay cards |
 
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the shot caps, first cut and event cadence above do not apply; one take per passage carries an inner visual event every 1.2 to 3 s, single cutaways run 2 to 4 s and archive bursts 0.86 s per clip (`edit-types/news-reel.md` sections 3 and 4). A reference's measured gap and density win (lesson L9, `clock-and-grouping.md` section 3).
+
 ## 3. Layout shares and speaker presence
 
 Vertical 1080x1920 house reel (every layout change is a hard cut):
@@ -48,6 +50,8 @@ Vertical 1080x1920 house reel (every layout change is a hard cut):
 | Speaker form | Rotate the speaker's form and position across shots (full, half body, corner badge left or right, split cell, cutout, brief absence); three identical in a row is a defect | Long-form explainer with a host |
 | Collage style | Speaker shows at least 3 s each time and at most 55% of the video | Collage reels |
 
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the layout shares and the speaker presence above do not apply; the presenter is on screen 75 to 87 percent of the programme time and absent only for archive bursts (3.6 to 6.9 s), single cutaways and the end card (`edit-types/news-reel.md` section 3).
+
 ## 4. Punch-ins and zoom (static per segment)
 
 | Mode | Zoom cycle and limits |
@@ -62,6 +66,8 @@ Vertical 1080x1920 house reel (every layout change is a hard cut):
 - Break the zoom alternation when the meaning changes, or the automation shows.
 - Zoom out only as a return from a zoom in; it never turns the frame into a card and never goes smaller than the source.
 - Something must move in the first second; a static first frame gets scrolled past.
+
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the locked zoom per segment, the calm and hyper limits, the 1.20x ceiling and "zoom out only as a return" are replaced by the continuous digital camera of `ice-motion/references/camera.md`, "Digital camera on one take (news reel)"; the ceiling there is source height / output height.
 
 ## 5. Overlay density
 

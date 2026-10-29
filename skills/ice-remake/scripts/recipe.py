@@ -8,13 +8,18 @@ Reads, all local files, no network:
     <ref>/analysis/report.json   analyze.py output (required)
     <ref>/ANALYSIS.md            notes, including its "## Recipe notes" block and "## Finishing layer" table (optional)
     <ref>/TIMELINE.md            per-shot table: the "transition in" column (optional)
-    <ref>/REASONS.md             element reasons table (optional; notes-files.md section 6)
+    <ref>/REASONS.md             element reasons table and its "## Never" block (optional; notes-files.md section 6)
+    <ref>/TIMELINE.md            also its "## Events" table (pacing events the analyzer misses)
     <ref>/peaks.json             confirmed peaks (optional; else the analyzer's peak candidates)
     <ref>/sound_map.json         the ice-audio sound map (optional; also looked for in <ref>/analysis/)
+    <ref>/analysis/events.json   pacing events (optional; else measured from report.json and the TIMELINE.md Events table)
+    <ref>/analysis/depth.json    depth, 3D and camera measures (optional; measuring.md "Depth, 3D and camera")
     the brief's References block line for this ref-id: kind and mode (flags override it)
 Writes into <ref>:
     STYLE-RECIPE.md              the recipe a person reads and pastes into Claude
     style-recipe.json            its machine twin
+With --events it writes only <ref>/analysis/events.json (measuring.md "Pacing events") and prints the longest gap and
+the events per minute.
 Format: references/style-recipe.md. Nothing is invented: a value no file holds is written as unknown together with
 what would measure it. No rights gate (references/rights-and-modes.md section 1): the recipe carries the full style,
 skin included, with one neutral line that rights are the user's responsibility; the reference's own media go in as
@@ -182,6 +187,13 @@ def element_reasons(reasons_text):
     return rows or unknown("no reasons table yet: write REASONS.md during the watch (notes-files.md section 6)")
 
 
+def never_rules(reasons_text):
+    """The "## Never" block of REASONS.md: one rule per bullet, each a count of 0 over measured chances."""
+    rules = [re.sub(r"^\s*[-*]\s*", "", l).strip() for l in md_section(reasons_text, "Never").splitlines()]
+    rules = [r for r in rules if r and not r.startswith("<")]
+    return rules or unknown("## Never block of REASONS.md: what the reference never does, each as 0 of the chances counted (notes-files.md section 6)")
+
+
 def finishing(analysis_text):
     """The Finishing layer table of ANALYSIS.md: effect, where, how much, measured how, why (measuring.md section 9)."""
     rows = table_rows(md_section(analysis_text, "Finishing layer"), "effect")
@@ -205,19 +217,117 @@ def is_hard(family):
 
 
 def timeline_transitions(timeline_text):
-    """The "transition in" column of the TIMELINE.md per-shot table, one family name per row, in row order."""
-    fams, col = [], None
-    for line in timeline_text.splitlines():
-        if not line.strip().startswith("|"):
-            continue
-        cells = [c.strip().lower() for c in line.strip().strip("|").split("|")]
+    """The "transition in" column of the TIMELINE.md per-shot table, one family name per row, in row order. Only the
+    first table with that column is read, so the "## Events" table below it never adds families."""
+    for tb in md_tables(timeline_text):
+        col = next((i for i, k in enumerate(tb["head"]) if k.startswith("transition")), None)
         if col is None:
-            col = next((i for i, c in enumerate(cells) if c.startswith("transition")), None)
             continue
-        if col is None or col >= len(cells) or set(cells[col]) <= set("-: "):
+        return [family_name(r[col].lower()) if r[col] else "unknown" for r in tb["rows"] if col < len(r)]
+    return []
+
+
+# ------------------------------------------------------------------ pacing events (measuring.md "Pacing events")
+
+EVENT_KINDS = ("cut", "camera", "graphic", "flash", "sound", "hold")
+STILL_KINDS = ("static", "drift")
+
+
+def _secs(cell):
+    m = re.match(r"\s*(-?[0-9]+(?:\.[0-9]+)?)", str(cell or ""))
+    return float(m.group(1)) if m else None
+
+
+def timeline_events(timeline_text):
+    """Rows of the "## Events" table of TIMELINE.md: t s, kind, end s (holds only), note. The kind is its first word
+    ("graphic in" is a graphic with the note "in"); a row whose time or kind cannot be read is skipped."""
+    out = []
+    for row in table_rows(md_section(timeline_text, "Events"), "kind"):
+        t = _secs(next((v for k, v in row.items() if k in ("t", "t_s", "time", "time_s", "at", "at_s")), None))
+        words = str(row.get("kind", "")).lower().split()
+        if t is None or not words or words[0] not in EVENT_KINDS:
             continue
-        fams.append(family_name(cells[col]) if cells[col] else "unknown")
-    return fams
+        ev = {"t": round(t, 3), "kind": words[0], "source": "TIMELINE.md"}
+        note = " ".join(words[1:] + ([row["note"]] if isinstance(row.get("note"), str) and row["note"] else []))
+        end = _secs(next((v for k, v in row.items() if k in ("end", "end_s")), None))
+        if ev["kind"] == "hold" and end is not None:
+            ev["end"] = round(end, 3)
+        if note:
+            ev["note"] = note
+        out.append(ev)
+    return out
+
+
+def gap_stats(events, duration):
+    """Longest gap (0 and the duration are the bounds) and events per minute, holds excluded (lesson L9)."""
+    ts = sorted(e["t"] for e in events if (e.get("kind") or e.get("type")) != "hold" and 0 <= e["t"] <= duration)
+    bounds = [0.0] + ts + [float(duration)]
+    gap, at = max(((b - a, [a, b]) for a, b in zip(bounds, bounds[1:])), key=lambda x: x[0])
+    return {"longest_gap": round(gap, 3), "longest_gap_at": [round(at[0], 3), round(at[1], 3)],
+            "events_per_minute": round(len(ts) / duration * 60, 2) if duration else None}
+
+
+def pacing_events(rep, timeline_text):
+    """The reference's events file: every authored visual change analyze.py finds (cuts and gradual seams, camera move
+    starts, overlays popping, revealing or scaling in or out, fades, flashes) plus the rows of the TIMELINE.md "## Events"
+    table (graphics in and out, camera moves the analyzer's half-second sampling misses). Same kind within one frame
+    counts once. Schema: measuring.md "Pacing events"."""
+    v = rep.get("video") or {}
+    dur, fps = v.get("duration"), v.get("fps")
+    if not dur:
+        return None
+    one = 1 / fps if fps else 0.04
+    ev = []
+    kinds = {round(b["t"], 2): b["kind"] for b in rep.get("boundaries") or []}
+    for a, _ in (rep.get("shots") or [])[1:]:
+        ev.append({"t": round(a, 3), "kind": "cut", "source": "analyze.py shots",
+                   **({"note": "gradual seam"} if kinds.get(round(a, 2)) == "gradual" else {})})
+    for x in rep.get("shot_details") or []:
+        cam = x.get("camera") or {}
+        segs = cam.get("segments") or [{"start": x["start"], "kind": cam.get("kind") or ["static"]}]
+        prev = None
+        for sg in segs:
+            moving = [k for k in sg["kind"] if k not in STILL_KINDS]
+            if moving and moving != prev:
+                ev.append({"t": round(sg["start"], 3), "kind": "camera", "note": "/".join(moving), "source": "analyze.py camera segments"})
+            prev = moving
+    for f in rep.get("flashes") or []:
+        ev.append({"t": round(f.get("t", 0) if isinstance(f, dict) else f, 3), "kind": "flash", "source": "analyze.py flashes"})
+    st = rep.get("structure") or {}
+    for o in st.get("overlays") or []:
+        ev.append({"t": round(o["start"], 3), "kind": "graphic", "note": f"overlay {o['kind']}", "source": "analyze.py structure"})
+    for f in st.get("fades") or []:
+        ev.append({"t": round(f["start"], 3), "kind": "cut", "note": f["kind"].replace("_", " "), "source": "analyze.py structure"})
+    for h in st.get("black") or []:
+        ev.append({"t": round(h["start"], 3), "kind": "hold", "end": round(h["end"], 3), "note": "black hold", "source": "analyze.py structure"})
+    ev += timeline_events(timeline_text)
+    ev.sort(key=lambda e: (e["t"], e["kind"]))
+    kept = []
+    for e in ev:
+        if any(k["kind"] == e["kind"] and abs(k["t"] - e["t"]) < one - 1e-9 for k in kept[-8:]):
+            continue
+        kept.append(e)
+    out = {"duration": rnd(dur, 3), **({"fps": fps} if fps else {}), "events": kept}
+    out.update(gap_stats(kept, dur))
+    out["counted"] = "every event except hold; longest gap bounded by 0 and the duration (measuring.md \"Pacing events\")"
+    return out
+
+
+def pacing(rep, notes, timeline_text, events_file=None):
+    """The grammar's pacing block: the stored events file when there is one (it may hold hand-checked rows), else the
+    events measured now; the Pacing line of the Recipe notes is kept as a note."""
+    stored = events_file if isinstance(events_file, list) else (events_file or {}).get("events") if isinstance(events_file, dict) else None
+    data = {"duration": events_file.get("duration") if isinstance(events_file, dict) else None, "events": stored} if stored else pacing_events(rep, timeline_text)
+    dur = (data or {}).get("duration") or (rep.get("video") or {}).get("duration")
+    if not data or not dur:
+        return unknown("analysis/events.json from recipe.py --events, after analyze.py (measuring.md \"Pacing events\"), and the Pacing line of the Recipe notes")
+    evs = [{**e, "kind": e.get("kind") or e.get("type")} for e in data["events"]]   # the film's events file writes "type"
+    out = {**gap_stats(evs, dur), "events": sum(1 for e in evs if e["kind"] != "hold"),
+           "by_kind": {k: sum(1 for e in evs if e["kind"] == k) for k in EVENT_KINDS if any(e["kind"] == k for e in evs)},
+           "source": "analysis/events.json" if stored else "analyze.py report and the TIMELINE.md Events table"}
+    if notes.get("pacing"):
+        out["note"] = notes["pacing"]
+    return out
 
 
 def seams(rep, fams):
@@ -295,7 +405,7 @@ def structure_rows(rep, seam_rows):
     return sorted(rows, key=lambda r: r["t"]), "structure" in rep
 
 
-def grammar(rep, notes, fams, peaks_file, sm=None, reasons=None):
+def grammar(rep, notes, fams, peaks_file, sm=None, reasons=None, pace=None, depth_file=None, never=None):
     dur = (rep.get("video") or {}).get("duration")
     shots = rep.get("shots") or []
     lens = [b - a for a, b in shots]
@@ -461,7 +571,19 @@ def grammar(rep, notes, fams, peaks_file, sm=None, reasons=None):
         g["climax"] = {"source": "none", "peaks": unknown("peaks.json (climax-duel.md) or analyze.py peak candidates (needs librosa)")}
     g["motif_and_rhyme"] = notes.get("motif and rhyme") or notes.get("motif") or unknown("Motif and rhyme line of the Recipe notes: recurring motif, how the ending rhymes with the opening")
     g["element_reasons"] = reasons if reasons is not None else element_reasons("")
+    g["never"] = never if never is not None else never_rules("")
+    g["pacing"] = pace if pace is not None else pacing(rep, notes, "")
+    g["depth"] = depth_value(notes, depth_file)
     return g
+
+
+def depth_value(notes, depth_file=None):
+    """Depth, 3D and camera (lesson L12): the Depth line of the Recipe notes, with analysis/depth.json when it exists."""
+    line = notes.get("depth")
+    if isinstance(depth_file, dict):
+        return {"line": line or "not written (the Depth line of the Recipe notes)", "measured": depth_file}
+    return line or unknown("Depth line of the Recipe notes and analysis/depth.json: camera moving share, depth planes and parallax ratio, "
+                           "push-throughs, 3D elements, depth of field, and the words that switch each on (measuring.md \"Depth, 3D and camera\"); write none when there is none")
 
 
 # ------------------------------------------------------------------ look
@@ -498,6 +620,8 @@ def look(rep, notes, finish=None):
     lo["material_and_light"] = notes.get("material and light") or unknown("Material and light line of the Recipe notes: material category, texture, light mood")
     lo["typefaces"] = notes.get("typefaces") or unknown("Typefaces line of the Recipe notes: headline and body typefaces seen, or the closest named match")
     lo["medium"] = notes.get("medium") or unknown("Medium line of ANALYSIS.md")
+    lo["fixed_marks"] = notes.get("fixed marks") or unknown("Fixed marks line of the Recipe notes: each mark that stays on screen (logo, programme name, corner bug) "
+                                                            "with box x and y percent, width percent, opacity, colour, first and last frame and layer (measuring.md \"Fixed marks\"); write none when there is none")
     lo["finishing"] = finish if finish is not None else finishing("")
     return lo
 
@@ -662,7 +786,9 @@ def prompt_block(ref_id, rel_path, mode, slots, content_type="unknown"):
              f"If I did not say which, ask the {IDENTITY}.",
              f"For {PEOPLE}.",
              f"Reference content type: {content_type}. If my piece is a different type, recommend the same editing principles with my identity or my real brand's, not the reference's identity (ice-remake references/rights-and-modes.md section 1, The identity fits the content).",
-             "Carry an element of the reference only where my script holds the same trigger kind as its element reason, and cut an element with no reason; apply each finishing effect only where its measured row says."]
+             "Carry an element of the reference only where my script holds the same trigger kind as its element reason, and cut an element with no reason; apply each finishing effect only where its measured row says.",
+             "Keep its pacing (no gap longer than its longest gap, at least its events per minute), place a mark in each of its fixed-mark slots (its own or mine, as the identity slot says), "
+             "and carry its depth, 3D and camera movement with a build route for each (ice-remake references/measuring.md, \"Pacing events\", \"Fixed marks\" and \"Depth, 3D and camera\")."]
     lines.append("If content is footage, edit my footage with this recipe as the style reference; if it is from-scratch, build a new piece in this style.")
     lines.append("Slots:")
     for s in SLOTS:
@@ -715,7 +841,8 @@ def markdown(r):
     for k, label in (("tempo", "Tempo grid"), ("shot_lengths", "Shot lengths"), ("cuts_vs_beats", "Cuts against beats"),
                      ("events_vs_beats", "Structure events against beats"), ("transitions", "Transitions and seams"),
                      ("camera", "Camera moves and speeds"), ("stillness", "Stillness"), ("type", "Type behaviour"),
-                     ("cursor", "Cursor"), ("composition", "Composition habits"), ("motif_and_rhyme", "Motif and rhyme")):
+                     ("cursor", "Cursor"), ("composition", "Composition habits"), ("motif_and_rhyme", "Motif and rhyme"),
+                     ("pacing", "Pacing events"), ("depth", "Depth, 3D and camera"), ("never", "Never (counts of 0 in REASONS.md)")):
         if k in g:
             L.append(f"- {label}: {fmt(g[k])}")
     dc = g["density_curve"]
@@ -781,6 +908,8 @@ def main():
     ap.add_argument("--slot", action="append", default=[], help="pre-fill a slot: name=value (names: " + ", ".join(SLOTS) + ")")
     ap.add_argument("--date", help="date written in the recipe (default: today)")
     ap.add_argument("--dry-run", action="store_true", help="write nothing; print the watch line and the unknowns (use during stage 01)")
+    ap.add_argument("--events", action="store_true", help="write only <ref>/analysis/events.json (pacing events: report.json plus the "
+                    "TIMELINE.md Events table) and print its longest gap and events per minute (stage 01, measuring.md \"Pacing events\")")
     a = ap.parse_args()
 
     ref = os.path.abspath(a.ref)
@@ -788,6 +917,18 @@ def main():
     rep = load_json(os.path.join(ref, "analysis", "report.json"))
     if rep is None:
         sys.exit(f"recipe.py: {os.path.join(ref, 'analysis', 'report.json')} is missing. Run analyze.py first (references/measuring.md section 1).")
+    timeline = read_text(os.path.join(ref, "TIMELINE.md"))
+    if a.events:
+        ev = pacing_events(rep, timeline)
+        if not ev:
+            sys.exit("recipe.py: report.json has no video duration, so no events file can be written (run analyze.py again).")
+        path = os.path.join(ref, "analysis", "events.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(ev, f, ensure_ascii=False, indent=1)
+        print(f"events  {path}")
+        print(f"pacing  {len(ev['events'])} rows | longest gap {ev['longest_gap']} s at {ev['longest_gap_at'][0]}-{ev['longest_gap_at'][1]} s | "
+              f"{ev['events_per_minute']} events per minute (holds excluded)")
+        return
     brief = brief_line(read_text(a.brief or os.path.join(ref, os.pardir, os.pardir, "BRIEF.md")), ref_id)
     mode = (a.mode or brief.get("mode") or "structural fidelity").lower()
     if mode not in MODES:
@@ -801,8 +942,9 @@ def main():
         slots[k] = v.strip()
 
     notes = recipe_notes(read_text(os.path.join(ref, "ANALYSIS.md")))
-    trans = timeline_transitions(read_text(os.path.join(ref, "TIMELINE.md")))
-    reasons = element_reasons(read_text(os.path.join(ref, "REASONS.md")))
+    trans = timeline_transitions(timeline)
+    reasons_text = read_text(os.path.join(ref, "REASONS.md"))
+    reasons = element_reasons(reasons_text)
     finish = finishing(read_text(os.path.join(ref, "ANALYSIS.md")))
     peaks = load_json(os.path.join(ref, "peaks.json"))
     sm_path = a.sound_map or next((p for p in (os.path.join(ref, "sound_map.json"), os.path.join(ref, "analysis", "sound_map.json")) if os.path.isfile(p)), None)
@@ -811,7 +953,8 @@ def main():
     v = rep.get("video") or {}
     pic = rep.get("picture") or {}
     w, hgt = pic.get("width") or v.get("width"), pic.get("height") or v.get("height")   # the real picture, never the analysis crop
-    g = grammar(rep, notes, trans, peaks, sm, reasons)
+    pace = pacing(rep, notes, timeline, load_json(os.path.join(ref, "analysis", "events.json")))
+    g = grammar(rep, notes, trans, peaks, sm, reasons, pace, load_json(os.path.join(ref, "analysis", "depth.json")), never_rules(reasons_text))
     cuts = [x["t"] for x in seams(rep, trans) if x["hard"]]
     r = {"version": RECIPE_VERSION, "ref_id": ref_id, "made": a.date or datetime.date.today().isoformat(),
          "header": {"kind": a.kind or brief.get("kind") or "video", "medium": notes.get("medium") or unknown("Medium line of ANALYSIS.md"),

@@ -38,7 +38,8 @@ Direction notes:
 - Grainy gradient recipe: gradients live inside shapes and the background, 2-3 distant hues on a dark or deep base, fine monochrome grain everywhere (fractal noise, about 0.65-0.9 base frequency at 1080p for 1-2 px grain; overlay or soft-light at 0.15-0.3 on dark, multiply 0.08-0.15 on light; jitter the grain deterministically about 12 times per second). It is a skin, not a skeleton: concept and transitions still come from the brief. Encoding destroys grain and smooth gradients: export with a grain-preserving setting and check the encoded file, not the browser (export rules are owned by ice-engines).
 - Light-background variant of any dark direction: switch the background behind a cut or wipe so the jump is invisible, lighten the vignette, turn off bloom.
 - Poster color-block is the only row where a flat single colour background is allowed without extra layers (with grain), together with flat pop with photos.
-- Glass and frosted panels belong only to SaaS or product launches whose brand supports them; elsewhere glass, glow, gradients on type, orbs and chrome read as fake premium.
+- Glass and frosted panels belong only to SaaS or product launches whose brand supports them; elsewhere glass, glow, gradients on type, orbs and chrome read as fake premium. Glass is allowed in a launch only when the brand's own UI uses it.
+  - Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`): frosted plates, pills and quote cards are a legibility device at wide framings over busy areas (the floor, a suit, hands) or the glass that keeps the presenter visible behind a read sentence, each with its reason row and the D-entry of the `ice-direction` skill, `references/color.md` section 7; package values in `family-broadcast-news.md` section 2. In the glass studio reel (that file, section 4) glass is the medium of the style. Everywhere else this line stands.
 
 ## 3. Background, surface and render-family menus
 
@@ -66,6 +67,8 @@ Explainer look rules:
 - Start every explainer from its own look, never from an opener skin.
 - Ghost text and big year numbers: one treatment per video at a visible fill opacity (about 0.18-0.25, not 0.08-0.12); vary annotation forms (thin line, accent line, double line, corner brackets, hand underline, none) rather than always dashed circles.
 - News looks require sources for every number and date; unverified numbers are not shown, only the qualitative claim (truth rules owned by ice-assets).
+- Visual journalism keeps red for warnings only. Scope: news reel (edit type `news-reel`, style family `family-broadcast-news.md`): red may be the programme's attention or question colour (question disc, pills, fact dots, flashes into archive), one job per hue under that file's colour-role contract (section 1.2); a red that also marks warnings in the same reel needs its own distinct hue or shape.
+- Visual journalism or the presenter news reel: visual journalism is built from documents, licensed photos and source tags in reading beats, on a black ground with grain, and needs no presenter; the presenter news reel (`family-broadcast-news.md` section 1) is one presenter take reframed digitally on a clean digital picture, with graphics fired by his words. Choose by the material: a presenter take points to the presenter news reel, documents and photos without one point to visual journalism. A news reel may borrow a visual journalism block for an evidence passage; log it as a declared second look.
 - Cartoon stage: zero captions; text only diegetic (signs, labels, plates). If the viewer needs to read, the picture has not explained yet.
 
 ## 5. Style territories (starting points for art direction)
@@ -74,7 +77,7 @@ When a brief gives no style, these territories are wide starting points to gener
 
 - Editorial print (typographic hierarchy, paper, restrained colour)
 - Swiss kinetic (grid, one typeface, one signal colour)
-- Broadcast package (bold bars, lower thirds, clear system)
+- Broadcast package (bold bars, lower thirds, clear system; for a presenter-led news reel the full genre and its measured packages: `family-broadcast-news.md`)
 - Cinematic minimal (light, negative space, slow scale)
 - Technical schematic (lines, callouts, drafting conventions)
 - Tactile collage (paper, photo, tape, hand marks)

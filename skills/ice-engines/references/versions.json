@@ -64,6 +64,10 @@
       "version": "5.24.0",
       "use": "maps in compositions"
     },
+    "milsymbol": {
+      "version": "3.0.5",
+      "use": "NATO APP-6 and MIL-STD-2525 military symbols as SVG in compositions (MIT; icon route of ice-assets sourcing-and-licenses.md section 4a); no network at render"
+    },
     "p5": {
       "version": "2.3.3",
       "use": "painted styles on the HTML capture route (LGPL-2.1: load it, do not vendor a modified copy)"
@@ -145,10 +149,24 @@
       "skills": ["ice-edit", "ice-audio", "ice-remake"],
       "note": "MIT; voice and music separation. Pulls PyTorch, a download of several hundred MB or more: check disk space first (engine-choice.md section 7.7). In no requirements.txt: installed on demand without a question (section 7.6); model: models.demucs"
     },
+    "rembg": {
+      "version": "2.0.86",
+      "skills": ["ice-assets", "ice-edit"],
+      "note": "MIT; local cutouts of stills (the cutouts row of ice-assets sourcing-and-licenses.md sections 1 and 4a). Installed as rembg[cpu] (it brings onnxruntime) on demand into the project virtual environment without a question (engine-choice.md section 7.6); in no requirements.txt. Models are fetched on first use into U2NET_HOME on a drive with room (section 7.7): u2netp for drafts, birefnet-portrait for hair; the bria-rmbg model is CC BY-NC (needs purchase)"
+    },
     "yt-dlp": {
       "version": "2026.10.26",
       "skills": ["ice-assets", "ice-remake", "ice-edit"],
       "note": "Unlicense; fetch tool of the official-channel route (ice-assets sourcing-and-licenses.md section 1a). In no requirements.txt: installed on demand without a question (engine-choice.md section 7.6)"
+    }
+  },
+  "binaries": {
+    "about": "Free command-line tools that are neither npm nor PyPI packages. scripts/freshness.mjs does not check them: compare with the project's releases page by hand before a release.",
+    "go-pmtiles": {
+      "version": "1.31.2",
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/protomaps/go-pmtiles/releases (one archive per operating system and CPU)",
+      "use": "pmtiles extract: cut a Protomaps planet basemap to the film's area by range reads (ice-engines maps-geo.md section 1); installed without a question into the project's tools folder (engine-choice.md section 7.6)"
     }
   },
   "models": {

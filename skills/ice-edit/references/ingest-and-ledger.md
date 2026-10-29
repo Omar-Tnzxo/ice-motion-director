@@ -55,6 +55,7 @@ Every inserted shot (B-roll, screen recording, generated clip, archive) gets one
 
 Rules:
 - Intervals refer to that exact local file, before any speed change. Record upstream provenance in the row as `"source":{"url":"<URL or supplied path>","owner":"<who made or holds it>","license":"licensed | unknown | needs purchase","checked":"<date>"}` (`ice-assets/references/sourcing-and-licenses.md` section 0: rights are the user's; the status is a record, never a block, and the delivery note lists every item that needs a license before publishing).
+- Agency or archive clips also record what their on-screen labels show: `"place":"<city, country as the label shows it>","date":"<the date the footage was shot>","credit":"<the credit line, agency or owner>"`, taken from the source's own metadata or page, never guessed. The location tag and the vertical source credit read these fields (the `ice-type` skill, `references/type-effects-specs.md`, section "Broadcast text"); a field that cannot be found stays empty and its label is not shown.
 - Scene identity survives crop, grade, speed, reverse and transcode: another crop, file name, speed, reverse or grade does not make a new scene. Re-encoding changes hashes, so semantic identity and a visual review are still needed.
 - Repeat policy by edit type:
 
@@ -76,6 +77,7 @@ Rules:
 | Approved correction | `scripts/grade.py --analyze` proposes a bounded correction (at most about 8% on any axis, no color shift; targets luma range about 0.72, mean about 0.48, saturation about 0.25). Put a grade in the EDL `grade` field only after approval; `render.py` applies it per segment during extraction, never after concat | video-use |
 | Creative look | Opt-in by name only (`warm_cinematic` is too aggressive for ordinary launch content); test skin tones first. Treatment recipes and looks belong to the ice-styles skill | video-use |
 | Whole-media limits | A grade or effect applies to the whole clip; it does not isolate or track a face, a plate or an address. Say so instead of pretending | hyperframes media-use |
+| News reel (edit type `news-reel`, style family `family-broadcast-news.md`) | The person stays untouched; the plate reactions of the matte kit (wash, brand flash, room darkening, room desaturation) change the plate behind the matte only, and archive or B-roll get the treatments of `broll-and-motion-broll.md` section 3. A blur on the presenter only as a measured transition (blur reframe, blur-out into archive, 3 to 22 f) or a measured defocus while a foreground card takes focus (tutor value: Gaussian 10 to 15, never more); desaturation and push-back only as `layers-and-isolation.md` section 3b allows | measured broadcast reels, tutors (ideas only) |
 
 ### Finishing layer (owner decision, 2026-10-29)
 
@@ -91,6 +93,16 @@ Tools: `ffmpeg` and `ffprobe` on PATH, Node and Python, each at the minimum in t
 - **Clean up what can be rebuilt.** Proxies, extracted frames, contact sheets' source frames and scratch stems that a script can rebuild are deleted once the stage that uses them is approved, and each deletion is logged in `ice/plan/edit-notes.md`. The raw sources, the transcripts, the EDLs and every approved render are never deleted.
 
 Shooting tip, in the same stage 01 message, whenever the edit separates the speaker from the background (text behind the speaker, a new backdrop, a cutout layout) and the footage is still to be shot or can be shot again: in plain words, a green screen or an evenly lit plain wall in a colour the speaker is not wearing; a locked-off camera on a tripod with a few seconds of the empty room before the speaker steps in; even light with no shadow on the wall and no change of exposure or white balance during the take; and a wide frame with space above the head. Footage shot this way separates with FFmpeg alone, with no model download (`layers-and-isolation.md` section 2). Already shot otherwise: the model route above is installed without a question and recorded.
+
+### Shooting for a news reel
+
+Scope: a news reel (edit type `news-reel`, style family `family-broadcast-news.md`) or a glass studio reel (`family-broadcast-news.md` section 4) whose footage is still to be shot or can be shot again. The tutors agree the look is about 90 percent decided at the shoot. Give the user these points in plain words in the stage 01 message:
+- **Shoot wide.** The presenter centred with space on every side (no tight 50 or 85 mm framing): the digital camera needs room to move and the graphics need room around the person.
+- **Headroom for the digital zoom.** The source height must be at least the largest zoom of the take times the output height (`ice-motion/references/camera.md`, "Digital camera on one take (news reel)", "Source height"): one measured package reaches about 2.14x, so a 1080 wide vertical needs a 4K-class plate; shooting 4K for a 1080 output is the safe default. The plate is scaled to about 125 percent before animating so no move shows an edge.
+- **Distance from the wall.** The presenter about 2.5 to 3 m in front of the wall or the cyc: no shadow on the wall, a clean key, and room for a projected circle or graphics behind the head.
+- **Coloured light.** A dark set with one diagonal beam, or a white cyc painted by coloured lights with a projected circle behind the presenter (glass studio reel); even light on the face, with no change of exposure or white balance during the take.
+- **One locked take.** A tripod, one continuous take per passage (the measured talks run 28 to 37 s with no cut), a few seconds of the empty set before the presenter sits (an empty plate for the key of `layers-and-isolation.md` section 2), and a green screen or plain wall when a virtual set is planned.
+- **Frame rate.** The delivery rate from the start (the measured programmes are 25 fps); never mix rates inside one reel.
 
 ## 7. Supplied or partial material
 

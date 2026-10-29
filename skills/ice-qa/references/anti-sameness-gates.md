@@ -16,8 +16,8 @@ Calibration: across 88 films the approved ones peaked at 0.10 (most 0); rejected
 
 The default kit list and its fail rule (three or more without reasons fail the direction) are in `references/anti-sameness.md` section 6 of the ice-direction skill. Further default looks to question on the sheet (each needs a reason in `ice/DIRECTION.md`):
 - Deep teal water, waves and white centred type for a promo (the awesome-opus video list's default AI promo look).
-- Near-black ground with radial glow and gold or coral spark (premium pastiche, `slop-scan.md` N11).
-- Purple-to-orange gradients; glass plus mesh plus light sweeps together; kinetic type on a dark opener; a fake cursor without a real UI (product-launch-motion).
+- Near-black ground with radial glow and gold or coral spark (premium pastiche, `slop-scan.md` N11). In a news reel (edit type `news-reel`, style family `family-broadcast-news.md`) or when the reference measures it, the radial glow disc behind the lit speaker is the package's element, not this default look, when it has its reason row (`slop-scan.md` section 4, "Broadcast package (news reel)").
+- Purple-to-orange gradients; glass plus mesh plus light sweeps together; kinetic type on a dark opener; a fake cursor without a real UI (product-launch-motion). In a news reel (edit type `news-reel`, style family `family-broadcast-news.md`) or when the reference measures it, glass plates, pills and cards with their reason row (legibility over a busy plate) pass (`slop-scan.md` section 4, "Broadcast package (news reel)"); the package skin still counts on the palette, type and motion axes of section 2, so a second news reel in the same skin needs the identity choice or the reference that asks for it.
 - The same skin as the previous product: dark ground, blue accent, glow, nebula, the same font (bang-motion).
 
 ## 2. Template distance (at least 4 of 6 axes)

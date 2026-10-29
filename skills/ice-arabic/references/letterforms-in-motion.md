@@ -12,9 +12,11 @@ Arabic letters join. Each letter takes an initial, medial, final or isolated sha
 | Word | Default for spoken-word sync and captions | Wrap each whole word in its own element; never wrap part of a word |
 | Whole shaped run (word plus attached clitic or punctuation) | Allowed | Treat it as one word |
 | Mask reveal across a joined word (the "typing" look) | Allowed | Draw the word fully joined, sweep a mask from its right edge to its left; letters never change shape |
+| Pointer-led mask reveal (a square cursor leading the mask edge) | Allowed (news reel, edit type `news-reel`, or a reference that measures it) | The same mask reveal with a visible cursor at the mask edge, right to left; numbers in the `ice-type` skill, `references/type-effects-specs.md`, table "Broadcast text", row "Pointer reveal (RTL)" |
+| Typewriter with a coloured head on a pre-shaped line | Allowed (news reel or a reference that measures it) | Shape the whole line once, reveal it right to left with a mask; a second copy of the same shaped line in the head colour shows only in the band the mask edge crossed in the last few frames. No letter is ever drawn alone, so joins never break and half-revealed words keep their joined forms. Numbers: same table, row "Typewriter with a coloured head" |
 | Connected components of a shaped line (letter groups, dots, marks) | Only for named letter effects, section 3 | Render the whole line shaped, split the rendered pixels or outlines into connected components, animate those, end every frame on the correct joined word |
 | Single characters as separate elements | Never | Each wrapped letter falls back to its isolated form |
-| Letter-by-letter typewriter | Never, in every film type | The visible shape changes as each letter arrives |
+| Letter-by-letter typewriter | Never, in every film type | The visible shape changes as each letter arrives. The two mask reveals above are not this: they never add letters one by one |
 
 Notes:
 - GSAP SplitText: for `ar`, `fa`, `ur`, `ps`, `ckb` and other joining scripts use `type: 'lines'` (or words), never `'chars'`. A published helper that keeps joining with zero-width joiners exists for true character-level needs; use it only after testing with the real copy and its diacritics.
@@ -67,7 +69,7 @@ Each effect ends on the exact correctly joined word. Never use any of them on sa
 
 - Motion blur hurts small Arabic. Put stronger blur on hero words and objects; keep supporting copy crisp at phone size.
 - Do not animate `letter-spacing` or `filter: blur` on word entrances in captions.
-- No gradient fill on Arabic text by default (thin joins vanish into the gradient), and no glow on Arabic text unless the brief asks by name.
+- No gradient fill on Arabic text by default (thin joins vanish into the gradient), and no glow on Arabic text unless the brief asks by name. Scope line: glow on Arabic display text is also allowed when the reference measures it or the chosen broadcast package names it (news reel, style family `family-broadcast-news.md`; measured halos per package in its section 2), logged with its reason; keep it on dark grounds, low enough that the thinnest join and every dot stay sharp at phone size, and never on captions.
 
 ## 6. Direction of motion
 

@@ -105,6 +105,8 @@ Measured specs:
 
 Headline typing is banned: letter-by-letter typing with a caret is for the product's own input field, terminals, code, an investigative typewriter caption look, or a typing joke. There is no narrative exception in product launch, app ad or brand film headlines.
 
+Scope line, news reel (edit type `news-reel`, style family `family-broadcast-news.md`) and films whose reference measures it: the pointer reveal (RTL) and the typewriter with a coloured head (`type-effects-specs.md`, table "Broadcast text") are mask reveals, not typing. The whole line is shaped once and a mask edge (led by a cursor, or followed by a head colour) uncovers it; no letter appears, changes or is drawn on its own, so the ban above does not apply to them. They are used only on their trigger rows (verbatim content words, or a read question card), never as a headline device in product launch, app ad or brand film.
+
 | Rule | Value |
 |---|---|
 | Rates by task | Recognize a command about 82 to 85 characters per second; read content 14 to 30 (21 to 24 bursty); long prompt or result 70 to 85 in bursts of 3 to 6 characters per frame; human authoring about 30 to 45; field fill about 70; wave typing about 45 |
@@ -144,6 +146,8 @@ Vocabulary of effects (names for the storyboard; specs for the numeric ones are 
 | Rule A | Rule B | Scope |
 |---|---|---|
 | Typing banned on headlines | Typewriter captions, terminal sequences, investigative directions | Typing only where a real input, console or typewriter world exists; never for product launch, app ad or brand film headlines |
+| Typing banned on headlines | Pointer reveal and coloured-head typewriter (`type-effects-specs.md` "Broadcast text") | They are mask reveals on a shaped line, not typing: allowed in the news reel and where a reference measures them, on their trigger rows only |
+| Exits are faster than entries, words slide out | Blink exit (last frame, frames off, a ghost frame, off) | Blink exit for titles and keyword text in the news reel and where a reference measures it; captions never blink (`captions-system.md` section 5.3) |
 | No overshoot, no opacity ramp on entries | Overshoot and bounce entries (playful, social, kinetic triplet landings) | Restrained systems (product launch, app ad, UI walkthrough, brand film) vs playful and hype films |
 | Uniform gaps are slop | Constant intervals for a technical ident | Ident only |
 | Exit about 2 frames, one word per frame | Exit = entry reversed at 60 to 75% (captions) | Display type vs caption groups |

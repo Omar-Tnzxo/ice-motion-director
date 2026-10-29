@@ -6,7 +6,7 @@ Validators that prove the words on screen are the words spoken, and that picture
 
 | Check | Pass when | Source |
 |---|---|---|
-| Fresh ASR on the delivered audio | Re-transcribe the final render and diff it against the approved script or edited transcript; measured sentence starts within the target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3. | founder skills, herk-edit-kit, ice-type skill |
+| Fresh ASR on the delivered audio | Blocking, exact procedure in section 1b (Fresh transcript gate). Re-transcribe the final render and diff it against the approved script or edited transcript; measured sentence starts within the target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3. | founder skills, herk-edit-kit, ice-type skill |
 | Word count and timing (edits) | The edit-plan validator in the ice-edit skill passes. Plan validation targets: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3. Also no word crossing a cut, scenes contiguous and frame-aligned | herk-edit-kit |
 | Every word whole | Compare the words at every cut of the final render with the raw recording. A transcript alone is not proof: speech-to-text guesses a clipped word correctly while a listener hears it broken | herk-edit-kit |
 | Speech joins | Transcribe about 4 s around every join and look for repeated or cut words | founder skills |
@@ -19,6 +19,21 @@ Validators that prove the words on screen are the words spoken, and that picture
 | First caption | Measured time of the first visible caption against the target: the `ice-type` skill, `references/caption-timing-and-truth.md` section 3. | video-ad-editor |
 
 Negative controls before trusting a validator: a caption shifted by 0.3 s, a one-frame scene gap and an omitted spoken word must each fail.
+
+## 1b. Fresh transcript gate
+
+Scope (lesson L11, owner decision, 2026-10-29): general, every edit and every film with captions or on-screen speech text. Trial: a news reel was delivered with captions that were never compared with a fresh transcript of its final audio. The gate is mandatory and blocking; it is the row "Fresh ASR on the delivered audio" of section 1, made exact.
+
+1. Transcribe the delivered render's final mixed audio again: a new speech-to-text run on the exported file, never the transcript the captions were built from (word timings per the `ice-type` skill; Arabic per the `ice-arabic` skill).
+2. Run the check (standard library only):
+
+```
+python skills/ice-type/scripts/align_script_to_asr.py --check-captions <captions .srt|.vtt|.json> <fresh asr words .json> -o ice/review/captions-check.json [--max-offset 0.25] [--allow-extra]
+```
+
+   It normalizes the words (Unicode, and Arabic folding of diacritics, tatweel, alef forms, alef maqsura and yaa, taa marbuta and haa), aligns caption words to heard words, and reports `missing` (in the captions, not heard), `extra` (heard, not in the captions), `changed`, and per cue the start offset from its first matched heard word. Report keys: `ok`, `caption_words`, `heard_words`, `match_ratio`, `mismatches` (`kind`, `caption`, `heard`, `t`), `offsets` (cues over the limit). Exit 0 passes; exit 4 blocks; exit 2 is bad input (fix the files and run again). `--allow-extra` (heard words absent from the captions do not fail) is used only when the caption plan drops fillers on purpose or the film is in keyword mode (the `ice-type` skill, `references/captions-system.md`, "Keyword mode"), and that use is logged in `ice/review/captions-check.md`.
+3. Every mismatch is either fixed in the captions (then the check runs again on the new export) or resolved by a listen: the line in `ice/review/captions-check.md` names the cue, the time, what the captions say, what the speech model heard, and that a listen confirmed the captions (the model misheard). An unresolved mismatch or offset blocks.
+4. Blocking at 09 on the draft and at 10 on the delivered file; delivery is refused without `ice/review/captions-check.json` for a film with captions or on-screen speech text (`delivery-checks.md` section 5). Earliest run: on the animatic's or draft's audio as soon as the voice is locked, so 10 finds nothing new.
 
 ## 2. Picture lands on its word
 

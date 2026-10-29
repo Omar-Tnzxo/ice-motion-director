@@ -71,6 +71,7 @@ print({'bpm': float(np.atleast_1d(tempo)[0]), 'first_beat': float(beats[0] + shi
 | Transitions in voice-led films | Start 3 to 6 frames before the line ends; cut in the breath between sentences, never across meaningful syllables. |
 | Beat-cut edits | The beat frame must show a visible full-frame change; a punch that moves only the new layer delays the felt hit by 0.1 to 0.17 s. |
 | Reveal point | Segment start = bar line minus (reveal point x transition duration); perceived arrival is at about 90 % of the displacement. |
+| News promo (news reel: edit type `news-reel`, style family `family-broadcast-news.md`) | The words are the clock, never a beat grid: the measured beds have no usable pulse (pulse clarity 0.07 to 0.19 in the Arabic packages; one horizontal explainer bed about 0.30 at a half-time near 101 BPM), so cuts, graphics and their sounds follow the word timings and the moves. Each sound sits against its visual move by the frame offsets of `sfx.md` section 3b (for example a sub boom +1 to +4 f after an edit, a riser ending 1 to 2 f before a cut, a glint on the settle frame), which replace the generic lead times of this table for that type. Only a voiceless archive montage is cut to hits (a hit every about 0.4 s, -2 to +5 f from each cut). Flashes and transition sounds sit on phrase boundaries or in breaths. |
 
 Detailed motion timing (eases, holds, carry) belongs to the ice-motion skill; this table only fixes where the sound and the picture meet.
 
@@ -79,7 +80,16 @@ Detailed motion timing (eases, holds, carry) belongs to the ice-motion skill; th
 - Cut on downbeats, not every beat. Big changes on beats, typography on 1/8 or 1/16 notes in music-led films. One action, one sound, one cut, but leave time to see.
 - Strong beats get real transitions; off-beat cuts get no transition. Never the same transition family back to back.
 - Dense music regions carry rapid state progress; sparse regions carry reading and typing; strong onsets carry decisive contact; the ending cadence reduces density. Use musical rests; do not fill every subdivision.
-- A camera move at most once per phrase, never per beat; a dense flip or strobe system runs at most 2 to 3 s; in safe mode no strobe and at most 3 flashes per second (WCAG 2.3.1).
+- A camera move at most once per phrase, never per beat (a news reel follows `ice-motion/references/camera.md` "Digital camera on one take (news reel)" instead); a dense flip or strobe system runs at most 2 to 3 s; in safe mode no strobe and at most 3 flashes per second (WCAG 2.3.1), as the strobe safe mode below sets out.
+
+**Strobe safe mode for archive bursts and flashes (the photosensitivity home, every film type).** Safe mode is the default for every film, news reels and remakes included: no more than 3 flashes in any 1 s window, general or red (WCAG 2.3.1; one flash is an on and an off: a luminance swing of at least 10 % of full scale over more than a quarter of the frame, or any change into or out of saturated red), and no strobe or flash run in the first 3 s. Measured broadcast packages go over it (a frame interleave at 12.5 Hz for 5 to 9 f, a red frame every 3rd frame at 8.3 Hz over 25 f, a mono strobe of 8 f with 4 or more large luma swings), so safe mode replaces them, at 25 fps:
+1. A per-frame red interleave in an archive burst: one 2 f (0.08 s) red multiply frame per clip, at least 9 f (0.36 s) apart (2.8 Hz).
+2. Red or crimson first frames on montage cuts: spaced at least 9 f apart; a cut that comes sooner gets no red frame.
+3. A mono strobe: one 2 f invert, then a 6 f (0.24 s) decay.
+4. White flashes: at most 3 in any 1 s window, each on a phrase boundary (`ice-motion/references/cut-catalog.md` "Broadcast transitions").
+5. The sounds follow the replacement: one hit per remaining flash (`sfx.md` section 3b).
+
+Faithful mode (the reference's own strobe, frame for frame) only when the user asks for it in their own words; the request is logged in `ice/DIRECTION.md`. The delivery note states the mode in one line either way (safe mode with what it replaced, or faithful mode at the user's request with the flash count per second it reaches).
 - One pre-drop gap (music ducked for half a beat, or dropped 8 to 15 dB or cut out for 0.2 to 0.5 s) may come before the main hit; the first sound after a silence should be one of the most important in the film.
 - Do not land every sound change on a cut: when about 60 % of cuts carried exact sound changes the edit sounded metronomic. Pros land about a third of cuts on an audible hit; one reference analysis found about 70 % of cuts within 40 ms of a hit in a music-led edit. Measure the share and report it.
 - Showreel pacing illustration (15 s at about 129 BPM, 32 beats): roughly 75 % development, 13 % flurry, 12 % resolve.

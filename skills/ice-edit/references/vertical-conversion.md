@@ -18,7 +18,7 @@ A center crop is not a second composition. Verify each requested aspect ratio on
 
 ## 2. Reframing rules
 
-- Fixed crop per shot, never per-frame face following (it jitters). Put the median face position about 30% from the top.
+- Fixed crop per shot, never per-frame face following (it jitters). Put the median face position about 30% from the top. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the digital camera zooms about the median face point of the take, fixed for the take (`ice-motion/references/camera.md`, "Digital camera on one take (news reel)"); the crop and the camera share that anchor, so the head never jumps between a reframe and a move.
 - Zoom x1.35 when the face is under about 7% of the frame (wide shot), x1.6 when under about 3.5% (full studio). A 1080p source crops to 608x1080 and scales about x1.8.
 - Head-top crop for any card layout: one fixed crop for the whole video, starting above the highest head point with 1.5% margin. Never cut the head; never leave an empty ceiling. A face anchor near 0.30 of the card height is the default; about 0.42 keeps the head near the card's top edge in reduced layouts.
 - Build final crops from the native-resolution source, not from an editing proxy.
@@ -34,6 +34,7 @@ A center crop is not a second composition. Verify each requested aspect ratio on
 | Voice only | No face, voice continues over a visual metaphor of the words | Once or twice per video, 4 to 8 s each, only for numbers, lists or comparisons, never in the hook or the final call to action |
 | Split (house reel) | B-roll on top (y 0 to 880), speaker below | Most of a fast reel (shares in `house-style-numbers.md`) |
 | Punch-in | Tight speaker shot | Pivots, emphasis, the call to action |
+| Split (news reel) | Presenter close on top (measured x1.39), evidence below (a satellite, map or archive panel) under a feathered seam at about y 1000 (52 percent of the height); the panel slides up about 600 px with an ease out, its pictures change every 21 f (0.84 s at 25 fps) | News reel (edit type `news-reel`, style family `family-broadcast-news.md`): a sentence about evidence the viewer should see while the presenter keeps eye contact. The face anchor of section 2 applies to the top cell. The seam is always feathered, never a hard line; its width is measured on the reference, else start from the B-roll-behind-the-cut-out feather of `layers-and-isolation.md` section 3b and check on a still that no edge shows. The house order (B-roll on top) holds everywhere else |
 
 Choose the mode from the meaning of the line: is the face or the drawing more important right now? One hero element per scene, at most one supporting element. Spread a board's elements over its full height. Every layout change is a hard cut in house reel style; in calm ads no layout change before 4 s on the same shot.
 

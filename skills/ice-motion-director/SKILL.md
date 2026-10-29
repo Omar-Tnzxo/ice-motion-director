@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # Ice Motion Director

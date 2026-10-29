@@ -162,6 +162,9 @@ Owner decision, 2026-10-29, every route and every mode. Ice installs the free to
 | npm packages: the engine of 7.4 rung B, `playwright-core`, `playwright` | `npm` |
 | The Chrome build that the project's pinned HyperFrames, Playwright or `playwright-core` fetches | Pinned by that package |
 | The media fetch tool of the official-channel route (`ice-assets/references/sourcing-and-licenses.md` section 1a) | `pip.yt-dlp` |
+| Local cutouts of stills (the cutouts row of `ice-assets/references/sourcing-and-licenses.md`) | `pip.rembg` |
+| npm packages a composition loads (military symbols for maps and news graphics) | `npm.milsymbol` |
+| A free command-line tool that is neither npm nor PyPI, named by a skill file (cutting a basemap to the film's area) | `binaries.go-pmtiles` |
 
 How:
 - Exact versions from `versions.json`. A tool that neither `versions.json` nor the skill file that needs it pins to an exact version is not installed: the step takes its no-install fallback, and the gap is logged.

@@ -36,7 +36,7 @@ One clock and one blur grammar per film. This file owns the creative choice; ren
 
 - Blur is not polish: applied to motion that was never fast enough it reads as a soft, cheap render.
 - Do not blur: travel under about one element width per frame, fades and colour or filter beats, text meant to be read at that moment, slow drift or parallax, a whole scene.
-- Blur the beats that snap (a slam, a whip, a hard cut in position, a spin, a scale punch): one to three of them in a composition; targeted blur beats full-frame blur.
+- Blur the beats that snap (a slam, a whip, a hard cut in position, a spin, a scale punch): one to three of them in a composition; targeted blur beats full-frame blur. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): motion blur goes on every fast fly-in (a title pill, a disc swoop, a card wiping in) and never on typed or mask-revealed text, pens, digital zooms or the camera wrapper (measured: the only blurred element in one package was the pill fly-in); the one-to-three cap does not apply there, and the measured blur still follows the finishing layer (section 6).
 - Fast moves need real motion blur: above about 80 px per frame at 1920 wide without it, motion strobes into copies; CSS blur is not motion blur. Directional blur for whips and text in or out where the grammar is smear.
 - Speed ceiling: past about 2.5 frame widths per second blur stops reading as motion; cut instead.
 - Type that must be read is sharp within 3-4 frames of landing; keep static text sharp under subframe blur (counters and typed text read the frame time, not the subframe time).

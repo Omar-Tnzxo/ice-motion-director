@@ -18,7 +18,7 @@ Reviewers are fresh because they built nothing and have nothing to defend. Build
 
 - One file per shot; a master that references every shot up front so builders touch only their own file.
 - Chunks of 1-4 shots, about as many chunks as builders; keep continuous actions and shots with many cross-seam handoffs in one chunk.
-- Lock shared specs now, because they are what final critics reject most: caption layer, end treatment (never a hard cut to full black in the last frames; fade at least 0.4 s with captions fading too), finishing layer (texture, vignette, one grade per color-arc section; keep the reference's paper texture or hand-drawn boil if it has one, it is texture, not noise), hero-shot effects, climax sound, mix. Specific numbers for captions, mix and grade: the ice-type, ice-audio and ice-motion skills.
+- Lock shared specs now, because they are what final critics reject most: caption layer, end treatment (never a hard cut to full black in the last frames; fade at least 0.4 s with captions fading too; a measured no-fade end card overrides the end fade: when the reference ends on a still end card held to its last frame with no fade, the film does the same, as measured, with its build and hold from `TIMELINE.md`), finishing layer (texture, vignette, one grade per color-arc section; keep the reference's paper texture or hand-drawn boil if it has one, it is texture, not noise), hero-shot effects, climax sound, mix. Specific numbers for captions, mix and grade: the ice-type, ice-audio and ice-motion skills.
 - Character gate before shots: a sheet per character (front, 3/4, side, 8 or more expressions, the 6 or more poses this film uses) reviewed at full resolution by a fresh reviewer, fixed until it passes, then a line-up of all characters together. Building shots during the character gate is off by default: on real runs, character files changed under the builders and every chunk needed an extra round.
 - A design image the user owns is the specification: measure its proportions and lock them as constants; accessories bind to the right body anchors; compare every pose against it.
 
@@ -47,6 +47,9 @@ Reviewers are fresh because they built nothing and have nothing to defend. Build
 | Each hero shot | Peak strip against the reference peak | `clip_strip.py --vs` |
 | Plan and first render | Stats contract within 30 percent | `shot-mapping.md` section 4 |
 | First render | Fidelity self-check | `fidelity-contract.md` section 6 |
+| Plan, then every render | Pacing against the reference (blocking) | `ice-qa/references/motion-density.md`, "Pacing against the reference", with `analysis/events.json` (`measuring.md` section 10) |
+| Style frames, then build frames | Fixed marks in their measured slots | `ice-qa/references/identity-tests.md`, "Fixed identity marks" |
+| Storyboard, then first render | Depth and camera against the reference (blocking) | `ice-qa/references/motion-density.md`, "Depth and camera against the reference", with `analysis/depth.json` (`measuring.md` section 12) |
 | Before delivery | Climax duel and reference-relative scores | `climax-duel.md` sections 4 and 6 |
 
 After each chunk and after assembly:

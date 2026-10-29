@@ -50,6 +50,15 @@ Read the platform's zones from the ice-engines skill, then check on delivered fr
 
 Wrong approved copy; malformed Arabic or RTL; a distorted or recoloured official logo; an invented claim; an unreadable key scene at delivery size; an incomplete or desynced encode (imMamdouhaboammar, rewritten); a required disclaimer missing, altered, too short or too small in any version, or a restricted claim on screen or in the voiceover (section 7); a cold-viewer clarity FAIL on the draft, or a required read that never ran (`clarity-gate.md`). Any one blocks delivery even when every other score is high.
 
+Blocking gates from a reference and from the fresh transcript (owner decision, 2026-10-29): delivery is refused while any row below fails or never ran for a film it covers. Only the clearing named in its home clears it.
+
+| Gate | Covers | Fails when | Home |
+|---|---|---|---|
+| Pacing against the reference (L9) | Any video made with a reference | `ice/review/motion/pacing.json` says `ok: false`, or is missing | `motion-density.md`, "Pacing against the reference" |
+| Fixed identity marks (L10) | Remakes and edits that follow a reference with an organisation's identity | A fixed mark of the reference is missing, out of its slot or off its size on a frame where the reference shows it | `identity-tests.md`, "Fixed identity marks" |
+| Fresh transcript gate (L11) | Every edit and every film with captions or on-screen speech text | `ice/review/captions-check.json` says `ok: false` with a mismatch not resolved in `ice/review/captions-check.md`, or is missing | `captions-and-sync.md`, "Fresh transcript gate" |
+| Depth and camera against the reference (L12) | Any video made with a reference that has 3D, 2.5D or camera movement | `ice/review/motion/depth-check.json` says `ok: false`, or is missing | `motion-density.md`, "Depth and camera against the reference" |
+
 ## 6. Versions and hygiene
 
 - Never overwrite a render: every delivered file follows the naming pattern of the `ice-engines` skill, `references/render-export.md` section 8, with a new version number per render; raws kept next to each master; A/B against the previous version is how a fix is proven (product-launch-motion).

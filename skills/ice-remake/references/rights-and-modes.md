@@ -35,6 +35,16 @@ Before recommending an `identity` option, compare the content type of the user's
 - **A conflict, not a fixed slot:** on different types, a request for the reference's identity that does not make its outlet the owner ("with its identity as it is", "its logo and colours" on a film for someone else) leaves the slot open. Ask it once with the fitting identity recommended and the reference's identity as the second option. When the questions are waived or nobody can answer, take the fitting identity, log it, and say in one line of the delivery note that a version with the reference's own identity is one answer away.
 - Elements whose meaning belongs to the reference's content type carry over only where the new film has the same reason for them (`notes-files.md` section 6; `shot-mapping.md` section 1).
 
+### Fixed identity marks (owner decision, 2026-10-29)
+
+Lesson L10; scope: category: remakes and edits that follow a reference with an organisation's identity. The marks that stay on screen through the reference (a channel logo, a programme name, a corner bug: measured in `measuring.md` section 11, "Fixed marks") are part of what makes it read as that organisation, so their slots carry over whatever the `identity` choice is. Only the mark in each slot changes:
+- **As they are:** the same mark, in the same slot, at the same size and opacity, over the same passages.
+- **The user's identity:** the user's mark in the same slot, at the same size (its width as measured, its height from its own proportions). No mark from the user and none findable: the name set as text in that slot (`ice-assets/references/brand-authenticity.md`).
+- **A mix:** per element as named in the answer (for example the reference's programme name with the user's logo); every slot is still filled.
+- **Style only:** the slots carry the user's marks, as for the user's identity.
+
+A slot is never left empty because the mark was not fetched: the reference's marks are fetched from the outlet's official sources per `ice-assets/references/sourcing-and-licenses.md` section 0 and recorded there. The plan rows: `shot-mapping.md` section 1, item 5. The check, at 05 on the style frames and at 07 on build frames: `ice-qa/references/identity-tests.md`, "Fixed identity marks".
+
 ## 2. Reference kinds
 
 | Kind | What it gives | How to read it |
@@ -42,6 +52,7 @@ Before recommending an `identity` option, compare the content type of the user's
 | Video (film, ad, reel, launch film, screen recording) | Pace, cuts, camera, motion, sound, climax: the MOVES | `watching.md`, then `measuring.md` |
 | Website or app (saved pages, screenshots, a capture the user made) | Palette, type, spacing, components, interaction feel: the LOOK | `watching.md` section 6 |
 | Image set (stills, posters, artwork, a moodboard) | Medium, mark, edge, palette, composition habits: the LOOK | `watching.md` section 7 |
+| A motion project or preset file the user made or holds (an After Effects project, an effect preset) | Exact layers, effects, values and key times | No project reader ships with Ice. Ask inside the stage 01 message (the `reference_file` question) for a render of the comp, and measure that render as a video. Values read from the project by hand are checked against the render; a project's key time unit is calibrated against the comp's known duration and frame rate before any key is read as a frame (one measured project stored keys in units of 1/30 s, not frames) |
 | Several of the above | Different functions from different sources | `mixing-references.md` |
 
 A video can also be a LOOK reference and a site can carry motion; tag each reference with the function it serves in this brief, not with its file type.

@@ -32,8 +32,11 @@ The first three seconds decide whether the rest is watched. This file owns how h
 | Product launch 30 to 90 s | Hook 0 to 3 s; "The claim lands inside the first 10 seconds" (product-launch-motion) |
 | Narrated explainer over 2 minutes | Concrete opening scene first, stakes within the first minute (anything2explainer ideas) |
 | Logo sting | The reveal is the hook; no lead-in |
+| News reel (edit type `news-reel`, style family `family-broadcast-news.md`) | Frame 0 in motion (an opening camera move, a package sting or a red frame); the voice within about 0.16 s, or by 1.0 s after a cold-open silhouette; the hook sentence runs 3.9 to 7.1 s and the first full idea completes by 5.0 to 10.4 s, so the 3 s rule above does not apply; spoken words appear as said, never a written hook ahead of the speech. Numbers, the passage order and the cold open beats: the `ice-edit` skill, `references/edit-types/news-reel.md` section 5 |
 
 Cold open (result first) when the result is self-evident, the pain is already known, or the film is under 30 s; problem first when the audience does not know the problem yet (product-launch-motion).
+
+News reel cold open (image and headline beats): the presenter as a silhouette lit just before the first word, the question as a headline within about 3 s, then a few short image beats of the people discussed, then the promise line; every beat is a person or event the speech names, and the presenter is never dark once speaking. Beat lengths and times: the `ice-edit` skill, `references/edit-types/news-reel.md` section 5.
 
 ## 4. Hook generators
 

@@ -11,6 +11,7 @@ Two tests prove a film belongs to its brand and not to its category: the **brand
 5. The pass rule
 6. On a fail: no paper patches
 7. Logging
+8. Fixed identity marks
 
 ## 1. The two tests
 
@@ -19,7 +20,7 @@ Two tests prove a film belongs to its brand and not to its category: the **brand
 | **Brand test** | With the brand's name, logo, wordmark and every brand UI, HUD or interface covered, does the material still read as this brand? |
 | **Competitor swap** | Could the closest competitor run this material with only its own name, logo, UI and colours put in? If yes, it is the category's film, not this brand's |
 
-They run on every film made for a named brand, company, product, app or service, whatever the route or film type. They do not run when the film has no brand (an art film, a personal piece, a subject explainer with no sponsor); the D-entry of the concept says so in one line.
+They run on every film made for a named brand, company, product, app or service, whatever the route or film type. A reference's skin used as it is (its hex values, fonts, logos, end card and fixed marks) is not a finding when the stage 01 `identity` slot is "as they are" or "a mix" (the `ice-remake` skill, `references/rights-and-modes.md` section 1): the tests then judge the film for the organisation whose identity it carries. They do not run when the film has no brand (an art film, a personal piece, a subject explainer with no sponsor); the D-entry of the concept says so in one line.
 
 The competitor is named, never imagined: the closest rival from the business brief's market and competitors section (`ice/BRIEF.md`) or research note RQ-category. When the brief names no rival, the critic takes the category's best-known brand from that research and writes which one it used.
 
@@ -82,5 +83,14 @@ A viewer answer "a music app", "a bank", or any category instead of the brand is
 - Each run is one line in the `Gates:` line of the `ice/DIRECTION.md` summary: `brand test <02 / 04-05 / 09> <PASS / FAIL> r<round>`, `swap <02 / 04-05 / 09> <PASS / FAIL> vs <competitor> r<round>`.
 - The judge's report goes to `ice/review/identity/<stage>-r<round>.md`: the masked files or the blind descriptions it saw, its answer per frame or per concept, the brand-owned elements found, and one line `seen vs measured`.
 - The delivery report lists every run in its Gates table (`delivery-report.md`).
+
+## 8. Fixed identity marks
+
+Scope (lesson L10, owner decision, 2026-10-29): remakes and edits that follow a reference carrying an organisation's identity. Trial: a programme reel failed the brand test because the channel logo and the programme name that sit fixed in its corner for the whole official reel were never placed. A fixed mark is any logo, programme name, corner bug or badge that the reference holds in one slot across many shots.
+
+- **What is checked.** The reference's fixed marks, measured on the reference (what, box as x and y percent of the frame, width as percent of frame width, opacity, colour, first and last frame, layer `screen`): the `ice-remake` skill, `references/measuring.md`, "Fixed marks", recorded in the ANALYSIS.md Recipe notes `Fixed marks:` line. Which mark fills each slot follows the identity choice: the `ice-remake` skill, `references/rights-and-modes.md`, "Fixed identity marks" (as they are: the same mark; the user's identity: the user's mark, or the name set as text; a mix: per element as named). A slot is never left empty because a mark was not fetched.
+- **Pass rule.** Every fixed mark of the reference is present in its slot on every frame where the reference shows it: position within 2 percent of the frame width and height, size within 10 percent, on the screen layer (never moved by the camera or hit by a flash). The marks are read on unmasked frames; the masking of section 4 applies to the brand test only.
+- **Where.** At 05 on the style frames, against the reference frames at the same times; at 07 on the build frames (the contact sheet before render) and again on the draft at 09. A missing or misplaced mark at 05 fails before any build; it is cleared only by changed frames re-checked, never by a note.
+- **Logging.** One line in the `Gates:` line of the `ice/DIRECTION.md` summary: `fixed marks <05 / 07 / 09> <PASS / FAIL> <marks found>/<marks measured>`; the per-mark table (mark, slot measured, slot found, size measured, size found, frames) in `ice/review/identity/fixed-marks-<stage>.md`.
 
 Sources: Ice founder decision, 2026-10-22 (the first gallery run passed a logo-only cover test at 02 and failed the brand film's logo-and-UI test at 09 with 0 of 6 frames); the cover-the-logo and competitor swap tests of Tejashmakwana/motionmaxxing (Apache-2.0) and AbubakrChan/product-launch-motion (MIT); the brand film QA thresholds of bangtutorial/bang-motion (MIT), rewritten.

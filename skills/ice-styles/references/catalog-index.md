@@ -1,6 +1,6 @@
 # Catalog index
 
-Every style in this skill, by family file, with a one-line look and its best use. This file is also the browsable library the `ice-style` command shows. Use it to match a style the user names (by name, alias or id) and to find the file to open. Source key: L = lemo-opuscar film style (51), M = mg-styles-15 motion design style (15), A = anidoodle drawing style or "hand" (32), H = huashu-art-motion art style (36 implemented, 17 research recipes). Narration grammars (9) and opener and explainer directions are indexed in `SKILL.md`.
+Every style in this skill, by family file, with a one-line look and its best use. This file is also the browsable library the `ice-style` command shows. Use it to match a style the user names (by name, alias or id) and to find the file to open. Source key: L = lemo-opuscar film style (51), M = mg-styles-15 motion design style (15), A = anidoodle drawing style or "hand" (32), H = huashu-art-motion art style (36 implemented, 17 research recipes), B = broadcast reel measurement study (2026-10-29: measured numbers and ideas, no material copied). Narration grammars (9) and opener and explainer directions are indexed in `SKILL.md`.
 
 ## Family: evidence and data looks (`family-evidence-data.md`)
 
@@ -149,6 +149,20 @@ Every style in this skill, by family file, with a one-line look and its best use
 | Toy brick | `toyBrick` | moulded plastic toy bricks rendered flat in orthographic view | see its entry | A |
 | Tilt-Shift Miniature | `tilt-shift` | A real-looking photoreal place seen from high above through a tilt-shift lens | places and systems seen whole | L |
 
+## Family: broadcast news (`family-broadcast-news.md`)
+
+A programme package is a skin used as it is only when the stage 01 `identity` slot is "as they are" or "a mix"; otherwise the genre carries the user's palette, fonts and marks. Aliases: "news reel", "Al Jazeera-like reel", "presenter reel", "TV news style".
+
+| Style | id | Looks like | Best for | Source |
+|---|---|---|---|---|
+| Presenter News Reel | `presenter-news-reel` | One presenter in a lit studio, one locked take reframed digitally, words typed or titled as they are spoken, archive in the pauses, a designed end card | news, current affairs, explainers and programme promos carried by one presenter | B |
+| Talk-show promo package | `aj-arabic-talkshow-promo` | Dark warm studio, verbatim keywords typed by a yellow square pointer, brand orange-red only as light, warm frosted plates, black end card | remakes of that programme's shorts; Arabic talk-show promos with the identity "as they are" or "a mix" | B |
+| Explainer reel package | `aj-english-explainer-reel` | Teal map wall and red set, captions on every line coloured by voice, uppercase scanline headlines, crimson lower thirds, flashes, progress bar | remakes of that channel's English explainer reels with the identity "as they are" or "a mix" | B |
+| Explainer promo package | `mohawalat-fahm-promo` | Host reading papers, a red disc behind the lit head on new questions, red pills, pinned glass quote cards, red light into desaturated archive, navy end card | remakes of that programme's promos (vertical and horizontal) with the identity "as they are" or "a mix" | B |
+| Glass Studio Reel | `glass-studio-reel` | Presenter shot wide in a coloured-light cyc with a light circle behind, a few large frosted glass capsules carrying the text, props in depth, slow sweeps | presenter, founder and promo reels shot in a lit studio | B |
+
+Sub-brand patterns (question card, topic wheel, documentary title frame, flat ident) are in that file's section 3.
+
 ## Art history: painter and movement styles (material layer) (`art-history-painters.md`)
 
 | Style | id | Looks like | Best for | Source |
@@ -203,6 +217,6 @@ Every style in this skill, by family file, with a one-line look and its best use
 | Feature 3D animation family: shape, material, performance | `53_feature_3d_animation` | Inspired by Pixar feature films | object-led product stories with causal acting, family entertainment... | H (research) |
 | Dunhuang mural, Northern Dynasties | `55_dunhuang` | dry, old, cracked mineral colour on mud plaster | Silk Road and Buddhist heritage, Jataka-style storytelling... | H (research) |
 
-Total entries: 151.
+Total entries: 156.
 
-Sources: lemomo-ai/lemo-opuscar (MIT), Vincentwei1021/mg-styles-15 (MIT), alexgreensh/anidoodle (Apache-2.0), alchaincyf/huashu-art-motion (MIT).
+Sources: lemomo-ai/lemo-opuscar (MIT), Vincentwei1021/mg-styles-15 (MIT), alexgreensh/anidoodle (Apache-2.0), alchaincyf/huashu-art-motion (MIT); a measurement study of published broadcast reels and editors' tutorials (numbers and ideas only, no material copied).

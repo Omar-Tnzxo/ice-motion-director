@@ -248,3 +248,42 @@ test("match_music.py ranks the measured closest track first; preview_options.py 
     assert.equal(opts.options[0].match_distance, ranking.ranking[0].total, "the match distance rides into the options");
     assert.match(readFileSync(join(options, "compare.html"), "utf8"), /option-2\.mp4/);
   });
+
+// News reel (sfx.md section 3b): under speech a broadcast effect is sub or air. `match_music.py sfx --profile news-reel`
+// rejects a candidate whose energy sits in the 150 Hz to 4 kHz voice band and ranks a sub boom first, where the default
+// profile prefers the mid hit and flags the boom as weak on phones.
+const HITS = String.raw`
+import sys, wave
+import numpy as np
+sr = 22050
+def hit(path, f):
+    t = np.arange(int(sr * 1.6)) / sr
+    x = 0.8 * np.sin(2 * np.pi * f * t) * np.exp(-t * 4)
+    with wave.open(path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((x * 32767).astype("<i2").tobytes())
+hit(sys.argv[1] + "/sub boom.wav", 55)
+hit(sys.argv[1] + "/mid hit.wav", 900)
+`;
+
+test("match_music.py sfx --profile news-reel: sub or air only under speech, the voice-band hit is rejected (generated tones)",
+  { skip: !PYTHON ? "Python 3 not found" : !hasNumpy ? "numpy or scipy not installed" : !FFMPEG ? "ffmpeg or ffprobe not on PATH" : false }, () => {
+    const dir = join(work, "news reel sfx");
+    mkdirSync(dir, { recursive: true });
+    const py3 = (...args) => spawnSync(PYTHON[0], [...PYTHON.slice(1), ...args], { encoding: "utf8", timeout: 120000 });
+    let r = py3("-c", HITS, dir);
+    assert.equal(r.status, 0, r.stderr);
+    const files = [join(dir, "mid hit.wav"), join(dir, "sub boom.wav")];
+    r = py3(join(SCRIPT_DIR, "match_music.py"), "sfx", "--kind", "impact", "--profile", "news-reel", "--out", join(dir, "news"), ...files);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const news = JSON.parse(readFileSync(join(dir, "news", "sfx-impact-ranking.json"), "utf8"));
+    assert.equal(news.profile, "news-reel");
+    assert.deepEqual(news.ranking.map((x) => x.file), ["sub boom.wav", "mid hit.wav"], "the sub boom ranks first for a news reel");
+    assert.match(news.ranking[1].notes.join(" "), /voice band/, "the mid hit is rejected for sitting in the voice band");
+    r = py3(join(SCRIPT_DIR, "match_music.py"), "sfx", "--kind", "impact", "--out", join(dir, "default"), ...files);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const plain = JSON.parse(readFileSync(join(dir, "default", "sfx-impact-ranking.json"), "utf8"));
+    assert.equal(plain.ranking[0].file, "mid hit.wav", "the default profile keeps its phone rule");
+  });

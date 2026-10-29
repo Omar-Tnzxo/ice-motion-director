@@ -41,5 +41,6 @@ ASR gives word timings. The words on screen come from the approved script (or, f
 ## 5. After render
 
 - Re-transcribe the delivered audio; sentence starts must sit within 0.1 s of caption times for word-highlight captions and about 0.15 s for sentence cards.
+- Compare the words too, not only the times: run `align_script_to_asr.py --check-captions` from the `ice-type` skill on the captions and the fresh transcript (it folds diacritics, tatweel, alef forms, alef maqsura and yaa, taa marbuta and haa, and Arabic-Indic digits, so spelling variants do not count as mismatches; pass `--max-offset 0.1` for word-highlight captions). Gate and resolution: the `ice-qa` skill, `references/captions-and-sync.md`, "Fresh transcript gate".
 - Seam check on edits: transcribe about 4 s around every join and look for repeated or cut words.
 - Anchor captions, scenes and SFX to "sentence N, word K" of the corrected transcript, never to typed seconds, so deleting a sentence ripples safely.

@@ -14,7 +14,7 @@ ffmpeg -i final.mp4 -af ebur128=peak=true -f null -    # raw measurement
 
 | Check | Pass when | Source |
 |---|---|---|
-| Integrated loudness | Measured I inside the chosen profile's target and tolerance. Profiles and tolerances: the `ice-audio` skill, `references/mix-and-master.md` section 5. | product-launch-motion, mg-styles-15, explainroo |
+| Integrated loudness | Measured I inside the chosen profile's target and tolerance. Profiles and tolerances: the `ice-audio` skill, `references/mix-and-master.md` section 5. A news reel (edit type `news-reel`, style family `family-broadcast-news.md`) is measured against the row "News reel, speech-led" of that file, not the social profile | product-launch-motion, mg-styles-15, explainroo |
 | True peak | Measured TP at or under the profile's ceiling (same owner section). AAC adds a little, so expect the measured peak about 0.2 dB above the master's limiter setting | product-launch-motion, claude-code-video-toolkit |
 | Quiet is not safe | A render well under target fails too: platforms turn loud content down but never turn quiet content up. Fail and warn floors: the `ice-audio` skill, `references/mix-and-master.md` section 5. | claude-code-video-toolkit, motion-video-kit |
 | Loudness range | Measured LRA inside the profile's LRA range: the `ice-audio` skill, `references/mix-and-master.md` section 5. | motion-video-kit |

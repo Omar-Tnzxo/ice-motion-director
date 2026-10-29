@@ -82,7 +82,7 @@ Landscape to portrait conversion: titles 64 to 96 become 88 to 132 (about x1.35)
 
 A 1080p source fitted into a 9:16 frame shows at about 56% scale: re-render text larger rather than shipping shrunk text.
 
-Safe-scale wrappers (scene scaled by 0.78 for platform UI) multiply every minimum by 1 / 0.78. Any group scale or camera zoom multiplies too: legibility is `font px * replica scale * camera zoom`. Anything the voice names should land at 26 px or more on screen; a window to be read takes about 70 to 80% of the frame width. Readability comes from the camera, not from inflating an interface: show UI at real size and push in (see the `ice-motion` skill for camera moves).
+Safe-scale wrappers (scene scaled by 0.78 for platform UI) multiply every minimum by 1 / 0.78. Any group scale or camera zoom multiplies too: legibility is `font px * replica scale * camera zoom`. Room and screen layers (news reel, edit type `news-reel`, or any digital camera on one take): a `layer: rig` graphic is checked at the smallest scale the digital camera reaches while the graphic is on screen (single moves measured down to x0.60; check `font px * smallest rig scale` against the floors of this table, never the scale at its entry frame); a `layer: screen` graphic never scales with the camera and is checked at its own size. Layers defined in `skills/ice-motion/references/camera.md`, section "Digital camera on one take (news reel)". Anything the voice names should land at 26 px or more on screen; a window to be read takes about 70 to 80% of the frame width. Readability comes from the camera, not from inflating an interface: show UI at real size and push in (see the `ice-motion` skill for camera moves).
 
 ## 5. Captions
 

@@ -8,6 +8,7 @@
 5. Camera and the cursor
 6. Shake, handheld and follow
 7. Density limits
+8. Digital camera on one take (news reel)
 
 ## 1. When the camera moves
 
@@ -15,7 +16,7 @@
 - A camera move needs exactly one reason: reading order, detail inspection, scale reveal, spatial continuity, or decisive action. A beat or a new sentence is not a reason. Compare against a locked camera; keep the move only if it is clearer. The full camera necessity test, the frame and text focus-unit contracts, the camera verb table and the 2D anchor formula are in `semantic-camera.md` (the founder's original).
 - If it is readable, do not move. Hold when the picture moves by itself (footage, a line being drawn, a growing curve) and while the viewer reads.
 - Transitions use slow moves; fast push, slam and whip are accents reserved for reveals, reversals, key numbers and punchlines, countable in one film.
-- Go in and come back out: after pushing in, pull out, glide away, or cut to another framing; never three inward pushes in a row; never zoom in and straight back out; never the same move on two adjacent shots; never reverse direction without a cause.
+- Go in and come back out: after pushing in, pull out, glide away, or cut to another framing; never three inward pushes in a row; never zoom in and straight back out; never the same move on two adjacent shots; never reverse direction without a cause. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the in and out alternation of one take is the language there, each move with its own word trigger; section 8 replaces this line for that type.
 - One camera language per film; one eased move per scene in calm films; at most two real camera moves per shot in UI films, and the frame is locked during typing, submit and streaming (the content scrolls, the camera does not).
 - A move is what carries the spatial relationship between two shots; translating the scene and translating the camera are the same transform.
 - "Not moving is not automatically good": a static plain frame with nothing happening was rejected; the camera, objects or new information must carry the time (see `holds-and-stillness.md` for the scoped policy).
@@ -35,15 +36,16 @@
 | Brand film, calm luxury | One slow steady dolly or locked frames; no shake, no spins |
 | Product launch, app ad | Camera with intent: push before the cursor arrives, still during the click, release after the state resolves; pull-backs reveal scale |
 | Talking-head reframes | Fixed crop per shot, never a per-frame face follow (it jitters) |
+| News reel (edit type `news-reel`) | One locked take reframed by a continuous digital camera: section 8. The anchor is fixed per take (the median face point), so it is still never a per-frame face follow |
 
 ## 3. Camera rig rules
 
-- One camera wrapper carries the whole world; one state object, one writer function. Everything the camera moves is inside the rig; labels, captions, HUD, light leaks, vignette and grain sit outside it (light in front of the lens).
+- One camera wrapper carries the whole world; one state object, one writer function. Everything the camera moves is inside the rig; labels, captions, HUD, light leaks, vignette and grain sit outside it (light in front of the lens). News reel (edit type `news-reel`, style family `family-broadcast-news.md`): plates, titles, discs and pills that belong to the room ride inside the rig, captions and fixed marks stay outside; the split and its tags are in section 8, "Room and screen layers".
 - Outer node scales (dolly), inner node translates or turns; never animate the camera and the focal object with the same transform (it cancels the relative motion).
 - Screen point = anchor + (world point - anchor) x zoom; single-wrapper counter-translate T = -offset x S.
-- Zoom from the target box: zoomMax = min(viewW / (targetW + 2 margin), viewH / (targetH + 2 margin)); default commercial range 0.94-1.16; anchor push-ins at the target centre, never the canvas centre; never zoom into an off-centre dot (open the dot instead).
+- Zoom from the target box: zoomMax = min(viewW / (targetW + 2 margin), viewH / (targetH + 2 margin)); default commercial range 0.94-1.16 (news reel: the measured range of section 8 replaces it); anchor push-ins at the target centre, never the canvas centre; never zoom into an off-centre dot (open the dot instead).
 - Interpolate zoom in log space (zooming linearly in scale feels wrong; easing log2 zoom spends time evenly per stop); for multi-key zooms use one monotone cubic that never overshoots or reverses.
-- Camera ease is smoother than object ease: ease-in-out on segments, critically damped springs (z 1) if springs; spring or back on a camera reads as the world wobbling.
+- Camera ease is smoother than object ease: ease-in-out on segments, critically damped springs (z 1) if springs; spring or back on a camera reads as the world wobbling. News reel: the measured push and pull eases of section 8 and the broadcast settle (`springs-and-curves.md` section 7) replace the in-out rule; still no spring or back.
 - Encode camera windows as from, apex, dwell end, to, target, reason; assert a locked camera outside them; velocity near zero during reading dwell.
 - Overscan: the world is larger than the frame; clamp translation so edges never show; plate padding for whips and trucks.
 - Raster sources need resolution at least rendered size x scale; text and UI meant for deep zoom are authored as vector or DOM.
@@ -101,10 +103,47 @@ Dive with a constant octave rate and the push-through camera: see `cut-catalog.m
 
 ## 7. Density limits
 
-- In explainer, science, finance, whiteboard and collage films: fast push, slam and whip together at most one third of shots; no three consecutive inward pushes; about 8 or more push-ins per minute is a warning (one measured 102 s film pushed about 48 times, all inward, and was rejected as too fast and not smooth).
+- In explainer, science, finance, whiteboard and collage films: fast push, slam and whip together at most one third of shots; no three consecutive inward pushes; about 8 or more push-ins per minute is a warning (one measured 102 s film pushed about 48 times, all inward, and was rejected as too fast and not smooth). News reel (edit type `news-reel`): the moves per minute of section 8 replace this warning, because there the moves alternate in and out and each one has a word trigger.
 - Narrated explainers: at least 3 camera moves per chapter, at most 1 per shot, 30-45 frames in-out; never during glitches or staggered entrances; moves finish before the beat, not start on it; end at least 30 frames before the shot exit (a gentle 1.0-1.05 push across the whole shot is the exception).
-- Camera never moves under a fixed overlay that must stay registered.
+- Camera never moves under a fixed overlay that must stay registered. News reel: captions, logo bug and programme name are screen layers that need no registration to the room, so the camera moves under them while room graphics move with it (section 8).
 - Use at least four different camera moves and real changes of framing across a story film; a 2D film has a camera too.
 - Two same-size shots in a row feel flat: vary shot size (wide, medium close-up, close-up); camera welcomes, it does not chase.
 
-Sources: huashu-art-motion (camera language, measured durations), motionmaxxing (motion.md camera, ui-demo), hyperframes skills (camera rules, blueprints), hyperframes docs (motion.mdx, vocabulary), anidoodle (camera.md, motion deck), product-launch-motion (05 camera, cursor), claude-motion-design, Barty-Bart motion-graphics, charlie947 motion-graphics (shot-size rig), video-ad-editor, lemo-opuscar, group-d explainer engine, commercial-motion-design (founder), ideas from onetake, anything2explainer, remotion skills, imMamdouhaboammar (rewritten).
+## 8. Digital camera on one take (news reel)
+
+Scope: news reel (edit type `news-reel`, the `ice-edit` skill, `references/edit-types/news-reel.md`; style "Presenter news reel", the `ice-styles` skill, `references/family-broadcast-news.md` section 1), or any edit whose reference measures a continuous digital camera on one take. For that scope only it replaces the push warning of section 7, "never zoom in and straight back out" (section 1), the fixed crop of the talking-head row (section 2), the commercial zoom range of section 3, and the zoom ceiling and locked zoom per segment of the `ice-edit` skill (`references/house-style-numbers.md` section 4). Everywhere else those rules stand. With a reference, its own measured moves win over the numbers below (measured with the `ice-remake` skill, `references/measuring.md`); per-package values: `family-broadcast-news.md` section 2. Numbers at 25 fps, in frames (f) and seconds.
+
+**What it is.** One locked studio take; one scale track (plus a small position track) on one wrapper that holds the video and every room graphic. The camera never sleeps but never wanders: every move starts on a word or on a graphic that needs room.
+
+| Measure | Value (three measured programme packages) |
+|---|---|
+| Moves per minute | 15.8-27.8 (one move every 2.2-3.8 s; 9-18 per reel) |
+| Framing range in one take | 1.64-2.6x between the widest and the tightest framing |
+| One move | scale ratio x0.60-x2.10 in 9-83 f (0.36-3.32 s) |
+| Push-in | 20-66 f (0.8-2.64 s), x1.08-x2.03; outQuad or outCubic (progress about 0.29-0.63 / 0.65-0.86 / 0.89-0.98 at 25 / 50 / 75 percent of the time); peak speed 1.2-3.0 percent of scale per frame |
+| Pull-out | 9-64 f (0.36-2.56 s), x0.60-x0.85; inOutQuad or inOutSine for calm pulls, outQuad or outCubic for quick ones; peak 2.2-3.4 percent of scale per frame |
+| Breathing move (one package) | in x1.19-x1.32, out x0.81, 15-80 f (0.6-3.2 s), inOutCubic or inOutSine |
+| Pull-out under a card | x0.71-x0.75 over 48-83 f (1.92-3.32 s), near linear: the card recedes with the room |
+| Slow creep | a 3-4 s stretch with no graphic: linear x1.16 over about 74 f (2.96 s) |
+| Holds between moves | median 18-20 f (0.72-0.8 s), range 6-78 f |
+| Opening move | 1.386x to 1.0 in 38 f (1.52 s), 90 percent done by f17, outCubic, anchored near the top edge |
+
+**Anchor.** Zoom about the median face point of the take (the median of the face centre over the whole take), fixed for the take: never a per-frame follow, so the head never jitters. By package: the Arabic packages anchor at the face (the top edge for an opening move); the English package anchors at the frame centre. A move may add a position change, because scale alone cannot move the frame up or down.
+
+**When each move fires.** Every move has a trigger in the words or in a graphic, like every element (the `ice-qa` skill, `references/storyboard-lint.md` section 3b).
+- Out before a text lands: pull out so the incoming text has room; the move starts between 10 f (0.4 s) before the phrase and 2 f after it, or on the cut frame back to the presenter, or 4-12 f (0.16-0.48 s) after a card's first frame.
+- In on the key noun: push in on the key noun, a question word, or the first stressed word of a new phrase, starting between 7 f before and 9 f after the word onset (10 f before to 15 f after on a question).
+- Pan the face away from the text side: a long phrase that needs a side block in a close framing moves the camera so the face goes to the side opposite the incoming text. Pan out starts 7 f before the phrase, about 30 percent of frame width in 29 f (1.16 s, inOutSine); pan back about 24 percent of width in 42 f (1.68 s, outCubic), starting 4 f after the block leaves. Text never covers the face; the camera moves the face instead.
+- Spatial words may act the zoom (out on a word meaning far, in on a word meaning near, in the film's language): 29-58 f. Weak evidence (one pair): only when such words are spoken.
+- Re-entry pull-out: after a cut back from archive or B-roll, start at about 2.1x (2.05-2.10x) and pull out to 1.0 over 26-28 f (1.04-1.12 s; outCubic about 0.58 / 0.88 / 0.98, or outQuad 0.50 / 0.77 / 0.91), starting on the cut frame, 1-4 f after the presenter's first syllable: the cut hides inside the motion. One package's variant: 1.63x blurred for 3 f, then 8 f to 1.15x.
+- English package variants: a pull-back of about x0.77 over about 49 f (outCubic-like, 90 percent at 0.95 s); the blur reframe (`cut-catalog.md` section 13, "Broadcast transitions").
+
+**Source height.** The source height must be at least the largest total scale of the take times the output height (2.14x in one measured package: a 4K-class plate for a 1080 wide vertical). When it is not, cap the largest scale at source height / output height and log the cap as a D-entry in `ice/DIRECTION.md`. A framing below 1.0x (wider than the source frame) needs overscan: pad the plate (the `ice-type` skill, `references/depth-and-embedded-captions.md` section 3) so no edge ever shows. Shooting for it: the `ice-edit` skill, `references/ingest-and-ledger.md`, section "Shooting for a news reel".
+
+**Null punch-outs (tutorial build, translated to code).** The plate is first scaled to 125 percent so moves never show an edge; a parent null (in code: the camera wrapper) carries the moves. Punch-out 260 to 100 percent in 24 f (0.96 s), with a position move from tight on the face to the full frame, fast start and slow end; or 191 to 100 percent in 36 f (1.44 s), out influence 48.6 percent (`springs-and-curves.md` section 7, "Broadcast settle"). Tilt moves with the elements: the wrapper moves about 8 percent of frame height in 16 f (0.64 s, peak about 0.73 frame heights per second on the first frame, long decay), holds 13 f (0.52 s), and returns in 16 f with no bounce. The total scale on the source is plate x wrapper (1.25 x 2.6 = 3.25x), and the source height rule above applies to that total. Spread the keys so no move is harsh.
+
+**Room and screen layers.** Plates, titles, discs and pills that belong to the room ride the camera rig: same wrapper, same anchor, same ease and same frames as the zoom (measured: a keyword shrinks from 830 to 676 px and rises 84 px with a pull-out; plates follow the zoom within 1-4 px). Captions, logo bug, programme name, progress bar and end card stay on the screen layer: they never scale or move with the camera (the tutors never parent the channel logo or the programme title to the camera). Tag every element `layer: rig` or `layer: screen` in `plan/shots.json`. Check legibility at the smallest scale of the take: the font size in px times the smallest scale must still meet the size floor of the `ice-type` skill (`references/sizes-and-scale.md` section 4). Fixed identity marks measured from a reference sit where measured (`composition-and-staging.md` section 4).
+
+**Build.** HyperFrames or HTML: one transformed wrapper around the video and the `layer: rig` graphics, scale tweened in log space (section 3), transform origin at the anchor; Remotion: `interpolate` on the same wrapper. Screen layers are siblings outside the wrapper. No motion blur on digital zooms (`motion-blur-and-clock.md` section 3).
+
+Sources: huashu-art-motion (camera language, measured durations), motionmaxxing (motion.md camera, ui-demo), hyperframes skills (camera rules, blueprints), hyperframes docs (motion.mdx, vocabulary), anidoodle (camera.md, motion deck), product-launch-motion (05 camera, cursor), claude-motion-design, Barty-Bart motion-graphics, charlie947 motion-graphics (shot-size rig), video-ad-editor, lemo-opuscar, group-d explainer engine, commercial-motion-design (founder), ideas from onetake, anything2explainer, remotion skills, imMamdouhaboammar (rewritten); section 8 from measurements of three broadcast news packages and the reel tutorials of Muhamd Helal (ideas only).

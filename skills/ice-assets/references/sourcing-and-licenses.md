@@ -99,6 +99,25 @@ Founder decision, 2026-10-22. For drawn art (characters, objects, vehicles, mach
 
 Record the rung of every hero object in the asset plan (`ice/assets/manifest.json` row: `source_rung` 1 to 5) and log in `ice/DIRECTION.md` why the higher rungs did not fit.
 
+## 1c. What a news reel needs
+
+Scope: the news reel (edit type `news-reel`, `ice-edit/references/edit-types/news-reel.md`; style family `ice-styles/references/family-broadcast-news.md`). Each need climbs an existing ladder of section 1; no new route. The package's own marks (logo bug, programme name, end card, its sounds) are used as they are only when the stage 01 `identity` answer is "as they are" or "a mix" (section 0, and `ice-remake/references/rights-and-modes.md` section 1, "Fixed identity marks"); otherwise the user's own marks take the same slots.
+
+| Need | Ladder and rung | Notes |
+|---|---|---|
+| The presenter plate, with room for the digital zoom | The user's footage (section 1, "A person, place, action or emotion outside the news", rung 1) | The source height must be at least the output height times the largest zoom used on it (section 5, resolution rule; the zoom numbers in `ice-motion/references/camera.md` "Digital camera on one take (news reel)"). How to shoot it: `ice-edit/references/ingest-and-ledger.md` "Shooting for a news reel". Too little room: cap the zoom at source height divided by output height and say so; never upscale to fake room |
+| A studio set behind the presenter | The user's lit set; or a keyed virtual plate (the user's, then a CC0 or public-domain 3D set, row "3D models, HDRIs, materials") | The virtual set build: `ice-edit/references/layers-and-isolation.md` "3b. Programme matte kit" |
+| The person matte (text, washes and discs pass behind the presenter) | Row "Cutouts" for stills; for the moving take, the keys that need no model, then a free person-matting model installed by Ice (`ice-edit/references/layers-and-isolation.md` section 2) | Green screen or an empty-room plate at the shoot is the best matte; check hair, hands and the frame bottom before the full render |
+| Archive footage, B-roll, stills of real events | Row "News and event footage" and section 1a (the user's footage, the owner's own pages, official channels, agencies, CC, stock) | The reference outlet's own footage is the user's choice under section 0, recorded like any outside item |
+| Portraits of the people discussed | Row "Photos of real people" (the user's photos, Wikidata P18 and the Commons original, official galleries, agencies) | Provenance in the record; the silhouette or sepia treatment is built from the real photo (layers-and-isolation.md "3b. Programme matte kit"); never a generated face |
+| Maps | Row "Maps": real boundary data and dated imagery (`ice-engines/references/maps-geo.md` section 1), rendered in code | The broadcast map look (glow on the named country, edge light sweep): `maps-geo.md`, scope line in its header |
+| Flags, including waving loops | Row "Flags" for the real flag at its official ratio; a waving loop is that flag rendered on a cloth simulation or a 3D plane in code, or a stock loop checked against the official colours | Never a hand-drawn flag |
+| Social icons for the end card or the follow line | Row "Brand marks": each platform's official brand-resource files, rendered in one colour as its guidelines allow | Never redrawn |
+| Symbols, discs, pills, plates, the pointer, crosshairs, pins | Row "Text, numbers, charts, UI, signature mechanisms": built in code | Moves: `ice-motion/references/atomic-moves.md` "Broadcast news moves" |
+| Fog, dust and light overlays | Row "Real-matter overlays" (real filmed elements first) | Glitch and grain stay code (row "Glitch and grain") |
+| SFX and music | The SFX and music ladders (row "Music and SFX"); recorded sounds of the types in `ice-audio/references/sfx.md` section 3b, library music per `ice-audio/references/music-choice-and-licensing.md` "News reel music" | Actuality only from the footage itself |
+| Fonts | `fonts.md` section 1; the package's typefaces and their free alternatives: `family-broadcast-news.md` section 2 | Arabic is never burned with ffmpeg `drawtext` (`fonts.md` section 3) |
+
 ## 2. License classes
 
 | Class | Examples | Use in a film | Credit |

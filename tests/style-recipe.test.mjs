@@ -466,3 +466,106 @@ test("recipe: no REASONS.md means 'no reasons table yet', a 'none seen' finishin
     + "\n## Finishing layer\n| Effect | Where | How much | Measured how | Why |\n|---|---|---|---|---|\n| none seen | | | | |\n");
   assert.equal(run(ref).json.look.finishing, "none seen");
 });
+
+// Ice 0.2.4 trial lessons L9, L10 and L12: the pace, the fixed marks and the depth of a reference are measured and
+// carried by the recipe; the events writer gives the reference's longest gap and events per minute.
+test("recipe: Fixed marks and Depth lines land in the recipe; a missing line is unknown with what would measure it", (t) => {
+  if (skip(t)) return;
+  const ref = makeRef("marks");
+  writeFileSync(join(ref, "ANALYSIS.md"), readFileSync(join(ref, "ANALYSIS.md"), "utf8")
+    + "Fixed marks: channel logo x 3.4% y 10.3% w 13.4%, opacity 100%, #FFFFFF, frames 0-1658, layer screen\n"
+    + "Depth: camera moving 0.48 of frames; 3 planes, parallax 1.9; push-throughs 1; 3D card_field, flag; depth of field yes, 3 px per plane step\n");
+  const { md, json } = run(ref);
+  assert.match(json.look.fixed_marks, /x 3\.4% y 10\.3% w 13\.4%.*layer screen/);
+  assert.match(json.grammar.depth, /camera moving 0\.48 of frames.*push-throughs 1/);
+  assert.match(md, /- fixed marks: channel logo x 3\.4%/);
+  assert.match(md, /- Depth, 3D and camera: camera moving 0\.48/);
+  assert.match(json.prompt, /fixed-mark slots .*depth, 3D and camera movement with a build route/);
+  writeFileSync(join(ref, "analysis", "depth.json"), JSON.stringify({ camera_moving_share: 0.48, layers: 3, parallax_ratio: 1.9, push_through: 1, elements_3d: ["card_field", "flag"], dof: { present: true, blur_px: 3 }, triggers: [] }));
+  const withFile = run(ref).json.grammar.depth;
+  assert.equal(withFile.measured.camera_moving_share, 0.48);
+  assert.match(withFile.line, /camera moving 0\.48/);
+  const none = run(makeRef("nomarks")).json;
+  assert.equal(none.look.fixed_marks.value, "unknown");
+  assert.match(none.look.fixed_marks.measure_with, /Fixed marks line of the Recipe notes.*measuring\.md "Fixed marks"/);
+  assert.equal(none.grammar.depth.value, "unknown");
+  assert.match(none.grammar.depth.measure_with, /Depth line of the Recipe notes and analysis\/depth\.json.*measuring\.md "Depth, 3D and camera"/);
+  assert.ok(none.unknowns.some((u) => u.field === "look.fixed_marks") && none.unknowns.some((u) => u.field === "grammar.depth"));
+  const dry = spawnSync(PYTHON[0], [...PYTHON.slice(1), SCRIPT, "--ref", makeRef("nomarksdry"), "--dry-run"], { encoding: "utf8" });
+  assert.match(dry.stdout, /watch {3}.*look\.fixed_marks/);
+  assert.match(dry.stdout, /watch {3}.*grammar\.depth/);
+});
+
+test("recipe --events: analysis/events.json holds cuts, camera starts, flashes and TIMELINE.md rows, with the longest gap and events per minute", (t) => {
+  if (skip(t)) return;
+  const shotRows = Array.from({ length: 6 }, (_, i) => `| ${i + 1} | x | x | x | x | cut |`).join("\n");
+  const timeline = `| # | in-out s | content | camera | light | transition in |\n|---|---|---|---|---|---|\n${shotRows}\n\n## Events\n| t s | kind | end s | note |\n|---|---|---|---|\n`
+    + "| 0.5 | graphic in | | title card |\n| 1.2 | graphic out | | |\n| 2.0 | camera | | push the analyzer also finds |\n| 10.5 | hold | 11.5 | end card |\n| 4 | zoom | | not a schema kind |\n| <t> | <kind> | | |\n";
+  const ref = fixtureRef("events", { timeline, notes: "Pacing: one graphic missed by the analyzer was added by hand\n" });
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), SCRIPT, "--ref", ref, "--events"], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /longest gap 2\.7 s at 7\.3-10(\.0)? s \| 55(\.0)? events per minute/);
+  assert.ok(!existsSync(join(ref, "STYLE-RECIPE.md")), "--events writes only the events file");
+  const ev = JSON.parse(readFileSync(join(ref, "analysis", "events.json"), "utf8"));
+  assert.equal(ev.duration, 12);
+  const count = (k) => ev.events.filter((e) => e.kind === k).length;
+  assert.deepEqual([count("cut"), count("camera"), count("flash"), count("graphic"), count("hold")], [5, 3, 1, 2, 1], JSON.stringify(ev.events));
+  assert.equal(ev.events.find((e) => e.kind === "hold").end, 11.5);
+  assert.equal(ev.longest_gap, 2.7);
+  assert.deepEqual(ev.longest_gap_at, [7.3, 10]);
+  assert.equal(ev.events_per_minute, 55);
+  const { json } = run(ref);
+  assert.equal(json.grammar.pacing.source, "analysis/events.json");
+  assert.equal(json.grammar.pacing.longest_gap, 2.7);
+  assert.equal(json.grammar.pacing.events, 11);
+  assert.match(json.grammar.pacing.note, /added by hand/);
+  assert.equal(json.grammar.transitions.timeline.length, 6, "the Events table adds no transition families");
+  // a film-style events file: a bare list with "type" keys, the duration from the report
+  writeFileSync(join(ref, "analysis", "events.json"), JSON.stringify([{ type: "cut", t: 3 }, { type: "hold", t: 4, end: 9 }, { type: "graphic", t: 9 }]));
+  const bare = run(ref).json.grammar.pacing;
+  assert.equal(bare.longest_gap, 6);
+  assert.equal(bare.events, 2);
+  assert.equal(bare.events_per_minute, 10);
+});
+
+test("recipe: the Never block of REASONS.md reaches the recipe; placeholders and a missing block are not rules", (t) => {
+  if (skip(t)) return;
+  const ref = makeRef("never");
+  writeFileSync(join(ref, "REASONS.md"), "# Element reasons: ref1\n\n| # | Element | Trigger kind | Meaning |\n|---|---|---|---|\n| 1 | Keyword | a topic noun | the topic |\n\n"
+    + "## Never\n- <what the reference never does>: 0 of <n>\n- the speaker dark while speaking: 0 of 920 frames of speech (whole reel)\n- text over a face: 0 of 13 text events\n");
+  assert.deepEqual(run(ref).json.grammar.never, ["the speaker dark while speaking: 0 of 920 frames of speech (whole reel)", "text over a face: 0 of 13 text events"]);
+  const none = run(makeRef("nonever")).json;
+  assert.equal(none.grammar.never.value, "unknown");
+  assert.match(none.grammar.never.measure_with, /## Never block of REASONS\.md/);
+});
+
+test("measuring and the plan carry pacing, fixed marks, depth and a reel cut from an episode (lessons L9, L10, L12)", () => {
+  const m = readText("skills/ice-remake/references/measuring.md");
+  for (const h of ["10. Pacing events", "11. Fixed marks", "12. Depth, 3D and camera", "13. Reel cut from a long episode"]) assert.ok(m.includes(`\n## ${h}\n`), h);
+  const depth = section(m, "12. Depth, 3D and camera");
+  assert.match(depth, /Every aspect of a reference is measured and carried over/);
+  assert.match(depth, /a move of 21 to 80 frames/);
+  assert.match(depth, /`nearest\(\)` in `ice-motion\/scripts\/measured-eases\.mjs`/);
+  assert.match(section(m, "10. Pacing events"), /recipe\.py --ref <ice>\/reference\/<ref-id> --events/);
+  assert.match(section(m, "13. Reel cut from a long episode"), /news-reel\.md`, section 5/);
+  assert.match(section(m, "8. Sound map"), /SFX targets come from the picture events/);
+  for (const x of ["Grain std", "Halftone or scanline FFT ratio", "Vignette ratio", "Chromatic aberration offset", "Glow radius", "Blur sigma", "Black and white levels"])
+    assert.match(section(m, "9. Finishing layer"), new RegExp(`\\n\\| ${x} \\|`), x);
+  const notes = readText("skills/ice-remake/references/notes-files.md");
+  const recipeNotes = notes.slice(notes.indexOf("## Recipe notes (read by scripts/recipe.py"), notes.indexOf("## Open questions"));
+  for (const l of ["Pacing: <", "Fixed marks: <", "Depth: <"]) assert.ok(recipeNotes.includes(`\n${l}`), l);
+  const s6 = section(notes, "6. Element reasons");
+  assert.match(s6, /a second heading `## Never` lists what the reference never does/);
+  assert.match(s6, /`speaker` \(on screen and talking\), `discussed person`.*`voice` \(heard, not on screen\), `place`, `object`.*`programme`.*`whole frame`/);
+  const sm = readText("skills/ice-remake/references/shot-mapping.md");
+  assert.match(sm, /"cites": "<the exact spoken phrase>", "cites_occurrence": 1, "subject": "<role word>", "lead_frames": 0/);
+  assert.match(section(sm, "1. Order of work"), /An element with no route is a finding, never a silent drop/);
+  assert.match(section(sm, "1. Order of work"), /`fixed_marks` row of the plan on the screen layer/);
+  assert.match(readText("skills/ice-remake/references/fidelity-contract.md"), /\| Never \| Copied from the `## Never` block/);
+  assert.match(readText("skills/ice-remake/references/production-crew.md"), /a measured no-fade end card overrides the end fade/);
+  const rm = readText("skills/ice-remake/references/rights-and-modes.md");
+  assert.match(section(rm, "1. Intake"), /### Fixed identity marks \(owner decision, 2026-10-29\)/);
+  assert.match(rm, /A slot is never left empty because the mark was not fetched/);
+  assert.match(rm, /key time unit is calibrated against the comp's known duration/);
+  assert.match(readText("skills/ice-direction/references/reference-fidelity.md"), /follow `ice-remake\/references\/rights-and-modes\.md` sections 1 and 4 instead of this table/);
+});

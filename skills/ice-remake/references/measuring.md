@@ -1,6 +1,6 @@
 # Measuring the reference
 
-Read this after the first whole-piece watch. Numbers point; eyes decide. Every number below either feeds the stats contract in `shot-mapping.md` or tells you where to look.
+Read this after the first whole-piece watch. Numbers point; eyes decide. Every number below either feeds the stats contract in `shot-mapping.md` or tells you where to look. Every aspect of a reference is measured and carried over, not only its colours and text: pace (section 10), fixed marks (section 11), depth, 3D and camera (section 12, where the principle lives), finishing (section 9) and sound (section 8).
 
 ## 1. Run the analyzer
 
@@ -62,7 +62,7 @@ Machine "listening" (an omni model, a tagger) only proposes. Instruments may be 
 
 ## 6. Record
 
-Copy the decisive numbers into `ANALYSIS.md` (section "Measured") and the per-shot table into `TIMELINE.md`. Keep `report.json` untouched as evidence.
+Copy the decisive numbers into `ANALYSIS.md` (section "Measured") and the per-shot table into `TIMELINE.md`. Keep `report.json` untouched as evidence. Then take the measures `analyze.py` does not: pacing events (section 10), fixed marks (section 11), depth, 3D and camera (section 12), the finishing layer (section 9), and, for a reel cut from a long episode, section 13.
 
 ## 7. Scripts and installs
 
@@ -75,15 +75,17 @@ Paths are inside this skill's folder. The scripts put their own folder on `sys.p
 | `scripts/clip_strip.py` | 12 fps strips, reference row above ours | ffmpeg, Pillow |
 | `scripts/compare.py` | Per-shot reference versus ours with the same measurements | numpy, opencv-python-headless, scenedetect (via analyze.py) |
 | `scripts/runtime.py` | Helper for frames.py | none |
-| `scripts/recipe.py` | Portable style recipe from `report.json`, the notes and an optional `sound_map.json` (`style-recipe.md`) | Python only (standard library) |
+| `scripts/recipe.py` | Portable style recipe from `report.json`, the notes and an optional `sound_map.json` (`style-recipe.md`); with `--events`, only the pacing events file `analysis/events.json` (section 10) | Python only (standard library) |
 
 Minimum Python and FFmpeg versions: `runtimes` in the `ice-engines` skill's `references/versions.json`. Packages: `scripts/requirements.txt` (exact pins kept in sync with `versions.json`), installed into a project virtual environment without a question: they are free and pinned (owner decision, 2026-10-29; the one rule for installs, what is recorded and what stays a question: `ice-engines/references/engine-choice.md` section 7, "Installs without a question"). Each install is recorded (what, version, size, where) in `ice/DIRECTION.md` and the delivery note. When an install cannot run (no network, `ICE_OFFLINE=1`, or it needs an administrator password, which is one plain step told to the user): run what the installed tools allow, mark every number that could not be measured as unmeasured in `ANALYSIS.md` and judge those by eye from frames, log it, and say in the delivery note what the install would add.
 
-**Disk space and clean-up** (the one rule: `ice-engines/references/engine-choice.md` section 7, "Disk space"). Check free space before the reference download and before `analyze.py`, and work on a drive that has room. A reference video is downloaded at the output resolution, not above it (1080p for a 1080 film: `ice-assets/references/sourcing-and-licenses.md` section 5). Files that can be rebuilt are deleted once their notes are written: the `frames/` folders after `ANALYSIS.md`, `TIMELINE.md` and `REASONS.md` are done (move any frame worth reopening into `evidence/` first; a later frame is rebuilt with the same `frames.py` command), and the heavy files in `analysis/` (`proxy.mp4`, `upright.mp4`, `audio.wav`) and any scratch measuring output after the stage 10 recipe export. Keep `report.json`, the contact sheets, `evidence/`, the notes files, `peaks.json` and `sound_map.json`. Log what was deleted and how much space it freed in `ice/DIRECTION.md`. All scripts read local files only and never use the network. Licenses: `scripts/LICENSE-reelmimic.txt`, `scripts/LICENSE-claude-video.txt`.
+**Disk space and clean-up** (the one rule: `ice-engines/references/engine-choice.md` section 7, "Disk space"). Check free space before the reference download and before `analyze.py`, and work on a drive that has room. A reference video is downloaded at the output resolution, not above it (1080p for a 1080 film: `ice-assets/references/sourcing-and-licenses.md` section 5). Files that can be rebuilt are deleted once their notes are written: the `frames/` folders after `ANALYSIS.md`, `TIMELINE.md` and `REASONS.md` are done (move any frame worth reopening into `evidence/` first; a later frame is rebuilt with the same `frames.py` command), and the heavy files in `analysis/` (`proxy.mp4`, `upright.mp4`, `audio.wav`) and any scratch measuring output after the stage 10 recipe export. Keep `report.json`, `events.json`, `depth.json`, the contact sheets, `evidence/`, the notes files, `peaks.json` and `sound_map.json`. Log what was deleted and how much space it freed in `ice/DIRECTION.md`. All scripts read local files only and never use the network. Licenses: `scripts/LICENSE-reelmimic.txt`, `scripts/LICENSE-claude-video.txt`.
 
 ## 8. Sound map
 
 Stage 01, after `analyze.py`, once per reference: `python <ice-audio>/scripts/sound_map.py <reference file> --out <ice>/reference/<ref-id>` (`<ice-audio>` is the `ice-audio` skill's folder; the reference folder itself, where `scripts/recipe.py` reads `sound_map.json`). Installs follow that script's own requirements and section 7 (free pinned packages, no question); when they cannot run, skip it and the recipe says "no sound map". Build the music questions of the stage 01 four-choice round from `music.instrumentation_guess` and `music.genre_guess`: the top proposal first with its confidence as the reason, alternatives from the next proposals and the brief. Nothing from the map is logged as fact before the user answers or waives the questions. Full rules: `ice-audio/references/sound-map.md` section 4.
+
+**Speech-led reference** (a voice covers most of the track: a news reel, a talk, an explainer): the sound map finds effects under dense speech less reliably, so the SFX targets come from the picture events instead. Every row of the `TIMELINE.md` per-shot table and of its `## Events` table (section 10) whose picture event can carry a sound (a camera move, a graphic in or out, a flash, a cut into archive) gets its sound written from a listen at that time (the `sound cue` cell of a per-shot row, the `note` of an Events row): the effect type, its offset to the picture event in frames, and its level under the voice, or "none". The sound map's effects confirm or add to these cues; a cue no listen confirms stays `unknown: a listen at <t> s`. Which effect goes with which move: `ice-audio/references/sfx.md`, section "Broadcast SFX by move".
 
 ## 9. Finishing layer
 
@@ -92,6 +94,20 @@ Owner decision, 2026-10-29: the finishing seen in a reference (motion blur, blur
 Tools, all already used by this skill: `analyze.py` (`report.json`), `frames.py` (`--no-dedup`, `--resolution`, `--timestamps`), `clip_strip.py`, and FFmpeg. Two FFmpeg helpers serve several rows:
 - **Per-frame levels:** `ffmpeg -i <file> -vf signalstats,metadata=print:file=levels.txt -f null -`, run from inside the reference folder so the output name has no drive letter (a colon inside a filter option breaks the filter on Windows). Every frame gets `YAVG` (mean luma), `YMIN`, `YMAX` and `SATAVG`.
 - **A calibration ladder** for effects no script measures: take a sharp, clean frame of the same reference, make copies with a known amount of the effect (blur: `gblur=sigma=<n>`; grain: `noise=alls=<n>:allf=t`; vignette: `vignette=angle=<radians>`), lay them beside a crop of the effect frame at the same size, and record the nearest step. Save the ladder under `evidence/` with the step values in the file names.
+
+**Seven numeric measures.** They give numbers where the ladder gives a nearest step; take them per passage on frames without overlays (a frame before a graphic enters, or a box that avoids every graphic, caption and mark), at full width (`frames.py --resolution` at the frame width, `--no-dedup --timestamps`), in luma levels 0-255 (`0.299 R + 0.587 G + 0.114 B`). No script ships for them: write a short scratch script with `numpy` and `opencv-python-headless` (already in `scripts/requirements.txt`) in the run's scratch folder, never in the project. Methods restated from the owner's research measuring tools (2026-10-29).
+
+| Measure | Box | Method | Reads as |
+|---|---|---|---|
+| Grain std | A flat area (wall, sky, plain ground, plate) on 3 frames of the passage and 3 of another | Luma minus its Gaussian blur at sigma 3 px (a high-pass), then the standard deviation of that residual; grain size is twice the half width of its autocorrelation | Studio digital footage sits well under 1; a clear added grain sits near 2 or above. The same value on every shot is a film-wide grain; a value only on some passages belongs to their source |
+| Halftone or scanline FFT ratio | The same flat box | Power spectrum of the high-pass box under a Hann window, the centre (DC) zeroed; the strongest peak divided by the spectrum median, with its period in px and its angle | A ratio above about 200 is a periodic pattern. It is an overlay (halftone, scanlines, screen) only when the same period and angle recur on other shots and areas; once only, it is content (blinds, wood, a floor) |
+| Vignette ratio | Four corner patches and a centre patch, each a tenth of the shorter frame side | Mean corner luma over mean centre luma | Under 1 darkens the corners. Measure it on several shots of different content: a ratio that stays whatever the content is the vignette; one shot proves nothing |
+| Chromatic aberration offset | A box around a high-contrast edge near the frame border | Sobel edges of each channel; phase correlation of the R edges and of the B edges against the G edges, in px along x and y | Under about 0.3 px is none (antialiasing); a steady split above 1 px on the same element kind is an effect: write which elements carry it |
+| Glow radius | A box around bright type or a bright shape on a darker ground | Ground = the 20th percentile of the box, core = pixels above ground plus 80 percent of (the 99.5th percentile minus ground); a distance transform from the core; the radius in px where the mean of each one-pixel ring falls to ground plus 10 percent of the range | The halo radius per element kind (title, pin, disc); compare with a frame of the same shot without the element when the ground is busy |
+| Blur sigma | A box on each layer (subject face, background, a plate) of one frame | Variance of the Laplacian of each box; sigma more than the sharpest box is about the square root of (sharpest variance over this variance) minus 1, in px at that frame size | Relative and rough: confirm any value the film will copy with the calibration ladder. It gives the background defocus behind a subject and the depth of field of section 12 |
+| Black and white levels | The whole frame, on frames of each passage | Luma p1, p50 and p99, beside the per-frame `YMIN` and `YMAX` | p1 at or near 0 means crushed blacks; p1 well above 16 means lifted blacks; p99 under about 235 means held highlights. Add the shadow and highlight cast (mean colour of the darkest and the brightest tenth) |
+
+Each number goes into the effect's row of the table below (how much, measured how), with the frame files in Evidence.
 
 | Effect | Where to look | How much (unit) | Measured how |
 |---|---|---|---|
@@ -108,3 +124,77 @@ Tools, all already used by this skill: `analyze.py` (`report.json`), `frames.py`
 | Grade | Per passage (a passage in its own grade, such as monochrome or a tint, is its own row) | Black and white points (low and high `YMIN` and `YMAX` over the passage: blacks well above 16 are lifted), contrast and colourfulness, palette with roles, the cast in shadows and highlights | `analyze.py` `look` and `palette`, per-frame levels, pixel samples on named frames |
 
 **Applying it.** An effect is applied in the new film only where its row's where and why hold for a new shot (planned per shot in `shot-mapping.md` section 2, `finishing`), never on everything: an effect the reference uses on some shots goes only on the new shots with the same reason, and only an effect seen on every shot (a constant grade, a constant grain) becomes a film-wide setting. How to make each effect with Ice's tools: `ice-motion/references/motion-blur-and-clock.md`, section "Finishing layer". `scripts/recipe.py` carries the table into the recipe's Look section.
+
+## 10. Pacing events
+
+Owner decision, 2026-10-29 (lesson L9; scope: general, any video made with a reference). A reference's pace is measured as events, not only as shot lengths: a film made with it is not delivered while its longest gap is longer, or its events per minute fewer, than the reference allows (the gate and its tolerances: `ice-qa/references/motion-density.md`, "Pacing against the reference"; the plan-level twin, `plan.reference`: `ice-edit/references/clock-and-grouping.md`). The warning is a blocker, never a note.
+
+**What counts as an event.** Every authored visual change: a cut or a gradual seam (dissolve, morph, wipe), the start of a camera move (digital zooms, pans and reframes included), a graphic in and a graphic out (text, card, plate, pill, disc, map, flag, cut-out, lower third), a flash, a colour wash. Not an event: a hold (a held frame, a black hold; written with kind `hold` for the record), motion inside an element that stays (a counter ticking, a loop). Caption chunks count as `graphic` events with the note `caption` on both sides or on neither: count them when the reference shows captions, and the film's events file then lists its own. A `sound` row is written only where a sound is the only change over a held picture. The rule for every kind: the reference and the film are counted the same way.
+
+**How it is read.**
+1. `analyze.py` (section 1): every shot boundary, hard or gradual; the start of every moving camera segment; `flashes`; the `structure` overlays (pop, reveal, scale-in) and fades.
+2. The `## Events` table of `TIMELINE.md` (`notes-files.md` section 2): one row per event the analyzer misses or cannot name: every graphic in and out at its first frame (from 12 fps strips, `clip_strip.py`), every camera move under about 1 s found with the finer method of section 12, every colour wash.
+3. Write the file: `python <skill>/scripts/recipe.py --ref <ice>/reference/<ref-id> --events`. It merges both sources, keeps one event per kind within one frame, writes `analysis/events.json` and prints the longest gap and the events per minute. Python standard library only. Run it again after every new row.
+4. Check by eye: open the longest gap on a strip. A change in it that no row lists gets its row, then run step 3 again. An analyzer event that is not authored (a compression flicker, a person moving inside a locked shot) is deleted from `events.json` by hand last, with the reason in the `Pacing:` line, because a rerun rewrites the file.
+
+**Events file schema** (one format for the reference and the film): `{"duration": <seconds>, "fps": <optional>, "events": [{"t": <seconds>, "kind": "cut|camera|graphic|flash|sound|hold", "end": <seconds, holds only>, "note": "<optional>"}]}`. Reference: `ice/reference/<ref-id>/analysis/events.json`. Film: `<render>.events.json` next to the render. A reader accepts `type` in place of `kind` (the film's events file of `ice-qa/scripts/motion_check.py` writes `type`) and a bare list of events when the duration comes from the video or the plan.
+
+**The two numbers.** Longest gap: the largest difference between consecutive event times, with 0 and `duration` as the bounds. Events per minute: events (holds excluded) divided by the duration, times 60. Both are always recomputed from `events`; the stored `longest_gap`, `longest_gap_at` (the gap's start and end, in seconds) and `events_per_minute` fields are informational.
+
+**Recorded.** The two numbers go into "Measured" of `ANALYSIS.md`, and the Recipe notes get one line, read by `scripts/recipe.py` into the recipe's `pacing` block next to the numbers it measures:
+`Pacing: longest gap <s> s at <start>-<end> s, <n> events per minute, kinds <the kinds counted>; <what the measure misses, or none>`
+
+## 11. Fixed marks
+
+Owner decision, 2026-10-29 (lesson L10; scope: category: remakes and edits that follow a reference with an organisation's identity). A mark that stays on screen through the reference (a channel logo, a programme name or logotype, a corner bug, a badge, a progress bar, a watermark) is part of its identity and is measured like any element. Where the new film puts it depends on the `identity` choice: `rights-and-modes.md` section 1, "Fixed identity marks". The check: `ice-qa/references/identity-tests.md`, "Fixed identity marks".
+
+**What to measure, per mark** (on the first and the last frame where it shows and on three frames between, at full width: `frames.py --resolution <frame width> --no-dedup --timestamps`):
+
+| Field | Holds |
+|---|---|
+| what | The mark in plain words (channel logo, programme name with its dot, corner bug), never its copy |
+| x, y | The top-left corner of its box as percent of the frame width and height |
+| w | Its width as percent of the frame width (the height follows from the mark) |
+| opacity | Percent, from pixel samples of the mark against the ground beside it; 100 when solid |
+| colour | Hex of its ink, from pixel samples |
+| first, last | First and last frame (and seconds) where it shows, and any gaps; a slot shared in time by two marks lists both with their frames |
+| layer | `screen` when the camera never moves it and flashes never hit it (the usual case); `rig` when it moves with the picture, said in the row |
+| in, out | How it arrives and leaves (on from frame 0, draws on over n frames, fades), when it does |
+
+Each mark also gets a `REASONS.md` row with trigger kind `always` (`notes-files.md` section 6). The Recipe notes get one line, read by `scripts/recipe.py` into the recipe field `fixed_marks`:
+`Fixed marks: <what> x <x>% y <y>% w <w>%, opacity <n>%, <hex>, frames <first>-<last>, layer <screen or rig>; <the next mark> (or: none)`
+
+## 12. Depth, 3D and camera
+
+Owner decision, 2026-10-29 (lesson L12; scope: general, any video made with a reference). **Every aspect of a reference is measured and carried over: 3D, depth, camera, finishing and sound, not only its colours and text.** This is the one home of that principle; the other files point here. Trials failed because a reference's photo-card field with a push-through, its 3D flags, its speaker pushed back in depth and a camera moving in about half of its frames were never measured, so none of them reached the films.
+
+**Why `analyze.py` is not enough for the camera.** Its camera track (section 2) fits one transform every half second and joins segments under 1 s into their neighbour, so a move of 21 to 80 frames (0.84 to 3.2 s at 25 fps) is averaged away or merged, and `moving_camera_shots` counts shots, not frames. Use it to find the passages; measure the moves with the finer method below.
+
+| Item | How to detect | How to measure | Field |
+|---|---|---|---|
+| Camera moving share | Any passage where the whole picture scales, slides or turns (digital moves on one take count) | Every frame of the passage at 480 px wide (FFmpeg at the native rate into the scratch folder, or `frames.py --no-dedup --timestamps` at each frame time); a similarity transform fitted frame to frame the way `analyze.py` does (tracked corners, pyramidal optical flow, RANSAC), scales chained, and re-anchored by a direct check against a frame 1 to 2 s earlier, because a chain drifts (5 to 10 percent was measured). A frame moves when its change is above the section 2 thresholds divided by the fps. Share = moving frames over all frames. Each move: start and end frame (2 and 98 percent of its change), scale ratio, anchor (the point that stays: a face, the frame centre), and its ease: progress at 10, 25, 50 and 75 percent of its time passed to `nearest()` in `ice-motion/scripts/measured-eases.mjs` | `camera_moving_share` |
+| Depth planes and parallax ratio | During a move, near and far things shift or scale by different amounts (the eye test of section 2); one plate zoomed digitally moves as one plane | The same per-frame fit restricted to a box on each plane (a near card, a mid layer, the background); count the planes with distinct rates; parallax ratio = the nearest plane's speed over the farthest's (illustration only: a near layer shrinking 23 percent while the back shrinks 12 percent over the same frames gives about 1.9). One plane: null. A person made a back plane (desaturated, dimmed and pulled back while another image comes forward) is a plane too: note it | `layers`, `parallax_ratio` |
+| Push-through | A move during which layers grow past the frame edge and leave, so the camera passes through them | Count them; per push-through: start and end frame, scale ratio of the nearest plane, ease (as above) | `push_through` |
+| 3D elements | The far edge shortens as a thing turns, shading changes with the turn, the layer order changes (a line passing behind then in front), cloth moves | Kind (`card_field`, `flag`, `globe`, `extruded_text`, `wrapped_text`, `cards_in_space`, `set`, `other:<word>`), turn range in degrees and frames, scale, duration, ease, and whether it is real 3D or flat layers at depth (2.5D) | `elements_3d` |
+| Depth of field | One plane is soft while another is sharp; focus moves between them (a rack focus) | Blur sigma per plane box (section 9, "Seven numeric measures"), per plane step; a rack focus as that value over time | `dof` |
+| Trigger in the speech | Each item above switches on somewhere | The words that switch it on, from the word-level transcript (`watching.md` section 5), with the time; in a passage with no speech, the beat, cut or action | `triggers` |
+
+**Depth file schema** (reference and film): `{"camera_moving_share": <0..1, share of frames where the camera or plate moves>, "layers": <depth planes counted>, "parallax_ratio": <speed of the nearest plane over the farthest, or null>, "push_through": <count of camera moves that pass through planes>, "elements_3d": [<kinds: "card_field", "flag", "globe", "extruded_text", "wrapped_text", "cards_in_space", "set", "other:<word>">], "dof": {"present": true|false, "blur_px": <per plane step, or null>}, "triggers": [{"kind": "<one of the above or camera|dof>", "t": <s>, "words": "<the spoken words that switch it on>"}]}`. Reference: `ice/reference/<ref-id>/analysis/depth.json`, written by hand from these measures. Film: `<render>.depth.json` next to the render, written from the plan and the build, with `camera_moving_share` measured on the render when possible. A reference with no depth, 3D or camera movement still gets the file (share 0, layers 1, empty lists), so "none" is a measured value.
+
+**Recorded and carried.** Every depth or 3D element kind gets a `REASONS.md` row (trigger kind, meaning, role, in and out). The Recipe notes get one line, read by `scripts/recipe.py` into the recipe field `depth` (with `depth.json` beside it when it exists):
+`Depth: camera moving <share> of frames; <n> planes, parallax <ratio or none>; push-throughs <n>; 3D <kinds or none>; depth of field <yes, px per plane step, or no>; triggers <kind at t s on the words that switch it on; ...> (or: none)`
+Each element is mapped to a shot of the new film with its build route (`shot-mapping.md` section 1, item 6; routes: `ice-motion/references/depth-and-3d.md`, "Build routes for depth and 3D"). The gate: `ice-qa/references/motion-density.md`, "Depth and camera against the reference".
+
+## 13. Reel cut from a long episode
+
+When the reference reel was cut from a longer episode, or the user supplies both, measure how the reel was made from it, beside the reel's own grammar. Method: word-level transcripts of both (`watching.md` section 5), each reel sentence aligned to the episode transcript by its words, and a frame check at every join.
+
+| Measure | Holds |
+|---|---|
+| Hook | Its length in seconds and frames from the first frame, what it is (a question, a claim, a clip, a number), and whether it comes from the episode's opening or from later |
+| Passages used | Each passage's in and out in the episode and in the reel, in reel order: kept in order or moved, and how much of each sentence was kept (trims land on word boundaries) |
+| Placement | Where each passage sits in the reel, as a share of the reel's runtime, and its job (hook, set-up, evidence, turn, payoff, sign-off) |
+| Payoff | Where the answer or the strongest line sits, as a share of the runtime, and whether the reel ends on it or on a sign-off |
+| Dropped | What the episode holds that the reel leaves out, with the reason it reads as dropped |
+
+Recorded as a `## Passages` table in `TIMELINE.md`: `| reel in-out s | episode in-out s | job | trimmed |`. The rules for cutting a new reel this way: `ice-edit/references/edit-types/news-reel.md`, section 5 ("From a long episode to a reel").

@@ -10,7 +10,7 @@ ice/
   DIRECTION.md                     decision log (ice-direction)
   reference/<ref-id>/              reference truth: what the existing piece does
     <the user's file>
-    analysis/                      analyze.py output, untouched
+    analysis/                      analyze.py output, untouched; events.json and depth.json (measuring.md sections 10 and 12)
     frames/                        frames.py output
     evidence/                      strips and grids worth reopening, descriptive names
     ANALYSIS.md                    why it works (whole piece)
@@ -76,6 +76,9 @@ content and look; placement; entry; active behavior; persistence; exit; what it 
 Shots: count, mean / shortest / longest s, mean beats. Stillness ratio. Cut bursts.
 Camera: moving share, kinds, pace mix. Look: low-key share, mean brightness, palette and color arc.
 Text-card share. Hero scale at hits. Tempo and first beat. Peaks (see peaks.json).
+Longest event gap and events per minute (analysis/events.json, measuring.md section 10). Each fixed mark's slot and size
+(measuring.md section 11). Camera moving share of frames, depth planes and parallax ratio, push-throughs, 3D elements,
+depth of field (analysis/depth.json, measuring.md section 12).
 
 ## Finishing layer (measuring.md section 9; read by scripts/recipe.py)
 | Effect | Where | How much | Measured how | Why |
@@ -99,6 +102,9 @@ Accent rule: <how many accents, where and when>
 Material and light: <material category, texture, light mood>
 Typefaces: <headline and body typefaces seen, or the closest named match>
 Cursor: <none, or the pointer's style (arrow, hand, text caret, custom), its path and easing, and each click time with what the click does>
+Pacing: <longest gap s at start-end s, events per minute, kinds counted; what the measure misses (measuring.md section 10)>
+Fixed marks: <each mark: what, x and y percent, width percent, opacity, colour, first and last frame, layer; or none (measuring.md section 11)>
+Depth: <camera moving share, planes and parallax ratio, push-throughs, 3D kinds, depth of field, the words that switch each on; or none (measuring.md section 12)>
 Motif and rhyme: <recurring motif, how the ending rhymes with the opening>
 Feeling: <t1-t2 s: feeling, cause; ...>
 Aspect: <only when the real picture differs from the file, for example 16:9 stored sideways>
@@ -124,6 +130,10 @@ Per-shot table (from `shot_details`, one row per reference shot):
 Start each "transition in" cell with the family name (cut, morph, dissolve, wipe, whip, match cut, fade in), then any detail after a comma: `recipe.py` reads the words before the first comma as the family, and a row per detected shot lets it label every analyzer boundary.
 
 Record both the source seconds and the expressive relationship (a reveal answers a question, an exit makes room for the next claim). Never copy a source timestamp into the target plan: the relationship survives, the seconds do not.
+
+Below the per-shot table, an events table under the heading `## Events`, with the columns `| t s | kind | end s | note |`, lists every event the analyzer misses (`measuring.md` section 10): each graphic in and out, camera moves under about 1 s, colour washes. `recipe.py --events` reads it into `analysis/events.json`; the kind is the first word of its cell (`cut`, `camera`, `graphic`, `flash`, `sound`, `hold`; "graphic in" and "graphic out" are graphics), `end s` is written for holds only, and the sound heard on an event goes into its `note` and into the `sound cue` cell of the per-shot row that holds it (`measuring.md` section 8).
+
+A reel cut from a long episode also gets a `## Passages` table (`measuring.md` section 13): `| reel in-out s | episode in-out s | job | trimmed |`.
 
 ## 3. BRIEF.md, References block
 
@@ -160,7 +170,7 @@ A short snapshot: live question, what remains, next action, blockers, reusable r
 
 Owner decision, 2026-10-29: an element copied from a reference without its reason makes a blind copy. Every reference, in every mode, gets `ice/reference/<ref-id>/REASONS.md`: one row per element, saying what switches it on, what it means, who or what it is on, when it comes and goes, and why it looks the way it does. It is written at stage 01 during the watching passes (`watching.md` section 2, pass 8) and the measuring passes (`measuring.md`), and it is reference truth only: how the new film uses an element is decided in the plan (`shot-mapping.md` section 1).
 
-**What counts as an element.** Anything the viewer sees or hears that marks something, read from the reference itself: on-screen text of every kind (headlines, keywords, captions, name straps, datelines, credits, counters), shapes, circles and discs, frames and boxes, cutouts and silhouettes, dimming or highlighting of a person, maps, icons and logos, colour washes and tints, transitions, punch-ins and reframes, and sounds that mark an element (a hit, a whoosh, a riser tied to it). One row per kind of element, not per appearance: the instances cell lists the appearances. A kind seen once still gets a row. Persistent chrome (a logo bug, a progress bar) gets a row whose trigger kind is `always`.
+**What counts as an element.** Anything the viewer sees or hears that marks something, read from the reference itself: on-screen text of every kind (headlines, keywords, captions, name straps, datelines, credits, counters), shapes, circles and discs, frames and boxes, cutouts and silhouettes, dimming or highlighting of a person, maps, icons and logos, colour washes and tints, transitions, punch-ins and reframes, and sounds that mark an element (a hit, a whoosh, a riser tied to it). One row per kind of element, not per appearance: the instances cell lists the appearances. A kind seen once still gets a row. Persistent chrome (a logo bug, a progress bar) gets a row whose trigger kind is `always`, with its measured slot (`measuring.md` section 11, "Fixed marks"). Every depth or 3D element kind (a card field, a push-through, a flag, a person pushed back in depth: `measuring.md` section 12) gets a row too.
 
 ```
 # Element reasons: <ref-id>
@@ -176,10 +186,12 @@ Sources: <transcript file, frame folders, strips and measures used>
 | Trigger kind | What in the words switches it on, as a mechanism. Illustration only, several kinds: a person or group is named; a number is said; a list is spoken; a question is asked; a written source is quoted; a place is named; a new speaker starts; a section turns. In a passage with no speech: the beat, action, cut or sound that switches it on. `always` for persistent chrome. A reference with no time axis (an image set, a static page): the role the element plays in the composition |
 | Trigger instances | Two or three appearances with the exact words (or the cue) and their time from the word-level transcript (`watching.md` section 5); `static` for a reference with no time axis |
 | Meaning | What the element tells the viewer at that moment |
-| On whom or what (role) | The role it lands on (the speaker, the people talked about, a quoted source, a place, the product, the whole frame), never only a name. When the reference marks people (dimmed, silhouetted, circled, targeted, highlighted), record which role is marked and which role stays lit. In the new film the speaker or guest stays lit and clear: `ice-edit/references/layers-and-isolation.md`, section "The speaker stays lit" |
-| In, Out | The cue and the time it arrives and leaves (on the word, a fixed delay after the shot starts, at the next phrase, on a cut) |
+| On whom or what (role) | The role it lands on, first as one role word: `speaker` (on screen and talking), `discussed person` (a person or group talked about, not speaking), `voice` (heard, not on screen), `place`, `object` (a product, a document, a thing), `programme` (the show or channel itself), `whole frame`; then a few plain words when needed, never only a name. The same words fill `subject` in `plan/shots.json` (`shot-mapping.md` section 2). When the reference marks people (dimmed, silhouetted, circled, targeted, highlighted), record which role is marked and which role stays lit. In the new film the speaker or guest stays lit and clear: `ice-edit/references/layers-and-isolation.md`, section "The speaker stays lit" |
+| In, Out | The cue and the time it arrives and leaves (on the word, a fixed delay after the shot starts, at the next phrase, on a cut), with the lead or lag in frames: the element's first frame minus the onset frame of its word (negative = before the word), as range, median and count over its instances; a count of 1 is marked weak |
 | Why this colour and shape | What the colour, shape, size and texture signal, tied to the reference's own system (its accent rule, its type system, its finishing layer) |
 | Evidence | Frame files, strips and transcript lines that show it |
+
+**The Never block.** Under the table, a second heading `## Never` lists what the reference never does, one line per rule, `- <what the reference never does>: 0 of <n> <chances counted> (<passages or reels counted>)`, each rule read from a count of 0 over a measured number of chances: what was counted (frames, text events, sentences, cuts) and where. Illustration only, several kinds: the speaker dark or silhouetted while speaking, 0 of the frames of speech; text over a face, 0 of the text events; a cut away during a question, 0 of the questions. A count above 0 is not a Never: it is an element row with its rare instances. A rule with fewer than 5 chances is marked weak. The plan copies the block into the `Never:` field of `plan/FIDELITY.md` (`fidelity-contract.md` section 1), every planned element is checked against it, and `scripts/recipe.py` carries it into the recipe as `never`.
 
 **When a reason cannot be read.** Any cell that the evidence does not settle says `unknown: <what would settle it>` (a denser strip around one appearance, the transcript of that passage, a second appearance, the sound map's effect at that time). An element whose trigger kind or meaning is still unknown at the end of stage 01 goes into the "Open questions" of `ANALYSIS.md`, and it does not carry over to the new film (`shot-mapping.md` section 1).
 

@@ -126,6 +126,7 @@ Sources disagree on whether to label on screen. Use this scope:
 - **Type.** The film's body family, regular weight, sentence case, no added letter-spacing, never mono, never a pill, badge or bar. Size at least the readable floor for secondary text (the ice-type skill's `sizes-and-scale.md` section 2, and the floor for the delivery's ratio in sections 3 and 4) and at most 1.5 times that floor. Contrast as secondary text (`caption-placement-safe-zones.md` section 5 of the ice-type skill).
 - **Position.** Attached to what it qualifies: directly under or beside the chart, counter or screen with the sample numbers, aligned to its edge, inside the platform's safe zone. Only when the illustrative content fills the frame: the bottom band inside the safe zone, aligned to the film's text margin. Never a free corner badge.
 - **Time.** On every frame where the content it qualifies is on screen; the unofficial-concept line follows `brand-authenticity.md` section 10 step 10.
+- **Scope: broadcast tags are not labels.** In a news reel (edit type `news-reel`, style family `family-broadcast-news.md`), or when the reference measures them, the location and date tag and the vertical source credit are allowed in their measured slot, as a tag or bar when the package draws them so, built per `ice-type/references/type-effects-specs.md` table "Broadcast text", with their facts (place, date, credit line) taken from the footage ledger. The rules of this list still hold for every required label above, in a news reel too.
 
 ## 10. facts.json (claims ledger)
 

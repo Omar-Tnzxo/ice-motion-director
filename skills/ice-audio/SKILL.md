@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # Ice Audio
@@ -130,7 +130,7 @@ After the pick: back-time the chosen track to the end card (music-choice-and-lic
 
 ## 7. Bundled code
 
-- `scripts/match_music.py` (Ice): `music` ranks candidate tracks against a reference's sound map by a weighted measured distance (tempo with half and double time, brightness, loudness range, key, section movement, genre, instruments; the user's confirmed tags replace the map's guesses) and writes `ranking.json`; `sfx` ranks recorded whooshes or impacts by the measures of sfx.md sections 5 and 6. Local files only, no network; needs numpy and scipy (it measures with `sound_map.py`).
+- `scripts/match_music.py` (Ice): `music` ranks candidate tracks against a reference's sound map by a weighted measured distance (tempo with half and double time, brightness, loudness range, key, section movement, genre, instruments; the user's confirmed tags replace the map's guesses) and writes `ranking.json`; `sfx` ranks recorded whooshes or impacts by the measures of sfx.md sections 5 and 6 (`--profile news-reel`: sub or air only, sfx.md section 3b). Local files only, no network; needs numpy and scipy (it measures with `sound_map.py`).
 - `scripts/preview_options.py` (Ice): lays 2 or 3 tracks on the same picture (or audio only at a given length), each started at its strongest section or back-timed to the last frame, at the same measured loudness, the film's own voice kept on request; writes `option-N` files, `options.json` and `compare.html`. Standard library and ffmpeg.
 - Opt-in tool, only under core rule 7: `scripts/mgaudio/`, the mgaudio Python toolkit from Vincentwei1021/mg-styles-15 (MIT): synthesized music recipes per style, SFX generators, mixer, mastering and QC. Copy it into the project (`ice/audio/lib/mgaudio/`) before use. It needs only numpy; its fast path, fallback mode and optional samples: music-by-code.md section 1.
 - `scripts/master_audio.py` (founder's tool): mixes the film's audio with voice, music (with `--music-start` back-timing offset and `--duck`; no fade-in unless `--music-fade-in` is passed, so a cold open hits at full level on frame 0; music edges are set only by the four flags in mix-and-master.md section 6 and recorded in `master.json`), SFX from a JSON cue list, then a measured linear gain and a 4x oversampled true-peak limiter to the chosen profile, AAC at 48 kHz, copies the video stream, measures the exported file with ffmpeg `ebur128` and renders again until the true peak meets the target; writes `master.json` with `status` and exits 1 on a miss (mix-and-master.md section 6).

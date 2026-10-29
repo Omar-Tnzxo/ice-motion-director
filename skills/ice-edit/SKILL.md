@@ -12,7 +12,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.3
+  version: 0.2.4
 ---
 
 # Ice Edit: editing real footage
@@ -40,6 +40,7 @@ Look for `ice/state.json` in the working folder.
 
 | The user wants | Edit type file |
 |---|---|
+| A presenter-led news or explainer reel, from studio footage, a long episode or a news reference | `references/edit-types/news-reel.md` |
 | Several cameras, or a conversation, or clips cut from a long episode | `references/edit-types/podcast.md` |
 | Existing clips or past work cut to music, no speech to follow | `references/edit-types/showreel.md` |
 | Inserts, motion clips, lower thirds or cards added over footage that otherwise stays | `references/edit-types/broll-overlay.md` |
@@ -47,7 +48,7 @@ Look for `ice/state.json` in the working folder.
 | A short vertical video cut from footage, fast and hook-driven | `references/edit-types/shorts-reels.md` |
 | A long recording (minutes or more) kept long, with a visual layer | `references/edit-types/long-form.md` |
 
-Compound requests: a style reference plus footage runs this workflow with the analysis step of the ice-remake skill. A style recipe (`STYLE-RECIPE.md`) plus footage: the recipe is the style reference, read by `ice-remake/references/style-recipe.md` sections 4 and 7 instead of a new analysis. A brand showreel designed from scratch is the ice-film skill.
+Compound requests: a style reference plus footage runs this workflow with the analysis step of the ice-remake skill, which also measures depth, 3D and camera (`ice-remake/references/measuring.md`, "Depth, 3D and camera"); 04 carries each such element with its build route (`ice-motion/references/depth-and-3d.md`, "Build routes for depth and 3D"). A style recipe (`STYLE-RECIPE.md`) plus footage: the recipe is the style reference, read by `ice-remake/references/style-recipe.md` sections 4 and 7 instead of a new analysis. A brand showreel designed from scratch is the ice-film skill.
 
 ## 3. The workflow (every edit type)
 
@@ -70,7 +71,7 @@ The workflow runs on the production spine (stages 01 to 10, next section) in the
 
 The router owns the spine and the `stages` map in `ice/state.json`; this section says what each stage means when the user's footage is the material. A stage is done when its artifact exists and passes the check in the last column, and it is approved as section 1 ("Stops and approvals") says. Each edit-type file has one machine-readable line `Stage order: <stages>` in the router's order text format, copied into `order`; the line after it, starting `Leads with:`, says the same in words. The numbers never change; only the order in which they lead does.
 
-**Parallel lanes.** Edits keep their footage-led order: the paper edit (03) comes before the approach (02), and the plan (04) and the rough cut (06) come before the grade and caption style (05), because the cut decides what the look must serve; 04 and 05 do not run as a lane here. After 06, 08 has two parts: 08a (music choice with its sync license check, SFX list and voice cleanup, from the locked EDL and cue sheet) runs beside 07, and 08b (mix and master on the 07 draft) runs after 07. In a `Stage order:` line (the router's order text, read by `ice-state`) a bracket is a lane: `01 03 02 04 06 05 [07 08a] 08b 09 10`. Without sub-agents, a lane runs in sequence.
+**Parallel lanes.** Edits keep their footage-led order: the paper edit (03) comes before the approach (02), and the plan (04) and the rough cut (06) come before the grade and caption style (05), because the cut decides what the look must serve; 04 and 05 do not run as a lane here. After 06, 08 has two parts (row 08): 08a runs beside 07, and 08b runs after 07. In a `Stage order:` line a bracket is a lane: `01 03 02 04 06 05 [07 08a] 08b 09 10`. Without sub-agents, a lane runs in sequence.
 
 | Stage | What this workflow does in it | Files to open | Done when |
 |---|---|---|---|
@@ -83,7 +84,7 @@ The router owns the spine and the `stages` map in `ice/state.json`; this section
 | 07 fine cut and overlays | B-roll, motion B-roll, isolation, reframe and captions built on the locked clock; captions last. Runs beside 08a | Required: `references/broll-and-motion-broll.md` sections 2 and 3. Only if motion B-roll: `references/broll-and-motion-broll.md` section 6 and `scripts/NOTICE.md`. Only if isolation or a layer behind the speaker: `references/layers-and-isolation.md` sections 2 and 3. Only if vertical or more than one ratio: `references/vertical-conversion.md` | every layer derives from the locked EDL; stills at settled and mid-change times are clean; `scripts/validate-plan.mjs` and `scripts/validate-footage.mjs` pass; a draft render exists as a new file |
 | 08 sound | 08a, beside 07: music choice, SFX list and voice cleanup from the locked EDL and cue sheet; no track is used before its sync license check. 08b, after 07: room tone, joins, effects on visible actions, mix and master on the 07 draft, through ice-audio | Required: `ice-audio/SKILL.md`; `references/cut-craft.md` section 3. Only if music is chosen at 08a: `ice-audio/references/music-choice-and-licensing.md` section 5 | 08a: music, SFX and voice are in `ice/audio/` with rows in `ice/assets/CREDITS.md`, and every track has its sync check recorded as a license status; 08b: the mix sits on the latest draft; the last spoken word is never faded; the ice-audio loudness gate passes |
 | 09 review | Self-review at every cut, then ice-qa gates and a fresh critic; user notes go back to the stage that owns them | Required: `references/production-rules.md`; `ice-qa/SKILL.md`. Only if promotional: `ice-qa/references/clarity-gate.md` sections 3 to 5 and 8 | promotional: clarity read 3 passed; the per-cut check and the gates are recorded in `ice/review/`, with what was not measured named |
-| 10 deliver | Final render after 09 (no further approval in auto mode), then every version and cutdown planned at 03 (rendered in parallel), captions files, retimed transcripts, EDLs, delivery report | Required: `references/export.md`; `ice-qa/references/delivery-report.md` | finals are new files in `ice/renders/final/`; every version in `ice/plan/versions.md` is rendered; delivery checks pass; `ice/review/NOTE.md` reports measured numbers and, for an ad, lists the permissions a brand owner would need |
+| 10 deliver | Final render after 09 (no further approval in auto mode), then every version and cutdown planned at 03 (rendered in parallel), captions files, retimed transcripts, EDLs, delivery report | Required: `references/export.md`; `ice-qa/references/delivery-report.md`; with captions: `ice-qa/references/captions-and-sync.md`, "Fresh transcript gate" (blocking) | finals are new files in `ice/renders/final/`; every version in `ice/plan/versions.md` is rendered; delivery checks pass; `ice/review/NOTE.md` reports measured numbers and, for an ad, lists the permissions a brand owner would need |
 
 **Depth by size.**
 
@@ -93,7 +94,7 @@ The router owns the spine and the `stages` map in `ice/state.json`; this section
 | Standard: 7 to 60 s, or one edit of a longer recording | a talking-head ad, a reel, shorts, a B-roll pass, a showreel | Full spine in the footage-led order, lean crew; the short-form gates (three openings, animatic) run for every vertical piece |
 | Long or campaign: over 60 s, chapters, or several versions and cutdowns | a long-form or course edit, a podcast episode, an episode cut into many reels | Full spine; chapters, reels and cutdowns are listed at 03 in `ice/plan/versions.md`; the visual layer is built and reviewed per section at 07; each ratio and each reel renders in parallel at 10 |
 
-**Supplied or partial material.** Read `references/ingest-and-ledger.md` (section 7) when the user supplied a transcript, script, selects, approach, reference, B-roll plan, grade or track, or partial material for any stage.
+**Supplied or partial material** for any stage: `references/ingest-and-ledger.md` section 7.
 
 ## 4. Rules that never bend
 
@@ -108,7 +109,7 @@ The router owns the spine and the `stages` map in `ice/state.json`; this section
 
 ## 5. Conflicting source rules (both kept, scoped)
 
-Read `references/production-rules.md` (section 6) when two source rules disagree on silence threshold, join sound, render method, grade, repeat footage, B-roll motion, transitions, caption band or sync after re-transcription; each rule there is kept and scoped, never picked globally.
+Read `references/production-rules.md` (section 6) when two source rules disagree (silence, join sound, render method, grade, repeats, B-roll motion, transitions, caption band, sync); each is kept and scoped, never picked globally.
 
 ## 6. Files
 
@@ -126,7 +127,6 @@ Read `references/production-rules.md` (section 6) when two source rules disagree
 | First three seconds, open loops, animatic, review | `references/short-form-hooks.md` |
 | EDL, plan schema, anchors, clip grouping, shifts | `references/clock-and-grouping.md` |
 | Encode ladder, delivery checks, deliverables | `references/export.md` |
-| Edit type specifics | `references/edit-types/<type>.md` |
 | Script index, uses by job, licenses, known limits | `scripts/NOTICE.md` |
 
 ## 7. Scripts

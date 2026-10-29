@@ -28,6 +28,8 @@ Caption band used by the founder's design system: y 220 to 1500.
 - Collage pages: 70 px margin around every word; no text in the last 300 px or the right strip y 1100 to 1750.
 - Non-hero copy at least 48 px from any frame edge.
 - Images (not text) may enter the bands on purpose, for example a large card in the upper two thirds with a small face card below.
+- News reel (edit type `news-reel`, style family `family-broadcast-news.md`): fixed identity marks (logo bug, programme name, corner tag) sit in the top band just below the platform's no-text top zone (measured: marks start at y about 213 to 229 on 1920, below a clear band of y 0 to 220), with mirrored side margins of about 110 px (logo on one side, programme name on the other); captions and keyword text sit on the presenter's chest between y 779 and 1499, never over the face, and settled cards end no lower than y 1440 (their bottom edge at y 1440 or less). Where the reference measures its own mark positions, they win (the `ice-qa` skill, `references/identity-tests.md`, "Fixed identity marks").
+- Which top zone governs: for an organic post (a reel or Short on the brand's own account) the app preset of section 2 governs, so marks at y about 229 are clear of it. For a paid video ad placement (the brief's platform slot names an ad), the platform's ad safe-zone diagram governs (for YouTube Shorts and vertical video ads a 288 px top margin: the `ice-engines` skill, `references/platform-specs.md` section 3): the marks and anything else in the top band move below y 288 by the overlap, and the move is logged. One master for both uses the ad diagram.
 
 ## 4. Scoped choice
 

@@ -26,6 +26,8 @@ Write three provisional openings in the hook sheet `ice/plan/hooks.md` exactly a
 
 Write the beat plan in `ice/plan/storyboard.md` before building: hook, open loop, escalation, evidence, payoff, call to action; give every shot a reason to exist. Plan the story (hook, proof, items, payoff, call to action) before any visuals.
 
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the story shape is the passage structure of `edit-types/news-reel.md` section 5 (hook, passages in source order, payoff last, call to action, end card), not the house order above.
+
 ## 4. Open loops
 
 Open-loop rules and the ledger `ice/plan/open-loops.json` are owned by the `ice-ideas` skill: rules in `references/hooks-and-openers.md` section 6, schema in `references/templates.md` section 4. In an edit, every loop state must exist in the footage or in a graphic built from it; do not invent a product result to make a more satisfying payoff.
@@ -48,6 +50,7 @@ Open-loop rules and the ledger `ice/plan/open-loops.json` are owned by the `ice-
 - 3 to 8 words, at most two lines, no final period, no emoji; built from the strongest line, never simply the first sentence said; only words the speaker said or that the clip supports. Any number must appear in the clip's speech, and the promise must resolve inside the clip.
 - Use at least one hook device: a number, a contradiction, a question, curiosity, a command, a story.
 - Hide all other text while the hook shows. Write three hook options for the first reel; once one is picked (the user's review card in step mode, a critic in auto mode), keep that style.
+- News reel (edit type `news-reel`, style family `family-broadcast-news.md`): no written hook ahead of the speech. The picture carries the hook from frame 0 and the spoken words appear as they are said, at the package's or the reference's measured lead; the hook length, the first seconds and the cold open beats are in `edit-types/news-reel.md` section 5. The three openings of section 2 are still written, each from a different candidate hook line.
 
 ## 7. Animatic, lock, entertainment review
 

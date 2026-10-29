@@ -17,6 +17,8 @@ General caption design (styles, base sizes, grouping theory) is owned by `ice-ty
 - Karaoke highlight: color (and optional small scale) of the whole spoken word. A key word may get a highlight capsule when spoken.
 - A highlighted or popped word stays until its sentence ends, at least 0.6 s; never a half-second flash.
 - One caption group visible at a time.
+- Keyword captions (news reel, edit type `news-reel`, or a reference that measures them): instead of a caption track, about 1 word in 4 is shown large, the content noun phrase that carries the clause, verbatim in the spoken form, never paraphrased, never late (first frame 20 f early to 3 f late against the word at 25 fps, median 4 f early). Each keyword is one whole shaped word or phrase revealed by a pointer-led mask, right to left, and leaves by a blink exit. Rules and numbers: the `ice-type` skill, `references/captions-system.md` "Keyword mode" and `references/type-effects-specs.md` table "Broadcast text". A keyword that sits on a stretched or justified line follows `references/kashida.md` section 4b.
+- Red-to-white change (crimson-to-white title, scoped as above): the loaded word arrives crimson a few frames after it is spoken and turns white once said (measured 4 to 20 f after the word starts, colour change over 8 to 12 f). The colour changes on the whole shaped word at once, never on part of a word; it is a title, not a karaoke highlight, so a caption track in the same film keeps its own highlight logic (`ice-type` `references/type-effects-specs.md`, row "Crimson-to-white title").
 
 ## 3. Lines and length
 
@@ -47,6 +49,8 @@ General caption design (styles, base sizes, grouping theory) is owned by `ice-ty
 | Word highlight plus occasional word moves on single words | Shorts and reels, energetic talking-head ads |
 | White text with shadow, 2 to 3 words, spoken word in the accent color | Podcast clips |
 | No captions (the hero word is the text) | Collage-style edits |
+| Keyword captions with a pointer-led reveal and a blink exit, no running caption track | News reel whose package or reference runs no full captions (section 2) |
+| Phrase captions wiped on right to left in 1 to 4 word chunks (type-on phrase captions) | Horizontal news reel versions whose reference measures them (`ice-type` `references/caption-styles.md`) |
 
 ## 7. Written hook over footage (shorts and reels from long episodes)
 

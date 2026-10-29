@@ -34,12 +34,15 @@ A 15 to 90 s vertical video (1080x1920 by default) that convinces in the first t
 | Event gap | Over 2.2 s fails without a recorded hold reason |
 | Length | Platforms treat vertical uploads up to about 3 min as shorts (TikTok 10 min); re-verify |
 
+News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the shot caps, presence, event gap and "no intro or outro card" rows above are replaced by `news-reel.md` section 3 (one take per passage, a branded end card after the last word, held static).
+
 ## Transition policy (scoped)
 - Footage-led reel (house style): every layout change is a hard cut; assign any designed transition by editorial purpose, never by rotation.
 - Fully graphic motion shorts (no speaker footage) follow the ice-motion skill's cut catalog; the older rule that two consecutive transitions must differ applies there, not to A-roll cuts.
+- News reel (edit type `news-reel`, style family `family-broadcast-news.md`): broadcast transitions with a meaning, on phrase boundaries, and the measured dissolves (to the end card, in a cold open) replace the hard-cut and no-crossfade rule (`news-reel.md` section 3).
 
 ## Camera policy during holds
-B-roll shots move (real motion or a slow push-in); speaker shots hold a locked zoom per segment.
+B-roll shots move (real motion or a slow push-in); speaker shots hold a locked zoom per segment. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the continuous digital camera of `ice-motion/references/camera.md`, "Digital camera on one take (news reel)", replaces the locked zoom.
 
 ## Sound policy
 Music bed under the voice, ducked, chosen from the ice-audio skill's ladder (sound made by code only when the user names it); first 1 to 2 s often quieter with the beat landing on the second line; SFX selection, banned sounds and density: the `ice-audio` skill, `references/sfx.md` sections 1 and 4; levels and loudness: the `ice-audio` skill, `references/mix-and-master.md` section 5. Never fade the last spoken word.

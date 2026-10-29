@@ -57,6 +57,7 @@ Rendering side, held here:
 - Never fake italics or width: no synthetic slant (except a declared CJK slant style), no stretching glyphs on one axis; animate width only on a real variable axis.
 - Use OpenType alternates or swashes only when they solve composition (frame an element, make a path, anchor a baseline); list a font's features first.
 - Bilingual pairs: the second language is a smaller grey subline, never the same size or the accent color; one line per language, never wrapped.
+  Scope line: a caption in a second hue for another audible voice (`caption-styles.md`, preset "News sentence captions") is not a bilingual pair: it is the only caption line, in the film's language, coloured by whose voice is heard. The grey subline rule still holds whenever two languages show at once.
 - Tagline under the logo: tracked-caps taglines are a slop tell in restrained films; prefer no tagline.
 - Never invent a tagline that could pass as official without labeling the film a concept.
 - On-screen copy is correct and natural: proof it (a typo in your own copy is not a style), idiomatic, proper punctuation for the script. On CJK fonts curly quotes and ellipsis are full-width: on English text use straight quotes and three periods.
@@ -74,4 +75,5 @@ Rendering side, held here:
 - One hue plus neutrals for captions; one accent for kinetic beats (accent hue exactly one in beat-slam styles).
 - Ghost text and big year numbers: one style per video, visible fill opacity at least 0.18 to 0.25 (not 0.08 to 0.12).
 - Glow on dark grounds only. Gradient fills on type are banned in restrained films and must be verified in capture where used (see `font-loading-and-measuring.md`).
+- Scope line, broadcast package (news reel, edit type `news-reel`, style family `family-broadcast-news.md`, or a reference that measures it): display text may glow as measured (keyword halo 12 to 16 px in the brand's attention hue, tight 4 to 5 px glow on card text, 12 to 18 px white on headlines; values per package in `skills/ice-styles/references/family-broadcast-news.md` section 2), via `text-shadow`, on dark grounds, with its reason row. Captions, lower thirds and end-card small lines get no glow. The restrained-system ban on glow emphasis is unchanged elsewhere.
 - Color roles and palette decisions: the `ice-direction` skill.

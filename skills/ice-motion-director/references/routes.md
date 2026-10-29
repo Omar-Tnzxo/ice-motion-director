@@ -53,7 +53,7 @@ Contents: [ice-film](#ice-film), [ice-explainer](#ice-explainer), [ice-remake](#
 | Field | Contract |
 |---|---|
 | Trigger | The user supplies video or audio to cut, clean, caption, reframe, split into clips, or add B-roll and motion overlays to |
-| Edit types | Long-form, podcast, talking-head ad, shorts and reels, B-roll overlay, showreel (the workflow picks one) |
+| Edit types | Long-form, podcast, talking-head ad, shorts and reels, news reel, B-roll overlay, showreel (the workflow picks one) |
 | Needs at the start | The media files; brief slots: goal, platform and aspect ratio, must-keep content, language, commercial use |
 | Gates the workflow runs | Footage ledger, transcript-driven cut plan, self-review at every cut, captions matching the spoken words, loudness on the export, the cold-viewer clarity read 3 for edit types that sell or promote (`ice-qa/references/clarity-gate.md` section 1), delivery report; for those same edit types made for a brand, the brand test and competitor swap at 09 only (`ice-qa/references/identity-tests.md`); no studio benchmark |
 | Output | Final MP4, edit decision list, retimed transcript, caption files, `ice/review/NOTE.md` |

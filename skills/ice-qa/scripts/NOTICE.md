@@ -1,6 +1,6 @@
 # Notices for the scripts in this folder
 
-Every script here was copied from an open-source project, read in full before copying, and changed only as its first-line notice says. None of them downloads anything or installs anything. Requirements (minimum Node, Python and FFmpeg versions: `runtimes` in the ice-engines `versions.json`): ffmpeg and ffprobe on PATH for all video scripts; Python; `numpy` for `motion_check.py`; `numpy` and `opencv-python-headless` for `film_gate.py` at the exact versions in `scripts/requirements.txt` (pinned in ice-engines `versions.json`) (ask the user before installing them); Node and a local Chrome or Edge (or `CHROME_PATH`) for `lint.mjs` and `seam-gate.mjs`; Node for the other `.mjs` files.
+Every script here was copied from an open-source project, read in full before copying, and changed only as its first-line notice says. None of them downloads anything or installs anything. Requirements (minimum Node, Python and FFmpeg versions: `runtimes` in the ice-engines `versions.json`): ffmpeg and ffprobe on PATH for all video scripts; Python; `numpy` for the video checks of `motion_check.py` (`--pacing-only` needs only the standard library); `numpy` and `opencv-python-headless` for `film_gate.py` at the exact versions in `scripts/requirements.txt` (pinned in ice-engines `versions.json`) (ask the user before installing them); Node and a local Chrome or Edge (or `CHROME_PATH`) for `lint.mjs` and `seam-gate.mjs`; Node for the other `.mjs` files.
 
 | File | Source | License | Status |
 |---|---|---|---|

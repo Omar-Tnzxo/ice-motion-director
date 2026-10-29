@@ -60,6 +60,15 @@ Missing any of these is a hard fail at verification.
 | `evidence` with a quote | Quote card plus visible source |
 | Any named entity (section 4 of `references/research-and-facts.md`) | Its visual inside its segment |
 
+News reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`), replacing the rows above where they differ:
+
+| Tag or entity | Required on screen |
+|---|---|
+| `question`, a new opening question | The question card or plate with the words verbatim; the question disc behind the lit presenter only where the package uses it, never on a statement or a follow-up question (`family-broadcast-news.md` section 1.3 and section 2.3; layer and trigger: the `ice-edit` skill, `references/layers-and-isolation.md`, "3b. Programme matte kit"). Write `opening question` or `follow-up question` in `need` |
+| `question`, a follow-up question | No disc and no new card: a plain caption or title only |
+| `evidence` with a quote | The quoted words verbatim from the fresh transcript: a sentence the presenter reads becomes a frosted quote card with a pin (`family-broadcast-news.md` section 2.3); a source the narrator reads is a card in the set with a marker and a white caption in quote marks (section 2.2); another audible voice gets its caption in the other-voice colour. The source line still shows |
+| `person` | A name super only for a person who speaks on screen, at his first appearance; a person only mentioned gets no name super (his portrait, silhouette or the words beside the head follow the package) |
+
 ## 4. Weight rules
 
 - Only `main` sentences may introduce a new element. `sub` sentences change existing elements (highlight, recolor, move, count, annotate).
