@@ -12,8 +12,7 @@ Every script here except `craft_gate.py` was copied from an open-source project,
 | `storyboard_lint.py` | alchaincyf/huashu-art-motion, `scripts/storyboard_lint.py` | MIT | adapted (ported to English tables) |
 | `motion_check.py` | edenfunf/reelmimic, `.claude/skills/video-clone/scripts/motion_check.py` | MIT | adapted |
 | `validate-beat-sync.mjs` | nateherkai/herk-edit-kit, `scripts/validate-beat-sync.mjs` | MIT | adapted |
-| `quick-checks.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/frozen-time.sh`, `loudness.sh` and `contact-sheet.sh` | MIT | ported to Node, merged into one file with the subcommands `frozen`, `loudness` and `sheet` (0.2.5) |
-| `probe-mp4.mjs` | iart-ai/motion-skills, `tools/verify/probe-mp4.sh` | MIT | ported to Node |
+| `quick-checks.mjs` | echris6/motion-video-kit, `business-motion-film/scripts/frozen-time.sh`, `loudness.sh` and `contact-sheet.sh`; iart-ai/motion-skills, `tools/verify/probe-mp4.sh` | MIT (both) | ported to Node, merged into one file with the subcommands `frozen`, `loudness` and `sheet` (0.2.5) and `probe` (from the former `probe-mp4.mjs`, 0.2.6) |
 
 The prompts in `../references/critic-prompts.md` come from echris6/motion-video-kit (MIT) and Vincentwei1021/mg-styles-15 (MIT) under the same terms.
 

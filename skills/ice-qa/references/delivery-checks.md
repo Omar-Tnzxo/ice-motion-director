@@ -15,7 +15,7 @@ The user stops are the router's stops table (`ice-motion-director/SKILL.md` sect
 | Check | Pass when | Source |
 |---|---|---|
 | Exists and decodes | File exists, is non-empty, decodes; `look.py` G0 passes | hyperframes, motionmaxxing |
-| Spec | `node scripts/probe-mp4.mjs final.mp4 <WxH> <fps>`: resolution exact, fps within +-0.5, duration equal to the composition duration (ffprobe), codec h264 unless the platform asks otherwise | iart motion-skills, hyperframes |
+| Spec | `node scripts/quick-checks.mjs probe final.mp4 <WxH> <fps>`: resolution exact, fps within +-0.5, duration equal to the composition duration (ffprobe), codec h264 unless the platform asks otherwise | iart motion-skills, hyperframes |
 | Frame count | Exact frame count for the planned duration; even frame spacing (no variable frame rate unless intended) | anidoodle, founder skills |
 | Audio stream | Present exactly when scored; muxed if missing | anidoodle, reelmimic |
 | Audio audit (lesson L18) | `python scripts/qc.py --audit` of the ice-audio skill exits 0 and `ice/review/ear-list.json` exists; `align_script_to_asr.py --stem` (ice-type) finds no masked word (`audio-gates.md` section 2b) | Ice |

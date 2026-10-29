@@ -8,22 +8,33 @@
 // (0.2.5): the three scripts merged into this one file (contact-sheet.mjs, frozen-time.mjs, loudness.mjs) to stay under
 // the plugin's file cap; behaviour unchanged. See NOTICE.md.
 // 2026-10-29 (0.2.5): loudness --profile <id> compares I, true peak and LRA with the profile (the gate column of the ice-audio skill, references/mix-and-master.md section 5, same table as qc.py) after the unchanged output and exits 1 outside it; --profiles prints the table.
-// Three quick checks on a render:
+// 2026-10-29 (0.2.6): probe merged in from probe-mp4.mjs (ported from iart-ai/motion-skills (MIT), tools/verify/probe-mp4.sh;
+// its changes: rewritten in Node with no bash or awk, status marks as plain words OK, FAIL and WARN, --help, usage exit
+// code 2 and a clear error when ffprobe is missing; same checks and tolerances) to stay under the plugin's file cap;
+// behaviour and output unchanged, only the usage line names this file. See NOTICE.md.
+// Four quick checks on a render:
 //   sheet     contact sheet for critics: one frame every N seconds, tiled
 //   frozen    near-frozen moments: frame-to-frame luma difference below a threshold, sampled at 10 fps
 //   loudness  integrated loudness, loudness range, true peak, plus short-term loudness each second
+//   probe     the deliverable contract: resolution, codec, fps and duration read straight from the encoded file, and
+//             optionally asserted ("renders lie; the file doesn't")
 // Usage:
 //   node scripts/quick-checks.mjs sheet film.mp4 out.jpg [every_seconds=1] [cols=6] [rows=5] [start=0] [duration=]
 //   node scripts/quick-checks.mjs frozen film.mp4 [threshold=0.35]
 //   node scripts/quick-checks.mjs loudness film.mp4 [--profile <id>] [--target-lufs <n>] [--true-peak <n>]
 //   node scripts/quick-checks.mjs loudness --profiles
-// Needs: ffmpeg on PATH. Node 18 or newer, no packages.
+//   node scripts/quick-checks.mjs probe out.mp4                 # just print the spec
+//   node scripts/quick-checks.mjs probe out.mp4 <WxH> <fps>     # assert the size exactly and the fps within 0.5
+// probe exit codes: 0 spec OK, 1 an assertion failed, 2 usage error, 127 ffprobe missing.
+// Needs: ffmpeg on PATH (ffprobe for probe; both ship with FFmpeg). Node 18 or newer, no packages.
 import { spawnSync } from "node:child_process";
+import { basename } from "node:path";
 
 const USAGE = {
   sheet: "usage: node quick-checks.mjs sheet <film.mp4> <out.jpg> [every_seconds=1] [cols=6] [rows=5] [start=0] [duration]",
   frozen: "usage: node quick-checks.mjs frozen <film.mp4> [threshold=0.35]",
   loudness: "usage: node quick-checks.mjs loudness <film.mp4> [--profile <id>] [--target-lufs <n>] [--true-peak <n>] | --profiles",
+  probe: "usage: node quick-checks.mjs probe <file.mp4> [WxH] [fps]",
 };
 
 // Loudness profiles for loudness --profile: the "Gate (--profile)" column of the ice-audio skill,
@@ -39,7 +50,7 @@ const PROFILES = {
   "reference": { row: "Reference match", i: null, i_tol: 1.0, tp: null, lra_min: null, lra_max: null, lra_min_warns: false },
   "news-reel": { row: "News reel, speech-led", i: -16.0, i_tol: 1.0, tp: -1.0, lra_min: 4.0, lra_max: 7.0, lra_min_warns: false },
 };
-const ALL_USAGE = `usage: node quick-checks.mjs <sheet | frozen | loudness> ...\n  ${Object.values(USAGE).join("\n  ")}`;
+const ALL_USAGE = `usage: node quick-checks.mjs <sheet | frozen | loudness | probe> ...\n  ${Object.values(USAGE).join("\n  ")}`;
 
 const [cmd, ...args] = process.argv.slice(2);
 if (!cmd || cmd === "-h" || cmd === "--help") { console.log(ALL_USAGE); process.exit(cmd ? 0 : 2); }
@@ -169,4 +180,40 @@ function loudness() {
   if (opts.profile !== null) checkProfile(lines, opts);
 }
 
-({ sheet, frozen, loudness })[cmd]();
+// probe: from probe-mp4.mjs (iart-ai/motion-skills, MIT), unchanged apart from the usage line.
+function probe() {
+  if (args.length < 1) { console.error(USAGE.probe); process.exit(2); }
+  const [mp4, expRes = "", expFps = ""] = args;
+  const ffprobe = (extra) => {
+    const r = spawnSync("ffprobe", ["-v", "error", ...extra, "-of", "csv=p=0", mp4], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    if (r.error) {
+      console.error(r.error.code === "ENOENT"
+        ? "ffprobe was not found on PATH. Install FFmpeg (see the ice-motion-director skill, references/prerequisites.md) and open a new terminal."
+        : `could not run ffprobe: ${r.error.message}`);
+      process.exit(127);
+    }
+    if (r.status !== 0) { process.stderr.write(r.stderr); process.exit(1); }
+    return (r.stdout.split(/\r?\n/)[0] || "").trim().replace(/,+$/, "");
+  };
+  const q = (entry) => ffprobe(["-select_streams", "v:0", "-show_entries", entry]);
+
+  const w = q("stream=width"), h = q("stream=height"), codec = q("stream=codec_name"), rate = q("stream=r_frame_rate");
+  const dur = ffprobe(["-show_entries", "format=duration"]);
+  const [num, den] = rate.split("/").map(Number);
+  const fpsValue = den ? num / den : num;
+  const fps = Number.isFinite(fpsValue) ? String(Number(fpsValue.toPrecision(4))) : rate;
+  const durNum = Number(dur);
+  console.log(`  ${basename(mp4)}: ${w}x${h}  ${codec}  ${fps} fps  ${(Number.isFinite(durNum) ? durNum : 0).toFixed(2)}s`);
+
+  let fail = false;
+  if (expRes && `${w}x${h}` !== expRes) { console.log(`  FAIL resolution ${w}x${h} is not ${expRes}`); fail = true; }
+  if (expFps) {
+    const d = fpsValue - Number(expFps);
+    if (!(d < 0.5 && d > -0.5)) { console.log(`  FAIL fps ${fps} is not ${expFps}`); fail = true; }
+  }
+  if (codec !== "h264") console.log(`  WARN codec ${codec} (not h264: confirm player/platform compatibility)`);
+  if (fail) process.exit(1);
+  console.log("  OK spec");
+}
+
+({ sheet, frozen, loudness, probe })[cmd]();

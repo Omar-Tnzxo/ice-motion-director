@@ -62,7 +62,7 @@ Next version: <one alternative direction in one sentence>
 | Loudness | | I LUFS, LRA, true peak, the profile id used | quick-checks.mjs loudness --profile |
 | Audio audit | | blocking items (none, or their ids), A3 median and 5th percentile, clipping runs, DC, mono loss, holes | qc.py --audit (`ice/review/audio-audit.json`, `audio-gates.md` section 2b) |
 | Craft gate | | plan check red or green; use rows with evidence / total, text over a face, flashes | craft_gate.py plan and build (`ice/review/craft-gate.json`) |
-| Spec | | resolution, fps, duration vs plan | probe-mp4.mjs |
+| Spec | | resolution, fps, duration vs plan | quick-checks.mjs probe |
 | Template distance | | axes differing / 6, nearest template | anti-sameness check |
 | Fingerprint | | closest previous record, matching axes | fingerprints.jsonl (or "off by user choice") |
 | Climax duel | | verdict | strip paths |

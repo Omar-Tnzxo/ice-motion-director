@@ -149,7 +149,7 @@ test("Node scripts: portable paths, no hardcoded POSIX locations", () => {
 
 // ---------------------------------------------------------------- help output
 const NODE_HELP = ["skills/ice-qa/scripts/quick-checks.mjs",
-  "skills/ice-qa/scripts/probe-mp4.mjs", "skills/ice-qa/scripts/lint.mjs", "skills/ice-qa/scripts/validate-beat-sync.mjs",
+  "skills/ice-qa/scripts/lint.mjs", "skills/ice-qa/scripts/validate-beat-sync.mjs",
   "skills/ice-engines/scripts/render-html.mjs", "skills/ice-assets/scripts/validate-assets.mjs", "skills/ice-edit/scripts/apply-cuts.mjs",
   "skills/ice-edit/scripts/build-edl-review.mjs", "skills/ice-edit/scripts/cut-silences.mjs", "skills/ice-edit/scripts/find-cut-candidates.mjs",
   "skills/ice-lottie/scripts/motion-tokens.mjs", "skills/ice-motion/scripts/measured-eases.mjs", "skills/ice-motion/scripts/springs.mjs",
@@ -209,14 +209,19 @@ test("QA scripts run on a generated clip (paths with spaces)", { skip: FFMPEG ? 
     "-c:a", "aac", clip], { encoding: "utf8" });
   assert.equal(mk.status, 0, mk.stderr);
 
-  let r = node("skills/ice-qa/scripts/probe-mp4.mjs", clip, "320x240", "30");
+  let r = node("skills/ice-qa/scripts/quick-checks.mjs", "probe", clip, "320x240", "30");
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /320x240\s+h264\s+30 fps\s+3\.00s/);
   assert.match(r.stdout, /OK spec/);
-  r = node("skills/ice-qa/scripts/probe-mp4.mjs", clip, "1080x1920", "25");
+  r = node("skills/ice-qa/scripts/quick-checks.mjs", "probe", clip, "1080x1920", "25");
   assert.equal(r.status, 1);
   assert.match(r.stdout, /FAIL resolution/);
   assert.match(r.stdout, /FAIL fps/);
+  r = node("skills/ice-qa/scripts/quick-checks.mjs", "probe");
+  assert.equal(r.status, 2, "probe without a file is a usage error");
+  r = node("skills/ice-qa/scripts/quick-checks.mjs", "probe", "--help");
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /usage: node quick-checks\.mjs probe <file\.mp4> \[WxH\] \[fps\]/);
 
   r = node("skills/ice-qa/scripts/quick-checks.mjs", "frozen", clip);
   assert.equal(r.status, 0, r.stderr);
@@ -250,7 +255,7 @@ window.__ready = true;
   const r = spawnSync(process.execPath, [abs("skills/ice-engines/scripts/render-html.mjs"), page, "--out", out],
     { encoding: "utf8", cwd: project, timeout: 300000 });
   assert.equal(r.status, 0, r.stdout + r.stderr);
-  const p = spawnSync(process.execPath, [abs("skills/ice-qa/scripts/probe-mp4.mjs"), out, "320x180", "10"], { encoding: "utf8" });
+  const p = spawnSync(process.execPath, [abs("skills/ice-qa/scripts/quick-checks.mjs"), "probe", out, "320x180", "10"], { encoding: "utf8" });
   assert.equal(p.status, 0, p.stdout + p.stderr);
 });
 
