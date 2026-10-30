@@ -688,7 +688,10 @@ test("lessons: a look the user chose is exempt from template distance in every f
 
 test("lessons: a package row never dims the speaker while speaking (L31)", () => {
   const news = readText("skills/ice-styles/references/family-broadcast-news.md");
-  assert.doesNotMatch(news, /The speaker meanwhile desaturates and dims/);
+  assert.doesNotMatch(news, /The speaker meanwhile desaturates and dims|the speaker desaturated and dimmed/);
+  for (const line of news.split("\n").filter((l) => /speaker[^.]*\bdim/i.test(l))) {
+    assert.match(line, /never dimmed while speaking|only while silent/, `a line dims the speaker without the silence condition: ${line.slice(0, 120)}`);
+  }
   assert.match(news, /never dimmed while speaking; at most 15 percent luma only while silent/);
 });
 
