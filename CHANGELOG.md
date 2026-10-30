@@ -2,7 +2,9 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
-## Unreleased
+## 0.2.6 - 2026-10-30
+
+The gates now look at the finished video itself, not only at the plan: pace, depth, finishing, grade, fixed marks, the speaker's light and every sound effect are measured on the render. Real footage comes through a shipped fetcher with its records, an After Effects project you supply is read, and every style states its own craft. Each lesson is listed in `docs/maintainers/lessons.md` (L21 updated, L23 to L26) with its rule and its test.
 
 ### Added
 

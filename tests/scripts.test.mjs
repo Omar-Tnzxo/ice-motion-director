@@ -770,3 +770,35 @@ test("craft_gate.py build: inside a recede window a speaker dimmed while speakin
   assert.equal(receded.ran, true, JSON.stringify(receded));
   assert.equal(receded.ok, true, JSON.stringify(receded));
 });
+
+// Push-through counting (depth_summary, measuring.md section 12) on synthetic sample pairs: a 1.2 s push-in whose
+// near plane, twice the far plane's rate, grows past PUSH_SCALE and touches the frame edge counts once; the same push
+// whose near plane stays inside the frame, a push too short, and a push whose planes move together count none.
+const PUSH_PY = `
+import json, sys
+sys.path.insert(0, sys.argv[1])
+import craft_gate as g
+g.load_cv()
+def pairs(n, zoom, near_rate, near_box, start=0.0):
+    out = []
+    for k in range(n):
+        t0 = round(start + 0.1 * k, 3)
+        out.append({"t0": t0, "t1": round(t0 + 0.1, 3), "zoom": zoom, "screen_share": 0.0,
+                    "planes": [{"rate": 1.0, "share": 0.6, "bbox": [0.2, 0.0, 0.8, 0.4]},
+                               {"rate": near_rate, "share": 0.4, "bbox": near_box}]})
+    return out
+EDGE, INSIDE = [0.0, 0.5, 1.0, 1.0], [0.3, 0.4, 0.7, 0.8]
+cases = {"push": pairs(12, 0.03, 2.0, EDGE), "inside": pairs(12, 0.03, 2.0, INSIDE),
+         "short": pairs(2, 0.03, 2.0, EDGE), "together": pairs(12, 0.03, 1.1, EDGE),
+         "two": pairs(12, 0.03, 2.0, EDGE) + pairs(12, 0.03, 2.0, EDGE, start=2.0)}
+res = {}
+for name, ps in cases.items():
+    shots = [{"id": "s1", "start": 0.0, "end": 4.0}]
+    res[name] = g.depth_summary(ps, shots, [], 1.0, 0.1)["push_through"]
+print(json.dumps(res))
+`;
+test("craft_gate.py depth: a push-in whose near plane grows past 1.3x and touches the frame edge counts one push-through; inside the frame, too short or one plane counts none", { skip: CV_SKIP }, () => {
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", PUSH_PY, abs("skills/ice-qa/scripts")], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(JSON.parse(r.stdout), { push: 1, inside: 0, short: 0, together: 0, two: 2 });
+});
