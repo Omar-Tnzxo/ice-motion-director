@@ -16,6 +16,7 @@ Every notable change to Ice Motion Director is listed here. The format follows [
 
 ### Changed
 
+- **Every style entry states its craft (L21).** All 162 catalog entries now carry their own craft profile line or an explicit `family default` marker, checked against each entry's text; every `lifts` id is a real gate rule id.
 - `probe-mp4.mjs` is now the `probe` subcommand of `ice-qa/scripts/quick-checks.mjs`, same checks and output.
 
 ## 0.2.5 - 2026-10-29

@@ -168,11 +168,11 @@ Field format: **Note** (the original observation, in English), **Trial** (the ru
 
 ## L21. Every style states its craft needs
 
-- **Note:** None of the 151 catalog styles said what craft it needs to be made at full capacity (shadows and texture for paper, light and focus for 3D, counters for data), and 53 entries said "Sound: not specified". Every style family carries a craft profile (needs, serves when, never) that the director copies into the craft plan at 05; thin entries carry their own line.
+- **Note:** None of the 151 catalog styles said what craft it needs to be made at full capacity (shadows and texture for paper, light and focus for 3D, counters for data), and 53 entries said "Sound: not specified". Every style family carries a craft profile (needs, serves when, never) that the director copies into the craft plan at 05, and every entry writes its own line or the explicit `family default` marker (0.2.6: 161 entries with their own line, re-read by read-only critics against the entry text).
 - **Trial:** the full-capacity audit (`_research/full-capacity-audit/AUDIT.md`, six trials and the style-bible research), 2026-10-29 (`notes/styles-and-type-defaults.md`).
 - **Scope:** general
 - **Rule:** `skills/ice-styles/references/style-method.md` (section 4, the `Craft:` lock line; section 10, Craft profile); `skills/ice-styles/SKILL.md` (procedure step 5); the family files, for example `skills/ice-styles/references/family-print-paper-craft.md`; `skills/ice-styles/references/directions-openers-explainers.md` (Craft column)
-- **Test:** `tests/art-quality.test.mjs`: "styles: every family file has one family default craft profile line in the 18 codes, every never with its reason"; `tests/art-quality.test.mjs`: "styles: entry craft profile lines inherit the family default, use only the 18 codes and cover every unspecified-sound and thin entry"; `tests/art-quality.test.mjs`: "styles: style-method.md requires the craft profile field and locks it with the Craft: line"
+- **Test:** `tests/art-quality.test.mjs`: "styles: every style entry has its own craft profile line or an explicit family default marker"; `tests/art-quality.test.mjs`: "styles: every lifts id in a craft profile line is a treatment.md 11.7 rule id its gate prints"; `tests/art-quality.test.mjs`: "styles: every family file has one family default craft profile line in the 18 codes, every never with its reason"; `tests/art-quality.test.mjs`: "styles: entry craft profile lines inherit the family default, use only the 18 codes and cover every unspecified-sound and thin entry"; `tests/art-quality.test.mjs`: "styles: style-method.md requires the craft profile field and locks it with the Craft: line"
 
 ## L22. Anti-sameness guards Ice's own choices, never the user's
 

@@ -149,7 +149,7 @@ const FAMILY_FILES = ["family-cartoon-film.md", "family-drawing-line.md", "famil
 const CRAFT_CODES = new Set(["camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx",
   "music", "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity"]);
 // the exemption rule ids the gates print (gate prefix + rule id)
-const RULE_ID = /^(lint:(C[1-7]|D1|P1|T1|V[1-5]|depth_layers)|story:(\d+|filler_reason)|film:(fast_ratio|blank_run_s|blue_purple_share|hero_share|frame_fill|empty_half|depth_layers|in_shot_motion|longest_still)|art:(tones|shading|shapes)|look:G[23]|seam:zero-overlap|plan:(gap|anchor|coverage)|contract:fade|slop:(\d+|N\d+)|frame:[\w-]+)$/;
+const RULE_ID = /^(lint:(C[1-7]|D1|P1|T1|V[1-5]|depth_layers)|story:(\d+|filler_reason)|film:(fast_ratio|blank_run_s|blue_purple_share|hero_share|frame_fill|empty_half|depth_layers|in_shot_motion|longest_still|element_events_per_min|longest_bare_talk_s|mean_shot_s|max_shot_s|first_cut_s|max_event_gap_s)|art:(tones|shading|shapes|texture|shadow)|look:G[23]|seam:zero-overlap|plan:(gap|anchor|coverage)|contract:[\w-]+|slop:(\d+|N\d+)|frame:[\w-]+)$/;
 const FAMILY_LINE = "- **Craft profile (family default):**";
 const ENTRY_LINE = "- **Craft profile:**";
 const styleText = (f) => readText(STYLE_REFS + f).replace(/\r\n/g, "\n");
@@ -268,6 +268,85 @@ test("styles: entry craft profile lines inherit the family default, use only the
   }
   assert.deepEqual([...seenThin].sort(), [...thin].sort(), "every thin entry was found");
   assert.ok(entryLines >= 68, `entries with their own line: ${entryLines}`);
+});
+
+// 0.2.6 (package G4): no entry inherits silently. A style entry is a "## " or "### " block with a Look, What it is or
+// Medium-specific moves field; each one writes its own craft line or the explicit marker "family default", and every
+// item it adds under "serves when also" names the content trigger before its first colon.
+test("styles: every style entry has its own craft profile line or an explicit family default marker", () => {
+  let entries = 0, own = 0, marker = 0;
+  const missing = [];
+  for (const f of FAMILY_FILES) {
+    let block = null;
+    const close = () => {
+      if (!block) return;
+      if (!block.entry) {
+        assert.equal(block.craft.length, 0, `${f} "${block.head}": an entry craft line sits only in a style entry`);
+        return;
+      }
+      entries++;
+      if (block.craft.length === 0) { missing.push(`${f} ${block.head}`); return; }
+      const body = block.craft[0];
+      if (/^family default\.?$/.test(body)) { marker++; return; }
+      own++;
+      for (const clause of splitTop(body.replace(/^family default;?/, "").trim().replace(/\.$/, ""), ";")) {
+        if (!clause.startsWith("serves when also:")) continue;
+        for (const item of splitTop(clause.slice("serves when also:".length), ",")) {
+          const text = item.replace(/^[a-z]+ \(/, "");
+          assert.ok(/^[^:]+:/.test(text) && !/^(scoped|research)\b/.test(text),
+            `${f} "${block.head}": the serves when also item "${item.slice(0, 50)}" names its trigger before a colon`);
+        }
+      }
+    };
+    for (const l of styleText(f).split("\n")) {
+      if (l.startsWith("## ") || l.startsWith("### ")) { close(); block = { head: l.slice(0, 70), entry: false, craft: [] }; continue; }
+      if (!block) continue;
+      if (/^- \*\*(Look\b|What it is:|Medium-specific moves:)/.test(l)) block.entry = true;
+      if (l.startsWith(ENTRY_LINE)) block.craft.push(l.slice(ENTRY_LINE.length).trim());
+    }
+    close();
+  }
+  assert.deepEqual(missing, [], "every style entry writes its craft line or the explicit family default marker");
+  assert.ok(entries >= 160, `style entries found: ${entries}`);
+  assert.equal(own + marker, entries, `own lines ${own} plus family default markers ${marker}`);
+});
+
+// 0.2.6 (package G4): a lift in a craft line names a rule id that treatment.md 11.7 lists and that its gate really prints
+// (the slop N ids in slop-scan.md, the lint ids in lint.mjs), so an exemption copied at 05 is never ignored by the gate.
+test("styles: every lifts id in a craft profile line is a treatment.md 11.7 rule id its gate prints", () => {
+  const treatment = readText("skills/ice-direction/references/treatment.md").replace(/\r\n/g, "\n");
+  const s117 = treatment.slice(treatment.indexOf("### 11.7"), treatment.indexOf("### 11.8"));
+  const ruleIds = s117.slice(s117.indexOf("**Rule ids**"), s117.indexOf("**Allowed kinds.**"));
+  const slop = readText("skills/ice-qa/references/slop-scan.md");
+  const lint = readText("skills/ice-qa/scripts/lint.mjs");
+  const listed = (id) => {
+    if (ruleIds.includes("`" + id + "`")) return true;
+    const [gate, rule] = id.split(":");
+    const range = ruleIds.match(new RegExp("`" + gate + ":([A-Z])(\\d)` to `" + gate + ":\\1(\\d)`", "g")) || [];
+    if (range.some((r) => { const m = r.match(/:([A-Z])(\d)` to `[a-z]+:[A-Z](\d)`/); return rule[0] === m[1] && +rule.slice(1) >= +m[2] && +rule.slice(1) <= +m[3]; })) return true;
+    if (gate === "slop") return ruleIds.includes("`slop:<item number or N id>`");
+    if (gate === "frame") return ruleIds.includes("`frame:<row id>`");
+    if (gate === "contract") return ruleIds.includes("`contract:<stat>`");
+    if (gate === "story") return /^\d+$/.test(rule) && ruleIds.includes("`story:<check number>`");
+    if (gate === "film") return ruleIds.includes("`" + rule + "`");
+    return false;
+  };
+  let lifts = 0;
+  for (const f of [...FAMILY_FILES, "directions-openers-explainers.md"]) {
+    for (const l of styleText(f).split("\n")) {
+      if (!l.startsWith(ENTRY_LINE) && !l.startsWith(FAMILY_LINE) && !(f.startsWith("directions") && l.startsWith("| "))) continue;
+      for (const seg of l.split(/\blifts /).slice(1)) {
+        const ids = [...seg.split(/, entry |[;)]/)[0].matchAll(/`([a-z]+:[\w-]+)`/g)].map((m) => m[1]);
+        for (const id of ids) {
+          lifts++;
+          assert.ok(listed(id), `${f}: ${id} is a rule id of treatment.md 11.7`);
+          if (/^slop:N\d+$/.test(id)) assert.ok(slop.includes(`| ${id.slice(5)} |`), `${f}: ${id} is a row of slop-scan.md`);
+          if (/^lint:[A-Z]\d$/.test(id)) assert.ok(lint.includes(`['${id.slice(5)}',`), `${f}: ${id} is a rule lint.mjs prints`);
+        }
+      }
+    }
+  }
+  assert.ok(lifts >= 80, `lift ids checked: ${lifts}`);
 });
 
 test("styles: style-method.md requires the craft profile field and locks it with the Craft: line", () => {
