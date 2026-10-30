@@ -120,7 +120,19 @@ function gateRender() {
   record("render smoke", r.status === 0 ? "pass" : "fail", `playwright-core@${pin}`);
 }
 
+// ---------------------------------------------------------------- 5. freshness age (founder decision, 2026-10-30)
+// A warning, never a fail: the last complete `node scripts/freshness.mjs check` is older than FRESH_DAYS days.
+const FRESH_DAYS = 30;
+function gateFreshness() {
+  const v = JSON.parse(readFileSync(join(ROOT, "skills/ice-engines/references/versions.json"), "utf8"));
+  const last = v.last_checked || v.last_verified || "";
+  const age = last ? Math.floor((Date.now() - Date.parse(last)) / 86400000) : null;
+  if (age === null || age > FRESH_DAYS) record("freshness", "warn", `last version check ${last || "never"}${age === null ? "" : ` (${age} days)`}: run node scripts/freshness.mjs check`);
+  else record("freshness", "pass", `last version check ${last} (${age} days)`);
+}
+
 const python = findPython();
+gateFreshness();
 gateTests(python);
 gateValidate();
 if (WANT_PYTHON) gatePython(python);

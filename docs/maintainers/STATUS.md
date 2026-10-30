@@ -1,6 +1,18 @@
 # Build status and resume guide
 
-Last update: 2026-10-19. Read `AGENTS.md` and `docs/maintainers/architecture.md` first.
+## Current state (2026-10-30)
+
+- Released: 0.2.6 (2026-10-30). In progress on `main`: the 0.2.7 fixes from the completeness audit of 0.2.6 (lessons L27 to L39); no version bump until the list is done.
+- Public repository since 2026-10-26, Apache-2.0, no hosted CI: `node scripts/gates.mjs` runs every check and the pre-push hook runs it.
+- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 39 lessons in `docs/maintainers/lessons.md`, each with its test.
+- File budget: about 570 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
+- Release check: a manual one-prompt run on a clean Claude before every major release (`AGENTS.md`, Behaviour check before a release).
+
+Everything below is the build history from 2026-10-19, kept as written; numbers in it (skills, tests, files, CI) are from that day.
+
+## History (2026-10-19)
+
+Read `AGENTS.md` and `docs/maintainers/architecture.md` first.
 
 ## Done
 1. 35 source repos starred, sorted into GitHub lists, cloned to a local folder of source clones outside this repo (read-only, untrusted, never committed).

@@ -103,7 +103,7 @@ test("sound_map: schema, effect times and types on a synthetic reference", { ski
   assert.deepEqual(keys(m), ["duration_s", "mix", "music", "notes", "sfx", "version", "voice"]);
   assert.equal(m.version, 1);
   assert.ok(Math.abs(m.duration_s - 20) < 0.05, `duration ${m.duration_s}`);
-  assert.deepEqual(keys(m.music), ["energy_curve", "genre_guess", "instrumentation_guess", "key", "mode", "present", "sections", "tempo_bpm", "tempo_confidence"]);
+  assert.deepEqual(keys(m.music), ["beats_s", "energy_curve", "genre_guess", "instrumentation_guess", "key", "mode", "present", "sections", "tempo_bpm", "tempo_confidence"]);
   assert.equal(typeof m.music.present, "boolean");
   for (const k of ["tempo_bpm", "tempo_confidence"]) assert.ok(isNum(m.music[k]), k);
   for (const k of ["key", "mode"]) assert.equal(typeof m.music[k], "string", k);

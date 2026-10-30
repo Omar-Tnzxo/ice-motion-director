@@ -992,6 +992,7 @@ def analyse(path: Path) -> dict:
             "present": music_present,
             "tempo_bpm": round(tempo_bpm, 1) if lag is not None else 0,
             "tempo_confidence": round(tempo_conf, 2),
+            "beats_s": [round(float(b), 3) for b in beats] if tempo_ok else [],
             "key": key,
             "mode": mode,
             "sections": secs,
@@ -1015,11 +1016,41 @@ def voice_word(m: dict) -> str:
     return "spoken" if m["voice"]["present"] else "no"
 
 
+def cut_times(path: Path) -> list[float]:
+    """Cut times from an events file: a list of seconds, a list of {"t", "kind"} rows, or {"events": [...]}."""
+    data = json.loads(path.read_text(encoding="utf-8-sig"))
+    rows = data.get("events", data.get("cuts", [])) if isinstance(data, dict) else data
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        if isinstance(r, (int, float)):
+            out.append(float(r))
+        elif isinstance(r, dict) and isinstance(r.get("t"), (int, float)) and "cut" in str(r.get("kind", r.get("type", "cut"))).lower():
+            out.append(float(r["t"]))
+    return sorted(out)
+
+
+def beat_error(beats: list[float], cuts: list[float], fps: float) -> dict:
+    """Beat error per cut (audio-gates.md A20): each cut against its nearest beat; a hard cut lands within 2 frames or
+    40 ms, whichever is stricter (cue-map-and-beat-sync.md section 5)."""
+    limit = min(2.0 / fps, 0.040)
+    rows = []
+    for t in cuts:
+        b = min(beats, key=lambda x: abs(x - t))
+        rows.append({"t": round(t, 3), "beat": round(b, 3), "error_ms": round((t - b) * 1000, 1)})
+    errs = [abs(r["error_ms"]) for r in rows]
+    return {"cuts": rows, "limit_ms": round(limit * 1000, 1), "max_ms": max(errs) if errs else None,
+            "mean_ms": round(sum(errs) / len(errs), 1) if errs else None,
+            "off_beat": [r for r in rows if abs(r["error_ms"]) > limit * 1000 + 1e-6], "pass": all(e <= limit * 1000 + 1e-6 for e in errs)}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Map the music, sound effects, voice and loudness of a reference video or audio file.",
                                  epilog="For a reference: --out ice/reference/<ref-id>, the folder the ice-remake recipe.py reads sound_map.json from.")
     ap.add_argument("input", type=Path, help="video or audio file (anything ffmpeg decodes)")
     ap.add_argument("--out", type=Path, required=True, help="folder for sound_map.json, SOUND-MAP.md and sound-map.svg")
+    ap.add_argument("--cuts", type=Path, help="events file of a beat-cut film: the beat error per cut (A20) against the "
+                    "input's beat grid; exit 1 when a cut misses its beat by more than 2 frames or 40 ms")
+    ap.add_argument("--fps", type=float, default=25.0, help="--cuts only: the film's frame rate (default 25)")
     args = ap.parse_args(argv)
     if not args.input.is_file():
         sys.stderr.write(f"error: {args.input} is not a file\n")
@@ -1039,6 +1070,17 @@ def main(argv: list[str] | None = None) -> int:
           f"(conf {mu['tempo_confidence']}) | {len(mu['sections'])} sections | {len(m['sfx'])} effects | "
           f"voice {voice_word(m)} | {m['mix']['integrated_lufs']} LUFS")
     print(f"wrote {args.out / 'sound_map.json'}, SOUND-MAP.md, sound-map.svg")
+    if args.cuts:
+        beats = mu.get("beats_s") or []
+        if not beats:
+            print("beat error: no reliable beat grid in this input (tempo confidence under 0.35), so it is not measured")
+            return 0
+        be = beat_error(beats, cut_times(args.cuts), args.fps)
+        m["beat_error"] = be
+        (args.out / "sound_map.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+        print(f"beat error per cut: {len(be['cuts'])} cuts, max {be['max_ms']} ms, mean {be['mean_ms']} ms, limit {be['limit_ms']} ms: "
+              + ("pass" if be["pass"] else "FAIL at " + ", ".join(f"{r['t']} s ({r['error_ms']:+} ms)" for r in be["off_beat"][:8])))
+        return 0 if be["pass"] else 1
     return 0
 
 

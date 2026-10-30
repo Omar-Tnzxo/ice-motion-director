@@ -36,7 +36,7 @@ ASR gives word timings. The words on screen come from the approved script (or, f
 3. Scripted voiceover: align ASR words to the script's word list and take every on-screen word from the script.
 4. Arabic matching traps when comparing ASR words to script words: digits versus number words (a spoken number word counts as the digit), clitics split or merged (و، ب، ل، ال), MSA spellings of dialect words, and letter variants. Normalize before comparing (for example treat أ إ آ as ا, ة as ه, ى as ي) and keep the script's spelling for display.
 5. Cross-check word times against measured pauses (silence detection around -40 dB): pauses over about 120 ms should fall on word gaps.
-6. Fire each word cue a small fixed lead before it is spoken (0 to 0.1 s), never after.
+6. Fire each word cue a small fixed lead before it is spoken (0 to 0.1 s), never after; an impact or sentence card may lead by up to 0.15 s (one table: `ice-type/references/caption-timing-and-truth.md`, section 3, Sync targets).
 
 ## 5. After render
 

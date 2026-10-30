@@ -63,7 +63,7 @@ Snapshots: `snapshot --at t1,t2 --no-end`; `snapshot --zoom "#selector"` makes a
 ## 4. Motion sidecar and animation map
 
 - `*.motion.json` assertions: `appearsBy` (opacity >= 0.5 by a time), `before`, `staysInFrame`, `keepsMoving` (default `maxStaticSec` 2 s); a missing selector fails loudly. Report what was authored, measured from the timeline, not the plan's hopes.
-- Animation map (`animation-map.mjs` in the HyperFrames skills) flags per tween: `degenerate` (zero box), `offscreen`, `invisible` (opacity < 0.01), `paced-fast` (< 0.2 s on x, y, opacity, scale), `paced-slow` (> 2.0 s), `collision`; plus density and dead zones. Review it for multi-scene work.
+- Animation map (`animation-map.mjs` in the HyperFrames skills; Ice does not ship it, so it runs only when the user's project has the HyperFrames skills installed, otherwise these flags are checked by eye on the contact sheet) flags per tween: `degenerate` (zero box), `offscreen`, `invisible` (opacity < 0.01), `paced-fast` (< 0.2 s on x, y, opacity, scale), `paced-slow` (> 2.0 s), `collision`; plus density and dead zones. Review it for multi-scene work.
 - `sweep_static`: a composition of 3 s or more with no visible change fails; spread the reveal or keep one meaningful element alive (a caret for code typing); do not bolt on a drift to appease it; mark intended stills with `data-no-timeline`.
 - `compare` (up to 16 variants) is a review surface, not a gate.
 

@@ -147,6 +147,11 @@ How:
 - Text with several lines, quotes or shell characters: write it, unchanged, to the scratch file `ice/log/pending.txt` (overwrite it each time) and pass `--text-file ice/log/pending.txt`. User text over 4,000 characters is moved to `ice/log/messages/<entry number>.md` and the entry points to it with `text_file`, so the log stays small and nothing is lost.
 - Each entry is one JSON line: `at` (UTC, ISO 8601), `stage` (the `current` stage of `ice/state.json`), `from` (`user` or `agent`), `text`, optionally `text_file`, `note`, and `attachments`, a list of `{ "path": "<project-relative path>", "kind": "image | video | audio | text", "direction": "from_user | to_user" }`.
 - The log stays verbatim on the user's machine. Masking of keys, tokens, email addresses, phone numbers and absolute paths happens only in the export.
+- At stage 01, write `ice/log/prompt.json` once: `{"original_language": "<code>", "translations": {"en": "<a faithful English translation of the first prompt>"}}` (no translation when the prompt is English). The case study's site package shows the prompt in the visitor's language with the original one click away (`docs/maintainers/architecture.md`, Site package).
+
+## Progress in auto mode
+
+Founder decision, 2026-10-30: the user follows an auto run as it is made, so a note mid-run comes before a whole day of work is spent. When a stage reaches `in_review` or `approved` in auto mode, send the user at once, in plain words: two lines (what was made, what is still weak or open) and the stage's stills (style frames, storyboard strip, contact sheet, draft frames; a short preview for the animatic and each draft). It never waits for a reply and adds no stop: the stops table stays as it is (stop B is still the one preview approval). A note the user sends back is handled like any mid-run note (`Mid-run redirect`). Log each progress message with `ice-state log --from agent --text "<the two lines>" --attach <each still>`. When the user said not to ask, progress messages still go out; when no person is in the session, they wait in the run log for the first reply.
 
 ## Folder layout
 

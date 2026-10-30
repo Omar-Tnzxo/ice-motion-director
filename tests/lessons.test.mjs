@@ -4,7 +4,7 @@
 // every test it names exist) and holds the lesson tests that have no other home. Zero dependencies. Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -724,4 +724,188 @@ test("lessons: Arabic typing in a real product input box is allowed; drawtext ne
   assert.match(lf, /\| Typing inside a real product input box \(search field, chat box, form\) \| Allowed when the product types there in real use/);
   assert.match(lf, /\| Letter-by-letter typewriter \| Never on headlines, captions, titles or cards, in every film type \|/);
   assert.match(readText("skills/ice-arabic/references/engine-overrides.md"), /\| FFmpeg `drawtext` \| Never for Arabic \|/);
+});
+
+// 0.2.7 lessons, second part (L36 to L39), and the behaviour-suite coverage of every lesson.
+test("lessons: every lesson has a behaviour grader or a reason it has none", () => {
+  const evals = readText("evals/behavior.mjs");
+  const graded = new Set([...evals.matchAll(/lesson: "(L\d+)"/g)].map((m) => m[1]));
+  const block = evals.slice(evals.indexOf("const NOT_GRADED = {"), evals.indexOf("};", evals.indexOf("const NOT_GRADED = {")));
+  const reasons = new Set([...block.matchAll(/^\s*(L\d+): "/gm)].map((m) => m[1]));
+  const missing = lessons().map((l) => `L${l.id}`).filter((id) => !graded.has(id) && !reasons.has(id));
+  assert.deepEqual(missing, [], "add a grader in evals/behavior.mjs or a NOT_GRADED line with the reason");
+});
+
+test("lessons: the fingerprint is checked and written by a script; a user's look is never compared (L36)", () => {
+  const py = findPython();
+  if (!py) return;
+  const dir = mkdtempSync(join(tmpdir(), "ice-l36-"));
+  try {
+    const rec = (over = {}) => ({ v: 1, date: "2026-10-01", project: "a", brand: "x", film_type: "ad", variant_of: null, user_chosen: null,
+      palette: { polarity: "dark", accent_hue: 30, chroma: "duotone", hues: 2, values: [] },
+      type: { display: "Inter", body: "Inter", classes: "grotesk+grotesk", weights: "400/800" },
+      layout: { families: ["centered object", "grid"], density: "balanced", depth: "flat" },
+      motion: { family: "punch", core_moves: ["slam", "whip", "pop"], camera: "locked", clock: "smooth" },
+      structure: { concept: "c", scene_band: "5-8", main_objects: ["phone"], opening: "o", closing: "e", device: "d", arc: "a", turn_at: 0.4 },
+      sound: { lead: "score", genre: "house", bpm_band: "120", dramaturgy: "build" }, ...over });
+    const file = join(dir, "fingerprints.jsonl");
+    writeFileSync(file, JSON.stringify(rec()) + "\n");
+    const gate = abs("skills/ice-qa/scripts/film_gate.py");
+    const run = (r, action = "check") => { const f = join(dir, `${Math.random()}.json`); writeFileSync(f, JSON.stringify(r)); return spawnSync(py[0], [...py.slice(1), gate, "fingerprint", action, "--record", f, "--file", file], { encoding: "utf8", timeout: 60000 }); };
+    const repeat = run(rec({ project: "b", brand: "y" }));
+    assert.equal(repeat.status, 2, repeat.stdout + repeat.stderr);
+    assert.match(repeat.stdout, /FAIL: differs from .* on 0 of 6 axes/);
+    assert.equal(run(rec({ project: "c", brand: "y", user_chosen: { kind: "style", ref: "card", axes: ["palette"] } })).status, 0);
+    const other = rec({ project: "d", brand: "y", palette: { polarity: "light", accent_hue: 200, chroma: "full" }, type: { display: "Serif", classes: "serif+grotesk" },
+      motion: { family: "calm", core_moves: ["drift", "fade", "hold"], camera: "continuous" }, sound: { lead: "voice", genre: "none", dramaturgy: "quiet" } });
+    assert.equal(run(other).status, 0);
+    assert.equal(run(other, "write").status, 0);
+    assert.equal(readFileSync(file, "utf8").split("\n").filter(Boolean).length, 2);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+  assert.match(readText("skills/ice-qa/references/anti-sameness-gates.md"), /python scripts\/film_gate\.py fingerprint check --record/);
+});
+
+test("lessons: local libraries are indexed once and searched before the network (L36)", () => {
+  const py = findPython();
+  if (!py) return;
+  const dir = mkdtempSync(join(tmpdir(), "ice-l36i-"));
+  try {
+    mkdirSync(join(dir, "lib", "whoosh"), { recursive: true });
+    writeFileSync(join(dir, "lib", "whoosh", "air-whoosh-short.wav"), "x");
+    writeFileSync(join(dir, "lib", "notes.txt"), "x");
+    const fm = abs("skills/ice-assets/scripts/fetch_media.py");
+    const idx = join(dir, "index.jsonl");
+    const a = spawnSync(py[0], [...py.slice(1), fm, "index", "--dir", join(dir, "lib"), "--index", idx], { encoding: "utf8", timeout: 60000 });
+    assert.equal(a.status, 0, a.stdout + a.stderr);
+    assert.match(a.stdout, /indexed 1 files/);
+    const b = spawnSync(py[0], [...py.slice(1), fm, "index", "--find", "whoosh", "--index", idx], { encoding: "utf8", timeout: 60000 });
+    assert.equal(b.status, 0, b.stdout + b.stderr);
+    assert.match(b.stdout, /audio .*air-whoosh-short\.wav/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("lessons: news reel trial rules: the episode's angles, whose claim, archive dates, minors, an ad reads as an ad (L37)", () => {
+  const nr = readText("skills/ice-edit/references/edit-types/news-reel.md");
+  for (const re of [/\*\*The episode's own camera angles\.\*\*/, /\*\*Whose claim it is\.\*\*/, /\*\*Archive keeps its date\.\*\*/]) assert.match(nr, re);
+  assert.match(readText("skills/ice-assets/references/truth-sheet.md"), /\| A minor's face in news or event footage \| At most 0\.5 s on screen/);
+  assert.match(readText("skills/ice-qa/references/clarity-gate.md"), /\*\*An ad reads as an ad from its first seconds\.\*\* .* within the first 3 s/);
+});
+
+test("lessons: the case study site package carries the films, the source, the selection, the prompt, the story and the disclaimer (L38)", (t) => {
+  const has = (c) => spawnSync(c, ["-version"], { stdio: "ignore" }).status === 0;
+  if (!has("ffmpeg") || !has("ffprobe")) { t.skip("ffmpeg or ffprobe not on PATH"); return; }
+  const dir = mkdtempSync(join(tmpdir(), "ice-l38-"));
+  try {
+    const ice = join(dir, "ice");
+    for (const d of ["sources/ep", "edit", "renders/final", "plan", "log", "review", "case-study"]) mkdirSync(join(ice, d), { recursive: true });
+    const ff = (args) => spawnSync("ffmpeg", ["-v", "error", "-y", ...args], { encoding: "utf8" });
+    ff(["-f", "lavfi", "-i", "testsrc2=s=320x180:r=25:d=8", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "8", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", join(ice, "sources/ep/ep.mp4")]);
+    ff(["-f", "lavfi", "-i", "testsrc2=s=180x320:r=25:d=3.5", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "3.5", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", join(ice, "renders/final/film.mp4")]);
+    writeFileSync(join(ice, "sources/ep/source.json"), JSON.stringify({ kind: "podcast episode", title: "Ep", owner: "Owner", url: "https://example.org/ep", duration_s: 8, license: "unknown" }));
+    writeFileSync(join(ice, "edit/edl.json"), JSON.stringify({ sources: { ep: "ice/sources/ep/ep.mp4" }, fps: 25, ranges: [
+      { source: "ep", start: 5, end: 6.5, reel_in: 0, reel_out: 1.5 }, { source: "gap", start: 0, end: 0.5, reel_in: 1.5, reel_out: 2 }, { source: "ep", start: 1, end: 2.5, reel_in: 2, reel_out: 3.5 }] }));
+    writeFileSync(join(ice, "plan/selection.json"), JSON.stringify({ reason: { en: "the clearest contrast", ar: "أوضح تناقض" } }));
+    writeFileSync(join(ice, "log/prompt.json"), JSON.stringify({ original_language: "ar", translations: { en: "make a reel" } }));
+    writeFileSync(join(ice, "log/conversation.jsonl"), JSON.stringify({ at: "2026-10-30T10:00:00Z", stage: "01", from: "user", text: "اعمل ريلز" }) + "\n");
+    writeFileSync(join(ice, "state.json"), JSON.stringify({ project: "demo", route: "edit", language: "ar", created: "2026-10-30T10:00:00Z",
+      history: [{ at: "2026-10-30T10:00:00Z", stage: "01", note: "x" }, { at: "2026-10-30T10:30:00Z", stage: "02", note: "y" }], stages: { "01": { status: "approved", notes: "brief" }, "02": { status: "approved", notes: "concept" } } }));
+    writeFileSync(join(ice, "case-study/disclaimer.json"), JSON.stringify({ en: "An unofficial test.", ar: "تجربة غير رسمية." }));
+    const out = join(dir, "out");
+    const r = spawnSync(process.execPath, [abs("skills/ice-qa/scripts/export-case-study.mjs"), "--project", dir, "--out", out, "--site"], { encoding: "utf8", timeout: 300000 });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const site = readdirSync(join(out, "site"))[0];
+    const listing = JSON.parse(readFileSync(join(out, "site", site, "listing.json"), "utf8"));
+    const f = listing.films[0];
+    assert.equal(f.src, "media/after-1080.mp4");
+    assert.equal(f.before_src, "media/before-1080.mp4");
+    assert.equal(f.height, 1920, "the short side is 1080");
+    const dur = (p) => Number(spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", join(out, "site", site, p)], { encoding: "utf8" }).stdout);
+    assert.ok(Math.abs(dur(f.before_src) - dur(f.src)) < 0.2, "before runs as long as the edit");
+    assert.deepEqual(listing.selection.segments, [{ start_s: 1, end_s: 2.5 }, { start_s: 5, end_s: 6.5 }]);
+    assert.equal(listing.selection.used_s, 3);
+    assert.equal(listing.selection.reason.en, "the clearest contrast");
+    assert.equal(listing.source.duration_s, 8);
+    assert.equal(listing.prompt.original, "اعمل ريلز");
+    assert.equal(listing.prompt.translations.en, "make a reel");
+    assert.deepEqual(listing.story.map((s) => [s.stage, s.elapsed]), [["01", "00:00"], ["02", "00:30"]]);
+    assert.equal(listing.disclaimer.ar, "تجربة غير رسمية.");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("lessons: auto mode sends every stage as it lands, without a new stop (L39)", () => {
+  const st = readText("skills/ice-motion-director/references/state.md");
+  assert.match(st, /## Progress in auto mode/);
+  assert.match(st, /It never waits for a reply and adds no stop/);
+  assert.match(readText("skills/ice-motion-director/SKILL.md"), /As each stage lands, send the user two lines and its stills at once, never waiting on them/);
+});
+
+test("lessons: the list names no private research paths (_research/ or notes/)", () => {
+  assert.doesNotMatch(readText(LESSONS), /`_research\/|`notes\//);
+});
+
+test("lessons: a short or looped music track fails the master unless the cue sheet allows it (L40)", (t) => {
+  const has = (c) => spawnSync(c, ["-version"], { stdio: "ignore" }).status === 0;
+  const py = findPython();
+  if (!py || !has("ffmpeg") || !has("ffprobe")) { t.skip("python, ffmpeg or ffprobe missing"); return; }
+  const dir = mkdtempSync(join(tmpdir(), "ice-l40-"));
+  try {
+    const ff = (args) => spawnSync("ffmpeg", ["-v", "error", "-y", ...args], { encoding: "utf8" });
+    ff(["-f", "lavfi", "-i", "color=c=gray:s=160x90:r=25:d=3", "-c:v", "libx264", "-pix_fmt", "yuv420p", join(dir, "film.mp4")]);
+    ff(["-f", "lavfi", "-i", "sine=f=220:d=1:r=48000", "-ac", "2", join(dir, "music.wav")]);
+    const master = abs("skills/ice-audio/scripts/master_audio.py");
+    const run = (...extra) => spawnSync(py[0], [...py.slice(1), master, "--video", join(dir, "film.mp4"), "--out", join(dir, "out.mp4"), "--music", join(dir, "music.wav"), "--no-music-loop", ...extra], { encoding: "utf8", timeout: 300000 });
+    const short = run();
+    assert.equal(short.status, 1, short.stdout + short.stderr);
+    assert.match(short.stderr, /FAIL: the music track is shorter than the film \(it ends before the film\)/);
+    const allowed = run("--allow-short-music", "the cue sheet ends the bed at 1 s on purpose");
+    assert.match(allowed.stderr, /NOTE: the music track is shorter than the film .*allowed: the cue sheet ends the bed/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("lessons: beat error per cut, halftone and fringe are measured by scripts; news reading text has a contrast floor (L40)", (t) => {
+  const py = findPython();
+  if (!py) { t.skip("python missing"); return; }
+  const code = [
+    "import importlib.util as u, json, sys",
+    `s = u.spec_from_file_location('sm', r'${abs("skills/ice-audio/scripts/sound_map.py")}'); m = u.module_from_spec(s); s.loader.exec_module(m)`,
+    "print(json.dumps(m.beat_error([0, 0.5, 1.0, 1.5], [0.51, 1.2], 25)))",
+  ].join("\n");
+  const r = spawnSync(py[0], [...py.slice(1), "-c", code], { encoding: "utf8", timeout: 120000 });
+  if (r.status !== 0 && /No module named/.test(r.stderr)) { t.skip("numpy or scipy missing"); return; }
+  assert.equal(r.status, 0, r.stderr);
+  const be = JSON.parse(r.stdout.trim().split("\n").pop());
+  assert.equal(be.limit_ms, 40);
+  assert.equal(be.pass, false);
+  assert.deepEqual(be.off_beat.map((x) => x.t), [1.2]);
+  const cg = [
+    "import importlib.util as u, json, sys",
+    "try:",
+    "    import numpy as np, cv2",
+    "except ImportError:",
+    "    print('SKIP'); sys.exit(0)",
+    `sys.path.insert(0, r'${abs("skills/ice-qa/scripts")}')`,
+    `s = u.spec_from_file_location('cg', r'${abs("skills/ice-qa/scripts/craft_gate.py")}'); m = u.module_from_spec(s); s.loader.exec_module(m)`,
+    "m.load_cv()",
+    "h, w = 180, 320",
+    "yy, xx = np.mgrid[0:h, 0:w]",
+    "dots = (128 + 60 * np.sign(np.sin(xx * 2 * np.pi / 6) * np.sin(yy * 2 * np.pi / 6))).astype(np.uint8)",
+    "rgb = np.stack([dots] * 3, -1)",
+    "a = m.screen_and_fringe(rgb, dots.astype(np.float32), np.ones((h, w), bool))",
+    "rng = np.random.default_rng(1); flat = (128 + rng.normal(0, 4, (h, w))).clip(0, 255).astype(np.uint8)",
+    "b = m.screen_and_fringe(np.stack([flat] * 3, -1), flat.astype(np.float32), np.ones((h, w), bool))",
+    "edge = np.zeros((h, w), np.uint8); edge[60:120, 130:190] = 220",
+    "r_ch = np.zeros_like(edge); r_ch[60:120, 133:193] = 220; b_ch = np.zeros_like(edge); b_ch[60:120, 127:187] = 220",
+    "shift = np.stack([r_ch, edge, b_ch], -1)",
+    "c = m.screen_and_fringe(shift, edge.astype(np.float32), np.ones((h, w), bool))",
+    "print(json.dumps([a, b, c]))",
+  ].join("\n");
+  const q = spawnSync(py[0], [...py.slice(1), "-c", cg], { encoding: "utf8", timeout: 120000 });
+  if ((q.status !== 0 && /No module named/.test(q.stderr)) || q.stdout.trim() === "SKIP") { t.skip("numpy or opencv missing"); return; }
+  assert.equal(q.status, 0, q.stderr);
+  const [dotted, noise, fringe] = JSON.parse(q.stdout.trim().split("\n").pop());
+  assert.ok(dotted.halftone_ratio > 20, `a dot screen reads as a screen (${dotted.halftone_ratio})`);
+  assert.ok(noise.halftone_ratio < 20, `plain noise is no screen (${noise.halftone_ratio})`);
+  assert.ok(fringe.ca_px >= 2.5 && fringe.ca_px <= 3.5, `a 3 px channel shift reads as about 3 px (${fringe.ca_px})`);
+  assert.match(readText("skills/ice-styles/references/family-broadcast-news.md"), /7\.8:1 is the floor for captions, quotes and card text/);
+  assert.match(readText("skills/ice-qa/references/audio-gates.md"), /Beat error per cut \(A20\): `python sound_map\.py/);
 });

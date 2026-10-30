@@ -105,6 +105,7 @@ Trusted text rule: words and numbers in the film are rendered by code from these
 | Stock face in a proof or testimonial beat | Never; a stock face is recognizably invented |
 | Fictional people inside illustrative UI (chat lists, feeds) | Initial avatars tinted from the accent; if faces are needed, generated fictional faces in a declared illustrative context only, never a real person, never with a real name, never with a watermark cropped off |
 | Real people in user footage | Rights of the people shown: `ai-media-policy.md` section 9; blur other people's names and personal data in every frame |
+| A minor's face in news or event footage | At most 0.5 s on screen, never the subject of a hold or a zoom; a longer shot is blurred or replaced (lesson L37) |
 | A named real person the story needs | A verified, licensed portrait with provenance; never a generated likeness presented as authentic |
 
 ## 9. Labels for illustrative and generated content (scoped)

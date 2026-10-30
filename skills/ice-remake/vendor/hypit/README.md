@@ -35,3 +35,7 @@ Not copied into this folder:
 - The Hypit CLI, SVML compiler, packages and example media (real-person photos, voices, soundtracks).
 
 The `hypit` commands mentioned in these documents belong to the Hypit toolchain. Ice Motion Director does the same jobs with the bundled scripts in `../../scripts/` and the steps in `../../SKILL.md`.
+
+## Paths inside these files
+
+The copied files keep their upstream links and paths (`studio.md`, `builds.md`, `../production/`, `../playbooks/`). This copy is flat and holds only the files listed in this folder, so those links lead nowhere here: open the file with the same name in this folder, or read the upstream repository.

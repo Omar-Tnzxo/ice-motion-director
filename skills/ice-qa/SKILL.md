@@ -85,7 +85,7 @@ Copied from open-source projects and adapted (notices in each file and `scripts/
 | `seam-gate.mjs` | Numeric seam verification against `ice/plan/ledger.json` | Node, Chrome or Edge, a seekable page |
 | `validate-beat-sync.mjs` | Beat anchors against transcript word times | Node |
 | `quick-checks.mjs` (`frozen`, `loudness`, `sheet`, `probe`) | Frozen seconds, EBU R128 loudness, tiled sheets, spec assertion | Node, ffmpeg (ffprobe for `probe`) |
-| `export-case-study.mjs` | Case study JSON and preview media from the run files, plus the self-contained `run-log.html` (with `run-log.mjs`); missing data stays empty with a note | Node; ffmpeg and ffprobe optional (WebP stills, animatic and final film previews, file metrics) |
+| `export-case-study.mjs` | Case study JSON and preview media from the run files (`--site`: the gallery package with the before and after films, architecture.md), plus the self-contained `run-log.html` (with `run-log.mjs`); missing data stays empty with a note | Node; ffmpeg and ffprobe optional (WebP stills, animatic and final film previews, file metrics) |
 
 Tools owned elsewhere, called by name: the strip and compare tools for reference work (ice-remake), the edit-plan validator (ice-edit), the script-to-ASR aligner (ice-type), audio QC and synthesis (ice-audio).
 

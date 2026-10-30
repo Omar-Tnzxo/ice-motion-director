@@ -441,6 +441,8 @@ Grade: studio p1 11-18, p99 188-241, saturation 104 (vertical) and 66-72 (horizo
 
 **Type** (Tajawal; vertical sizes at 1080 wide, horizontal at 1276 wide where noted)
 
+Reading contrast (measured on the references): running reading text sits at 7.8:1 to 20:1 against what is behind it; 7.8:1 is the floor for captions, quotes and card text. The one exception is the topic pill below (about 3.5:1), which is short, large and heavy.
+
 | Style | Weight, size | Layout |
 |---|---|---|
 | Topic pill | 700, 66 px | Coral capsule 790x106 (73 % W), radius 53, padding L21 R30 T31 B16; white on coral about 3.5:1, compensated by size and weight; no kashida |

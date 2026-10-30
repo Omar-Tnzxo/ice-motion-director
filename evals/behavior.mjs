@@ -43,8 +43,29 @@ const CRAFT_PLAN = { source: "file", path: "ice/plan/craft-plan.json" };
 // Graders by lesson. `when` reads the case facets: speaker (a person speaks on camera), reference (a style reference
 // video), marks (the reference keeps fixed identity marks), media (the film needs outside footage, photos or brand
 // material), conflict (the content type differs from the reference's, or the reference belongs to another brand).
-// L11, L16 and L18 (captions against a fresh transcript, text over a face on the render, the mix audit) run at stages 07
-// to 10, after these cases stop; L15 is judged inside the craft plan graders of L13 and L14.
+// Every lesson of docs/maintainers/lessons.md has a grader below or a line in NOT_GRADED with the reason
+// (tests/lessons.test.mjs checks it). Lessons judged at stages 07 to 10 run after these cases stop.
+const NOT_GRADED = {
+  L11: "captions against a fresh transcript of the final audio: stage 09 and 10, after the cases stop",
+  L15: "depth as a craft: judged inside the craft plan graders of L13 and L14 and the depth graders of L12",
+  L16: "text over a face, measured on the render: stage 07 and 09, after the cases stop",
+  L18: "the mix audit and the ear list: stage 08b to 10, after the cases stop",
+  L23: "pace measured on the render: stage 07 and 09, after the cases stop",
+  L25: "every sound effect heard in the mix: stage 08b and 09, after the cases stop",
+  L26: "depth, finishing, grade, marks and speaker measured on the render: stage 07 and 09, after the cases stop",
+  L28: "sound by code never a default: judged by the L1 graders",
+  L29: "the craft plan before 03: judged by l13-craft-plan-written (the run cannot pass 03 without it)",
+  L30: "a look the user chose: judged by l22-user-choice-honoured",
+  L31: "the speaker never dimmed in a package: judged by l19-speaker-recedes-not-darkens",
+  L32: "no install or download question: judged by l3-no-install-question",
+  L33: "rights stay with the user: judged by l27-no-permission-question",
+  L35: "Arabic typing in a real product box: no case has a product input box yet",
+  L36: "the fingerprint check: written at delivery, after the cases stop",
+  L37: "news reel trial rules: judged by l37-news-reel-attribution when a case is a news reel",
+  L38: "the case study site package: stage 10, after the cases stop",
+  L39: "progress messages in auto mode: judged by l39-progress-sent",
+  L40: "short music, beat error, halftone, fringe and contrast are measured at stages 07 to 09, after the cases stop",
+};
 const GRADERS = [
   {
     lesson: "case", name: "no-final-render", when: () => true,
@@ -209,6 +230,35 @@ const GRADERS = [
       type: "llm", focus: DIRECTION,
       criteria: "This is the decision log of a video the user asked to make in the look of a reference they supplied. Judge the decisions in force. PASS if the log records the reference as the user's own choice, keeps its look on the axes the choice fixes (identity still fitting the content), and does not move the film away from that look to satisfy a rule about differing from templates, earlier films or expected directions; research and reasons are still logged. FAIL if the log changes the reference's look on purpose to differ from a template, an earlier film or a fingerprint.",
     },
+  },
+  {
+    lesson: "L24", name: "l24-footage-by-script", when: (c) => c.facets.media,
+    spec: { type: "tool_used", tool: "Bash", input_match: String.raw`fetch_media\.py` },
+  },
+  {
+    lesson: "L27", name: "l27-no-permission-question", when: () => true,
+    spec: {
+      type: "llm", focus: DIRECTION,
+      criteria: "This is the decision log of a video run whose user waived the start questions in their own words. Judge the decisions in force. PASS if the log quotes the user's waiver and takes the recommended option for each open slot, and asks no question about permission, rights, consent for a free download or a free install. FAIL if the run took defaults without quoting the user's own waiver, or logs a permission or rights question to the user.",
+    },
+  },
+  {
+    lesson: "L34", name: "l34-no-label-in-the-film", when: (c) => c.facets.media,
+    spec: {
+      type: "llm", focus: STORYBOARD,
+      criteria: "This is a storyboard of a video. PASS if no frame carries an 'unofficial concept' line, a 'not affiliated' line or an 'AI-generated' label inside the picture (truth labels such as 'Illustration' or 'Reconstruction' on factual topics are fine, and the delivery note or caption may carry the others). FAIL if such a line or label is planned inside the film.",
+    },
+  },
+  {
+    lesson: "L37", name: "l37-news-reel-attribution", when: (c) => c.facets.speaker && c.facets.reference,
+    spec: {
+      type: "llm", focus: STORYBOARD,
+      criteria: "This is a storyboard of a news reel. PASS if every on-screen claim names whose claim it is in the same card, archive older than the current year shows its year while it plays, and no minor's face is held longer than half a second; or if the plan has no such moment. FAIL otherwise.",
+    },
+  },
+  {
+    lesson: "L39", name: "l39-progress-sent", when: () => true,
+    spec: { type: "regex", target: "files", pattern: String.raw`ice${S}log${S}conversation\.jsonl` },
   },
   {
     lesson: "L12", name: "l12-reference-depth", when: (c) => c.facets.reference,

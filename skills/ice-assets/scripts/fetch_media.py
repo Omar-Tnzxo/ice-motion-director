@@ -23,6 +23,9 @@ Steps (the ice-assets skill, references/sourcing-and-licenses.md sections 1a, 4 
           channel, a playlist or a search page (section 7).
   record  write the same records for a local file (a file from assets/inbox/, a file the user downloaded).
   doctor  the settings in force (ICE_OFFLINE, sources.json), the tools found and the User-Agent; no network.
+  index   index the user's local libraries (sources.json `local_libraries`, or --dir) once, then search them before any
+          network route: python fetch_media.py index [--dir <folder>]... ; python fetch_media.py index --find "<words>"
+          (lesson L36 of the 0.2.7 audit work: local first, section 1).
 
 Routes (no key): openverse (image, audio), wikimedia (image, svg, video, audio), internet_archive (video, audio,
 image), nasa (image, video, audio), youtube_official (video through the pinned yt-dlp).
@@ -154,6 +157,8 @@ def load_settings(project):
             for k, v in data["routes"].items():
                 if v is True or v is False or v == "ask":
                     s["routes"][k] = (v, f"{f} routes.{k}")
+        if isinstance(data.get("local_libraries"), list):
+            s["local_libraries"] = [str(x) for x in data["local_libraries"] if isinstance(x, str)]
     return s
 
 
@@ -1061,6 +1066,66 @@ def cmd_doctor(a):
     return OK
 
 
+LIB_INDEX = Path.home() / ".ice-motion-director" / "local-index.jsonl"
+LIB_KINDS = {"video": {".mp4", ".mov", ".mkv", ".webm", ".m4v"}, "audio": {".wav", ".mp3", ".flac", ".aif", ".aiff", ".ogg", ".m4a"},
+             "image": {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff"}, "svg": {".svg"}, "font": {".ttf", ".otf", ".woff", ".woff2"},
+             "lut": {".cube", ".3dl"}}
+
+
+def _lib_kind(path):
+    ext = path.suffix.lower()
+    return next((k for k, exts in LIB_KINDS.items() if ext in exts), None)
+
+
+def _lib_words(path, root):
+    rel = str(path.relative_to(root)).lower()
+    return sorted(set(w for w in re.split(r"[^\w]+", rel) if len(w) > 1))
+
+
+def cmd_index(a):
+    """Index local libraries (one line per file) or search the index by words; never downloads."""
+    index = Path(a.index).expanduser()
+    if a.find:
+        if not index.exists():
+            raise Stop(FAIL, f"no index yet: run python fetch_media.py index first ({index})")
+        want = [w for w in re.split(r"[^\w]+", a.find.lower()) if len(w) > 1]
+        hits = []
+        for line in index.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            if a.type and row.get("kind") != a.type:
+                continue
+            score = sum(w in row.get("words", []) or any(w in x for x in row.get("words", [])) for w in want)
+            if score:
+                hits.append((score, row))
+        hits.sort(key=lambda h: -h[0])
+        for score, row in hits[: a.n]:
+            print(f"{row['kind']:5} {score}/{len(want)}  {row['path']}")
+        if not hits:
+            print("no local match: take the next rung of the ladder (section 1)")
+        return OK
+    s = load_settings(need_project(a.project) if a.project else None)
+    dirs = [Path(d).expanduser() for d in (a.dir or [])] or [Path(d).expanduser() for d in s.get("local_libraries", [])]
+    dirs = [d for d in dirs if d.is_dir()]
+    if not dirs:
+        raise Stop(USAGE, "no library folder: pass --dir or list folders under local_libraries in sources.json")
+    index.parent.mkdir(parents=True, exist_ok=True)
+    n = 0
+    with open(index, "w", encoding="utf-8") as out:
+        for root in dirs:
+            for path in sorted(root.rglob("*")):
+                kind = _lib_kind(path) if path.is_file() else None
+                if not kind:
+                    continue
+                out.write(json.dumps({"path": str(path), "kind": kind, "bytes": path.stat().st_size, "library": str(root),
+                                      "words": _lib_words(path, root)}, ensure_ascii=False) + "\n")
+                n += 1
+    print(f"indexed {n} files from {len(dirs)} folder(s) into {index}")
+    return OK
+
+
 def main(argv=None):
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
@@ -1115,11 +1180,18 @@ def main(argv=None):
     re_.add_argument("--move", action="store_true", help="move the file into assets/ instead of copying it (files from assets/inbox/)")
     do = sub.add_parser("doctor", help="settings, tools and User-Agent; no network")
     do.add_argument("--project", help="the user's project folder (reads its ice/sources.json)")
+    ix = sub.add_parser("index", help="index the user's local libraries, or search that index with --find; no network")
+    ix.add_argument("--dir", action="append", help="a library folder (repeat); default: local_libraries in sources.json")
+    ix.add_argument("--find", help="search the index by words instead of indexing")
+    ix.add_argument("--type", choices=tuple(LIB_KINDS), help="--find only: one kind")
+    ix.add_argument("--n", type=int, default=10, help="--find only: how many hits")
+    ix.add_argument("--project", help="the user's project folder (reads its ice/sources.json)")
+    ix.add_argument("--index", default=str(LIB_INDEX), help=f"the index file (default {LIB_INDEX})")
     a = ap.parse_args(argv)
     if a.cmd == "record" and not re.fullmatch(r"[a-z][a-z0-9_-]*", a.route):
         ap.error("--route takes a route id such as user-download")
     try:
-        return {"search": cmd_search, "get": cmd_get, "record": cmd_record, "doctor": cmd_doctor}[a.cmd](a)
+        return {"search": cmd_search, "get": cmd_get, "record": cmd_record, "doctor": cmd_doctor, "index": cmd_index}[a.cmd](a)
     except Stop as e:
         log(("not fetched: " if e.code == REFUSED else "error: ") + str(e))
         return e.code

@@ -2,6 +2,23 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## Unreleased (0.2.7)
+
+Every gap the completeness audit of 0.2.6 found between the founder's decisions, the research and the skills is closed, each as a lesson (L27 to L40) with its rule and its test.
+
+- **Silence is never a waiver anywhere (L27).** Every workflow asks the stage 01 questions in rounds; none takes a default when no one answers.
+- **No sound by code by default, in styles and remakes too (L28),** and loudness always from the `ice-audio` profile table.
+- **The craft plan is locked before the script (L29):** `ice-state.mjs check 03` refuses without it.
+- **A look you chose is never pushed away (L30); the speaker never dims in a package (L31); free installs and downloads are never asked (L32); rights stay yours in every route (L33).**
+- **No "unofficial" line and no AI label inside the film (L34):** both go to the delivery note and the post caption (founder decision, 2026-10-30).
+- **Arabic typing in a real product input box (L35),** and Arabic is never set with ffmpeg drawtext.
+- **Fingerprints and local libraries by script (L36):** `film_gate.py fingerprint check|write`, `fetch_media.py index`.
+- **News reel rules from the trials (L37):** the episode's own camera angles, whose claim it is, archive dates, minors, and an ad that reads as an ad in its first 3 s.
+- **Case study v2 (L38):** `export-case-study.mjs --site` writes the gallery package: the film in full HD beside the raw source cut by the EDL, the source and why those minutes, the prompt with its English translation, the story with real times, the disclaimer and credits.
+- **Auto mode shows each stage as it lands (L39),** without a new stop.
+- **Short music fails the master; beat error, halftone and fringe are measured (L40).**
+- **Housekeeping:** 32 small reference files merged into their siblings (599 to 567 files); `gates.mjs` warns when the last version check is older than 30 days; the behaviour check before a release is a manual one-prompt run on a clean Claude (founder decision, 2026-10-30).
+
 ## 0.2.6 - 2026-10-30
 
 The gates now look at the finished video itself, not only at the plan: pace, depth, finishing, grade, fixed marks, the speaker's light and every sound effect are measured on the render. Real footage comes through a shipped fetcher with its records, an After Effects project you supply is read, and every style states its own craft. Each lesson is listed in `docs/maintainers/lessons.md` (L21 updated, L23 to L26) with its rule and its test.

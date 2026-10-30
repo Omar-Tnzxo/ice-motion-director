@@ -1,6 +1,6 @@
 # Behaviour evals
 
-The tests in `tests/` prove that a rule is written. The behaviour suite proves that an agent with Ice installed applies it on its own: it runs Ice on real inputs with a plain user prompt, stops at the stage 06 preview, and graders judge the plan files against every lesson in [`lessons.md`](lessons.md). Run it before every release tag.
+The tests in `tests/` prove that a rule is written. The behaviour suite proves that an agent with Ice installed applies it on its own: it runs Ice on real inputs with a plain user prompt, stops at the stage 06 preview, and graders judge the plan files against every lesson in [`lessons.md`](lessons.md). Release check (founder decision, 2026-10-30): before every major release one manual run of a plain one-line prompt on a clean Claude (Windows or Mac) is required; this suite runs when a machine with a sandbox is available and is not a release condition until then.
 
 The suite is one file, [`evals/behavior.mjs`](../../evals/behavior.mjs): the cases, the graders and a builder that writes the case folders `claude plugin eval` reads into `evals/generated/` (ignored by git, so the plugin stays inside its file budget and no footage is ever committed). The trigger set in `evals/trigger-eval.json` is separate ([`evals/README.md`](../../evals/README.md)).
 

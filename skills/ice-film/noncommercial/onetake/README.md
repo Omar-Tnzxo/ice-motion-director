@@ -23,3 +23,7 @@ Noncommercial use only. Before opening, copying or adapting any file in this fol
 | `case-one-dot-15s.md` | `cases/one-dot-15s/README.md` | a worked case: one dot as the whole film, an operator camera, rejected versions and why |
 
 Files that these documents mention but that are not copied here (scripts such as `render.py`, `probe.py`, `verify_promo.py`, the templates, galleries, looks, fonts and case films) are not part of this plugin. The `.md` files are English translations of the published Chinese originals; the first line of each file names its source and every change (translation included). Where a translation and the original disagree, the original wins.
+
+## Paths inside these files
+
+The copied files keep their upstream links and paths (`references/`, `lib/`, `cases/`). This copy is flat and holds only the files listed in this folder, so those links lead nowhere here: open the file with the same name in this folder, or read the upstream repository.

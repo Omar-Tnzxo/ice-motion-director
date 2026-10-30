@@ -113,6 +113,7 @@ One rule for every concept, board, frame and build. The concept critic checks it
 2. **Every sound, action and claim has a visible source.** A sound comes from a thing the viewer sees making it; a change comes from a seen cause (a hand, a cursor, an object, the product itself); a claim comes with seen proof or the truth sheet's on-screen source. Words on an empty ground standing in for a thing that is not shown fail.
 3. **Product interactions happen as they really happen.** Typing, scrolling, tapping, dragging, searching, loading and results follow the real product's behaviour and order. Text in an input appears as it is typed, at the rates of `ice-type/references/kinetic-type.md` section 7 (Arabic input by word or by mask, as `ice-arabic/references/letterforms-in-motion.md` allows), never popping in whole; a list scrolls; a result arrives after its action, never before it.
 4. **The offer's real job is seen.** When the takeaway has an `Offer's job`, at least one full beat shows it: the real product in use, the cause and then the effect, held long enough to read (`ice-type/references/reading-time.md`).
+5. **An ad reads as an ad from its first seconds.** In any film that sells (ads, launches, brand films, app and service spots), the brand's mark or name is on screen or spoken within the first 3 s at a legible size, so the cold viewer never takes it for news or another genre at first (lesson L37). A news reel or an editorial piece is exempt.
 
 ## 7. Size of the job
 

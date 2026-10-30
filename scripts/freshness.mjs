@@ -195,6 +195,13 @@ if (cmd === "stale-specs") {
 
 const rows = await compare();
 if (cmd === "check") {
+  // A complete check records its date; scripts/gates.mjs warns when it is older than 30 days (founder decision, 2026-10-30).
+  if (!rows.some((r) => !r.to)) {
+    const text = readFileSync(VERSIONS, "utf8");
+    const dated = /"last_checked": "[^"]*"/.test(text) ? text.replace(/"last_checked": "[^"]*"/, `"last_checked": "${today}"`)
+      : text.replace(/("last_verified": "[^"]*",)/, `$1\n  "last_checked": "${today}",`);
+    if (dated !== text) writeFileSync(VERSIONS, dated);
+  }
   if (flag("json")) console.log(JSON.stringify(rows, null, 1));
   else for (const r of rows) console.log(`${r.kind.padEnd(4)} ${r.name.padEnd(24)} ${r.from.padEnd(12)} ${r.newer ? `-> ${r.to}${r.major ? "  (major)" : ""}` : r.hold && r.to && cmpVersion(r.to, r.from) > 0 ? `${r.to} available` : r.to ? "current" : "lookup failed"}${r.note ? `  [${r.note}]` : ""}`);
   process.exit(rows.some((r) => !r.to) ? 1 : 0);

@@ -19,14 +19,17 @@
 //
 // Usage:
 //   node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N]
+//                              [--site [--film <master>]]
+// --site also writes the gallery package <out>/site/<slug>/ (listing.json with films, source, selection, prompt,
+// story, disclaimer and credits; web encodes of the delivered film and of the raw cut by the EDL; lesson L38).
 // Default --out: <project>/ice/case-study. Exit codes: 0 written, 1 no ice/ folder, 2 usage error.
 // Needs: Node 18 or newer, no packages. ffmpeg and ffprobe on PATH are optional (media and file metrics).
 import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 import { LIMITS, createEmbedder, createMasker, renderRunLog } from "./run-log.mjs";
 
-const USAGE = "usage: node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N]";
+const USAGE = "usage: node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N] [--site [--film <master>]]";
 const argv = process.argv.slice(2);
 if (argv.includes("-h") || argv.includes("--help")) { console.log(USAGE); process.exit(0); }
 const opt = (name, dflt) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt; };
@@ -600,3 +603,159 @@ const mediaCount = WITH_MEDIA && existsSync(MEDIA) ? readdirSync(MEDIA).length :
 const ORDER = STAGES.filter(([id]) => !notUsed(id));
 console.log(`wrote ${join(OUT, "case-study.json")}: ${recipeOnly ? `recipe-only run, recipe ${recipe ? `${recipe.file} (${recipe.sections.length} sections, ${recipeImages.length} pictures)` : "not found"}, ` : ""}${ORDER.filter(([id]) => stages[id].artifacts.length).length}/${ORDER.length} stages with artifacts, ${research.length} research notes, ${gates.length} gates, ${criticFiles.length} critic rounds, ${conversation.length} logged messages, ${mediaCount} media files, ${notes.length} notes on missing data`);
 console.log(`wrote ${join(OUT, "run-log.html")}: ${(htmlBytes / 1048576).toFixed(2)} MB (${htmlBytes} bytes), ${count} images, ${header.video ? "with" : "no"} preview video${htmlBytes > LIMITS.totalBytes ? `, over the ${LIMITS.totalBytes / 1048576} MB target` : ""}`);
+
+// ---------------------------------------------------------------- site package (--site): case study v2
+// One folder per run, ice/case-study/site/<slug>/, for a gallery page that plays the edited film beside the raw
+// source cut to the same parts (docs/maintainers/architecture.md 2c, "Site package"). Media are web encodes: the
+// delivered film at 1080 on its short side from the master (never a preview), and the "before" cut built from the
+// run's EDL (source time ranges in the edit's order, each with its own sound, gaps as black silence, so it runs as
+// long as the edit). Every field it cannot fill stays empty with a line in "notes".
+function buildSite() {
+  const SITE = join(OUT, "site", slug || "case-study");
+  const SMEDIA = join(SITE, "media");
+  mkdirSync(SMEDIA, { recursive: true });
+  const siteNotes = [];
+  const sNote = (field, text) => siteNotes.push({ field, note: text });
+  const CAP = 25 * 1024 * 1024; // one static asset on the host
+
+  // The master: --film, else the NOTE.md File line, else the largest file in ice/renders/final/.
+  const filmArg = opt("--film", "");
+  const master = filmArg ? (existsSync(resolve(filmArg)) ? resolve(filmArg) : resolve(PROJECT, filmArg)) : finals.slice().sort((a, b) => statSync(b).size - statSync(a).size)[0];
+  if (filmArg && !existsSync(master)) sNote("films", `--film ${filmArg} is not in the project`);
+  // Encode a web copy at 1080 on the short side; lower the quality step by step until it fits the cap.
+  function webEncode(src, dest, vf, audio = true) {
+    for (const crf of [20, 23, 26, 29]) {
+      const ok = ffmpeg(["-i", src, "-vf", vf, "-c:v", "libx264", "-preset", "medium", "-crf", String(crf), "-pix_fmt", "yuv420p",
+        ...(audio ? ["-c:a", "aac", "-b:a", "160k"] : ["-an"]), "-movflags", "+faststart", dest]);
+      if (!ok) return { ok: false };
+      const size = statSync(dest).size;
+      if (size <= CAP) return { ok: true, crf, size };
+    }
+    return { ok: true, crf: 29, size: statSync(dest).size, over: true };
+  }
+  const shortSide1080 = "scale='if(gt(iw,ih),-2,1080)':'if(gt(iw,ih),1080,-2)'";
+  const poster = (film, name) => {
+    const p = probe(film);
+    return p && ffmpeg(["-ss", String((p.seconds || 0) / 2), "-i", film, "-frames:v", "1", "-vf", "scale='min(1080,iw)':-2", "-quality", "82", join(SMEDIA, name)]) ? `media/${name}` : null;
+  };
+
+  const film = { language, aspect: "", src: null, before_src: null, poster: null, before_poster: null, captions: null, width: 0, height: 0 };
+  let after = null;
+  if (!FFMPEG) sNote("films", "ffmpeg not on PATH: no web encodes");
+  else if (!master || !existsSync(master)) sNote("films", "no delivered master in ice/renders/final/ (or --film)");
+  else {
+    const r = webEncode(master, join(SMEDIA, "after-1080.mp4"), shortSide1080);
+    if (!r.ok) sNote("films", `could not encode ${iceRel(master)}`);
+    else {
+      after = probe(join(SMEDIA, "after-1080.mp4")) || {};
+      Object.assign(film, { src: "media/after-1080.mp4", width: after.width || 0, height: after.height || 0, aspect: aspectOf(after.width, after.height) });
+      film.poster = poster(master, "poster-after.webp");
+      if (r.over) sNote("films[0].src", `after-1080.mp4 is ${(r.size / 1048576).toFixed(1)} MiB, over the 25 MiB host cap even at crf 29: the master ${iceRel(master)} stays next to it in the run`);
+    }
+    const srt = files.find((f) => /\.srt$/i.test(f) && basename(f).startsWith(basename(master, extname(master)).replace(/_free-font$/, "")));
+    if (srt) {
+      const vtt = "WEBVTT\n\n" + read(srt).replace(/\r/g, "").replace(/^\d+\n(?=\d\d:)/gm, "").replace(/(\d\d:\d\d:\d\d),(\d\d\d)/g, "$1.$2");
+      writeFileSync(join(SMEDIA, "after.vtt"), vtt, "utf8"); film.captions = "media/after.vtt";
+    } else sNote("films[0].captions", "no .srt beside the master");
+  }
+
+  // The EDL: ice/edit/edl.json, else an *_edl.json beside the master.
+  const edlFile = [join(ICE, "edit", "edl.json"), ...files.filter((f) => /_edl\.json$/i.test(f))].find((f) => existsSync(f));
+  const edl = edlFile ? readJsonFile(edlFile) : null;
+  const ranges = Array.isArray(edl?.ranges) ? edl.ranges : [];
+  if (!edl) sNote("selection, before_src", "no EDL (ice/edit/edl.json or *_edl.json in ice/renders/final/)");
+  const srcRanges = ranges.filter((x) => x && x.source !== "gap" && Number.isFinite(+x.start) && Number.isFinite(+x.end));
+  const sourceKey = srcRanges[0]?.source;
+  const sourcePath = sourceKey && edl?.sources?.[sourceKey] ? resolve(PROJECT, edl.sources[sourceKey]) : "";
+  if (srcRanges.length && (!sourcePath || !existsSync(sourcePath))) sNote("before_src", `the EDL source ${sourceKey} is not on disk`);
+  if (FFMPEG && ranges.length && sourcePath && existsSync(sourcePath)) {
+    const sp = probe(sourcePath) || {};
+    const W = sp.width >= sp.height ? -2 : 1080, H = sp.width >= sp.height ? 1080 : -2;
+    const fps = Number(edl.fps) || sp.fps || 25;
+    const parts = [], inputs = ["-i", sourcePath];
+    ranges.forEach((x, i) => {
+      const d = Math.max(0, (+x.reel_out || 0) - (+x.reel_in || 0)) || Math.max(0, +x.end - +x.start);
+      if (x.source === "gap" || x.source !== sourceKey) {
+        parts.push(`color=c=black:s=${sp.width || 1920}x${sp.height || 1080}:r=${fps}:d=${d.toFixed(3)},format=yuv420p,scale=${W}:${H},setsar=1[v${i}];anullsrc=r=48000:cl=stereo,atrim=0:${d.toFixed(3)}[a${i}]`);
+      } else {
+        parts.push(`[0:v]trim=${(+x.start).toFixed(3)}:${(+x.end).toFixed(3)},setpts=PTS-STARTPTS,fps=${fps},scale=${W}:${H},setsar=1,format=yuv420p[v${i}];`
+          + `[0:a]atrim=${(+x.start).toFixed(3)}:${(+x.end).toFixed(3)},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo[a${i}]`);
+      }
+    });
+    const graph = parts.join(";") + ";" + ranges.map((_, i) => `[v${i}][a${i}]`).join("") + `concat=n=${ranges.length}:v=1:a=1[v][a]`;
+    const tmp = join(SMEDIA, "before-full.mp4");
+    if (ffmpeg([...inputs, "-filter_complex", graph, "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-c:a", "aac", "-b:a", "160k", tmp])) {
+      const r = webEncode(tmp, join(SMEDIA, "before-1080.mp4"), "null");
+      rmSync(tmp, { force: true });
+      if (r.ok) {
+        film.before_src = "media/before-1080.mp4";
+        film.before_poster = poster(join(SMEDIA, "before-1080.mp4"), "poster-before.webp");
+        const b = probe(join(SMEDIA, "before-1080.mp4"));
+        if (b && after && Math.abs(b.seconds - after.seconds) > 0.2) sNote("films[0].before_src", `before runs ${b.seconds} s, the edit ${after.seconds} s`);
+        if (r.over) sNote("films[0].before_src", "before-1080.mp4 is over the 25 MiB host cap even at crf 29");
+      }
+    } else { rmSync(tmp, { force: true }); sNote("before_src", "ffmpeg could not cut the source by the EDL"); }
+  }
+
+  // The source: ice/sources/<key>/source.json, else the downloader's info.json, else the footage ledger row.
+  const srcDir = sourcePath ? dirname(sourcePath) : "";
+  const info = srcDir ? (readJsonFile(join(srcDir, "source.json")) || readJsonFile(join(srcDir, "info.json")) || {}) : {};
+  const source = {
+    kind: String(info.kind || state.subtype || ""), title: String(info.title || ""), owner: String(info.owner || info.channel || info.uploader || "").replace(/\s{2,}/g, " "),
+    url: String(info.url || info.webpage_url || ""), duration_s: Number(info.duration_s || info.duration || probe(sourcePath || "")?.seconds || 0) || null,
+    license: String(info.license || ""),
+  };
+  if (!source.license) {
+    const row = credits.find((c) => source.url && c.includes(source.url)) || credits.find((c) => source.owner && c.toLowerCase().includes(source.owner.toLowerCase().split(" ")[0]));
+    source.license = row || "";
+  }
+  for (const k of ["title", "owner", "url", "duration_s", "license"]) if (!source[k]) sNote(`source.${k}`, "not found (ice/sources/<name>/source.json or info.json, or a CREDITS.md row)");
+
+  // The selection: the source ranges merged in source time, the minutes used, and the reason from ice/plan/selection.json.
+  const sel = readJsonFile(join(ICE, "plan", "selection.json")) || {};
+  const merged = srcRanges.map((x) => [+x.start, +x.end]).sort((a, b) => a[0] - b[0])
+    .reduce((acc, [a, b]) => { const l = acc[acc.length - 1]; if (l && a <= l[1] + 0.05) l[1] = Math.max(l[1], b); else acc.push([a, b]); return acc; }, []);
+  const selection = {
+    segments: (Array.isArray(sel.segments) && sel.segments.length ? sel.segments : merged.map(([a, b]) => ({ start_s: Math.round(a * 100) / 100, end_s: Math.round(b * 100) / 100 }))),
+    used_s: Math.round(srcRanges.reduce((n, x) => n + (+x.end - +x.start), 0) * 10) / 10 || null,
+    reason: sel.reason && typeof sel.reason === "object" ? sel.reason : {},
+  };
+  if (!selection.reason.en) sNote("selection.reason", "no reason in ice/plan/selection.json (why these minutes, in plain words, in English and the user's language)");
+
+  // The prompt: the first user message, as received (masked only for keys, contacts and paths), and its English
+  // translation from ice/log/prompt.json (written at stage 01).
+  const pj = readJsonFile(join(ICE, "log", "prompt.json")) || {};
+  const original = firstUser ? firstUser.text : maskedPrompt;
+  const promptOut = { original_language: String(pj.original_language || language || ""), original, translations: pj.translations && typeof pj.translations === "object" ? pj.translations : {} };
+  if (!promptOut.translations.en && promptOut.original_language !== "en") sNote("prompt.translations.en", "no English translation in ice/log/prompt.json");
+
+  // The story: every stage in the real order of the run, with its real time from the state history.
+  const t0 = Date.parse(state.created || logEntries[0]?.at || "") || null;
+  const hist = Array.isArray(state.history) ? state.history : [];
+  const fmt = (ms) => { const m = Math.max(0, Math.round(ms / 60000)); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+  const firstAt = {};
+  for (const h of hist) { const id = String(h?.stage || "").slice(0, 2); if (id && !firstAt[id] && h.at) firstAt[id] = h.at; }
+  const story = STAGES.filter(([id]) => !notUsed(id) && (firstAt[id] || stages[id].summary)).map(([id, name]) => {
+    const at = firstAt[id] || "";
+    const art = stages[id].artifacts.find((a) => a?.type === "image");
+    let media = null;
+    if (art && existsSync(join(OUT, art.path))) { const n = `story-${id}${extname(art.path)}`; copyFileSync(join(OUT, art.path), join(SMEDIA, n)); media = `media/${n}`; }
+    return { stage: id, t: at, elapsed: t0 && at ? fmt(Date.parse(at) - t0) : "", label: name, text: masker.mask(stages[id].summary || ""), media };
+  }).sort((a, b) => (a.t || "9").localeCompare(b.t || "9"));
+  if (!t0) sNote("story", "no start time in ice/state.json or the run log");
+
+  // Disclaimer and credits: a real brand, real people or broadcaster material makes the case an unofficial test.
+  const dj = readJsonFile(join(ICE, "case-study", "disclaimer.json")) || {};
+  const owner = source.owner || brand;
+  const needs = unofficial === true || !!source.url || /news|broadcast|podcast|episode/i.test(`${source.kind} ${route} ${filmType}`);
+  const disclaimer = needs ? { en: dj.en || `An unofficial test made with Ice Motion Director${owner ? `; not a production of ${owner}` : ""}. Footage and marks belong to their owners.`, ...dj } : null;
+  if (needs && language && language !== "en" && !disclaimer[language]) sNote(`disclaimer.${language}`, `no ${language} line in ice/case-study/disclaimer.json`);
+
+  const listing = { title, published: new Date().toISOString().slice(0, 10), films: [film], source, selection, prompt: promptOut, story, disclaimer, credits };
+  writeFileSync(join(SITE, "listing.json"), JSON.stringify(listing, null, 2) + "\n", "utf8");
+  writeFileSync(join(SITE, "case-study.json"), JSON.stringify({ ...out, notes: [...out.notes, ...siteNotes] }, null, 2) + "\n", "utf8");
+  copyFileSync(join(OUT, "run-log.html"), join(SITE, "run-log.html"));
+  console.log(`wrote ${join(SITE, "listing.json")}: after ${film.src ? "yes" : "no"}, before ${film.before_src ? "yes" : "no"}, ${story.length} story steps, ${siteNotes.length} notes`);
+  for (const n of siteNotes) console.log(`  note: ${n.field}: ${n.note}`);
+}
+if (argv.includes("--site")) buildSite();

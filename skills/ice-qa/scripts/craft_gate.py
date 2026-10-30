@@ -1328,6 +1328,40 @@ def detect_text(grey):
     return boxes
 
 
+def screen_and_fringe(rgb, g, flat):
+    """Halftone or scanline FFT ratio and chromatic aberration offset of one frame (ice-remake measuring.md section 9).
+    FFT: the high-passed flattest box under a Hann window, DC zeroed; the strongest peak over the spectrum median, with
+    its period in px and angle. Fringe: phase correlation of the R and B Sobel edges against the G edges, in px. Both
+    are in px of the analysis width (reported as finish_width)."""
+    h, w = g.shape
+    s = max(32, min(h, w) // 3)
+    best = (-1.0, 0, 0)
+    for y in sorted({0, (h - s) // 2, h - s}):
+        for x in sorted({0, (w - s) // 2, w - s}):
+            share = float(flat[y:y + s, x:x + s].mean())
+            if share > best[0]:
+                best = (share, y, x)
+    _, y, x = best
+    box = g[y:y + s, x:x + s]
+    hp = box - cv2.GaussianBlur(box, (0, 0), 3)
+    win = np.outer(np.hanning(s), np.hanning(s)).astype(np.float32)
+    spec = np.abs(np.fft.fftshift(np.fft.fft2(hp * win))) ** 2
+    c = s // 2
+    spec[c - 1:c + 2, c - 1:c + 2] = 0
+    med = float(np.median(spec)) or 1e-9
+    iy, ix = np.unravel_index(int(np.argmax(spec)), spec.shape)
+    fy, fx = (iy - c) / s, (ix - c) / s
+    f = math.hypot(fx, fy)
+    edges = [np.hypot(cv2.Sobel(rgb[..., i].astype(np.float32), cv2.CV_32F, 1, 0),
+                      cv2.Sobel(rgb[..., i].astype(np.float32), cv2.CV_32F, 0, 1)) for i in range(3)]
+    hann = cv2.createHanningWindow((w, h), cv2.CV_32F)
+    (rx, ry), _ = cv2.phaseCorrelate(edges[1], edges[0], hann)
+    (bx, by), _ = cv2.phaseCorrelate(edges[1], edges[2], hann)
+    return {"halftone_ratio": round(float(spec[iy, ix]) / med, 1), "halftone_period_px": round(1 / f, 2) if f > 0 else None,
+            "halftone_angle_deg": round(math.degrees(math.atan2(fy, fx)) % 180, 1),
+            "ca_px": round(max(math.hypot(rx, ry), math.hypot(bx, by)), 2)}
+
+
 def finishing_stats(rgb, grey):
     """Grain, vignette, black and white points, Lab mean, saturation and edge width of one frame."""
     g = grey.astype(np.float32)
@@ -1353,7 +1387,7 @@ def finishing_stats(rgb, grey):
     return {"grain": grain, "vignette": vignette, "black_point": round(p1, 1), "white_point": round(p99, 1),
             "lab_l": round(float(lab[:, 0].mean()) * 100 / 255, 2), "lab_a": round(float(lab[:, 1].mean()) - 128, 2),
             "lab_b": round(float(lab[:, 2].mean()) - 128, 2), "saturation": round(float(sat.mean()) / 255, 3),
-            "edge_width_px": edge}
+            "edge_width_px": edge} | screen_and_fringe(rgb, g, flat)
 
 
 def keep_persistent(detail):
@@ -1643,7 +1677,7 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
             "moves": [m for m in moves if a <= m["start"] < b],
             "finish": {key: median_or_none([f[key] for f in fin]) for key in
                        ("grain", "vignette", "black_point", "white_point", "lab_l", "lab_a", "lab_b", "saturation",
-                        "edge_width_px")} | {"samples": len(fin),
+                        "edge_width_px", "halftone_ratio", "halftone_period_px", "ca_px")} | {"samples": len(fin),
                                              "glow_px": median_or_none([d.get("glow_px") for d in samples], 2)},
             "face_samples": sum(1 for d in samples if d["faces"]),
             "focus_ratio": median_or_none([d.get("focus_ratio") for d in samples], 2),
@@ -1688,6 +1722,9 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
             "white_point": median_or_none([f["white_point"] for f in all_fin], 1),
             "saturation": median_or_none([f["saturation"] for f in all_fin]),
             "glow_px": median_or_none([d.get("glow_px") for d in detail], 2),
+            "halftone_ratio": median_or_none([f["halftone_ratio"] for f in all_fin], 1),
+            "halftone_period_px": median_or_none([f["halftone_period_px"] for f in all_fin], 2),
+            "ca_px": median_or_none([f["ca_px"] for f in all_fin], 2),
         },
     }
 

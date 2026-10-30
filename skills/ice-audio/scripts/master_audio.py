@@ -1,6 +1,7 @@
 # Adapted from Omar-Tnzxo/video-production-studio tools/master_audio.py (founder-owned, licensed here under Apache-2.0). Changes: ffmpeg runs with stdin closed, clear error when ffmpeg or ffprobe is missing, --music-start (back-timing offset into the track), --music-fade-in (default 0: the music starts at full level), --music-fade-out (0 = keep the track's own ending) and --music-loop added, the applied music edges recorded in master.json, an unreadable video duration is an input error instead of a silent 10 s guess, usage path updated; loudnorm replaced by a measured linear gain plus a 4x oversampled true-peak limiter, output forced to 48 kHz, the exported file re-measured with ffmpeg ebur128 and re-rendered until the true peak meets the target (exit 1 when it cannot).
 # 2026-10-29 (0.2.5): voice or SFX energy cut at the film end is reported in master.json ("cut_at_end") and on screen, and a
-# cut voice fails the master (exit 1); a looped or short music track is recorded as before and also printed as a warning.
+# cut voice fails the master (exit 1); a looped or short music track fails too (0.2.7, lesson L40) unless
+# --allow-short-music names the cue sheet's reason.
 # 2026-10-29 (0.2.6): --no-sfx-premix OUT writes the same mix without the SFX layer (same gain and limiter as the
 # delivered file, audio only, 48 kHz), recorded in master.json under "no_sfx_premix"; qc.py --audit reads it (A14).
 # 2026-10-29 (0.2.6), two placement fixes found by A14 on generated tones: the voice offset and every SFX start are a
@@ -44,7 +45,7 @@ Inputs:
 Music edges: these four flags are the only things that change the start or end of the music. Nothing else
 fades, trims or delays it; voiceover and SFX are never faded. Every applied value is written to master.json
 under "music_edges", with "looped" true when the track really restarted inside the film; a looped or short
-track also prints a warning (it goes on the ear list of qc.py --audit).
+track fails the master (exit 1) unless --allow-short-music gives the cue sheet's reason.
 
 Cut at the end: the voiceover and every SFX stop at the last frame. When one of them still carries sound after
 it (a peak over -40 dBFS), master.json records it under "cut_at_end" and a line says so; a cut voice is a
@@ -609,16 +610,20 @@ def main() -> int:
         )
         sys.stdout.write(json.dumps(summary, ensure_ascii=False) + "\n")
         edges = summary.get("music_edges") or {}
-        if edges.get("looped") or edges.get("ends_before_film"):
-            sys.stderr.write("WARNING: the music track is shorter than the film ("
+        short_music = edges.get("looped") or edges.get("ends_before_film")
+        if short_music:
+            sys.stderr.write(("NOTE" if args.allow_short_music else "FAIL") + ": the music track is shorter than the film ("
                              + ("it loops from its top" if edges.get("looped") else "it ends before the film")
-                             + "); it goes on the ear list of qc.py --audit: fix the edit or the cue first "
-                             "(mix-and-master.md section 6)\n")
+                             + (f"); allowed: {args.allow_short_music}" if args.allow_short_music else
+                                "); fix the edit or the cue, or pass --allow-short-music \"<the cue sheet's reason>\" "
+                                "(mix-and-master.md section 6)") + "\n")
         cut = summary.get("cut_at_end") or {}
         if (cut.get("voice") or {}).get("cut"):
             sys.stderr.write(f"CUT: the voiceover still speaks {cut['voice']['seconds_after_end']} s after the last frame\n")
         for s in cut.get("sfx") or []:
             sys.stderr.write(f"CUT: {pathlib.Path(s['file']).name} still sounds {s['seconds_after_end']} s after the last frame\n")
+        if short_music and not args.allow_short_music:
+            return 1
         if summary["status"] != "pass":
             sys.stderr.write("FAIL: " + "; ".join(summary["problems"]) + "\n")
             return 1
@@ -653,6 +658,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--music-loop", dest="music_loop", action=argparse.BooleanOptionalAction, default=True,
         help="Restart the music from its top when it is shorter than the film (default: on).",
+    )
+    parser.add_argument(
+        "--allow-short-music", metavar="REASON", default=None,
+        help="A loop or an early music end is planned (the cue sheet says why); without it a short or looped track fails.",
     )
     parser.add_argument(
         "--duck", dest="duck", action=argparse.BooleanOptionalAction, default=None,

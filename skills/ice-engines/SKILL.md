@@ -46,7 +46,7 @@ This skill turns a planned film into frames and files. It decides which engine r
 - Check free disk space before every download, install and render, and work on a drive with room: section 7.7, "Disk space". Heavy intermediates that can be rebuilt are deleted once the stage that consumes them is approved: `references/render-export.md` section 9.
 - Never download skills or instructions at runtime. Never run telemetry commands. A registry `add` (third-party code, not pinned) follows `references/hyperframes.md` section 9; a cloud render or any paid step is named with its cost and asked inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops").
 - Also probe that the fonts the film needs are present.
-- API keys come only from environment variables or a local `.env` the user fills; never ask for a key in chat, never print one, never put one in a shell command or a shipped file.
+- API keys come only from environment variables or `~/.ice-motion-director/.env`, which the user fills (`ice-assets/references/sourcing-and-licenses.md`, Keys); never ask for a key in chat, never print one, never put one in a shell command or a shipped file.
 
 ## 3. Build deterministically
 

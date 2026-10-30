@@ -9,7 +9,7 @@ Founder rule 10 asks for two first-class paths: one plain prompt for everyone, a
 - **Portable frontmatter only:** `name`, `description`, `license`, `metadata` (`author`, `version`, `opencode/slash: "true"`).
 - **Gemini CLI** gets one `commands/<name>.toml` per command: a `description` and a multiline `prompt` that names the `ice-motion-director` skill and ends with `{{args}}`.
 - **Plain words still work.** On an agent with no command support, "run stage 03" or "show the status" maps to the same dispatcher.
-- **Budget.** 12 skills (24 files) plus 12 TOML files. The router's route and harness files were merged (10 files into 2) to pay for part of it. The file budget is 512 as the aim and 600 as the hard limit (`tests/repo.test.mjs`).
+- **Budget.** 13 skills (26 files) plus 13 TOML files. The router's route and harness files were merged (10 files into 2) to pay for part of it. The file budget is 512 as the aim and 600 as the hard limit (`tests/repo.test.mjs`).
 
 ## What the reference projects did
 

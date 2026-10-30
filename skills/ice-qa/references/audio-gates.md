@@ -61,7 +61,7 @@ Before applying an audio fix, state what you would expect to measure if you are 
 
 A14 measures every sounding event of the cue sheet and every item of `sfx.json` against the same mix rendered without the SFX layer: `master_audio.py --no-sfx-premix <file>` records it in `master.json`, where the audit reads it; an engine render with the SFX layer muted is passed with `--premix <file>`. A hero cue: its cue-sheet event has `"hero": true`, or its kind, what or sound names a hero, signature, reveal, payoff or logo moment. The sync point of a cue with a file is its attack edge in the render moved by the file's own attack and sync point (`sfx.md` section 5 item 1); a cue with no file is a contact, its attack is its sync point.
 
-Not yet measured by a script: the beat error per cut; it stays a check by the procedure of `cue-map-and-beat-sync.md` section 5 (the `ice-audio` skill).
+Beat error per cut (A20): `python sound_map.py <music or mix> --out <folder> --cuts <film>.events.json --fps <fps>` (the `ice-audio` skill) measures each cut against its nearest beat and fails a hard cut more than 2 frames or 40 ms off (the stricter), the tolerance of `cue-map-and-beat-sync.md` section 5; an input with no reliable beat grid is reported as not measured (lesson L40).
 
 ## 3. Honesty
 

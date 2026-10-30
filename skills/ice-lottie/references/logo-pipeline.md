@@ -183,7 +183,7 @@ duration), never from this block.
 
 ```bash
 # Phase 2: measurement / starter trace (not bundled; inspect & simplify its output; never final art by default)
-python3 scripts/raster_logo_trace.py source.png --out outputs
+# raster_logo_trace.py is not bundled: do this step by hand as the text describes (no command to run)
 
 # Phase 2: render + cyan overlay + IoU metrics in one step (headless Chrome; set CHROME_BIN if needed)
 python3 scripts/render_overlay.py logo.svg source.png \
@@ -193,25 +193,23 @@ python3 scripts/render_overlay.py logo.svg source.png \
 # Phase 2 (not bundled): closed / self-intersecting variable-width ribbons (∞ marks, scripts):
 # centerline scaffold + auto-recenter + source edge snap; report includes each
 # exclusion's arc fractions (= split-cut parameters for Phase 3)
-python3 scripts/fit_ribbon_centerline.py source.png --seeds seeds.json --out-dir outputs/ribbon_fit
+# fit_ribbon_centerline.py is not bundled: do this step by hand as the text describes (no command to run)
 
 # Phase 2: Bezier smoothness audit before accepting complex paths
 python3 scripts/svg_path_audit.py logo.svg --out-svg bezier_segments.svg --report bezier_audit.json
 
 # Phase 2 (not bundled): geometry QA strip
-python3 scripts/overlay_progress_strip.py --source source.png --dir outputs/fit_iterations \
-  --pattern "*overlay*.png" --final-image outputs/final_render.png --out outputs/overlay_progress_strip.png
+# overlay_progress_strip.py is not bundled: do this step by hand as the text describes (no command to run)
 
 # Phase 3 (not bundled): static HTML (intermediate check of JS DOM reconstruction)
-python3 scripts/svg_to_js_html.py logo.svg --out logo_static.html --title "Logo"
+# svg_to_js_html.py is not bundled: do this step by hand as the text describes (no command to run)
 
 # Phase 3: animated showcase HTML deliverable
 python3 scripts/animate_svg_showcase.py logo.svg --css motion.css --out logo_motion.html \
   --title "Logo Motion" --duration-hint 1500
 
 # Phase 3 (not bundled): minimal fallback HTML (debug/QA only, not preferred final delivery)
-python3 scripts/animate_svg_html.py logo.svg --css motion.css --out logo_motion_minimal.html \
-  --title "Logo Motion" --duration-hint 1500
+# animate_svg_html.py is not bundled: do this step by hand as the text describes (no command to run)
 
 # Phase 3: deterministic frame capture + strip + final-frame diff (requires playwright)
 python3 scripts/capture_motion_frames.py logo_motion.html \

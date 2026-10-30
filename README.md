@@ -313,7 +313,7 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
 | Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness, a mix audit and a short list for your ears |
-| Domain | [`ice-styles`](skills/ice-styles) | 150+ film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
+| Domain | [`ice-styles`](skills/ice-styles) | 156 film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
 | Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, real-first sourcing with each item's license status, brand assets |
 | Domain | [`ice-qa`](skills/ice-qa) | Quality gates (the craft gate: faces, flashes, camera, finishing), critics, delivery report |
@@ -355,6 +355,7 @@ Films made with Ice Motion Director from one prompt each, across different indus
 - **Optional and only on request:** AI image, video or voice generation, hosted transcription or TTS. These may cost money and are never used without your say-so.
 - **Run log:** each project keeps a short log of your messages, reply summaries and shared files in `ice/log/`, and delivery turns it into one self-contained page, `ice/case-study/run-log.html`. Both stay on your machine and nothing is uploaded; keys, email addresses, phone numbers and folder paths are masked in the exported files only.
 - **Local memory:** a small fingerprint file at `~/.ice-motion-director/fingerprints.jsonl` stores the palette, type and structure of each finished film so the next one does not repeat it. Delete it any time.
+- **Sources setup (optional).** Ice works with no keys. To go further, put free keys (for example a sound library's API key) in `~/.ice-motion-director/.env`, one `NAME=value` per line, and set downloads, routes and your own library folders in `~/.ice-motion-director/sources.json` (`downloads`: `allowed`, `ask` or `off`; `local_libraries`: folders of your sound packs, footage or fonts, searched before any network route). `ICE_OFFLINE=1` turns every download off. Full list: `skills/ice-assets/references/sourcing-and-licenses.md` section 0.
 - **No telemetry.**
 
 ## FAQ

@@ -52,6 +52,8 @@ An axis differs by the owner's section 3 tests (for palette: polarity differs, t
 
 A look the user chose (owner section 4a): the film is not compared, and its record is written with `user_chosen` filled; records with `user_chosen` filled are left out of every comparison set below.
 
+Script: `python scripts/film_gate.py fingerprint check --record <record.json>` and, at delivery, `fingerprint write --record <record.json>` (no numpy needed; exit 2 on a repeat, with the closest record and its matching axes). The record follows the owner's section 2 format; a record with `user_chosen` filled is never compared.
+
 Check (before render approval, after the direction is locked):
 1. Build the candidate record for this film in the owner's record format from `ice/DIRECTION.md` and the contact sheet.
 2. Select the comparison sets above from the file (most recent 30 records of other brands; every record of the same brand; skip variants and records with `user_chosen` filled) and apply the rules.

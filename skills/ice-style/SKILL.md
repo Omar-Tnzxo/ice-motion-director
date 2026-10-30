@@ -1,7 +1,7 @@
 ---
 name: ice-style
 description: >-
-  Command: browses 150+ Ice Motion Director motion styles, or starts a film in one. Use it only when
+  Command: browses the 156 Ice Motion Director motion styles, or starts a film in one. Use it only when
   the user types /ice-style or $ice-style.
 license: Apache-2.0
 metadata:

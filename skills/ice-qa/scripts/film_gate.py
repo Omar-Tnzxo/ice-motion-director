@@ -24,6 +24,10 @@ Usage:
                       [--template nearest_template_render.mp4] [--allow-blue-purple "reason"]
                       [--type "film type"] [--events film.events.json]
 
+  python film_gate.py fingerprint check|write --record record.json [--file fingerprints.jsonl]
+      the fingerprint check and write of ice-qa references/anti-sameness-gates.md section 3 (no numpy needed):
+      check exits 2 when the film repeats an earlier one; write appends an approved film's record.
+
 Exit codes: red 2; yellow or green 0; file unreadable 1.
 Needs only ffmpeg/ffprobe, numpy and opencv; it does not depend on any engine, so a film from any source can be measured.
 
@@ -125,9 +129,12 @@ try:
     import cv2
     import numpy as np
 except ImportError as _missing:
-    sys.exit(f"film_gate.py needs numpy==2.4.6 and opencv-python-headless==4.10.0.84 (missing: {_missing.name}). "
-             "Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): python -m pip install -r "
-             + os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt"))
+    if sys.argv[1:2] == ["fingerprint"]:   # the fingerprint check needs no numpy or opencv
+        cv2 = np = None
+    else:
+        sys.exit(f"film_gate.py needs numpy==2.4.6 and opencv-python-headless==4.10.0.84 (missing: {_missing.name}). "
+                 "Install them into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): python -m pip install -r "
+                 + os.path.join(os.path.dirname(os.path.abspath(__file__)), "requirements.txt"))
 
 FPS = 12            # analysis frame rate
 WIDTH = 320         # analysis width (vertical films are also 320 wide)
@@ -1490,6 +1497,108 @@ def richness_lines(sc, cuts_from):
     return L
 
 
+# ---------------------------------------------------------------- fingerprint (anti-sameness.md sections 2 to 4a)
+FP_FILE = os.path.join(os.path.expanduser("~"), ".ice-motion-director", "fingerprints.jsonl")
+FP_AXES = ("palette", "type", "layout", "motion", "structure", "sound")
+
+
+def _fp_hue_far(a, b, limit=45):
+    try:
+        d = abs(float(a) - float(b)) % 360
+    except (TypeError, ValueError):
+        return True
+    return min(d, 360 - d) >= limit
+
+
+def fp_axis_differs(axis, a, b, hue_limit=45):
+    """One axis of two fingerprint records, by the table of anti-sameness.md section 3."""
+    x, y = a.get(axis) or {}, b.get(axis) or {}
+    if axis == "palette":
+        return x.get("polarity") != y.get("polarity") or _fp_hue_far(x.get("accent_hue"), y.get("accent_hue"), hue_limit) \
+            or x.get("chroma") != y.get("chroma")
+    if axis == "type":
+        return x.get("display") != y.get("display") and (x.get("classes") != y.get("classes") or x.get("weights") != y.get("weights"))
+    if axis == "layout":
+        fx, fy = list(x.get("families") or []), list(y.get("families") or [])
+        if not fx or not fy or fx[0] != fy[0]:
+            return True
+        return len(set(fx) & set(fy)) * 2 < max(len(set(fx)), len(set(fy)))
+    if axis == "motion":
+        cx, cy = set(x.get("core_moves") or []), set(y.get("core_moves") or [])
+        return x.get("family") != y.get("family") or len(cx - cy) >= 2 or x.get("camera") != y.get("camera")
+    if axis == "structure":
+        keys = ("concept", "scene_band", "main_objects", "opening", "closing")
+        norm = lambda v: sorted(v) if isinstance(v, list) else v
+        return sum(norm(x.get(k)) != norm(y.get(k)) for k in keys) >= 3
+    if axis == "sound":
+        return any(x.get(k) != y.get(k) for k in ("lead", "genre", "dramaturgy"))
+    raise ValueError(axis)
+
+
+def fingerprint_check(rec, records, recent=30, hue_limit=45):
+    """Compare a candidate record with the file. Returns (passed, lines)."""
+    if rec.get("user_chosen"):
+        return True, [f"exempt: a look the user chose ({rec['user_chosen'].get('kind', '?')}: {rec['user_chosen'].get('ref', '?')}); "
+                      "not compared (anti-sameness.md section 4a), written with user_chosen filled"]
+    pool = [r for r in records if not r.get("user_chosen") and r.get("project") != rec.get("project")
+            and r.get("variant_of") != rec.get("project") and (not rec.get("variant_of") or rec.get("variant_of") != r.get("project"))]
+    brand = (rec.get("brand") or "none").strip().lower()
+    same = [r for r in pool if brand != "none" and (r.get("brand") or "none").strip().lower() == brand]
+    others = [r for r in pool if r not in same][-recent:]
+    lines, ok = [], True
+    for r in others:
+        diff = [ax for ax in FP_AXES if fp_axis_differs(ax, rec, r, hue_limit)]
+        if len(diff) < 4:
+            ok = False
+            lines.append(f"FAIL: differs from {r.get('date')} {r.get('brand')} ({r.get('project')}) on {len(diff)} of 6 axes; "
+                         f"matching: {', '.join(a for a in FP_AXES if a not in diff)} (change structure and motion first)")
+    for r in same:
+        diff = [ax for ax in FP_AXES[2:] if fp_axis_differs(ax, rec, r, hue_limit)]
+        if len(diff) < 3 or "structure" not in diff:
+            ok = False
+            lines.append(f"FAIL: same brand as {r.get('date')} ({r.get('project')}): {len(diff)} of 4 open axes differ"
+                         + ("" if "structure" in diff else ", structure matches") + f"; matching: {', '.join(a for a in FP_AXES[2:] if a not in diff)}")
+    lines.insert(0, f"compared with {len(others)} recent records of other brands and {len(same)} of the same brand "
+                    f"(records with user_chosen and variants left out)")
+    return ok, lines
+
+
+def fingerprint_main(argv):
+    ap = argparse.ArgumentParser(prog="film_gate.py fingerprint",
+                                 description="Fingerprint check and write (ice-qa references/anti-sameness-gates.md section 3).")
+    ap.add_argument("action", choices=["check", "write"])
+    ap.add_argument("--record", required=True, help="the candidate record, one JSON object (anti-sameness.md section 2)")
+    ap.add_argument("--file", default=FP_FILE, help=f"fingerprints file (default {FP_FILE})")
+    ap.add_argument("--recent", type=int, default=30)
+    ap.add_argument("--hue", type=float, default=45, help="accent hue distance in OKLCH degrees")
+    a = ap.parse_args(argv)
+    try:
+        rec = json.load(open(a.record, encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print(f"cannot read the record: {e}", file=sys.stderr); return 1
+    missing = [k for k in ("v", "date", "project", "brand") + FP_AXES if k not in rec]
+    if missing:
+        print("record is missing: " + ", ".join(missing), file=sys.stderr); return 1
+    records = []
+    if os.path.exists(a.file):
+        for line in open(a.file, encoding="utf-8"):
+            if line.strip():
+                try: records.append(json.loads(line))
+                except ValueError: pass
+    ok, lines = fingerprint_check(rec, records, a.recent, a.hue)
+    print("\n".join(lines))
+    if a.action == "check":
+        print("Fingerprint: " + ("pass" if ok else "FAIL"))
+        return 0 if ok else 2
+    if not ok and not rec.get("user_chosen"):
+        print("not written: an approved film passes the check first", file=sys.stderr); return 2
+    os.makedirs(os.path.dirname(os.path.abspath(a.file)), exist_ok=True)
+    with open(a.file, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False, separators=(",", ":")) + "\n")
+    print(f"written to {a.file}")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("mp4")
@@ -1537,4 +1646,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["fingerprint"]:
+        sys.exit(fingerprint_main(sys.argv[2:]))
     main()

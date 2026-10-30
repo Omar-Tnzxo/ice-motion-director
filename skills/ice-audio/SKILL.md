@@ -90,7 +90,7 @@ Real first: music and effects come from real tracks and recordings, close to the
 
 **Music ladder.**
 1. The user's track, the reference's own track, or a track the user named.
-2. The user's subscription library: a library connector the session has (Epidemic Sound searches by reference track, tempo, mood and key); otherwise a fetch list the user downloads into the project's inbox (Artlist, Envato, Motion Array and similar have no route Ice can sign in to).
+2. The user's subscription library: a subscription library connector the user has (one that searches by reference track, tempo, mood and key); otherwise a fetch list the user downloads into the project's inbox (Artlist, Envato, Motion Array and similar have no route Ice can sign in to).
 3. Libraries the user set a key for: Jamendo, Freesound, AudioJungle previews.
 4. No-key real tracks: Jamendo through Openverse, Incompetech, and real tracks already on the user's disk.
 5. Last: no bed. The delivery note says "music needed" and names 3 real tracks found in this run's search that fit the measured target, each with its route and license status; when no search could run, it gives the measured target instead (tempo window, mode, length, the confirmed mood). Never a track it could not verify exists, and never a code score (core rule 7).
