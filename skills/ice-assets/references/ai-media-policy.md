@@ -91,7 +91,7 @@ Generation ledger: `ice/assets/generated.json` (format in `project-folders.md`):
 
 Disclosure:
 - Delivery notes list every generated item and what it replaced.
-- On screen: "Illustration" or "Reconstruction" on factual, news and explainer topics; "AI-generated imagery" on concept or spec films; an illustrative generated product angle is labeled (`truth-sheet.md` section 9).
+- On screen: "Illustration" or "Reconstruction" on factual, news and explainer topics (truth labels); an illustrative generated product angle is labeled (`truth-sheet.md` section 9). No on-screen AI label: platform AI labels are the user's business at upload (`AGENTS.md` rule 17), and the delivery note carries one information line that platforms may ask for one.
 - Never present AI imagery as a real completed job, customer, place visit or result. Model licenses that forbid removing watermarks or provenance features are obeyed.
 
 ## 8. Provider notes (measured by the sources; re-check against current docs)

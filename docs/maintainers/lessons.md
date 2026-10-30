@@ -213,3 +213,75 @@ Field format: **Note** (the original observation, in English), **Trial** (the ru
 - **Scope:** general
 - **Rule:** `skills/ice-qa/scripts/craft_gate.py` (`measure` depth; `build` finishing, grade, marks, speaker); `skills/ice-edit/references/layers-and-isolation.md` (section 5); `skills/ice-remake/references/measuring.md` (sections 9, 11 and 12); `skills/ice-qa/references/frame-checks.md` (rows B8, B9, P1 and R3); `skills/ice-qa/references/identity-tests.md` (section 8); `skills/ice-motion/references/depth-and-3d.md` (section 2); `skills/ice-direction/references/treatment.md` (section 11.7, `frame:B9`)
 - **Test:** `tests/scripts.test.mjs`: "craft_gate.py measure: a parallax pan (a near band three times faster than its ground) writes 2 planes to <video>.depth.json for motion_check.py; a flat pan of one picture writes 1 plane"; `tests/scripts.test.mjs`: "craft_gate.py build: grain where the finish row names it passes; grain on a shot the row does not name is red, and the named shot without grain is red"; `tests/scripts.test.mjs`: "craft_gate.py build: an archive source class graded outside_mono is red in colour and passes in monochrome against the film's own colour world"; `tests/scripts.test.mjs`: "craft_gate.py build: a fixed mark in its slot over a moving camera passes; a mark that rides the camera, sits 3 percent off its slot or goes missing for 1.2 s is red"; `tests/scripts.test.mjs`: "craft_gate.py build: inside a recede window a speaker dimmed while speaking or dimmed 30 percent while silent is red; a scale back with partial desaturation while speaking and a 10 percent dim while silent pass"; `tests/scripts.test.mjs`: "craft_gate.py depth: a push-in whose near plane grows past 1.3x and touches the frame edge counts one push-through; inside the frame, too short or one plane counts none"
+
+## L27. Silence is never a waiver, in every workflow
+
+- **Note:** The founder asked for four choices on every open decision before any work (2026-10-22) and said silence is not consent. The completeness audit of 0.2.6 found workflow files that still took defaults when the stage 01 questions got no answer, asked only when the run could not continue, or spoke of one single stage 01 message; the README still promised at most four questions in total.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS M2, M3 and K12), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-direction/references/questions.md` (sections 1, 2 and 5, the one home); `skills/ice-edit/references/edit-types/broll-overlay.md` (step 1); `skills/ice-explainer/references/run-setup.md` (Fast pipeline section); `skills/ice-ideas/references/script-writing.md`; the Stops and approvals line of `skills/ice-edit/SKILL.md`, `skills/ice-explainer/SKILL.md`, `skills/ice-ideas/SKILL.md`, `skills/ice-lottie/SKILL.md`, `skills/ice-remake/SKILL.md`; `README.md` (Why it is different)
+- **Test:** `tests/questions-four-choices.test.mjs`: "no workflow file takes a default when the stage 01 questions get no answer (L27)"
+
+## L28. Sound by code is never a default, in styles and remakes too
+
+- **Note:** The founder rejected code-made music and effects (L1), yet style Sound lines said "all synthesized" with their own fixed loudness, and the frame-locked remake synthesized effects and allowed a generated track by default.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS K01, K03, K16), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-styles/SKILL.md` (The one rule); every Sound line of the style family files in `skills/ice-styles/references/`; `skills/ice-remake/references/rights-and-modes.md` (section "Frame-locked remake mode (frame by frame, parallel agents)"); `skills/ice-audio/SKILL.md` (core rule 7)
+- **Test:** `tests/lessons.test.mjs`: "lessons: sound by code is never a style's or a remake's default; loudness comes from the ice-audio table (L28)"
+
+## L29. The craft plan is locked before the script
+
+- **Note:** Full capacity (rule 20) depends on a craft plan from 02, but the run state let stage 03 start without one.
+- **Trial:** the completeness audit of 0.2.6 (RESEARCH-COVERAGE H31, open since the 0.2.5 handover), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-motion-director/scripts/ice-state.mjs` (`check`, `needsCraftPlan`); `skills/ice-direction/references/treatment.md` (section 11)
+- **Test:** `tests/lessons.test.mjs`: "lessons: ice-state check refuses stage 03 and later without the craft plan (L29)"
+
+## L30. A look the user chose is exempt everywhere the distance rule is stated
+
+- **Note:** The founder exempted the user's own look from anti-sameness (2026-10-29, L22), but six files still stated the 4 of 6 distance from a style's demo without the exemption, so a user who named a style could be pushed away from it.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS K02), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-direction/references/anti-sameness.md` (section 4a, the one home); `skills/ice-styles/SKILL.md`; `skills/ice-engines/references/hyperframes.md`; `skills/ice-explainer/references/grammar-selection.md`; `skills/ice-film/references/film-types/product-launch.md`; `skills/ice-direction/SKILL.md`; `skills/ice-film/SKILL.md`
+- **Test:** `tests/lessons.test.mjs`: "lessons: a look the user chose is exempt from template distance in every file that states it (L30)"
+
+## L31. A package row never dims the speaker
+
+- **Note:** The broadcast package said the speaker desaturates and dims while a discussed-person symbol plays, against L5 and L19.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS K04), 2026-10-30.
+- **Scope:** category: news, explainer and talk-show videos with a speaker on screen
+- **Rule:** `skills/ice-styles/references/family-broadcast-news.md` (package rows); `skills/ice-edit/references/layers-and-isolation.md` (section 5)
+- **Test:** `tests/lessons.test.mjs`: "lessons: a package row never dims the speaker while speaking (L31)"
+
+## L32. Free installs and downloads are never asked, in every workflow
+
+- **Note:** Rule 4 (2026-10-29) says free downloads and pinned free installs are never questions, but the Lottie scripts still asked before the Playwright browser, and the explainer, the film delivery note and the research rules still treated installs and downloads as consent items.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS M1, K09, K10), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-lottie/scripts/requirements.txt`; `skills/ice-lottie/scripts/capture_motion_frames.py`; `skills/ice-lottie/scripts/probe_motion_continuity.py`; `skills/ice-explainer/references/run-setup.md`; `skills/ice-film/references/delivery.md`; `skills/ice-direction/references/research.md`
+- **Test:** `tests/lessons.test.mjs`: "lessons: free installs and downloads are never consent items, in any workflow (L32)"
+
+## L33. Rights stay with the user in every route
+
+- **Note:** Rules 17 and 18 say no permission questions, yet the art ladder, the raster logo row, the skin rule and the art film still asked for rights or refused what the user asked for.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS K08, K11), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-assets/references/sourcing-and-licenses.md` (art ladder row 1); `skills/ice-assets/references/brand-authenticity.md` (raster logo row); `skills/ice-direction/references/reference-fidelity.md`; `skills/ice-film/references/film-types/art-film.md`
+- **Test:** `tests/lessons.test.mjs`: "lessons: rights to outside material and the user's own art stay with the user, in every route (L33)"
+
+## L34. No unofficial line and no AI label inside the film
+
+- **Note:** The founder took the unofficial line out of the film for gallery demos (2026-10-21) and, on 2026-10-30, for users' films too; platform AI labels are the user's business (rule 17). The skills still put the line on the last frame and an "AI-generated imagery" label on concept films.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS K06, decided by the founder as option 1A, and K07), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-assets/references/brand-authenticity.md` (step 10); `skills/ice-assets/references/truth-sheet.md`; `skills/ice-direction/references/questions.md`; `skills/ice-assets/references/asset-rules.md`; `skills/ice-assets/references/ai-media-policy.md`; `AGENTS.md` (Gallery demos)
+- **Test:** `tests/lessons.test.mjs`: "lessons: no unofficial line and no AI label inside the film; both live in the delivery note and caption (L34)"
+
+## L35. Arabic typing in a real product box, and never drawtext
+
+- **Note:** Product interactions happen as they really do (rule 13), but Arabic letter-by-letter typing was banned in every film type, so an Arabic app ad could not type into its own search box; and one file still allowed ffmpeg drawtext for Arabic.
+- **Trial:** the completeness audit of 0.2.6 (CONFLICTS M4, M9), 2026-10-30.
+- **Scope:** category: Arabic and mixed-language films
+- **Rule:** `skills/ice-arabic/references/letterforms-in-motion.md`; `skills/ice-arabic/references/engine-overrides.md`; `skills/ice-assets/references/fonts.md`
+- **Test:** `tests/lessons.test.mjs`: "lessons: Arabic typing in a real product input box is allowed; drawtext never sets Arabic (L35)"

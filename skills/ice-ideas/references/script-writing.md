@@ -8,7 +8,7 @@ Owned elsewhere: script shapes bank and story structures per film type (`ice-fil
 
 ## 1. Before the first line
 
-- Length and language must be known; when neither the prompt nor the brief gives them, they are questions of the stage 01 message (`ice-direction`), and without an answer the defaults are taken and logged (anything2explainer ideas). Everything else: decide and log.
+- Length and language must be known; when neither the prompt nor the brief gives them, they are slots of the stage 01 question rounds (`ice-direction/references/questions.md`); without an answer the run holds at 01, and only the user's own "don't ask" takes the recommended option, logged. Everything else: decide and log.
 - Echo the message sentence. "Do not storyboard until this is clear." (hyperframes)
 - Script approval is the cheapest place to change the film: after it, timings are built on the words and changing one word means retiming (anything2explainer ideas). Step mode: the script goes on the 03 review card and only the user's own words approve it. Auto mode: the approver role checks it against the 03 row's "Done when", and the delivery note reports it.
 - For narrated films the script comes first and sets all timing (explainroo); shot times are laid out from the real voiced length (reelmimic).

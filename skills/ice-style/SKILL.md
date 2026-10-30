@@ -41,7 +41,7 @@ Open the `ice-styles` skill's `references/catalog-index.md`. It holds every styl
 4. **Start the film.** Open the `ice-motion-director` skill and follow it from its first section (a new project in auto mode, with the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops") and nothing more), with these inputs added to the request:
    - The style is user-supplied and locked for stage 05 (look). Record it in `ice/BRIEF.md` with `source: user (ice-style preset <id>)`.
    - Everything else (concept, palette within the style, structure, sound) is still decided by the normal process, so the film is not a copy of the style's demo (the anti-sameness rules of `ice-direction` still apply to every axis except the style itself).
-   - If the style needs real material (the evidence and data family does), the brief must say where it comes from; when it does not, that question goes into the router's single stage 01 message, never a separate stop.
+   - If the style needs real material (the evidence and data family does), the brief must say where it comes from; when it does not, that question goes into the router's stage 01 question rounds, never a separate stop.
 
 ## 4. Rules
 

@@ -126,7 +126,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 - Every number traces to a source; five random reveals land on their word (narrated).
 - A CTA with a URL or offer stays readable at phone size for at least 3 s; a lockup-only sign-off follows the end-hold gate in `../openers-and-endings.md`.
 - Frozen time at most about 1 s per 30 s in energetic cuts.
-- The film differs from its nearest template or demo on at least 4 of 6 axes; a film that fails the competitor swap has no direction (ice-qa runs both gates; the swap from 02 on, `identity-tests.md`).
+- The film differs from its nearest template or demo on at least 4 of 6 axes (only for a look Ice picked: a look the user chose is exempt on the axes it fixes (`ice-direction/references/anti-sameness.md` section 4a)); a film that fails the competitor swap has no direction (ice-qa runs both gates; the swap from 02 on, `identity-tests.md`).
 
 ## Deliverables
 

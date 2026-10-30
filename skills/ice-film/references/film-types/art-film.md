@@ -55,7 +55,7 @@ Minimal; titles and subtitles held long enough to read. Hold times for subtitles
 
 ## Truth and content
 
-References teach grammar only; never copy characters, designs, melodies, shots, logos or type designs. Real works, brands or people only with rights; otherwise fictional stand-ins (ice-assets).
+References Ice picked teach grammar only; never copy their characters, designs, melodies, shots, logos or type designs. Material the user asks for (a reference's skin, real works, brands or people) follows the `identity` choice and rules 17 and 18: placed as asked, one record per item, rights are the user's.
 
 ## Richness floor
 

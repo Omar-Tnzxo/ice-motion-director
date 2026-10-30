@@ -12,8 +12,8 @@ Contract.
 
 Requires playwright==1.58.0, plus pillow==12.3.0 and numpy==2.4.6 for --strip and
 --compare-final (see requirements.txt next to this file). The browser is Playwright's
-Chromium when downloaded (python -m playwright install chromium, a browser download:
-ask the user first), else the binary in CHROME_PATH, or an installed Chrome or Edge.
+Chromium when downloaded (python -m playwright install chromium, a pinned free download
+that Ice installs without a question), else the binary in CHROME_PATH, or an installed Chrome or Edge.
 If Playwright is unavailable, capture the same ?t=<ms> URLs with whatever real-browser
 screenshot tooling exists; wall-clock screenshots of a running animation are not
 acceptable QA evidence.
@@ -32,7 +32,7 @@ PLAYWRIGHT_HINT = (
     "Install it into a project virtual environment (no question needed: ice-engines engine-choice.md section 7.6: free pinned packages install without a question): "
     f'python -m pip install -r "{REQUIREMENTS}"\n'
     "Then it needs a browser: CHROME_PATH, or an installed Chrome or Edge, is used when found; otherwise run "
-    "python -m playwright install chromium, which is a browser download, so ask the user first."
+    "python -m playwright install chromium (a pinned free download: install it without a question and record it)."
 )
 
 

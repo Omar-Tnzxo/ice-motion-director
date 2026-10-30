@@ -4,7 +4,7 @@
 // every test it names exist) and holds the lesson tests that have no other home. Zero dependencies. Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -639,4 +639,89 @@ test("lessons: anti-sameness guards Ice's own choices; a look the user chose is 
   assert.match(gates, /skip variants and records with `user_chosen` filled/);
   assert.match(gates, /When the user chose the reference for its look \(owner section 4a\), the skin is the request/);
   assert.match(readText("skills/ice-direction/references/pitch-round.md"), /at least two concepts are unexpected, except on the axes a look the user chose fixes/);
+});
+
+// 0.2.7 lessons from the completeness audit of 0.2.6 (L28 to L35).
+const trackedFiles = () => spawnSync("git", ["ls-files"], { cwd: abs("."), encoding: "utf8" }).stdout.split("\n").filter(Boolean);
+const familyFiles = () => trackedFiles().filter((f) => /^skills\/ice-styles\/references\/family-.*\.md$/.test(f));
+
+test("lessons: sound by code is never a style's or a remake's default; loudness comes from the ice-audio table (L28)", () => {
+  for (const f of familyFiles()) {
+    for (const line of readText(f).split("\n").filter((l) => l.startsWith("- **Sound:**"))) {
+      assert.doesNotMatch(line, /synthesi[sz]/i, `${f}: a Sound line still makes sound by code`);
+      if (!f.includes("broadcast-news")) assert.doesNotMatch(line, /-1\d LUFS/, `${f}: a Sound line fixes its own loudness`);
+    }
+  }
+  assert.match(readText("skills/ice-styles/SKILL.md"), /it never makes sound by code a default \(`ice-audio\/SKILL\.md` core rule 7\)/);
+  const remake = readText("skills/ice-remake/references/rights-and-modes.md");
+  assert.doesNotMatch(remake, /effects synthesized on the reference hits|a licensed or generated track/);
+  assert.match(remake, /a generated or code-made track or effect only when the user asked for it in their own words/);
+});
+
+test("lessons: ice-state check refuses stage 03 and later without the craft plan (L29)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ice-l29-"));
+  try {
+    const state = abs("skills/ice-motion-director/scripts/ice-state.mjs");
+    const run = (...args) => spawnSync(process.execPath, [state, ...args, "--dir", dir], { encoding: "utf8", timeout: 60000 });
+    const init = run("init", "--project", "demo", "--route", "film", "--mode", "auto");
+    assert.equal(init.status, 0, init.stdout + init.stderr);
+    for (const nn of ["01", "02"]) {
+      for (const s of ["in_review", "approved"]) { const r = run("set", nn, s, ...(s === "approved" ? ["--by", "approver"] : [])); assert.equal(r.status, 0, r.stdout + r.stderr); }
+    }
+    const blocked = run("check", "03");
+    assert.equal(blocked.status, 1, blocked.stdout + blocked.stderr);
+    assert.match(blocked.stdout, /craft plan from the concept stage first \(ice\/plan\/craft-plan\.json/);
+    mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+    writeFileSync(join(dir, "ice", "plan", "craft-plan.json"), "{}");
+    assert.equal(run("check", "03").status, 0);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("lessons: a look the user chose is exempt from template distance in every file that states it (L30)", () => {
+  for (const [f, re] of [["skills/ice-styles/SKILL.md", /A style the user named is exempt on the axes it fixes/],
+    ["skills/ice-engines/references/hyperframes.md", /a look the user chose is exempt on the axes it fixes/],
+    ["skills/ice-explainer/references/grammar-selection.md", /a look the user chose is exempt on the axes it fixes/],
+    ["skills/ice-film/references/film-types/product-launch.md", /a look the user chose is exempt on the axes it fixes/],
+    ["skills/ice-direction/SKILL.md", /except on the axes a look the user chose fixes/],
+    ["skills/ice-film/SKILL.md", /except where a look the user chose fixes an axis/]]) assert.match(readText(f), re, f);
+});
+
+test("lessons: a package row never dims the speaker while speaking (L31)", () => {
+  const news = readText("skills/ice-styles/references/family-broadcast-news.md");
+  assert.doesNotMatch(news, /The speaker meanwhile desaturates and dims/);
+  assert.match(news, /never dimmed while speaking; at most 15 percent luma only while silent/);
+});
+
+test("lessons: free installs and downloads are never consent items, in any workflow (L32)", () => {
+  assert.doesNotMatch(readText("skills/ice-lottie/scripts/requirements.txt"), /ask first/);
+  for (const f of ["skills/ice-lottie/scripts/capture_motion_frames.py", "skills/ice-lottie/scripts/probe_motion_continuity.py"]) {
+    assert.doesNotMatch(readText(f), /so ask the user first|ask the\s+user first|so ask\s*"\s*"the user first/, f);
+  }
+  assert.doesNotMatch(readText("skills/ice-explainer/references/run-setup.md"), /consent for an install, a download/);
+  assert.doesNotMatch(readText("skills/ice-film/references/delivery.md"), /every consent item the run skipped \(an install, a download/);
+  assert.doesNotMatch(readText("skills/ice-direction/references/research.md"), /Never download third-party videos without that yes/);
+});
+
+test("lessons: rights to outside material and the user's own art stay with the user, in every route (L33)", () => {
+  assert.doesNotMatch(readText("skills/ice-assets/references/sourcing-and-licenses.md"), /Rights and consent confirmed in the stage 01 message/);
+  assert.doesNotMatch(readText("skills/ice-assets/references/brand-authenticity.md"), /ask for the official vector or written permission/);
+  assert.doesNotMatch(readText("skills/ice-direction/references/reference-fidelity.md"), /say in one sentence why not/);
+  assert.match(readText("skills/ice-film/references/film-types/art-film.md"), /References Ice picked teach grammar only/);
+});
+
+test("lessons: no unofficial line and no AI label inside the film; both live in the delivery note and caption (L34)", () => {
+  for (const f of ["skills/ice-assets/references/brand-authenticity.md", "skills/ice-assets/references/truth-sheet.md",
+    "skills/ice-direction/references/questions.md", "skills/ice-assets/references/asset-rules.md"]) {
+    assert.doesNotMatch(readText(f), /last frame (carries|says) the line|whose last frame says|last-frame line "Unofficial|ends with "Unofficial concept/, f);
+  }
+  assert.match(readText("skills/ice-assets/references/brand-authenticity.md"), /the film itself carries no such line/);
+  assert.doesNotMatch(readText("skills/ice-assets/references/ai-media-policy.md"), /"AI-generated imagery" on concept or spec films/);
+  assert.match(readText("AGENTS.md"), /The same holds for users' unofficial concepts \(founder decision, 2026-10-30/);
+});
+
+test("lessons: Arabic typing in a real product input box is allowed; drawtext never sets Arabic (L35)", () => {
+  const lf = readText("skills/ice-arabic/references/letterforms-in-motion.md");
+  assert.match(lf, /\| Typing inside a real product input box \(search field, chat box, form\) \| Allowed when the product types there in real use/);
+  assert.match(lf, /\| Letter-by-letter typewriter \| Never on headlines, captions, titles or cards, in every film type \|/);
+  assert.match(readText("skills/ice-arabic/references/engine-overrides.md"), /\| FFmpeg `drawtext` \| Never for Arabic \|/);
 });

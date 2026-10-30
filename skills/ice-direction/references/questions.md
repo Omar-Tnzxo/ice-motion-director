@@ -170,7 +170,7 @@ Ask when: the user did not name the audience. Each option says who, where they w
 
 ### Q-brand-owner (field Brand ownership and material): your link to the brand
 Ask when: `real_brand` is not `none` and the user's words do not say whether they are the brand.
-1. (Recommended) Not the brand: an unofficial concept whose last frame says "Unofficial concept, not affiliated with <brand>" (`ice-assets` brand-authenticity step 10).
+1. (Recommended) Not the brand: an unofficial concept; the delivery note and the post caption say "Unofficial concept, not affiliated with <brand>", the film does not (`ice-assets` brand-authenticity step 10).
 2. I am the brand or work for it: an official film with its official material.
 3. A pitch to the brand: unofficial until the brand approves, and the delivery note lists the permissions it would need.
 4. A film for my own product that only learns from this brand: nothing of its name, logo, colors, copy or screens appears (`real_brand` kind `study`).

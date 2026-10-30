@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { statSync } from "node:fs";
 import { test } from "node:test";
-import { abs, readText } from "./helpers.mjs";
+import { abs, readText, repoFiles } from "./helpers.mjs";
 
 const BANK = "skills/ice-direction/references/questions.md";
 const ROUTER = "skills/ice-motion-director/SKILL.md";
@@ -106,4 +106,14 @@ test("the SKILL.md files and references this rule touches stay within the size l
   const refs = [BANK, "skills/ice-direction/references/intake-and-brief.md", "skills/ice-motion-director/references/harness.md",
     "skills/ice-motion-director/references/step-mode.md"].map((f) => [f, statSync(abs(f)).size]).filter(([, size]) => size >= 256 * 1024);
   assert.deepEqual([...problems, ...refs].map(([f, size]) => `${f}: ${size} bytes`), []);
+});
+
+// Lesson L27: silence is never a waiver in any workflow file; no file keeps the old single-message or default-on-silence wording.
+test("no workflow file takes a default when the stage 01 questions get no answer (L27)", () => {
+  const files = repoFiles().filter((f) => /^skills\/.*\.md$/.test(f) && !/noncommercial\/|vendor\//.test(f)).concat(["README.md"]);
+  const old = /single stage 01 message|Unanswered items take a default|without an answer the defaults are taken|only when you cannot continue without them|At most four short multiple-choice questions/;
+  const problems = files.filter((f) => old.test(readText(f)));
+  assert.deepEqual(problems, []);
+  assert.match(readText("skills/ice-explainer/references/run-setup.md"), /Silence is never a waiver: without an answer the run holds at 01/);
+  assert.match(readText("skills/ice-edit/references/edit-types/broll-overlay.md"), /Silence is never a waiver: without an answer the run holds at 01/);
 });

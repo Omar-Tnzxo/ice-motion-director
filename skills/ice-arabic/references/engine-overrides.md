@@ -13,7 +13,7 @@ Engine choice belongs to `ice-engines`. This file lists what each engine needs s
 | Canvas 2D in Chromium | Works with care | `ctx.direction = 'rtl'`, Arabic font loaded first, `textAlign` set explicitly; verify a proof frame. Prefer DOM or SVG when shaping is uncertain |
 | Shaped outlines (HarfBuzz to SVG paths) | Exact | Use when browser shaping is inconsistent, for letter effects, and for engines that cannot shape |
 | Pillow (Python) | Broken by default | Needs the RAQM layout engine, or `arabic_reshaper` plus `python-bidi`; otherwise letters render disconnected and reversed |
-| FFmpeg `drawtext` | Depends on the build | Needs a build with fribidi and harfbuzz and text shaping on; safer to render text in a browser layer |
+| FFmpeg `drawtext` | Never for Arabic | Even with shaping on it draws presentation forms that modern fonts show as boxes; render Arabic text in a browser layer (`ice-assets/references/fonts.md`, the drawtext rule) |
 | Lottie and Skottie | Untested for Arabic | Convert Arabic text to shape layers from a shaped source |
 | Three.js `TextGeometry` | No shaping | Use shaped SVG outlines extruded, or a DOM or canvas texture |
 | Image and video generators | Garbled letters | Never ask them for Arabic text; composite live text |

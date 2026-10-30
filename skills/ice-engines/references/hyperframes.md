@@ -136,7 +136,7 @@ Frame adapter contract: finite non-negative frame count; forward, backward and r
 - `--on-device` search downloads a 33 MB model once: offer it, state the size, never enable it silently.
 - `add <name>` needs the network every time and installs third-party code into the project: get the user's approval, then read the installed file before use. Blocks go to `compositions/<name>.html`, components to `compositions/components/<name>.html`. Run `lint` after wiring.
 - Blocks are standalone sub-compositions (`data-composition-src`, host `data-duration` at most the block's own duration; you do not reference their timeline). Components are snippets that inherit host size and duration, with transparent background and no `data-composition-id`.
-- A block is a structural donor: restyle it to the film's direction (the film must still differ from any template on 4 of 6 axes; see the ice-direction skill). Scope its CSS to `[data-composition-id="..."]`. Shader transitions: at most 2 per video.
+- A block is a structural donor: restyle it to the film's direction (the film must still differ from any template on 4 of 6 axes, only for a look Ice picked: a look the user chose is exempt on the axes it fixes (`ice-direction/references/anti-sameness.md` section 4a)). Scope its CSS to `[data-composition-id="..."]`. Shader transitions: at most 2 per video.
 - To study an item without installing, use the catalog or a scratch project; if added and dropped, remove file, manifest entry and lock entry together.
 - Liquid-glass blocks need Chrome Canary or Brave with WebGPU (`--enable-unsafe-webgpu`) and render nothing otherwise.
 

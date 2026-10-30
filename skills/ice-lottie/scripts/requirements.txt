@@ -11,4 +11,4 @@
 # the script's documented fallback). A script that fails under an installed version runs only with the pins.
 numpy==2.4.6                        # capture_motion_frames.py, probe_motion_continuity.py, render_overlay.py
 pillow==12.3.0                      # capture_motion_frames.py, probe_motion_continuity.py, render_overlay.py
-playwright==1.58.0                  # capture_motion_frames.py, probe_motion_continuity.py; then: python -m playwright install chromium (a browser download: ask first)
+playwright==1.58.0                  # capture_motion_frames.py, probe_motion_continuity.py; then: python -m playwright install chromium (a pinned browser download: Ice installs it without a question and records it)

@@ -22,8 +22,8 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 
 - Never apply a style because it is listed first, because it is the nearest match to a keyword, or because a demo exists. Shortlist at least three candidates from at least two families and hand them to ice-direction for the pitch round.
 - An entry locks the medium (look, palette logic, motion quality, camera vocabulary, sound palette). The brief decides everything else: subject, structure, opening, ending, copy, exact colours. Never take a demo's story, shots, props, composition or timeline.
-- A film made in a catalog style must still differ from that style's demo and from any bundled template on at least 4 of 6 axes. That gate, its six axes, the per-project fingerprint and the default-look gate are owned by the ice-direction skill, `references/anti-sameness.md` (decision), and the ice-qa skill (check); run them there. Because a style fixes the medium, a style film wins its difference on the axes the style leaves open (structure and layout above all), never by recolouring.
-- Every example, palette value and scene inside an entry is illustration only.
+- A film made in a catalog style Ice picked must still differ from that style's demo and from any bundled template on at least 4 of 6 axes. A style the user named is exempt on the axes it fixes (`ice-direction/references/anti-sameness.md` section 4a); it still never takes the demo's story, shots or timeline. That gate, its six axes, the per-project fingerprint and the default-look gate are owned by the ice-direction skill, `references/anti-sameness.md` (decision), and the ice-qa skill (check); run them there. Because a style fixes the medium, a style film wins its difference on the axes the style leaves open (structure and layout above all), never by recolouring.
+- Every example, palette value and scene inside an entry is illustration only. A Sound line names the genre and instruments as the target for real library tracks and recorded SFX; it never makes sound by code a default (`ice-audio/SKILL.md` core rule 7), and loudness comes from the `ice-audio` profile table.
 
 ## Procedure
 

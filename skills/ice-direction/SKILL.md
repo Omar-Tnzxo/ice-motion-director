@@ -96,7 +96,7 @@ A lower layer never overrides a higher lock. Brand rules outrank a reference's s
 - Every decision in `DIRECTION.md` names options considered, the choice, the reason and the source (brief slot, research note with date, reference, or user answer). No source, no decision.
 - Builders never grade their own work. The critic is a separate, read-only pass that never sees the director's reasoning. When an independent score and a self-score differ, the lower one counts.
 - Research queries contain only terms that trace to a BRIEF slot or to the fixed frame words in `references/research.md`. A query with an untraceable term is not run.
-- Templates, demos, worked examples and palette libraries are references, never defaults. A film differs from its nearest bundled template or demo on at least 4 of 6 axes.
+- Templates, demos, worked examples and palette libraries are references, never defaults. A film differs from its nearest bundled template or demo on at least 4 of 6 axes, except on the axes a look the user chose fixes (`references/anti-sameness.md` section 4a).
 - Blue and purple dominance (the stock AI palette) fails the default-look gate unless the brief gives a reason.
 - Supplied material is locked: never reword, shorten or replace a field the user gave; fill only missing fields, each with its own D-entry.
 - Never invent approval, a source, a date, or a research result. If research could not run, say so in the log and in the hand-off.

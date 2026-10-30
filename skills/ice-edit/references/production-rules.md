@@ -59,7 +59,7 @@ Examples of notes turned into rules (illustration only, from one creator's histo
 ## 5. Working style with the user
 
 - Say in one line what you understood, where you are and what comes next, in the user's language. Never hand the user a list of commands to run.
-- Ask only inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"): the single stage 01 message and the one preview approval in auto mode, the review card in step mode, and only when the answer changes the edit. Anything else in auto mode: decide, log it in `ice/DIRECTION.md`, report it in the delivery note. Question count, format and order: the `ice-direction` skill, `references/questions.md` section 2.
+- Ask only inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"): the stage 01 question rounds and the one preview approval in auto mode, the review card in step mode, and only when the answer changes the edit. Anything else in auto mode: decide, log it in `ice/DIRECTION.md`, report it in the delivery note. Question count, format and order: the `ice-direction` skill, `references/questions.md` section 2.
 - Show one contact sheet or one short preview per review, not a pile of images.
 - One render at a time per machine; do not run heavy ASR or encodes in parallel with a render.
 

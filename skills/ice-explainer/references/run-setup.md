@@ -38,7 +38,7 @@ The run mode is derived from the size, the brief and the platform at 01, never a
 
 ## 4. Rules for decisions
 
-- What this workflow needs from the user (voice source, consent for an install, a download or a paid or cloud voice, and for long-form the length and the language when open) goes inside the single stage 01 message, through the `ice-direction` question rules (four options per question, the recommended one first, at most 4 questions per round, plain words). At any later stage: auto mode decides, logs and reports; step mode puts it in that stage's review card.
+- What this workflow needs from the user (voice source, a paid or cloud voice, an account or sign-in, and for long-form the length and the language when open) goes inside the stage 01 question rounds; free installs and downloads are never asked, they are done and recorded (`AGENTS.md` rule 4), through the `ice-direction` question rules (four options per question, the recommended one first, at most 4 questions per round, plain words). At any later stage: auto mode decides, logs and reports; step mode puts it in that stage's review card.
 - The script (03) is the cheapest place to change anything. After timing exists, one changed word means a retime. So the script is approved before the voice step: by the approver in auto mode, on the 03 review card in step mode.
 - Decide everything else yourself and log it in `ice/DIRECTION.md` with the reason.
 
@@ -70,7 +70,7 @@ Use when the brief asks for speed, the film is 45 to 120 s with one idea, or a d
 ### 1. Behavior
 
 - Decide the normal things yourself: look, length, voice, layout, wording. Log each choice in `ice/DIRECTION.md` with its reason.
-- Questions go only in the single stage 01 message, and only when you cannot continue without them: the topic is unclear, a fact that matters cannot be checked, the user wants a paid or cloud service that is not set up, or the request is something code cannot make (for example camera footage that does not exist). After 01, auto mode decides, logs the choice in `ice/DIRECTION.md` and reports it in the delivery note (a fact that cannot be checked is left out; an impossible item is replaced by what code can make, labelled); step mode puts it on that stage's review card.
+- Questions go only in the stage 01 question rounds, and they cover every decision slot the prompt leaves open (`ice-direction/references/questions.md` sections 1 and 2: four options each, the recommended one first, at most four per round); the fast pipeline makes the rounds short, never skips them. Silence is never a waiver: without an answer the run holds at 01. Also asked there: a topic that is unclear, a fact that matters and cannot be checked, a paid or cloud service that is not set up, or a request code cannot make (for example camera footage that does not exist). After 01, auto mode decides, logs the choice in `ice/DIRECTION.md` and reports it in the delivery note (a fact that cannot be checked is left out; an impossible item is replaced by what code can make, labelled); step mode puts it on that stage's review card.
 - Render early, render often: placeholders before assets, estimated timing before the voice, silent before audio. Show intermediate renders rather than describing them.
 
 ### 2. Tool stack (local first)

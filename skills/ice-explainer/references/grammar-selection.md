@@ -8,7 +8,7 @@ Spine stage 04 (and 02 for the film-level grammar family). A grammar is the visu
 - A film may switch grammar by section (chapter or act). Never mix two grammars inside one section.
 - At most two grammars in a short film (under about 90 s), unless the brief asks for a montage.
 - Measure before you define: when the brief names a reference channel or style, analyze 2 to 5 real samples (shot length, still ratio, transition kinds) through `ice-remake` analysis or `ice-qa` tools. Remembered "signature features" are often wrong.
-- Grammars and demo palettes are references, never defaults. The film must differ from the nearest bundled demo on at least 4 of 6 axes (`ice-direction`).
+- Grammars and demo palettes are references, never defaults. The film must differ from the nearest bundled demo on at least 4 of 6 axes, only for a look Ice picked: a look the user chose is exempt on the axes it fixes (`ice-direction/references/anti-sameness.md` section 4a).
 
 ## 2. Narration function to grammar
 

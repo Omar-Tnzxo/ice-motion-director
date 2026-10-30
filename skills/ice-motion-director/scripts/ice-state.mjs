@@ -282,10 +282,19 @@ function hasDraft(p, state) {
   return existsSync(dir) && readdirSync(dir).some((f) => /^draft/i.test(f));
 }
 
+// A run whose order has a concept stage (02) in use locks its craft plan there (AGENTS.md rule 20, lesson L29):
+// no later stage starts without ice/plan/craft-plan.json.
+function needsCraftPlan(state, groups, entry) {
+  return stageOf(entry) > "02" && groups.flat().some((e) => stageOf(e) === "02") && state.stages["02"]?.status !== "not_used";
+}
+
 // The sentence that refuses `entry`, or null when every earlier stage is ready (and the draft exists where one is needed).
 function blockedBy(p, opt, state, groups, entry) {
   const blocker = prerequisites(groups, entry).find((e) => !READY.has(entryStatus(state, e)));
   if (blocker) return blockerSentence(state, opt, entry, blocker);
+  if (needsCraftPlan(state, groups, entry) && !existsSync(join(p.ice, "plan", "craft-plan.json"))) {
+    return `The ${label(entry)} needs the craft plan from the concept stage first (ice/plan/craft-plan.json, one row per craft dimension: ice-direction/references/treatment.md section 11). Write it, or run ${cmd(opt, "02")} again.`;
+  }
   if ((entry === "08b" || stageOf(entry) === "09") && DRAFT_ROUTES.has(state.route) && !hasDraft(p, state)) {
     return `The ${label(entry)} needs a draft render of the film on disk (ice/renders/draft-<n>.mp4) first. Run ${cmd(opt, "07")} first.`;
   }

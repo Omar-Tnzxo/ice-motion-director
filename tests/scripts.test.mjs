@@ -281,6 +281,9 @@ test("ice-state.mjs: init, check, set, reopen, next and schema refusals", () => 
   assert.deepEqual(Object.keys(s0.stages).sort(), ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]);
   assert.deepEqual(s0.stages["08"].parts, { a: "missing", b: "missing" });
   assert.equal(st("init", "--project", "demo", "--route", "film").status, 1, "init must not overwrite a project");
+  // Lesson L29: stages after 02 need the craft plan; this test is about the state machine, so the plan file exists.
+  mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+  writeFileSync(join(dir, "ice", "plan", "craft-plan.json"), "{}");
 
   r = st("check", "02");
   assert.equal(r.status, 1);

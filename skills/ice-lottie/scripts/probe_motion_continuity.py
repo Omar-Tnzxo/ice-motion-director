@@ -8,8 +8,8 @@
 Two modes, both built on the deterministic ?t=<ms> seek hook (requires
 playwright==1.58.0, plus numpy==2.4.6 and pillow==12.3.0 for --ink-sweep; see
 requirements.txt next to this file. The browser is Playwright's Chromium when
-downloaded (python -m playwright install chromium, a browser download: ask the
-user first), else the binary in CHROME_PATH, or an installed Chrome or Edge):
+downloaded (python -m playwright install chromium, a pinned free download that Ice installs
+without a question and records), else the binary in CHROME_PATH, or an installed Chrome or Edge):
 
 1. Computed-style probe, verifies that the easing you designed is the easing
    the browser actually runs. Catches the silent-linear failure where
@@ -92,8 +92,8 @@ def main() -> int:
     except ImportError:
         print(f"probe_motion_continuity.py needs playwright==1.58.0. {INSTALL_HINT}\n"
               "Then it needs a browser: CHROME_PATH, or an installed Chrome or Edge, is used when found; "
-              "otherwise run python -m playwright install chromium, which is a browser download, so ask "
-              "the user first.", file=sys.stderr)
+              "otherwise run python -m playwright install chromium, (a pinned free download: install it "
+              "without a question and record it).", file=sys.stderr)
         return 2
     if args.ink_sweep:
         try:

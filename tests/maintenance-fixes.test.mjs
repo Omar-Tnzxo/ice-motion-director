@@ -4,7 +4,7 @@
 // from `ice-state.mjs set NN in_progress` on a reopening. Zero dependencies. Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -149,6 +149,8 @@ test("ice-state.mjs prints the redirect checklist on a reopening only, after the
   const dir = join(work, "film project");
   const st = (...args) => spawnSync(process.execPath, [abs("skills/ice-motion-director/scripts/ice-state.mjs"), ...args, "--dir", dir], { encoding: "utf8", timeout: 60000 });
   assert.equal(st("init", "--project", "demo", "--route", "film", "--mode", "auto").status, 0);
+  mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+  writeFileSync(join(dir, "ice", "plan", "craft-plan.json"), "{}");
   for (const nn of ["01", "02", "03", "04", "05", "06"]) {
     let r = st("set", nn, "in_review");
     assert.equal(r.status, 0, r.stderr);
