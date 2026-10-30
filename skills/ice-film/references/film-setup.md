@@ -6,6 +6,7 @@ Stage 01 picks the film type and the crew row; every later stage reads the crew 
 
 1. Film types
 2. Crew size and sub-agent roles
+3. Music at 01
 
 ## 1. Film types
 
@@ -53,3 +54,7 @@ Scale sub-agents and review rounds to the film; a 20 s ad does not need 20 dispa
 Stage approvals in auto mode: a stage with a critic in this table is judged by it; every other stage passes on the approver's batched check of its "Done when" column (`ice-direction/references/decision-process.md` section 3), and one approver dispatch may cover several stages. Batch, never skip: one dispatch may judge several decisions when each has its own options and verdict. Never shrinks with the crew: a reviewer who did not build judges every round; three options and a critic at every fork; the truth pass, the stills check, the richness floor; the cold-viewer clarity reads, each a fresh dispatch of its own, never batched and not counted in the row's numbers (`ice-qa/references/clarity-gate.md` section 7).
 
 Roles: director (always, usually the main agent; `roles/director.md`); builder (long films split by file, or parallel films; `roles/builder.md`); reviewer (every round, fresh; `roles/reviewer.md`); finalizer (after 09; a lean crew's director may finalize; `roles/finalizer.md`). On a short film the director may build alone, but a separate reviewer judges every round.
+
+## 3. Music at 01
+
+Track-led types (hype promo, music video, kinetic type cut to a track, showreel) take or choose the track, run its sync license check and measure its beat map now; other music-led types (brand film by default) do so only when a licensed track already leads; otherwise they shortlist real tracks at 05, picked by ear from 2 to 3 options (`ice-audio/SKILL.md` section 5). The track that leads is chosen at 01 because the cut is built on its beat map; a film led by voice or picture picks its music later, from real library options laid on the animatic.

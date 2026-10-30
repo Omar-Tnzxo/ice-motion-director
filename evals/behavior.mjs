@@ -65,6 +65,7 @@ const NOT_GRADED = {
   L38: "the case study site package: stage 10, after the cases stop",
   L39: "progress messages in auto mode: judged by l39-progress-sent",
   L40: "short music, beat error, halftone, fringe and contrast are measured at stages 07 to 09, after the cases stop",
+  L41: "the portrait and flag routes are judged by l24-footage-by-script; stage 05 and music options by the L13 and L1 graders",
 };
 const GRADERS = [
   {

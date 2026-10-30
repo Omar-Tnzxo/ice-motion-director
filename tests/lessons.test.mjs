@@ -912,3 +912,48 @@ test("lessons: beat error per cut, halftone and fringe are measured by scripts; 
   assert.match(readText("skills/ice-styles/references/family-broadcast-news.md"), /7\.8:1 is the floor for captions, quotes and card text/);
   assert.match(readText("skills/ice-qa/references/audio-gates.md"), /Beat error per cut \(A20\): `python sound_map\.py/);
 });
+
+test("lessons: portraits and flags come through Wikidata routes, stage 05 opens the code-drawn art rules, music_options sets 2 or 3 (L41)", (t) => {
+  const py = findPython();
+  if (!py) { t.skip("python missing"); return; }
+  const dir = mkdtempSync(join(tmpdir(), "ice-l41-"));
+  try {
+    const code = [
+      "import importlib.util as u, json, sys, types",
+      `s = u.spec_from_file_location('fm', r'${abs("skills/ice-assets/scripts/fetch_media.py")}'); m = u.module_from_spec(s); s.loader.exec_module(m)`,
+      "def fake(url, cache=None):",
+      "    if 'wbsearchentities' in url: return {'search': [{'id': 'Q79'}]}",
+      "    if 'wbgetentities' in url: return {'entities': {'Q79': {'labels': {'en': {'value': 'Egypt'}}, 'descriptions': {'en': {'value': 'country'}}, 'claims': {'P41': [{'mainsnak': {'datavalue': {'value': 'Flag of Egypt.svg'}}}]}}}}",
+      "    return {'query': {'pages': {'1': {'title': 'File:Flag of Egypt.svg', 'imageinfo': [{'url': 'https://upload.wikimedia.org/x/Flag_of_Egypt.svg', 'mime': 'image/svg+xml', 'descriptionurl': 'https://commons.wikimedia.org/wiki/File:Flag_of_Egypt.svg', 'extmetadata': {'LicenseShortName': {'value': 'Public domain'}}}]}}}}",
+      "m.get_json = fake",
+      "a = types.SimpleNamespace(route='wikidata_flag', terms='Egypt', type=None, n=3)",
+      "print(json.dumps(m.search(a, None)))",
+    ].join("\n");
+    const r = spawnSync(py[0], [...py.slice(1), "-c", code], { encoding: "utf8", timeout: 60000 });
+    assert.equal(r.status, 0, r.stderr);
+    const [flag] = JSON.parse(r.stdout.trim().split("\n").pop());
+    assert.equal(flag.id, "File:Flag of Egypt.svg");
+    assert.equal(flag.kind, "svg");
+    assert.match(flag.subject, /^Egypt \(Q79, country\)$/);
+    assert.match(flag.fetch_with, /^get wikimedia "File:Flag of Egypt\.svg"$/);
+    const get = spawnSync(py[0], [...py.slice(1), abs("skills/ice-assets/scripts/fetch_media.py"), "get", "wikidata_person", "File:x.jpg", "--project", dir], { encoding: "utf8", timeout: 60000 });
+    assert.equal(get.status, 2);
+    assert.match(get.stderr, /is a search route: fetch the file it found with get wikimedia/);
+    mkdirSync(join(dir, "ice"), { recursive: true });
+    writeFileSync(join(dir, "ice", "sources.json"), JSON.stringify({ music_options: 2 }));
+    const mo = [
+      "import importlib.util as u, sys",
+      "from pathlib import Path",
+      `s = u.spec_from_file_location('po', r'${abs("skills/ice-audio/scripts/preview_options.py")}'); m = u.module_from_spec(s); s.loader.exec_module(m)`,
+      `print(m.music_options(Path(r'${dir}'))[0])`,
+    ].join("\n");
+    const q = spawnSync(py[0], [...py.slice(1), "-c", mo], { encoding: "utf8", timeout: 60000 });
+    assert.equal(q.status, 0, q.stderr);
+    assert.equal(q.stdout.trim(), "2");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+  const film = readText("skills/ice-film/SKILL.md");
+  const row05 = film.split("\n").find((l) => l.startsWith("| 05 look |"));
+  assert.match(row05, /Only if art is drawn in code: `ice-styles\/references\/code-illustration-craft\.md`/);
+  assert.match(readText("skills/ice-film/references/film-setup.md"), /## 3\. Music at 01/);
+  assert.match(readText("skills/ice-assets/references/sourcing-and-licenses.md"), /\| `music_options` \| How many real music options/);
+});

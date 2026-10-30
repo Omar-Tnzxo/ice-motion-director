@@ -325,3 +325,11 @@ Field format: **Note** (the original observation, in English), **Trial** (the ru
 - **Scope:** general
 - **Rule:** `skills/ice-audio/scripts/master_audio.py` (`--allow-short-music`); `skills/ice-audio/references/mix-and-master.md` (section 6); `skills/ice-audio/scripts/sound_map.py` (`--cuts`, `beat_error`); `skills/ice-qa/references/audio-gates.md` (A20); `skills/ice-qa/scripts/craft_gate.py` (`screen_and_fringe`); `skills/ice-remake/references/measuring.md` (section 9); `skills/ice-styles/references/family-broadcast-news.md` (Type, reading contrast)
 - **Test:** `tests/lessons.test.mjs`: "lessons: a short or looped music track fails the master unless the cue sheet allows it (L40)"; `tests/lessons.test.mjs`: "lessons: beat error per cut, halftone and fringe are measured by scripts; news reading text has a contrast floor (L40)"
+
+## L41. The last open items: portraits and flags by route, code-drawn art at 05, the number of music options
+
+- **Note:** Three items of the research were still open after the 0.2.6 audit: the fetcher had no route for a named person's portrait or a flag (the prototype's Wikidata lookups were dropped), the film workflow's stage 05 did not open the code-drawn art rules although the art check runs there, and the number of music options the user hears had no setting.
+- **Trial:** the completeness audit of 0.2.6 (RESEARCH-COVERAGE E06, E11, H10), 2026-10-30.
+- **Scope:** general
+- **Rule:** `skills/ice-assets/scripts/fetch_media.py` (`wikidata_person`, `wikidata_flag`); `skills/ice-assets/references/sourcing-and-licenses.md` (section 0 `music_options`, section 1 Flags, section 4 `wikidata`); `skills/ice-audio/scripts/preview_options.py` (`music_options`); `skills/ice-film/SKILL.md` (spine row 05); `skills/ice-film/references/film-setup.md` (section 3)
+- **Test:** `tests/lessons.test.mjs`: "lessons: portraits and flags come through Wikidata routes, stage 05 opens the code-drawn art rules, music_options sets 2 or 3 (L41)"

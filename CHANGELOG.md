@@ -2,9 +2,9 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
-## Unreleased (0.2.7)
+## 0.2.7 - 2026-10-30
 
-Every gap the completeness audit of 0.2.6 found between the founder's decisions, the research and the skills is closed, each as a lesson (L27 to L40) with its rule and its test.
+Every gap the completeness audit of 0.2.6 found between the founder's decisions, the research and the skills is closed, each as a lesson (L27 to L41) with its rule and its test.
 
 - **Silence is never a waiver anywhere (L27).** Every workflow asks the stage 01 questions in rounds; none takes a default when no one answers.
 - **No sound by code by default, in styles and remakes too (L28),** and loudness always from the `ice-audio` profile table.
@@ -17,6 +17,7 @@ Every gap the completeness audit of 0.2.6 found between the founder's decisions,
 - **Case study v2 (L38):** `export-case-study.mjs --site` writes the gallery package: the film in full HD beside the raw source cut by the EDL, the source and why those minutes, the prompt with its English translation, the story with real times, the disclaimer and credits.
 - **Auto mode shows each stage as it lands (L39),** without a new stop.
 - **Short music fails the master; beat error, halftone and fringe are measured (L40).**
+- **Portraits and flags by route, code-drawn art at stage 05, and a `music_options` setting for 2 or 3 tracks (L41).**
 - **Housekeeping:** 32 small reference files merged into their siblings (599 to 567 files); `gates.mjs` warns when the last version check is older than 30 days; the behaviour check before a release is a manual one-prompt run on a clean Claude (founder decision, 2026-10-30).
 
 ## 0.2.6 - 2026-10-30

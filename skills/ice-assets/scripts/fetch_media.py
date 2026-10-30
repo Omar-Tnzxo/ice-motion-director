@@ -6,8 +6,8 @@
 # through the pinned yt-dlp is added (one clip per call, its channel checked); files land in the user's project with
 # the sidecar, manifest row and credits row of project-folders.md sections 3, 3b and 4; ICE_OFFLINE and sources.json
 # are read before any network call; 90 s timeouts, 3 tries, a cache in temp/cache/, the 1 KB range probe and Ice's own
-# User-Agent (section 5); a `record` step for local files. The prototype's Wikidata portrait and flag commands were not
-# ported: Commons search (--type image or svg) reaches the same files.
+# User-Agent (section 5); a `record` step for local files. 0.2.7: the prototype's Wikidata portrait and flag lookups
+# return as the search routes wikidata_person and wikidata_flag (lesson L41).
 """fetch_media.py: find and fetch real footage, photos and sound from the routes that need no key, with their records.
 
 Steps (the ice-assets skill, references/sourcing-and-licenses.md sections 1a, 4 and 5):
@@ -28,7 +28,9 @@ Steps (the ice-assets skill, references/sourcing-and-licenses.md sections 1a, 4 
           (lesson L36 of the 0.2.7 audit work: local first, section 1).
 
 Routes (no key): openverse (image, audio), wikimedia (image, svg, video, audio), internet_archive (video, audio,
-image), nasa (image, video, audio), youtube_official (video through the pinned yt-dlp).
+image), nasa (image, video, audio), youtube_official (video through the pinned yt-dlp); search only: wikidata_person (a
+named person's portrait, Wikidata P18) and wikidata_flag (a country's, region's or body's flag, Wikidata P41), whose
+Commons file is then fetched with `get wikimedia`.
 
 Exit codes: 0 done; 1 failed (network, no result, a tool error); 2 usage error; 3 not done because of the user's
 settings or a sourcing rule (offline, route off, a yes needed, over the size cap, not one official clip, disk space).
@@ -66,9 +68,16 @@ ROUTES = {
     "internet_archive": ("video", "audio", "image"),
     "nasa": ("image", "video", "audio"),
     "youtube_official": ("video",),
+    "wikidata_person": ("image",),
+    "wikidata_flag": ("svg", "image"),
 }
+# Search-only routes: Wikidata names the Commons file (P18 image of a person, P41 flag image of a place or body);
+# the chosen file is fetched with `get wikimedia <File:...>` like any Commons file (lesson L41).
+WIKIDATA = "https://www.wikidata.org/w/api.php"
+WIKIDATA_ROUTES = {"wikidata_person": "P18", "wikidata_flag": "P41"}
 SITES = {"openverse": "Openverse", "wikimedia": "Wikimedia Commons", "internet_archive": "Internet Archive",
          "nasa": "NASA Image and Video Library", "youtube_official": "official channel on a video platform (yt-dlp)",
+         "wikidata_person": "Wikidata portrait (P18) on Wikimedia Commons", "wikidata_flag": "Wikidata flag (P41) on Wikimedia Commons",
          "user-download": "the user's download"}
 FOLDER = {"image": "images", "svg": "images", "video": "footage", "audio": "audio"}
 DEFAULT_ROLE = {"image": "photo", "svg": "icon", "video": "footage", "audio": "sfx"}
@@ -558,9 +567,47 @@ def commons_item(page, kind=None):
             "rendition": "original", "thumb": ii.get("thumburl"), "thumbwidth": ii.get("thumbwidth"), "mime": mime}
 
 
+def search_wikidata(a, n, cache):
+    """The Commons file a Wikidata item names for a person's portrait (P18) or a flag (P41), for the words given."""
+    prop = WIKIDATA_ROUTES[a.route]
+    found = get_json(WIKIDATA + "?" + urllib.parse.urlencode({"action": "wbsearchentities", "format": "json", "type": "item",
+                                                              "language": "en", "uselang": "en", "limit": n, "search": a.terms}), cache)
+    ids = [x.get("id") for x in found.get("search", []) if x.get("id")][:n]
+    if not ids:
+        return []
+    ents = get_json(WIKIDATA + "?" + urllib.parse.urlencode({"action": "wbgetentities", "format": "json", "ids": "|".join(ids),
+                                                             "props": "claims|labels|descriptions", "languages": "en"}), cache).get("entities", {})
+    files = []
+    for q in ids:
+        e = ents.get(q) or {}
+        for c in ((e.get("claims") or {}).get(prop) or [])[:1]:
+            v = ((c.get("mainsnak") or {}).get("datavalue") or {}).get("value")
+            if isinstance(v, str) and v:
+                label = ((e.get("labels") or {}).get("en") or {}).get("value", "")
+                desc = ((e.get("descriptions") or {}).get("en") or {}).get("value", "")
+                files.append((q, label, desc, "File:" + v.replace("_", " ")))
+    if not files:
+        return []
+    data = get_json(COMMONS + "?" + urllib.parse.urlencode({"action": "query", "format": "json", "titles": "|".join(f[3] for f in files),
+                                                            "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata", "iiextmetadatafilter": EXT_META}), cache)
+    pages = {p.get("title"): p for p in ((data.get("query") or {}).get("pages") or {}).values()}
+    out = []
+    for q, label, desc, title in files:
+        page = pages.get(title)
+        if not page or not page.get("imageinfo"):
+            continue
+        item = commons_item(page)
+        item["subject"] = f"{label} ({q}{', ' + desc if desc else ''})"
+        item["fetch_with"] = f"get wikimedia \"{item['id']}\""
+        out.append(item)
+    return out
+
+
 def search(a, cache):
     n = max(1, min(a.n, MAX_CANDIDATES))
     kind = a.type or ROUTES[a.route][0]
+    if a.route in WIKIDATA_ROUTES:
+        return search_wikidata(a, n, cache)
     if a.route == "openverse":
         params = {"q": a.terms, "page_size": n, "filter_dead": "false"}
         params.update({k: v for k, v in (("license", a.license), ("source", a.source)) if v})
@@ -938,6 +985,8 @@ def cmd_search(a):
 
 
 def cmd_get(a):
+    if a.route in WIKIDATA_ROUTES:
+        raise Stop(USAGE, f"{a.route} is a search route: fetch the file it found with get wikimedia <File:...>")
     if a.type and a.type not in ROUTES[a.route]:
         raise Stop(USAGE, f"route {a.route} has types {', '.join(ROUTES[a.route])}, not {a.type}")
     a.window = parse_window(a.window) if a.window else None

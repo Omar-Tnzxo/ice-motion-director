@@ -12,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.6
+  version: 0.2.7
 ---
 
 # Ice Motion: motion craft

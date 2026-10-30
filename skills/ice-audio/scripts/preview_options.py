@@ -152,6 +152,20 @@ video,audio{{width:100%;background:#000}}figure{{margin:0}}a{{color:#9cf;word-br
 """
 
 
+def music_options(project: Path | None) -> tuple[int, str]:
+    """How many options the user hears: `music_options` (2 or 3) in sources.json, the project's file over the home file;
+    3 by default (sourcing-and-licenses.md section 0, lesson L41)."""
+    n, origin = 3, "default"
+    for f in [Path.home() / ".ice-motion-director" / "sources.json"] + ([project / "ice" / "sources.json"] if project else []):
+        try:
+            v = json.loads(f.read_text(encoding="utf-8-sig")).get("music_options")
+        except (OSError, ValueError, AttributeError):
+            continue
+        if v in (2, 3):
+            n, origin = v, f"{f} music_options"
+    return n, origin
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Lay 2 or 3 music options on the same picture at equal measured loudness and write compare.html. No network.",
                                  epilog="Rank the candidates first with match_music.py music; pass its ranking.json to start each track at its strongest section.")
@@ -166,11 +180,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--keep-film-audio", action="store_true", help="keep the picture's own sound (a voice) with the music under it")
     ap.add_argument("--bed-under-voice", type=float, default=12.0, help="dB the music sits under the film's own sound (default 12)")
     ap.add_argument("--height", type=int, default=540, help="preview height in pixels (default 540)")
+    ap.add_argument("--project", type=Path, help="the user's project folder (reads music_options from its ice/sources.json)")
     args = ap.parse_args(argv)
 
     if not 2 <= len(args.tracks) <= 3:
         sys.stderr.write("error: give 2 or 3 tracks\n")
         return 2
+    want, origin = music_options(args.project)
+    if len(args.tracks) > want:
+        print(f"music_options is {want} ({origin}): laying the best {want}, leaving out {', '.join(p.name for p in args.tracks[want:])}")
+        args.tracks = args.tracks[:want]
     missing = [p for p in [*args.tracks, args.video, args.ranking] if p and not p.is_file()]
     if missing:
         sys.stderr.write("error: not a file: " + ", ".join(str(p) for p in missing) + "\n")
