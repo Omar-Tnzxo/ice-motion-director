@@ -57,7 +57,7 @@ Run every candidate through the concept tests (hero moment, the brand test and c
 | Truth | Every number, name and result traces to the truth sheet | Anything invented |
 | Phone read | Readable on a phone, muted, at the target platform | Needs sound or a big screen to make sense (unless the platform is a big screen) |
 
-Scoring for trade-offs: the `ice-direction` skill, `references/concept-sources.md` section 9. Never prefer the busiest candidate by default.
+Scoring for trade-offs: the `ice-direction` skill, `references/pitch-round.md` (section "Concept sources") section 9. Never prefer the busiest candidate by default.
 
 ## 6. Honesty rules for ideas
 

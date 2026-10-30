@@ -48,7 +48,7 @@ Subtitles go last in the render chain so overlays never hide them (`ice-engines`
 | Topic | Rule |
 |---|---|
 | Real events, places, products, documents, people | Real footage or images are required. A film with zero footage or image shots fails; under one third warns. "No footage" is not a design choice: degrade from video to images, then to the unfinished list |
-| A real web page exists | Never fake it with a mock; film the real capture (`references/code-and-ui-explainers.md`) |
+| A real web page exists | Never fake it with a mock; film the real capture (`references/grammar-selection.md` (section "Code, pull request, product UI and website explainers")) |
 | Narration talks about an output or an effect | Show a real clip of it, muted |
 | Abstract concepts | Invented visuals that embody the metaphor |
 | Long dim UI panels or waveforms | Replace with real footage; they lose viewers |

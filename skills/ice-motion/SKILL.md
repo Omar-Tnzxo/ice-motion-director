@@ -113,7 +113,7 @@ richness: hero_share <n> | hero_width <n or n/a> | frame_fill <n of 16> | empty_
 | Exact construction of a cut or transition | `references/cut-catalog.md` | Building a seam |
 | Which transition, how many, crossfade and exit policy, seam plan fields | `references/transition-policy.md` | Choosing seams |
 | Carry, vector law, handoff contracts, tolerances, root protagonist | `references/seams-and-carry.md` | Every boundary |
-| One-shape, one-world and one-actor films | `references/one-take-films.md` | The direction calls for a continuous film |
+| One-shape, one-world and one-actor films | `references/camera.md` (section "One-take films: one shape, one world, one camera") | The direction calls for a continuous film |
 | Camera reasons, rig rules, move durations, shake, density limits | `references/camera.md` | Any camera move |
 | Focal point, hero size, layers, layout, staging, staging light, the visual richness floor (section 7) | `references/composition-and-staging.md` | Framing every shot; checking the plan in step 8 |
 | 2D vs 2.5D vs 3D, parallax, depth of field, 3D flight values | `references/depth-and-3d.md` | Depth or 3D beats |
@@ -125,8 +125,8 @@ richness: hero_share <n> | hero_width <n or n/a> | frame_fill <n of 16> | empty_
 | Time-coded blueprints, shot constructions, time skeletons | `references/shot-blueprints.md` | Planning a shot sequence |
 | Frame clocks, blur grammars, when to motion-blur, grain | `references/motion-blur-and-clock.md` | Setting the clock and blur |
 | One root protagonist, state chain, inheritance channels, hard-cut records, text that acts, closure (founder's original) | `references/continuous-journey.md` | Commercials and product journeys |
-| Physical decision contract, throw, attraction, rigid UI closure, sound by motion phase (founder's original) | `references/motion-choreography.md` | Physical or causal beats |
-| Frame and text focus-unit contracts, camera necessity test, camera verbs, 2D anchor formula (founder's original) | `references/semantic-camera.md` | Every camera decision in commercials |
+| Physical decision contract, throw, attraction, rigid UI closure, sound by motion phase (founder's original) | `references/timing-and-easing.md` (section "Motion choreography recipes") | Physical or causal beats |
+| Frame and text focus-unit contracts, camera necessity test, camera verbs, 2D anchor formula (founder's original) | `references/camera.md` (section "Composition and semantic camera reference") | Every camera decision in commercials |
 | Motion contract shape | `assets/motion-contract.example.json` | Writing a motion contract (values are illustration only) |
 
 Scripts (Windows, macOS, Linux). Minimum Node and Python versions: `runtimes` in the `ice-engines` skill's `references/versions.json`; Python packages: `scripts/requirements.txt` (exact pins in sync with `versions.json`).

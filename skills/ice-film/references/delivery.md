@@ -30,7 +30,7 @@ Every version below that the brief or the type asks for was planned at 03 in `ic
 
 - Project-unique names from the brand or topic in kebab case, never the workspace name or a timestamp: `<project>_<film>_<aspect>_<length>s_v<N>.<ext>`.
 - One folder per review round; approved items are copied to a `final/` folder: in step mode after the user approves at 10; in auto mode after 09 passes and the approver role checks the 10 row (no further user approval).
-- "Final" in a brief or a conversation means the delivered master; its file name still carries `_v<N>` until it is approved that way. Only the copy in `final/` may drop the version or carry "final" (same rule as `review-loop.md` section 7).
+- "Final" in a brief or a conversation means the delivered master; its file name still carries `_v<N>` until it is approved that way. Only the copy in `final/` may drop the version or carry "final" (same rule as `build.md` (section "Review loop") section 7).
 - Never publish, post or schedule anything; delivery is files and links.
 
 ## 3. The report

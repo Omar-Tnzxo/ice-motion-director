@@ -188,3 +188,207 @@ Owner decision, 2026-10-29, every route. The trials ran on a system drive with a
 7. **Record** each check (path, free GB, need) and the chosen drive and folders in `ice/DIRECTION.md`.
 
 Source size: long sources are downloaded at the output resolution, not above it (`ice-assets/references/sourcing-and-licenses.md` section 5).
+
+
+## Lottie as an engine (playback and capture)
+
+> Merged from heygen-com/hyperframes adapters (Apache-2.0), AbubakrChan/product-launch-motion and diffusionstudio/lottie (MIT). Changes: merged, reworded, dashes removed.
+
+This file covers only how Lottie plays inside a deterministic render. Authoring Lottie JSON (spec map, slots, controls, Skottie compatibility, SVG conversion, recipes) belongs to the ice-lottie skill: open that skill for any Lottie deliverable.
+
+### 1. Players
+
+| Player | Use | Pin |
+|---|---|---|
+| lottie-web | Lottie inside HyperFrames or an HTML capture page | lottie-web (bodymovin) at the exact version in `versions.json`, vendored or a pinned CDN URL |
+| Skottie (canvaskit-wasm) | Previewing and exporting standalone Lottie work; closest to mobile players | canvaskit-wasm full build at the exact version in `versions.json` (the ice-lottie player uses the same one) |
+| Remotion Lottie component | Lottie inside Remotion | Same version as the project's Remotion packages |
+
+### 2. Deterministic playback rules
+
+- Local JSON only; no remote `path` URLs; no async registration.
+- `autoplay: false`. Seek with `goToAndStop(frame, true)` from the engine time (HyperFrames pushes the instance to `window.__hfLottie` and seeks it for you).
+- Always set `loop`: lottie-web treats a missing `loop` as true, and a numeric loop count does not repeat under seeking.
+- No playback-rate scaling in HyperFrames: bake non-default speed into the asset.
+- There is no per-animation start offset: author the whole performance as one Lottie, or cue by shifting keyframe times inside the JSON, not by the layer start-time field.
+- An animated multi-dimensional layer transform can silently blank the whole layer in lottie-web: split dimensions or verify at several frames.
+- Lottie frame math: `ip` inclusive, `op` exclusive (`ip: 0, op: 90, fr: 60` renders frames 0 to 89). Map engine time to Lottie frames with the file's own `fr`.
+- Characters: the Lottie owns the body, GSAP owns everything around it; read beat times from Lottie `markers`; when a walk cycle travels, match travel speed to the stride or the feet slide. License every character; never ship one copied from a site.
+
+### 3. Render-risky features
+
+Treat blur, bloom, glass, chrome, dither, true 3D and displacement as renderer-risky in Lottie; bake counters, particle offsets, orbit math and expression-like systems to keyframes before relying on Skottie; path morphs need compatible vertex structures. Details and fixes: the ice-lottie skill.
+
+
+## Canvas 2D and p5
+
+> Merged from alexgreensh/anidoodle (Apache-2.0), edenfunf/reelmimic engine-kit (MIT), heygen-com/hyperframes-community-skills p5 skills (Apache-2.0), alchaincyf/huashu-art-motion (MIT); ideas from imMamdouhaboammar/motion-graphics-skills and noncommercial sources (rewritten). Changes: merged, reworded, dashes removed.
+
+Both run inside the HTML capture harness (`html-canvas-capture.md`) or as a HyperFrames canvas layer. Style choice (watercolour, riso, pixel, paper cut-out, cel, crayon): the ice-styles skill.
+
+### 1. Canvas 2D contract
+
+- One pure function paints every frame: `renderFrame(frame, env)` or `renderAt(t)`. No values kept between calls, no timers.
+- Randomness only from a seeded generator or a hash of a stable key (`hash()`, `rnd(key)`, `s.rand()`, `s.noise()`). Prove determinism: draw the same frame twice and compare hashes (a reproducible still is the receipt).
+- One file per shot; shot files only call the shared library and the cast; they never redraw a character's body parts themselves. Shared files (characters, palette, master) are read-only for shot builders; shared-file fixes are additive and backward compatible.
+- Everything drawn by code: no image files you did not generate, no network at render time.
+- Characters drawn in code: limbs always attached; original designs only, never an existing IP character.
+- Budget: keep the median frame well under 150 ms (p95 under 200) for light art; painted engines up to about 2.5 s per frame.
+- Canvas shadow blur, offsets and filters ignore the transform: multiply them by device pixel ratio times zoom.
+- Scale the whole drawing to fill the frame rather than redrawing it per format.
+- Pick one unit for time (seconds) and keep it.
+- A blank page is usually a name declared twice.
+- Pixel reads: `getContext("2d", { willReadFrequently: true })`.
+- Arabic and other complex scripts: never draw them in Canvas when shaping is unreliable; keep text in DOM or SVG above the canvas (see the ice-arabic skill).
+- Transparent output: skip the paper fill; carry texture in the marks.
+- Dark gradients band in 8-bit encoding: overlay a fixed noise tile (alpha 7/255 or less) in device pixels, or encode with grain-friendly settings (`render-export.md` section 3).
+
+### 2. p5 and p5.brush
+
+- Pin `p5` and `p5.brush` from npm at their exact versions in `versions.json` (p5 is LGPL-2.1: load it, do not vendor a modified copy). Stock p5.brush darkens saturated pigment (about pigment x 0.85 minus 0.075); check colours against the brief and correct in the palette.
+- Never declare a global function whose name p5 or the window already uses (`line`, `dot`, `box`, `screen`); never shadow engine function names with locals.
+- p5.brush mixes colour like pigment: paper strokes go in a second pass; never draw a paper stroke that an ink shape should cover.
+- Painted pitfalls: huge filled shapes with bleed show a translucent band when zoomed out (use a wash); props drawn in an arm hook rotate with the arm (draw them in world coordinates).
+- The stroke lattice for repainted footage is built once from frame 1 and locked, so the painting never boils while the subject moves.
+- Re-running with the same seed must produce identical canvas bytes; the last frame shows the complete artwork.
+- Cost: 150 to 250 ms per wide frame, about 350 ms busy, 0.7 to 1 s for page turns; a 30 s painted film takes 15 to 30 min. Do not use p5 painting for crisp brand type, photoreal output, or footage longer than about 10 s.
+- Render the paper world wide, then crop the camera path in post. Iterate one dial at a time against a fixed seed. Re-render only changed shots (frame-range cache); never delete all frames and redo the whole film.
+
+
+## Three.js guide
+
+> Merged from heygen-com/hyperframes adapters and registry templates (Apache-2.0), echris6/motion-video-kit and AbubakrChan/product-launch-motion (MIT), Tejashmakwana/motionmaxxing (Apache-2.0), Vincentwei1021/mg-styles-15 (MIT); ideas from remotion-dev/skills and vibe-motion/skills (rewritten). Changes: merged, reworded, dashes removed.
+
+### 1. When
+
+Use Three.js for a real 3D hero: product turntable, extruded logo, camera flight, globe, depth with occlusion and lighting. Spend it on one hero or lockup shot, not on flat UI tours. Scale alone is fake depth; DOM 3D (perspective on a stable parent, `preserve-3d`) covers simple tilts (camera rules: the ice-motion skill).
+
+### 2. Setup
+
+- Pin one exact version per project and record it: the `three` version in `versions.json` by default (HyperFrames VFX blocks were built on 0.147.0 and bloom examples on 0.181.2; keep a project's existing pin). three r181 leaked memory through `PMREMGenerator`: dispose environment maps.
+- Load as an ES module through an importmap with the pinned version in both entries (`three` and `three/addons/`), or vendor the files. A double-clicked `file://` page will not load modules: serve over HTTP.
+- Text extrusion needs TTF, OTF or WOFF fonts, not WOFF2.
+
+### 3. Render contract
+
+- No rAF loop, no `setAnimationLoop`, no timers, no physics history. Expose `pose(t)` and `render(t)` and call `renderer.render()` only from the engine's seek: HyperFrames `hf-seek` event or `window.__hfThreeTime`; HTML capture `window.renderAt(t)`; Remotion `useCurrentFrame()`. Retime with `(t - start) * speed`.
+- HyperFrames: always set the root `data-duration` (no inference for Three.js); heavy CPU setup registers a `window.__hf.buildReady` promise; GSAP may animate a plain state object that the render function reads (state proxy pattern), with `tl.eventCallback("onUpdate", renderScene); renderScene();`.
+- Renderer: `new WebGLRenderer({ alpha, antialias: true, preserveDrawingBuffer: true })`, pin size and `setPixelRatio(1)` (or a fixed 1.5 for crisper edges, never `devicePixelRatio`), SRGB output, ACES filmic tone mapping (exposure about 1.1 in source templates). Tone-map before bloom.
+- Use `compileAsync` before the first frame. Avoid post passes that depend on previous frame history.
+- Imported animations: drive `AnimationMixer.setTime(t)` from engine time.
+- Seeded PRNG (mulberry32) for any procedural placement.
+- Camera cuts inside one canvas: declare each cut time once as a constant; verify the last frame before the cut and the first frame after it.
+
+### 4. Lighting and shading traps
+
+- One light with no ambient renders lit meshes as a flat black cutout: add a fill (for example a hemisphere light).
+- Clamp the cosine to [0, 1] before `pow(1 - cosine, exponent)` in shaders.
+- WebGL shader art: include a Canvas 2D gradient fallback.
+- Instanced and shader effects are invisible to DOM checks: verify with ghosted keyframe views and snapshots.
+
+### 5. Headless and performance
+
+- GPU and SwiftShader output differ by about 38 dB PSNR: pin one mode for the whole film. Without a GPU, headless WebGL renders black unless SwiftShader or ANGLE flags are set.
+- About 7 to 11 fps at 1080p on a laptop GPU; lowering capture scale does not cut WebGL cost.
+- Remotion: wrap in the three canvas with explicit width and height, render with `--gl=angle`, every Sequence inside the canvas uses headless layout, no `useFrame`.
+- Measured product-hero realism (motionmaxxing and motion-video-kit): accumulation motion blur with N subframes at `t + ((i + 0.5) / N - 0.5) * shutter`; 10 subframes left combing, 24 over the fastest 0.5 s were clean; shutter about 300 degrees on the fastest swing easing to 180, ramped over about 6 frames. Author stage colour against the decoded output; judge on encoded frames only.
+
+### 6. Blender alternative
+
+For photoreal materials beyond WebGL, render a PNG sequence from a Blender Cycles script and composite type and grain as an HTML overlay pass; mux with FFmpeg.
+
+
+## FFmpeg-only engine
+
+> Merged from digitalsamba/claude-code-video-toolkit, nateherkai/herk-edit-kit, browser-use/video-use, Barty-Bart/motion-graphics, AbubakrChan/product-launch-motion (all MIT), heygen-com/hyperframes (Apache-2.0); ideas from remotion-dev/skills and imMamdouhaboammar/motion-graphics-skills (rewritten). Changes: merged, reworded, dashes removed.
+
+Use FFmpeg alone for jobs that create no new motion design: trims, cuts, concatenation, speed changes, reframes, GIFs, conversions, alpha checks, masters. Edit decisions (what to cut, pacing, B-roll) belong to the ice-edit skill; loudness targets and mixing to the ice-audio skill. Requirement: FFmpeg and ffprobe on PATH, at or above the minimum in `versions.json` (`runtimes.ffmpeg`).
+
+### 1. Cutting and joining
+
+| Rule | Scope |
+|---|---|
+| Trimming at arbitrary points re-encodes; stream copy (`-c copy`) can silently drop video or freeze first frames when the seek point is not on a keyframe | Every trim |
+| Select exact frame numbers in one pass for talking footage; encoding segments separately and concatenating drifted lip sync by about a frame at half the joins | Talking head, podcast, interview, anything with lip sync |
+| Concatenating segments rendered by one renderer with identical settings may use the concat demuxer with `-c copy` | Chunked renders of graphic films |
+| Per-segment extract then lossless concat avoids double-encoding when overlays are added later | Edit pipelines that re-encode once at the end |
+| Do not put many `trim` branches in one filter graph (9 branches ran out of memory); cut each segment with `-ss` before `-i`, then concat | Long edits on small machines |
+| Write long filter graphs to a script file (`-filter_complex_script`) | Many cuts |
+| 30 ms audio fades at every join so joins do not click | Every audio join |
+
+### 2. Speed and frame rate
+
+- Speed: `setpts=PTS/<speed>` for video, `atempo=<speed>` for audio (0.5 to 2.0 per filter; chain for 4x or 8x). Prefer FFmpeg preprocessing over engine playback rates for extreme (above 4x, below 0.25x) or variable speed.
+- Variable frame rate sources: convert to constant first (`-vsync cfr -r <fps>` or `-fps_mode cfr`).
+- Footage for a seek-driven engine: re-encode all-intra (`-g 1 -keyint_min 1 -bf 0`) or with one keyframe per second (GOP = fps) so seeks do not freeze. Generated clips at 24 fps can be retimed with `setpts` and `fps=<target>` in the same pass.
+- Footage at 30 fps inside a 60 fps render shows each frame twice; that is expected.
+
+### 3. Reframing (cut-downs)
+
+- Re-lay out per aspect ratio when the film is made from code (`platform-specs.md`). For existing footage: crop mode for talking heads and single subjects; blur-fill mode (frame over a blurred copy at quarter size, `boxblur=12:3`, then `eq=brightness=-0.12:saturation=1.15`) for slides and screen recordings; pad mode with the brand ground.
+- Fitted modes shrink text: a 1080p source in 9:16 shows at about 56% scale; a modest zoom (about 1.3) trades edges for size; consider re-rendering with larger captions first.
+- Even dimensions: `scale=trunc(iw/2)*2:trunc(ih/2)*2`.
+
+### 4. HDR sources
+
+HLG (`arib-std-b67`) or PQ (`smpte2084`) sources going to SDR need `zscale` plus `tonemap=hable` to Rec.709, otherwise the result looks oversaturated and blown out.
+
+### 5. Useful recipes
+
+| Job | Command shape |
+|---|---|
+| Probe | `ffprobe -v error -show_format -show_streams <file>` |
+| Frame at a time | `ffmpeg -ss <t> -i <file> -frames:v 1 <out.png>` (`-ss` seeking is more portable than `select=` filters) |
+| Contact sheet | `-vf fps=<n>,scale=<w>:-1,tile=<cols>x<rows>` |
+| Animated `eq` | Add `eval=frame` or the expression runs once and nothing moves |
+| Remux mastered audio into a render | `-map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -shortest` |
+| Silent track when none exists | `anullsrc` input mapped as audio |
+| Silence detection | Measure the file with `loudnorm` in JSON mode, use its input threshold as `silencedetect` noise with `d=0.5`, merge silences closer than 0.2 s, floor starts and ceil ends to frames (edit decisions: the ice-edit skill) |
+| Strip metadata | `-map_metadata -1 -c copy` |
+
+Encoder settings, GIFs, alpha and review copies: `render-export.md`.
+
+
+## Remotion: Studio-editable code rules
+
+> Ideas from remotion-dev/skills interactivity guidance (no license file; rewritten in this repo's words, nothing copied). Changes: reorganized as a checklist.
+
+Remotion Studio can edit a composition visually and write the change back into the source. It edits the JSX node that produced an item, so code must be written in a shape Studio can find and rewrite. Apply these rules whenever the user will open the project in Studio or asks for an editable template.
+
+### 1. One written node per editable item
+
+- Every composition, clip, scene, layer or sequence that must be edited on its own gets its own written JSX node with its props inline.
+- Use `.map()` or loops only for things meant to be one template (bars, particles). Never for items that need their own name, timing, order or deletion.
+- Do not wrap scenes in extra Sequence or AbsoluteFill on a Track; keep layout-only containers as plain HTML; put background and alignment on the scene instance.
+- Be selective: too many interactive elements in one component make the timeline messy.
+
+### 2. Inline literals
+
+- Keep `interpolate` calls inline in the `style` prop with hard-coded output ranges, easing and extrapolation. Input ranges may use only `fps`, `durationInFrames`, `width`, `height` and simple multiply or subtract with numbers.
+- Style objects are plain inline literals: no constants, spreads, memo or math.
+- Fixed one-use text is written inline in the element; variables only for dynamic or reused text.
+- Give interactive elements a hard-coded descriptive name.
+- Composition id is a string literal; size, fps, duration and defaultProps inline with no type assertions; defaultProps as an inline object literal (never a variable, import, spread, helper or `satisfies` wrapper).
+- Effects arrays are inline with hard-coded parameters and a stable shape; when one version needs effects and another does not, render two separate elements.
+
+### 3. Interactive factory and schema
+
+- Make scenes and reusable elements with Remotion's interactive component factory; set layout explicitly (full-frame for scenes, none for bounded elements); register the same exported reference (not the inner component) as a composition with representative inline defaults.
+- Schema fields need a default and a description. Transform and opacity fields are added automatically: do not declare them. Built-in schema fragments exist for text, background, border radius, border, captions and children.
+- Keyframable field types: number, color, boolean (hold), font weight, transforms, UV point, SVG path. Not keyframable: string, array, asset, font family, captions.
+
+### 4. Connected compositions and pre-compose
+
+- A connected composition opens without its parent, so it carries its own typography and font loading and takes background and alignment from its registration defaults. Verify by opening it standalone. Match the parent's fps and size unless intended.
+- A "pre-compose" request is done only when the markup is extracted into a named component AND registered as its own composition with size, fps, duration and equivalent defaults.
+
+### 5. Paths and captions
+
+- Use Remotion's editable Path element for SVG paths; static path data inline; morph with the multi-path interpolator inline; evolve strokes with dasharray and dashoffset.
+- Clip and caption grouping, source-relative caption timestamps, whitespace-sensitive words and the page-break flag: the `ice-type` skill, `references/caption-timing-and-truth.md` section 5.
+- Remotion shape for that group: the video and its captions sit in the same Sequence, with `from` set on the group; each clip's captions are an inline array on its own captions node, so Studio can edit them.
+
+### 6. Timeline editing structure
+
+- Clips that move independently: place each video directly with name, `from`, trim and duration inline (gaps and overlaps allowed).
+- Clips that must stay adjacent: TransitionSeries sequences with hard-coded name and duration, never `from`.

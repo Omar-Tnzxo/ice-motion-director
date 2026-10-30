@@ -23,7 +23,7 @@ Contents
 |---|---|
 | Topic only | Research first (`references/research-and-facts.md`), then write from the situation the audience is in |
 | Article or document | The document is raw ore, not an outline. Never film it section by section or paraphrase it in order. Extract: on-ramp (a familiar moment), tension, turn, mechanism, receipts (proof). One storyline per film; everything else demotes to receipts or is cut. The narration never refers to "the document" or "this article" |
-| Pull request or code | See `references/code-and-ui-explainers.md` |
+| Pull request or code | See `references/grammar-selection.md` (section "Code, pull request, product UI and website explainers") |
 | Product | One promise the film proves, told from the user's side. A row of features is a spec sheet, not a story |
 
 Beats the source cannot fill honestly are cut, not faked.

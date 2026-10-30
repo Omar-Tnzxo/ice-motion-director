@@ -25,7 +25,7 @@ ice/
     FIDELITY.md                    salience lock and must-preserve contract (fidelity-contract.md)
     shots.json, storyboard.md      the mapped plan (shot-mapping.md)
   review/remake/                   compare sheets, strips, duel verdicts
-  variants/<name>/                 one folder per variant (variants.md)
+  variants/<name>/                 one folder per variant (shot-mapping.md (section "Variant generation"))
 ```
 
 Reference truth and target truth stay separate. One reference can feed several targets without being copied; one target can cite several references.

@@ -51,7 +51,7 @@ Named effects that move parts of letters, built from a fully shaped line split i
 | Join snap | Letters start isolated and snap into the joined word | The only effect that shows isolated forms, because that is its meaning. Banned on sacred text |
 | Kufi grid | The word rebuilds on a square Kufi grid | Needs a Kufi font |
 
-Each effect ends on the exact correctly joined word. Never use any of them on sacred text (`references/sacred-and-cultural.md`).
+Each effect ends on the exact correctly joined word. Never use any of them on sacred text (`references/arabic-qa-checks.md` (section "Sacred text, seasons and culture")).
 
 ## 4. Dots, marks and clipping
 

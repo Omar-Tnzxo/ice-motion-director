@@ -104,12 +104,12 @@ Full quality gates, critics and the delivery report belong to the ice-qa skill.
 | HyperFrames dev loop, `check`, snapshots, render flags, batch, outputs | `references/hyperframes-cli.md` | HyperFrames preview, QA and render |
 | HyperFrames lint codes with fixes | `references/hyperframes-lint-catalog.md` | A lint or check finding appears |
 | Remotion setup, structure, timing, media, render | `references/remotion.md` | Remotion route |
-| Remotion Studio-editable code | `references/remotion-studio-code.md` | Remotion project that users will edit in Studio |
+| Remotion Studio-editable code | `references/engine-choice.md` (section "Remotion: Studio-editable code rules") | Remotion project that users will edit in Studio |
 | HTML page contract, bundled renderer, subframe blur, chunks | `references/html-canvas-capture.md` | HTML canvas route, painted styles, single-file deliverables |
-| Three.js contract and traps | `references/threejs.md` | Any 3D hero |
-| Lottie playback inside a render | `references/lottie-engine.md` | Lottie inside a film (authoring: the ice-lottie skill) |
-| Canvas 2D and p5 | `references/canvas-and-p5.md` | Procedural or painted art |
-| FFmpeg-only jobs | `references/ffmpeg-only.md` | Cuts, reframes, speed, conversions |
+| Three.js contract and traps | `references/engine-choice.md` (section "Three.js guide") | Any 3D hero |
+| Lottie playback inside a render | `references/engine-choice.md` (section "Lottie as an engine (playback and capture)") | Lottie inside a film (authoring: the ice-lottie skill) |
+| Canvas 2D and p5 | `references/engine-choice.md` (section "Canvas 2D and p5") | Procedural or painted art |
+| FFmpeg-only jobs | `references/engine-choice.md` (section "FFmpeg-only engine") | Cuts, reframes, speed, conversions |
 | Maps and Cesium | `references/maps-geo.md` | Any map shot |
 | Codecs, quality, alpha, GIF, posters, HDR, delivery hygiene, heavy intermediates cleanup | `references/render-export.md` | Every render |
 | Platform sizes, durations, safe zones, covers | `references/platform-specs.md` | Every delivery |

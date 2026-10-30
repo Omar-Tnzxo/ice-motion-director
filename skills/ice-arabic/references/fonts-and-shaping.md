@@ -76,7 +76,7 @@ function arabicFontsReady(family, weights = ['400', '600', '700', '800', '900'],
 }
 ```
 
-The readiness promise must resolve to a plain value (see `references/failure-lessons.md`, render hang).
+The readiness promise must resolve to a plain value (see `references/arabic-qa-checks.md` (section "Arabic failure lessons"), render hang).
 
 ## 6. Per-language font check (gate)
 

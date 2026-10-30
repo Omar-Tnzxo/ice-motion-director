@@ -25,7 +25,7 @@ A logo sting is a micro job: these steps run inside the three micro passes of th
 
 ## 2. Motion brief
 
-Write `ice/plan/motion_spec.md` exactly as the ice-lottie skill describes it (`references/logo-pipeline.md`, Phase 1 step 2: personality words, usage context, choreography sketch; word-to-timing map in `references/motion-personality.md`). Film-side additions: name "film end lockup" as the usage context when the sting closes a film, and add the sanity check: describe the finished animation in three words; they must match the personality words.
+Write `ice/plan/motion_spec.md` exactly as the ice-lottie skill describes it (`references/logo-pipeline.md`, Phase 1 step 2: personality words, usage context, choreography sketch; word-to-timing map in `references/logo-pipeline.md` (section "Motion Personality: Brand → Parameters")). Film-side additions: name "film end lockup" as the usage context when the sting closes a film, and add the sanity check: describe the finished animation in three words; they must match the personality words.
 
 ## 3. Close menu
 

@@ -28,7 +28,7 @@ Engine choice belongs to `ice-engines`. This file lists what each engine needs s
 | Italic presets (intro, dream styles) | No true Arabic italic; faux oblique distorts | Upright weights only |
 | Entrances with negative `xPercent` (whip from the left) and side-specific exits | Direction is Latin | Multiply by the direction sign; enter from the inline start |
 | Font rule suggesting romanization for non-Latin text | Erases the language | Ship a font that covers Arabic |
-| Kokoro TTS voices | No Arabic voice | Use an engine with Arabic voices (`references/voiceover-tts.md`) |
+| Kokoro TTS voices | No Arabic voice | Use an engine with Arabic voices (`references/asr-timing.md` (section "Arabic voiceover and TTS")) |
 | Default transcription model (Parakeet, European languages) | No Arabic | Use the Whisper path with `--language ar` and an explicit multilingual model; `.en` models translate to English |
 | Registry search | Catalog metadata is English | Search in English for the move; write on-screen copy in Arabic |
 | Caption grouping by spaces | Works for Arabic words; ASR may split or merge clitics | Group on corrected words aligned to the script (`references/asr-timing.md`) |

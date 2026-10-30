@@ -33,7 +33,7 @@ after each name is the spine stage it belongs to. Run them in the order listed
   (`references/design-taste.md`), and the versions list.
 - **Personality and tokens (05).** Pick the industry preset and adjust it
   (`references/ui-motion-tokens.md`); for a logo also map brand words to
-  timing (`references/motion-personality.md`). Colors and type come from the
+  timing (`references/logo-pipeline.md` (section "Motion Personality: Brand → Parameters")). Colors and type come from the
   ice-direction skill's decisions; for UI assets start from the host product's
   tokens. Generate tokens with `scripts/motion-tokens.mjs` when motion also
   runs in code. Write the personality, curves and timing table to
@@ -42,11 +42,11 @@ after each name is the spine stage it belongs to. Run them in the order listed
   final-frame composition as finished stills and the key states, before any
   keyframe (`references/design-taste.md`).
 - **Author (07).** Lottie: `references/player-contract.md` then
-  `references/lottie-spec-map.md`, the routed recipe, `references/motion-taste.md`;
+  `references/svg-compatibility.md` (section "Lottie Spec Map"), the routed recipe, `references/motion-taste.md`;
   multi-idea scenes: `references/chapterization-transition-grammar.md`.
   Animated SVG: `references/reveal-patterns.md`,
   `references/twelve-principles-for-logos.md`,
-  `references/html-delivery-template.md`.
+  `references/export-handoff.md` (section "HTML Delivery Template").
 - **Verify (09)** (section Verification below). Fix and re-check; two honest
   passes, then report residuals instead of polishing further.
 - **Export and hand off (10)** (`references/export-handoff.md`): asset, static

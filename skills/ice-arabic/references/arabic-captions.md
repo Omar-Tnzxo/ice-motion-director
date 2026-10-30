@@ -58,7 +58,7 @@ General caption design (styles, base sizes, grouping theory) is owned by `ice-ty
 - Not the first sentence said: built from the strongest line in the clip.
 - 3 to 8 words, two lines at most, at least one pull device (number, contradiction, question, curiosity gap, command, story); curiosity needs a real gap word, not a pointer word.
 - Only words and numbers the speaker said (a number spoken as a word counts). Its promise resolves inside the clip. If 75 percent or more of its words come from the first two lines, it fails.
-- Written in the profile's dialect, checked against the profile's word lists (`references/dialect-profiles.md`).
+- Written in the profile's dialect, checked against the profile's word lists (`references/asr-timing.md` (section "Dialect as a setting")).
 - Profile digits, no emoji, no names the audience does not know, no final full stop.
 - Size at least 68 px; words settle with about 0.045 s stagger; an accent bar wipes from the right in 0.1 to 0.35 s; everything readable at frame 0 (it doubles as the cover).
 - Hook card bounds on 1080x1920: x 140 to 940, y 230 to 1480.

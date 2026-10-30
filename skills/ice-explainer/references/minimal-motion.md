@@ -41,9 +41,9 @@ Everywhere: never add motion only to pass a metric; true stillness needs a verb 
 | Card and talk films | Camera-only life: the slow scale curve per shot and its last key beyond the shot end (the `ice-motion` skill, `references/holds-and-stillness.md` sections 1 and 2, policy B). No pans, rotation, blur curves or shake on the scene camera. One camera technique per media segment (push plus pan reads as shaky hands) |
 | Diagram topic explainers | Moves per chapter and per shot, move length, timing against glitches, entrances and the exit, the full-shot push exception: the `ice-motion` skill, `references/camera.md` section 7. Explainer values: push about 1.0 to 1.33 over about 33 frames toward the hero, pull back over 37 to 45 frames; above about 1.4 strokes look thick. A sentence with no new element may be covered by one 30-frame push |
 | Calm product explainers without cuts | The camera is the editor: every scene change is a push, pull or glide (0.6 to 1.2 s, smooth or heavily damped), or a short blur dissolve; nothing bounces; after an action the camera pulls back for a beat so the viewer knows where they are |
-| Collage | See `references/vox-collage.md` (camera smooth, elements stepped) |
-| Whiteboard | Board pans; see `references/whiteboard-and-pen.md` |
-| Long-form persistent world | Named world windows and altitudes; see `references/long-form-explainers.md` |
+| Collage | See `references/grammar-selection.md` (section "Collage explainers (archival desk style)") (camera smooth, elements stepped) |
+| Whiteboard | Board pans; see `references/grammar-selection.md` (section "Whiteboard, hand-drawn and pen explainers") |
+| Long-form persistent world | Named world windows and altitudes; see `references/run-setup.md` (section "Long-form explainers") |
 
 When the camera moves, push density limits, overscan, raster sources and log-space zoom: the `ice-motion` skill, `references/camera.md` sections 1, 3 and 7. HUD and captions sit outside the camera rig and never move with it (same file, section 3).
 
@@ -71,7 +71,7 @@ Smooth camera with stepped hand-made elements: the `ice-motion` skill, `referenc
 |---|---|---|---|
 | Stillness | Elements dead still after landing; life comes from the camera only (card and talk films) | A sustained verb action continues on screen; no element fully still over 3 s (diagram and topic explainers) | `references/minimal-motion.md` |
 | Camera | One slow scale curve per shot, push 1.00 to 1.06, no pans (card and talk films) | Camera moves budgeted per chapter, push to about 1.33 toward the hero (diagram explainers); board pans (whiteboard); world windows (long-form) | `references/minimal-motion.md` |
-| Cuts | Every boundary gets an explicit treatment, no bare cuts (card films) | Hard cuts on punctuation dominate (collage, storytime) | `references/minimal-motion.md`, `references/vox-collage.md` |
+| Cuts | Every boundary gets an explicit treatment, no bare cuts (card films) | Hard cuts on punctuation dominate (collage, storytime) | `references/minimal-motion.md`, `references/grammar-selection.md` (section "Collage explainers (archival desk style)") |
 | Shot length | One idea per scene, 4 to 15 s, split by paragraph | One sentence per shot (short collage explainers, storytime) | `references/word-timed-segments.md` |
 | Visual lead | Picture lands with or slightly before its word | Handwriting starts slightly after its phrase (whiteboard) | `references/word-timed-segments.md` |
 | Captions | On by default for vertical, square and 4:5 social | Off by default; words live in the picture (cartoon stage, whiteboard, collage, persistent-world long-form unless asked) | the `ice-type` skill, `references/captions-system.md` section 2; `references/frame-and-text.md` |

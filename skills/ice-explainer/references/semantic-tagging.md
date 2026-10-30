@@ -91,4 +91,4 @@ Before build, check:
 - Every entity listed has a visual.
 - Every `quantity` maps to a facts-list entry.
 
-After render, the verifier repeats the check on the film itself (`references/verification-loop.md`).
+After render, the verifier repeats the check on the film itself (`references/research-and-facts.md` (section "Verification loop for agents that cannot watch")).

@@ -56,7 +56,7 @@ The fusion rests on one insight: **minimal smooth geometry IS animatable geometr
 
 1. **Analyze the raster source.** Record image size, mode, alpha, foreground colors, background (transparent/solid). Identify the *semantic parts*: mark vs wordmark, individual letters, dots, swooshes, containers, negative space. Each part is a future actor in the animation.
 2. **Write the motion brief** before touching geometry:
-   - **Personality**: 3 brand motion words (derived for this brand, never copied from an example). Derive from the logo's own visual language (geometric = engineered motion, organic = flowing motion, rounded = soft/bouncy) plus any user-stated brand context. See `references/motion-personality.md` to map words → timing scale, easing tokens, principle emphasis.
+   - **Personality**: 3 brand motion words (derived for this brand, never copied from an example). Derive from the logo's own visual language (geometric = engineered motion, organic = flowing motion, rounded = soft/bouncy) plus any user-stated brand context. See `references/logo-pipeline.md` (section "Motion Personality: Brand → Parameters") to map words → timing scale, easing tokens, principle emphasis.
    - **Usage context**: splash/intro (deliberate 1200-2000ms), header reveal (300-800ms), loading state (continuous loop), hover micro-interaction (150-300ms). Ask only inside the stage 01 message and only if genuinely ambiguous; otherwise, or without an answer, default to a splash-style reveal plus a static end state and log it.
    - **Choreography sketch**: which parts move, in what order, using which reveal pattern (see `references/reveal-patterns.md`).
 3. Record the brief in `motion_spec.md`. Every later parameter must trace back to it.
@@ -71,7 +71,7 @@ Use the first level that matches the source well enough:
 
 1. **Primitives**: circles, ellipses, rects, lines, simple arcs, transforms.
 2. **Primitive composites**: boolean-like combinations of a few primitives or masks.
-3. **Few-curve analytic paths**: a small number of cubic segments for smooth ribbons, swooshes, C-marks, leaves, waves, shields. For closed and/or self-intersecting variable-width ribbons (∞ marks, scripts) use the centerline-scaffold recipe, `references/ribbon-fitting.md` + `scripts/fit_ribbon_centerline.py`; its report also emits each crossing's arc fractions, which Phase 3's split draw-on needs.
+3. **Few-curve analytic paths**: a small number of cubic segments for smooth ribbons, swooshes, C-marks, leaves, waves, shields. For closed and/or self-intersecting variable-width ribbons (∞ marks, scripts) use the centerline-scaffold recipe, `references/logo-pipeline.md` (section "Closed / Self-Intersecting Ribbon Fitting: Centerline Scaffold + Recenter + Snap") + `scripts/fit_ribbon_centerline.py`; its report also emits each crossing's arc fractions, which Phase 3's split draw-on needs.
 4. **Smoothed outline paths**: more knots only where the source has real shape changes; preserve G1 tangent continuity, no noisy handle flips.
 5. **Trace-derived paths**: only for irregular silhouettes where simpler geometry fails (`scripts/raster_logo_trace.py` for measurement/starter masks). Trace output is a measurement aid, never automatically final art. Smooth or refit the trace before delivery.
 
@@ -135,7 +135,7 @@ Pick the duration band from usage context, easing tokens and exaggeration level 
 
 ### Implementation
 
-- Read `references/html-delivery-template.md` before building `logo_motion.html`.
+- Read `references/export-handoff.md` (section "HTML Delivery Template") before building `logo_motion.html`.
 - Author the main animation as **CSS keyframes targeting the part ids** in `motion.css`, or as a bespoke JS act/phase timeline when the choreography needs measured pivots, live sequencing, or per-letter layout. If using JS, preserve the same QA hooks described below.
 - CSS keyframes must use `animation-fill-mode: both` or `forwards`; otherwise deterministic `?t=<ms>` frame capture and `?static=1` final-state checks are not reliable.
 - **Keyframe easing must be literal.** `animation-timing-function: var(--token)` inside `@keyframes` does not resolve in Chromium: the declaration is silently dropped and the segment falls back to the animation's base timing function, usually `linear`, the exact mechanical look the principles forbid. Worse, multi-piece choreography whose pieces were paced by subdivided easings degrades to per-piece constant speeds with **speed cliffs at every handoff** (a measured 4.3× velocity discontinuity read as a "stutter"). Keep tokens for `animation:` shorthands (durations/delays resolve fine) and documentation, but write literal `cubic-bezier(...)` in every keyframe, with a comment naming the token. This failure is invisible in casual playback and in evenly-spaced frame strips, verify with the easing probe (Motion QA step 3).
@@ -256,10 +256,10 @@ Completion requires evidence, not claims:
 ## References
 
 - `references/twelve-principles-for-logos.md`: each Disney principle with logo-specific application and parameter ranges
-- `references/motion-personality.md`: brand personality → timing scale, easing tokens, exaggeration bounds, principle emphasis
+- `references/logo-pipeline.md` (section "Motion Personality: Brand → Parameters"): brand personality → timing scale, easing tokens, exaggeration bounds, principle emphasis
 - `references/reveal-patterns.md`: choreography pattern library: reveals, idle loops, hover states, with timing tables and CSS skeletons; §1b split-fill draw-on for self-crossing marks + dash-math artifact table
-- `references/html-delivery-template.md`: required final HTML structure: main animation, atomic motions, tuners, principles strip, QA hooks
-- `references/ribbon-fitting.md`: closed/self-intersecting variable-width ribbon fitting (centerline scaffold + recenter + source edge snap) and wordmark font matching
+- `references/export-handoff.md` (section "HTML Delivery Template"): required final HTML structure: main animation, atomic motions, tuners, principles strip, QA hooks
+- `references/logo-pipeline.md` (section "Closed / Self-Intersecting Ribbon Fitting: Centerline Scaffold + Recenter + Snap"): closed/self-intersecting variable-width ribbon fitting (centerline scaffold + recenter + source edge snap) and wordmark font matching
 
 ## v2 changelog
 
@@ -269,4 +269,150 @@ Hardened from a production run (calligraphic ∞ + bead + serif wordmark) where 
 2. Round-cap draw masks make the visible tip lead the pen by half the stroke width → stall+pop at handoffs (measured 50ms flatline + cap-disk jump) → butt-cap dash recipe + dash-math artifact table + ink-delta continuity sweep (`--ink-sweep`).
 3. The later crossing pass paints *under* existing ink → a physically unavoidable ~10-25ms dead window → tip-glint secondary action (offset-path on the centerline, base opacity 0, exits under an occluder).
 
-Also new: split-fill recipe for self-crossing draw-ons with exact de Casteljau easing subdivision (reveal-patterns §1b), `scripts/fit_ribbon_centerline.py` + `references/ribbon-fitting.md` for closed variable-width ribbon geometry (its report emits the split-cut arc fractions Phase 3 needs), same-pipeline Final Frame Contract check (exact-0 expectation), and risk-window frame bracketing in Motion QA.
+Also new: split-fill recipe for self-crossing draw-ons with exact de Casteljau easing subdivision (reveal-patterns §1b), `scripts/fit_ribbon_centerline.py` + `references/logo-pipeline.md` (section "Closed / Self-Intersecting Ribbon Fitting: Centerline Scaffold + Recenter + Snap") for closed variable-width ribbon geometry (its report emits the split-cut arc fractions Phase 3 needs), same-pipeline Final Frame Contract check (exact-0 expectation), and risk-window frame bracketing in Motion QA.
+
+
+## Closed / Self-Intersecting Ribbon Fitting: Centerline Scaffold + Recenter + Snap
+
+> Adapted from nolangz/pixel2motion (MIT, Copyright (c) 2026 Nolan Lai). Changes: replaced dash characters.
+
+
+Field-tested on a calligraphic ∞ mark (variable width 2→28px, one self-crossing,
+one occluding bead). Use this recipe when the mark is a **closed** variable-width
+ribbon and/or **crosses itself**, there are no two open boundaries to fit
+directly, so the playbook's "fit boundaries from source pixels" rule needs this
+adapted form. The principle survives: the centerline is only *scaffolding*; the
+final edges are snapped to SOURCE pixels.
+
+Upstream implementation: `fit_ribbon_centerline.py` in nolangz/pixel2motion
+(seeds + exclusions JSON in, outline/centerline path d + report out). It is not
+bundled in this skill; follow the recipe below by hand, or fetch that MIT script
+only with the user's yes (a consent item of the stage 01 message) and read it
+before running it.
+
+### The recipe
+
+1. **Seed a closed Catmull-Rom centerline** through hand-read keypoints in
+   drawing order: loop extrema, caps, the crossing (listed once per pass), the
+   taper. 15-25 points suffice; accuracy ±5px is fine, recentering fixes it.
+   Put the START at a hidden spot (behind an occluding dot, inside a knot):
+   both outline caps land there.
+
+2. **Measure along normals; auto-recenter.** Sample the spline densely (~30/seg).
+   At each sample march ±along the normal: the mask interval containing the
+   point yields a *midpoint* (true center) and a *width*. Then rebuild the
+   control points from the smoothed midpoints and repeat. Converges in 2-3
+   passes (mean shift 1.6 → 0.3px in the field run).
+   - **Space rebuilt control points by ARCLENGTH** (~55px apart). Rebuilding by
+     sample stride inflates the control count every pass (22 → 56 in one run)
+     because each pass resamples denser.
+   - Reject measurements wider than a contamination bound (~40px): they mean
+     the normal crossed into a merged/parallel stroke.
+
+3. **Exclusion circles bridge occlusions and crossings.** Inside each exclusion
+   (covering dots/beads, every self-crossing) skip measurement entirely and
+   fill midpoints/widths by interpolation along arclength, **circularly**,
+   the gap may wrap the seam. Smooth lightly afterwards: σ≈2.5 samples for
+   midpoints, σ≈3 for widths. Heavier smoothing curve-cuts high-curvature caps
+   (~1px inward bias) and flattens fast width ramps near caps.
+
+4. **Sub-pixel edge snap (the honesty pass).** Offset edges = center ± width/2
+   · normal still carry ~1px of systematic smoothing bias. For each edge sample,
+   find the luminance-threshold crossing along the normal by bilinear
+   interpolation and shift the sample onto it (clamp ±2.5px; skip inside
+   exclusions and where width < 6px, on hairline tapers the two edges are
+   closer than the search radius and snap to each other; smooth the shifts,
+   σ≈2). This pass is what reconciles the centerline-scaffold approach with
+   the "boundaries from source pixels" rule.
+
+5. **Emit smooth cubics.** Fit one cubic per ~30-sample chunk per edge
+   (endpoints fixed, tangents from data, least-squares handle lengths, two
+   scalars, closed form). Path = left edge forward + straight cut + right edge
+   reversed + closing cut + `Z`, `fill-rule: nonzero` (a self-crossing stroke
+   outline traversed left-forward/right-back winds consistently, so nonzero
+   unions the overlap, no holes). Both cut caps sit at the hidden seam.
+
+6. **Report exclusion arc-fractions.** For every exclusion circle, record where
+   the centerline passes through it as fractions of total arclength. A
+   crossing's two passes (e.g. 0.357 / 0.835) are exactly the cut parameters a
+   downstream split draw-on animation needs (see pixel2motion's reveal-patterns
+   "Draw-On Across Self-Intersections").
+
+### Pitfalls measured in the field
+
+| pitfall | symptom | fix |
+|---|---|---|
+| stride-based control rebuild | control count inflates every recenter pass | space by arclength |
+| heavy width smoothing (σ≈6) | caps/fast ramps cut ~1.5px inward | σ≈3 + edge snap |
+| snapping hairline tapers | edge snaps onto the *opposite* edge | skip snap where width < 6px |
+| linear (non-circular) gap fill | seam-adjacent exclusion interpolates across the whole loop | circular interpolation |
+| trusting the dot-region width | occluded; garbage measurements | exclusion circle + bridge |
+| gradient-filled parts in IoU | binary-mask diff inflates while visually faithful | judge structurally; report the artifact |
+
+### Wordmark font matching (live `<text>`)
+
+When the lockup includes a wordmark and exact letterforms are not required:
+
+1. **Build the candidate pool in the ice-direction font order**
+   (`references/type-pairing.md` section 1): user and project font files first;
+   then installed system fonts (macOS `ls /System/Library/Fonts*`, Linux
+   `fc-list`, Windows `C:\Windows\Fonts` plus the per-user
+   `%LOCALAPPDATA%\Microsoft\Windows\Fonts`) and Google Fonts families
+   downloaded into the project, with no fixed order between those two (Google
+   Fonts is a disclosed network call; skip it when the offline switch is on).
+   Only fonts the user may license for the deliverable qualify (see the
+   ice-assets skill). Never trust name-based stacks: two "different" families scoring
+   *identical* region IoU means both fell back to the same font, a missing
+   "Garamond" can silently resolve while a real one never existed.
+2. Per candidate, **auto-tune `font-size` to the source cap height** (2-3
+   render-measure-scale iterations against the wordmark bbox), baseline pinned.
+3. Rank by wordmark-region IoU **and ink-weight ratio** (rendered ink px ÷
+   source ink px). Weight ratio ≈ 1.0 beats marginally-higher IoU with 1.2×
+   heavier strokes: weight mismatch reads instantly, letterform differences
+   read slowly. (Field run: Baskerville 1.04 ratio / IoU 0.535 chosen over
+   Times 1.26 / 0.540, visibly better.)
+4. Lock geometry cross-platform: `textLength="<measured width>"
+   lengthAdjust="spacingAndGlyphs"`, `text-anchor` + measured baseline; stack
+   best-first with graceful fallbacks; document the substitution as a known
+   residual.
+
+
+## Motion Personality: Brand → Parameters
+
+> Adapted from nolangz/pixel2motion (MIT, Copyright (c) 2026 Nolan Lai). Changes: replaced dash characters; the axis tables and personality preset values now live once in the ice-motion skill, and this file keeps the CSS token mapping, the token trap and the universal tokens.
+
+
+Translate brand identity into motion parameters systematically. Never pick easing or duration by taste, derive them here, record the derivation in `motion_spec.md`.
+
+### Step 1 and Step 2: Axes and principle parameters
+
+The energy and tone axes, reading the mark for evidence, and the principle parameters per axis: the `ice-motion` skill, `references/motion-language-by-type.md` section 4. User-stated brand words override visual inference.
+
+### Step 3: Personality presets as tokens
+
+Pick the closest personality preset in the `ice-motion` skill, `references/motion-language-by-type.md` section 4 (values: duration, entrance, settle, squash, overshoot, emphasize, avoid), then adjust from the axes. Define the chosen values once as CSS custom properties:
+
+| Token | Column in the ice-motion preset table |
+|---|---|
+| `--p2m-duration` | Duration (reveal total; loops use the loop value when the preset gives one) |
+| `--p2m-ease-enter` | Entrance, as a literal `cubic-bezier(...)` (or `ease-in-out` where the preset says so) |
+| `--p2m-ease-settle` | Settle |
+| `--p2m-squash` | Squash, as a fraction (a percent divided by 100) |
+| `--p2m-overshoot` | Overshoot scale (1.0 lands exactly) |
+
+`--p2m-duration-part` (one part's duration) takes a value inside the part timing band of that section's energy table. `reveal-patterns.md` uses these tokens and multiplies them; it never hardcodes values.
+
+> **Token trap (Chromium)**: custom properties do NOT resolve in `animation-timing-function` declarations inside `@keyframes`, `animation-timing-function: var(--p2m-ease-enter)` is silently dropped and the segment runs with the animation's base timing function (usually `linear`), the exact mechanical motion these presets exist to prevent. Nothing errors and evenly-spaced frame strips look fine. Use the tokens in `animation:` shorthands (durations/delays resolve correctly) and as documentation, but write literal `cubic-bezier(...)` values inside keyframes with a comment naming the token. Verify with `scripts/probe_motion_continuity.py --probe`.
+
+### Step 4: Sanity checks
+
+The three-word check, the competitor-logo check and the without-the-product check: the `ice-motion` skill, `references/motion-language-by-type.md` section 4. Token rule: the same token values drive the reveal, loop and hover variants; never define a second token set per variant.
+
+### Universal tokens (work for any personality)
+
+```css
+--p2m-ease-out-universal: cubic-bezier(0.16, 1, 0.3, 1);
+--p2m-ease-natural: cubic-bezier(0.4, 0, 0.2, 1);
+--p2m-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);   /* scale amplitude with duration */
+--p2m-ease-narrative: cubic-bezier(0.34, 0, 0.14, 1);   /* deliberate sequences */
+```

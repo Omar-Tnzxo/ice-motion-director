@@ -29,7 +29,7 @@ Rules for every film that shows a product (product launch, app ad, UI walkthroug
 
 The doctrine for music-first UI morph films, one-take launches and loops (scope: `film-types/product-launch.md` option "one shape", `film-types/ui-walkthrough.md` one-take, social loops). Other types may cut; see each type's transition policy.
 
-- One-shape rules (one element morphing through every state, text inside a morphing container, the camera filling each state, springs and edge splits, loops that close): the `ice-motion` skill, `references/one-take-films.md` section 2.
+- One-shape rules (one element morphing through every state, text inside a morphing container, the camera filling each state, springs and edge splits, loops that close): the `ice-motion` skill, `references/camera.md` (section "One-take films: one shape, one world, one camera") section 2.
 - Text swaps inside a morphing container: the `ice-motion` skill, `references/cut-catalog.md` section 6. Overshoot by film type: `references/timing-and-easing.md` section 7 of the same skill. Loop closure: `references/holds-and-stillness.md` section 5 of the same skill.
 - Carry at every section boundary in every launch film: the `ice-motion` skill, `references/seams-and-carry.md` section 1.
 

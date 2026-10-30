@@ -56,7 +56,7 @@ Duel steps, verdicts and must-fix rules: the `ice-qa` skill, `references/climax-
 ## 5. Sound at the climax
 
 - Pre-place climax sound in the shared mix: silence or a drop-out before the hit, a rising wind-up, the impact or downbeat on `hit_s`.
-- The reference's own music, voice and effect recordings are placed as they are or recreated, as the `identity` choice says (`rights-and-modes.md` section 1). Placed as they are, the hits already sit on the reference's peaks; keep them there. Recreated: new music in the same genre, tempo, energy and structure, and new effects of the same types at the same moments. With any other track (the user's, a library's or a generated one): stretch it by no more than 8 percent and cut on bar lines so its drops land on the reference's peak times, or re-time the plan to the new track's drops (`word-anchored-timing.md`). Mixing and loudness: the ice-audio skill.
+- The reference's own music, voice and effect recordings are placed as they are or recreated, as the `identity` choice says (`rights-and-modes.md` section 1). Placed as they are, the hits already sit on the reference's peaks; keep them there. Recreated: new music in the same genre, tempo, energy and structure, and new effects of the same types at the same moments. With any other track (the user's, a library's or a generated one): stretch it by no more than 8 percent and cut on bar lines so its drops land on the reference's peak times, or re-time the plan to the new track's drops (`shot-mapping.md` (section "Word-anchored timing (so variants re-time themselves)")). Mixing and loudness: the ice-audio skill.
 
 ## 6. Reference-relative scoring (final critic)
 

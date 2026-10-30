@@ -74,7 +74,7 @@ Final file sanity: roughly 3 to 10 MB per 10 seconds at 1080p for typical motion
 
 ## 7. HDR and 4K
 
-- HDR output is MP4 only (H.265 10-bit PQ or HLG); use software encoding for HDR10; distributed cloud renders are SDR. SDR deliveries from HDR sources need tone mapping (`ffmpeg-only.md` section 4).
+- HDR output is MP4 only (H.265 10-bit PQ or HLG); use software encoding for HDR10; distributed cloud renders are SDR. SDR deliveries from HDR sources need tone mapping (`engine-choice.md` (section "FFmpeg-only engine") section 4).
 - 4K is about 4x slower per frame and 3 to 5x larger. Supersampling needs the same aspect ratio and an integer multiple. Never upscale a 1080p render and call it 4K. For a 1920x1080 composition, 3840x2160 source media already gives enough detail for a 2x display.
 - Before a 4K or 60 fps master, render a short stress test (small text, gradients, glow, fast motion, 3D) and review at 100% and normal size.
 

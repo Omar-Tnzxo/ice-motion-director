@@ -30,7 +30,7 @@ Decide once, with the brand, how its name is written in Arabic and where the Lat
 | Counters | Tabular (fixed-width) digits so the number does not jitter |
 | Numbers and units | A number stays on the same line as its unit |
 | Ranges | In Arabic copy, write a range with words rather than a symbol range (illustration only: `30 لـ 45 دقيقة`, `من 3 إلى 5 أيام`) |
-| Screen vs voice | The screen shows digits; the voiceover text spells numbers as words in the chosen dialect (`references/voiceover-tts.md`) |
+| Screen vs voice | The screen shows digits; the voiceover text spells numbers as words in the chosen dialect (`references/asr-timing.md` (section "Arabic voiceover and TTS")) |
 | Currency | The currency word the audience uses, in the dialect's spelling |
 | Stretching | Numbers never take kashida |
 

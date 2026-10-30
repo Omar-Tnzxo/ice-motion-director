@@ -6,7 +6,7 @@ Read this when writing the plan. Shot-by-shot mapping is the core of a style rem
 
 1. Split the reference shot list (`TIMELINE.md`) into sections: opening, each selling point or story beat, climax, ending.
 2. Confirm the reference's peaks with 12 fps strips and write `peaks.json` (`climax-duel.md` sections 1-2). Then design our peaks first: which planned shots are hero shots, what their hit frame is.
-3. Map every other shot to a reference shot: `ref_shot`, `ref_what`, engine-ready `camera`, `anchor`. Time everything by meaning (`word-anchored-timing.md`): words, beats, actions; never copied reference seconds.
+3. Map every other shot to a reference shot: `ref_shot`, `ref_what`, engine-ready `camera`, `anchor`. Time everything by meaning (`shot-mapping.md` (section "Word-anchored timing (so variants re-time themselves)")): words, beats, actions; never copied reference seconds.
 4. Carry elements only with their reasons (owner decision, 2026-10-29). An element of the reference (text, shape, cutout, map, colour wash, transition, a sound that marks it) enters the plan only with its `REASONS.md` row (`notes-files.md` section 6) and only where the new script holds an instance of the same trigger kind: each appearance names its row and the word or sentence of the new script that switches it on, and it lands on the role its row names (the speaker or guest stays lit: `ice-edit/references/layers-and-isolation.md`, section "The speaker stays lit"). An element with no row, or whose known trigger kind has no instance in the new script, is cut and listed under `cut_elements` with the reason; it is never copied blind. A measured element whose meaning or trigger kind is `unknown` is not cut for lacking a guessed reason: a measured fact is a reason, so it is kept at its measured place (the matching passage of the new film) and amount with the reason `measured: <REASONS row>` (written `measured: <ref-id> REASONS.md #<row>`, the form the storyboard linter reads: the `ice-qa` skill, `references/storyboard-lint.md` section 3b) and named on the review card, its `unknown: <what would settle it>` left open in `REASONS.md`. The finishing layer follows the same rule: an effect of the "Finishing layer" table of `ANALYSIS.md` goes only on the shots where its where and why hold (`measuring.md` section 9).
 5. Carry the fixed marks (lesson L10; scope: remakes and edits that follow a reference with an organisation's identity). Every fixed mark of the reference (`measuring.md` section 11) becomes a `fixed_marks` row of the plan on the screen layer (`layer: screen`: the digital camera never moves it and flashes never hit it), at its measured slot and size, on every passage of the new film that matches a passage where the reference shows it. Which mark fills the slot follows the `identity` choice: `rights-and-modes.md` section 1, "Fixed identity marks". A slot is never left empty because a mark was not fetched.
 6. Carry depth, 3D and camera (lesson L12; scope: general, any video made with a reference; the principle: `measuring.md` section 12). Every depth or 3D element of the reference (each kind in `depth.json` `elements_3d`, each push-through, the planes and their parallax, the depth of field) maps to at least one shot of the new film, on a trigger of the same kind in the new script, with its build route `build:` one of `css-3d`, `threejs-hyperframes`, `remotion-three`, or `blender` when Blender is installed, chosen with `ice-motion/references/depth-and-3d.md`, "Build routes for depth and 3D". The plan's share of frames with the camera moving matches the reference's (section 4). An element with no route is a finding, never a silent drop: write it in `open_questions` with what would build it (an install, a model, a render), tell the user, and the depth gate (`ice-qa/references/motion-density.md`, "Depth and camera against the reference") still counts it as missing.
@@ -30,7 +30,7 @@ Engine choice and render: the ice-engines skill. Style catalogs: the ice-styles 
   "shots": [
     {
       "id": "S<n>", "start_beat": 0, "end_beat": 0, "start_s": 0, "end_s": 0,
-      "anchor": "<word, moment or beat this shot is bound to (word-anchored-timing.md)>",
+      "anchor": "<word, moment or beat this shot is bound to (shot-mapping.md (section "Word-anchored timing (so variants re-time themselves)"))>",
       "summary": "<what happens>", "action": "<actions in time order; hero shots to the frame: anticipation, burst, hold>",
       "reads": ["<what the viewer must understand, and when>"],
       "ref_shot": 0, "ref_what": "<the technique used in that reference shot>",
@@ -99,7 +99,7 @@ It writes `compare_*.jpg` (one pair per detected shot), `compare.json` and `cont
 - In a build-up, something new appears every 1-1.5 s (camera move, composition change, new element). Never hold one composition for 3 s waiting for the hit.
 - An emotion arc, not just rising energy: the subject wants something, meets an obstacle or a wait, and gets it at the climax.
 - A hook within the first 3 s. The ending calls back the climax emotion (a rhyme with the opening).
-- Narrated films: draft the voiceover first and lay out shot times from its real length (`word-anchored-timing.md`).
+- Narrated films: draft the voiceover first and lay out shot times from its real length (`shot-mapping.md` (section "Word-anchored timing (so variants re-time themselves)")).
 
 ## 6. Scene order (scoped conflict)
 
@@ -111,3 +111,86 @@ It writes `compare_*.jpg` (one pair per detected shot), `compare.json` and `cont
 ## 7. storyboard.md
 
 Logline; world and color arc; motif; protagonist emotion arc; a shot table with beats, transition in, event, reaction, camera, `ref_shot`, and each element with the word or sentence that triggers it; the cut elements with their reasons; the fixed marks with their slots; each depth or 3D element with its shot and build route; the scene-setup share calculation; the stats table from section 4 with reference value, plan value and percent difference.
+
+
+## Word-anchored timing (so variants re-time themselves)
+
+Read this when timing the plan and before building variants. Bind every graphic, caption, sound and effect to a meaning (a word, a phrase, a beat, an action), never to a fixed second. A new script, a new voice take, a new language or a new track then moves every element with its meaning. Fuller original text: `vendor/hypit/script-and-time.md`.
+
+### 1. Anchors
+
+| Anchor | Use for | Resolved from |
+|---|---|---|
+| Moment | An event: an answer, a verdict, a reveal, a hit | One word's start or end in the aligned voiceover, or one beat |
+| Selection | A span: a demo covering an explanation, a comparison held through a claim | First and last word of the phrase |
+| Beat | Music-led films without speech | BPM and offset: `t = offset + beat * 60 / BPM` |
+| Action | Wordless passages | The moment an on-screen action completes |
+| Clock | Literal intervals only when the interval is the design (a countdown, a fixed loop length) | Seconds |
+
+Store the anchor in each shot (`anchor` in `plan/shots.json`) and in each timed element. Seconds are computed, never typed by hand.
+
+### 2. Rules
+
+- Never copy a reference timestamp into the target. Keep the relationship (the label lands with its noun; the exit clears room for the next claim). Keep an incidental lead or lag only when that offset is itself the design.
+- The trigger and the entrance duration are separate choices: the anchor says when; a local duration in frames gives the arrival its character.
+- For a deliberate lead or lag, define a named offset from the anchor (a few frames before the word) instead of moving the anchor.
+- Do not place internal events at fixed seconds or at fixed fractions of an outer window. Each meaningful action (select, drop, reveal) gets its own anchor. Normalized progress is fine for motion inside one event.
+- When an authored interval changes length, decide which part stretches and which keeps its readable duration, and write it down.
+- Choose which side owns a pause: a held reaction may include the silence before the next word.
+- Music: write all shot times in beats as well as seconds, so a new track needs only a new BPM and offset. Where the track starts (back-timed from its ending, so it may open mid-track) and where hits land: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 7.
+- Voiceover-led films: the voice is the clock; order of work and timing from the accepted take: the `ice-audio` skill, `references/voiceover.md` sections 4 to 6 (Arabic: the ice-arabic skill).
+- A role change or a caption handoff does not need a new recording.
+
+### 3. Re-timing check
+
+After any change to the words, take, language or track: re-resolve every anchor, re-render, and check that each element still lands on its meaning. Check inner events, not just the outer window: a scene can start on the right phrase and reveal its result on the wrong word.
+
+
+## Variant generation
+
+Read this when the user wants several versions of a finished remake (other hooks, languages, products, aspect ratios, lengths, treatments). Variants share one reference reading and reuse accepted material; only what changes is rebuilt.
+
+### 1. Structure
+
+```
+ice/reference/<ref-id>/          read once, shared by every variant
+ice/plan/                        the base production
+ice/variants/<variant-name>/
+  BRIEF-DELTA.md                 what differs from the base brief, in the user's words
+  TREATMENT.md                   only if the creative answer changes
+  plan/shots.json                re-anchored plan
+  review/
+```
+
+Each variant links back to the shared reference and the base plan instead of copying them. A similarly named folder elsewhere on the machine is not an asset library: reuse only what this project's files point to.
+
+### 2. Axes (illustration only, pick what the brief asks for)
+
+| Axis | Usually changes | Usually kept |
+|---|---|---|
+| Hook or opening | The first 1-3 s, sometimes the CTA | Body, caption system, climax |
+| Language | Script, captions, voiceover take, text layout (RTL: the ice-arabic skill) | Structure, anchors, graphics |
+| Product or topic | Script lines, demo, props, claims, CTA | Format, caption system, reveal components |
+| Aspect or platform | Composition per format (re-layout, never crop), safe zones | Timeline and anchors |
+| Length | Which sections survive, compress or expand | Climax and ending rhyme |
+| Treatment (look) | Palette, type, texture, motion character as one system | Mechanics from the fidelity contract |
+
+Each variant still passes the stats contract, the fidelity check and the climax duel against the same reference, and the anti-sameness checks of the ice-direction and ice-qa skills (a variant set must not collapse into one look unless the brief asks for one look).
+
+### 3. Reuse versus rebuild
+
+| Change | Needs |
+|---|---|
+| A moved card, a new crop, a caption restyle, a graphic re-timing | Reuse the accepted renders and audio; re-composite only |
+| A changed spoken line or performance | New voiceover take (and any generated footage it drives), then re-alignment |
+| A new language | New take; re-resolve every anchor from the new alignment. Optional time-warp: map matching words of the two languages and warp the timeline between them, then confirm the untouched source-language version is pixel-identical |
+| A new track | New BPM and offset; beat anchors re-resolve; climax re-checked |
+
+Reuse is explicit: write in each variant's plan which earlier renders, stems and alignments it reuses. An unchanged file name is not proof that a render is still valid. Never pay for or regenerate work that an earlier accepted output already covers; any new generation is an intentional, disclosed choice inside the user's agreed scope.
+
+### 4. Batch order
+
+1. Freeze the base: approved plan, shared specs, accepted audio and renders.
+2. Write every `BRIEF-DELTA.md` first (from the variants planned at 03 in `ice/plan/versions.md`); show the list on the review card in step mode, and log it and report it in the delivery note in auto mode.
+3. Build variants in parallel, one builder per variant, each touching only its own folder.
+4. Review each with a fresh reviewer; compare variants side by side for unintended sameness or drift.

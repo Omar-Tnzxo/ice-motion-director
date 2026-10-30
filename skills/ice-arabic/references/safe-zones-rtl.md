@@ -37,7 +37,7 @@ Caption band used by the founder's design system: y 220 to 1500.
 |---|---|
 | One target platform | That platform's preset |
 | One master posted to several platforms | Conservative band: text and logos between y 360 and 1420, out of the right 120 px. An example from a delivered film: 72 px sides, 200 px top, 330 px bottom |
-| Profile grid cover | `references/covers-and-thumbnails.md` |
+| Profile grid cover | `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") |
 
 ## 5. Check method
 

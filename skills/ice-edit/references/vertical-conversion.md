@@ -49,7 +49,7 @@ Edit-specific working rules (always clamp them inside the delivery platform's sa
 - Front text width about 820 px, centered.
 - A layout may let an image (not text) enter the bottom band on purpose.
 - House values measured on organic reels, illustration only: lower thirds bottom-right inside y 1500 and x 920; hook card bounds x 140 to 940, y 230 to 1480. Shrink them to the platform's margins before use.
-- Covers and first-frame crops (centered square, profile grid and feed crops, cover sizes): the `ice-engines` skill, `references/platform-specs.md` section 5; Arabic covers: the `ice-arabic` skill, `references/covers-and-thumbnails.md` section 2.
+- Covers and first-frame crops (centered square, profile grid and feed crops, cover sizes): the `ice-engines` skill, `references/platform-specs.md` section 5; Arabic covers: the `ice-arabic` skill, `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") section 2.
 
 Subtitle filter placement: with libass, `MarginV=90` lands the baseline about 30% up the frame on any aspect; do not go below about 75 without a reason (platform UI covers roughly the bottom 25 to 30%).
 

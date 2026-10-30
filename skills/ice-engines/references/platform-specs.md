@@ -88,5 +88,5 @@ Caption placement policy is scoped in the ice-type skill (a reserved bottom band
 
 - The first frame is the cover on many apps: the product name or title present as plain text from frame 0 (no entrance), important content inside the centered 1080x1080 square (y 420 to 1500 on 1080x1920), out of the watermark corner.
 - Cover type sizes recorded at 1080 wide: title at least 170 px, other text at least 110 px, logo at least 200 px, at most 5 words on 2 lines, bold or black weight, contrast 4.5:1 or better, never over a face. Secondary on-screen text at least about 40 px at 1080 wide. Typography decisions: the ice-type skill.
-- Arabic cover and thumbnail sizes: the `ice-arabic` skill, `references/covers-and-thumbnails.md` sections 2 and 3.
+- Arabic cover and thumbnail sizes: the `ice-arabic` skill, `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") sections 2 and 3.
 - Muted-first: assume the film plays without sound; the claim appears as type in the first seconds; burned captions plus an `.srt` built from the rendered timings (caption rules: the ice-type skill).

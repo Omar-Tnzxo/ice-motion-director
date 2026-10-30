@@ -13,7 +13,7 @@
 ## 1. When the camera moves
 
 - The camera is punctuation, not decoration for every sentence. Before each move answer: where should the viewer look now, and can they read it at this framing; is this a transition or an accent; what was the previous camera move.
-- A camera move needs exactly one reason: reading order, detail inspection, scale reveal, spatial continuity, or decisive action. A beat or a new sentence is not a reason by itself (a music-led style or a reference that measures beat moves makes rhythm a reason, with its plan row). Compare against a locked camera; keep the move only if it is clearer. The full camera necessity test, the frame and text focus-unit contracts, the camera verb table and the 2D anchor formula are in `semantic-camera.md` (the founder's original).
+- A camera move needs exactly one reason: reading order, detail inspection, scale reveal, spatial continuity, or decisive action. A beat or a new sentence is not a reason by itself (a music-led style or a reference that measures beat moves makes rhythm a reason, with its plan row). Compare against a locked camera; keep the move only if it is clearer. The full camera necessity test, the frame and text focus-unit contracts, the camera verb table and the 2D anchor formula are in `camera.md` (section "Composition and semantic camera reference") (the founder's original).
 - Long takes (any film or edit type): a single take over about 8 s gets a visible change every 3 to 5 s, or within the reference's longest measured gap when there is one (lesson L9): a camera move with a word trigger (in on the stressed noun, out before text lands, the face panned away from incoming text, the return from B-roll hidden inside a pull-out) or a graphic in or out. A slow creep alone is the floor, not the ceiling. The camera mode of such a take is the plan's `camera` row (the `ice-direction` skill, `references/treatment.md` section "Craft plan"): a fixed crop per segment, or the continuous digital camera of section 8, chosen by the reference, the style or the take length. The news reel numbers of section 8 are the measured case of this rule.
 - If it is readable, do not move. Hold when the picture moves by itself (footage, a line being drawn, a growing curve) and while the viewer reads.
 - Transitions use slow moves; fast push, slam and whip are accents reserved for reveals, reversals, key numbers and punchlines, countable in one film.
@@ -148,3 +148,161 @@ Scope: news reel (edit type `news-reel`, the `ice-edit` skill, `references/edit-
 **Build.** HyperFrames or HTML: one transformed wrapper around the video and the `layer: rig` graphics, scale tweened in log space (section 3), transform origin at the anchor; Remotion: `interpolate` on the same wrapper. Screen layers are siblings outside the wrapper. No motion blur on digital zooms (`motion-blur-and-clock.md` section 3).
 
 Sources: huashu-art-motion (camera language, measured durations), motionmaxxing (motion.md camera, ui-demo), hyperframes skills (camera rules, blueprints), hyperframes docs (motion.mdx, vocabulary), anidoodle (camera.md, motion deck), product-launch-motion (05 camera, cursor), claude-motion-design, Barty-Bart motion-graphics, charlie947 motion-graphics (shot-size rig), video-ad-editor, lemo-opuscar, group-d explainer engine, commercial-motion-design (founder), ideas from onetake, anything2explainer, remotion skills, imMamdouhaboammar (rewritten); section 8 from measurements of three broadcast news packages and the reel tutorials of Muhamd Helal (ideas only).
+
+
+## Composition and semantic camera reference
+
+> From the founder's commercial-motion-design skill (Omar-Tnzxo, Apache-2.0 in this repo), references/composition-and-camera.md. Unchanged except this notice. Move durations and camera policy by type: `camera.md`.
+
+
+Camera motion is narrative punctuation, not a global scale effect. Adobe distinguishes camera position, point of interest, zoom, angle of view, focus distance, and depth of field; keep those roles conceptually separate even in a 2D implementation.
+
+### Frame contract
+
+For each scene record:
+
+```text
+focal bbox: x, y, width, height
+safe margin: x, y
+camera anchor: focal center
+start zoom / apex zoom / settle zoom
+camera verb: hold / push / pull / truck / orbit / reframe / impact
+semantic purpose: inspect / commit / reveal / compare / release / bridge
+foreground z / focal z / background z
+portrait overrides
+```
+
+### Text focus-unit contract
+
+Before animating important copy, split it in reading order and record:
+
+```text
+unit ID / exact words / semantic role
+text bbox and optical center
+camera start / arrival / zero-velocity dwell / departure
+minimum readable frames
+next phrase or proof target
+handoff direction / occlusion / sound bridge
+```
+
+Do not rely on scale alone. Combine scale with a small target-anchored reframe when necessary, and let the previous unit remain legible only if it supports the sentence rather than competing with the new owner. During the dwell, reduce camera velocity to nearly zero; micro parallax may continue below the threshold that disturbs reading.
+
+#### Camera necessity test
+
+For every proposed camera move, render or mentally compare a locked-camera alternative. Keep the move only if it supplies at least one function the static composition cannot supply as clearly: reading-order control, inspection of small evidence, reveal of scale or context, continuity between separated spaces, or reinforcement of a decisive physical action. A new sentence, a musical beat, or an entering icon is not sufficient justification by itself. When the elements already create the hierarchy, let them move inside a stable frame.
+
+Useful phrase transitions:
+
+- push from a general claim into one highlighted word, then pull out to the mechanism that proves it;
+- truck along a sentence only when the reading direction and composition support the move;
+- use a word's underline, mask, stroke, or geometry as the incoming proof object's path;
+- let a proof object occlude the outgoing phrase, then inherit its screen direction and color.
+
+### Dimensional scene contract
+
+For a 3D or simulated-3D beat, record camera position and point of interest separately from object transforms. Require at least two depth planes with different parallax and a readable occlusion event. Add contact shadows or projected shadows that agree with one light direction. Keep text on a camera-facing plane unless rotation is itself the explanation.
+
+An exploded-view mechanism should show a cause for separation, preserve shared alignment guides, and recombine or hand off to the next owner. A perspective transform without parallax, occlusion, or depth-dependent scale is not sufficient evidence of 3D.
+
+### Choreography
+
+| Camera verb | Use when | Required anchor behavior |
+|---|---|---|
+| Push-in | inspect a mechanism or commit to an action | aim at the semantic target, not canvas center |
+| Pull-out | reveal result, scale, context, or secondary benefits | preserve the outgoing focal point until the reveal reads |
+| Lateral truck | continue direction or move between related spaces | maintain parallax and screen direction |
+| Orbit | reveal form, dimensionality, or relationship | keep point of interest stable and avoid unreadable text rotation |
+| Reframe | transfer attention between distinct claims | move only after the new target has a visible cause |
+| Impact move | reinforce a real collision or musical hit | use a brief displacement and damped recovery; never continuous shake |
+
+Do not animate camera and focal object with the same transform by default; that often cancels relative motion and produces a fake zoom. Record their screen-space paths separately. During a handoff, the camera may anticipate by a few frames, arrive with the focal impact, then settle after the object.
+
+For 2D camera simulation, calculate translation around the target anchor:
+
+`screenPoint = cameraAnchor + (worldPoint - cameraAnchor) × zoom`
+
+Use optical offsets only after the numeric anchor is correct. A push/pull must not crop the target's motion-blur envelope, shadow, or Arabic copy.
+
+### Optical checks
+
+- Measure visible bounds after transforms, not layout bounds before transforms.
+- Include glows, strokes, and drop shadows when checking crop risk.
+- Avoid centering purely by bounding boxes when a shape has unequal visual weight; apply small documented optical offsets.
+- Keep Arabic line widths compact enough to read in one fixation.
+- Do not put title and main UI on the same vertical band unless one clearly dominates.
+
+### Responsive art direction
+
+Landscape often supports side-by-side explanation and evidence. Portrait should usually stack title, focal UI, and proof. Reduce horizontal camera travel, enlarge touch targets and semantic icons, and test the entire 9:16 safe area rather than reusing 16:9 percentages.
+
+Retarget the choreography, not just the coordinates: convert wide trucks into shorter vertical reframes when appropriate, recompute focal anchors, parallax distances, orbit radii, and entry/exit vectors, and preserve the same narrative arrival frame.
+
+Source basis: [Adobe After Effects camera layers and points of interest](https://helpx.adobe.com/after-effects/desktop/work-with-layers/camera-layer/cameras-lights-points-interest.html) and BUCK's [Sonos case study](https://buck.co/work/sonos-move), where continuous camera movement and echo lines jointly express freedom of movement and bridge spaces.
+
+
+## One-take films: one shape, one world, one camera
+
+Films built without scene cuts: a single element that morphs through every state, or a single world the camera travels. Use when the brief, the direction pitch or the reference calls for "one continuous" film. Typical scope: product launch UI-morph films, app ads, logo stings, loops, explainers on one canvas, art films that travel through paintings.
+
+### 1. Three forms
+
+| Form | What persists | Typical length | Fits |
+|---|---|---|---|
+| One shape | One element morphs its size, radius and colour through 8-12 states while its content swaps with a short blur | 10-30 s, often a loop | UI showcase, app ad, product launch, social short |
+| One world canvas | A layout about 3x the frame (or larger) holds all stations; the camera travels between them; nothing resets | 20-90 s | Explainer, data story, UI walkthrough, whiteboard, collage |
+| One travelling actor | A hero object travels through stations whose state it changes | 15-60 s | Brand film, explainer, hype promo |
+
+### 2. One-shape rules
+
+- Every state is the same element. Transitions are morphs, camera moves and zooms into an element that becomes the next scene.
+- Springs everywhere, a tiny overshoot at most (damping 0.72-0.9; 1.0 for camera and text); no bouncy easing.
+- Leading and trailing edges ride different springs so indicators, knobs and pills stretch (`edgeSplit` in `scripts/springs.mjs`).
+- Text inside a morphing container has its own enter and exit timing: exit short and early, enter after the morph starts, so old and new text never overlap.
+- A cursor drives every change with real clicks and drags; while held, the value is computed from the cursor position; on release it springs back from wherever it was.
+- The camera zooms so each state fills the frame; empty frames are a bug. Pull-backs reveal scale (one item becomes a grid of hundreds).
+- Music-first timing: choose the track first, build on its beat grid (about 120 BPM is a common choice, never a default), start on a downbeat, place the drop on the biggest state change; something happens on every beat. Beat analysis is owned by the ice-audio skill.
+- Show the state list on the beat grid before writing code.
+- Loops: the last frame is the first frame, cursor position and speed included.
+- Banned in this form: bouncy easing, particle bursts, glows, gradients on UI chrome, mismatched icon strokes, dead time, template looks.
+
+### 3. One-world rules
+
+- The video lives in a single space and never resets: an element, once drawn, is never redrawn, moved or relabelled without a visible cause.
+- Decide the spatial grammar before building and hold it for the whole runtime; break it exactly once, deliberately, for meaning.
+- Three altitudes (world, region, detail): move between adjacent ones; jumping from detail to world is disorienting unless it is the payoff.
+- Name framings as exact world windows, not scale factors; window boundaries fall between labels; reuse the same window for the same purpose (near-identical framings read as drift).
+- Lay out each scene as one picture on the full canvas the way it should look at the end, and let the camera find the close-ups. Put the next element near the one it follows so one shot shows both.
+- While a shot holds, every card and label is fully in the shot or fully out of it (arrows and lines may run off the edge); push half-visible neighbour labels out of frame.
+- Camera landing is computed from what must be read now (target box plus margin), never hand-typed coordinates.
+- A faint lattice on a far layer (a dot grid moving with the camera at depth about 1.2) makes camera moves readable on an empty ground.
+- Scenes on one canvas: whiteboard films pan only about 0.23 frame width (about 75 percent overlap) so viewers see the previous block's edge; collage films build objects, relations and camera first, decoration last.
+- Every label belongs to its station: it arrives with it and leaves before the camera leaves.
+- Long scroll worlds: the camera only moves forward (target = running maximum of the hero position plus a lead, then smoothed), so it never stops and rewinds; check for backward camera motion.
+- Time events relative to the interaction (when the hero reaches the station), never as seconds after a segment starts, so walk speed can change without editing every segment.
+
+### 4. One-actor rules
+
+- One simple, readable hero that never disappears or gets replaced (it may change shape for a moment, then return).
+- When the hero leaves a station it was part of, the station keeps a dim outline of the empty slot.
+- Follow camera: target = blend of hero position (plus about 0.15 s of velocity lead) and a fixed anchor for the current station, smoothed by a critically damped spring (w about 6); anchor weight about 0.7 during an interaction, 0.15 during flights, 0.85 on the payoff hold; the hero never leaves the middle half of the frame.
+- Tight during each interaction: the station fills about half the frame width; the hero about 50-70 px on screen at 1080p (at least 24 px when the reveal frames the whole course).
+- Payoff hold 0.4-0.6 s fully in frame before the launch to the next station.
+- Hops on parabolas with constant gravity, landing on the beat; squash on contact (1.25 x 0.8 for about 60 ms, spring back), stretch along velocity in flight (up to 1.15 x 0.9).
+- Slow-motion reveal: warp time so the flight fills the reveal window, slowest at the apex (often 5-10x slower there).
+- Loop seam at the hero's landing on the first station: the last frame looks exactly like the first.
+
+### 5. One-take continuity devices
+
+- Dive into a logo with zoom from 1 to 10 and blur, out of the next shot.
+- A J-cut leads the picture by 4-12 frames.
+- Match cut = same shape, same place and size on the cut frame.
+- Forbidden in one-take films: crossfades, unmotivated blur dissolves, resets to an empty frame.
+
+### 6. When not to use a one-take form
+
+- The brief has unrelated topics with no relation to draw (a canvas route would be long and empty).
+- The film is read-critical text or legal copy.
+- The reference (ice-remake) uses hard cuts as its grammar.
+- A one-take film still needs contrast: bursts and rests, close and wide, fast and slow.
+
+Sources: product-launch-motion (v2 SKILL.md, technique.md), community prompt library (one-shape UI morph prompts), Barty-Bart motion-graphics (explainer-engaging, explainer-default, motion-broll), claude-motion-design, herk-edit-kit (video-storytelling), huashu-art-motion (long scroll, whiteboard grammar), group-d explainer engine (camera and layout rules), video-ad-editor (one-take rules).

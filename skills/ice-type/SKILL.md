@@ -35,12 +35,12 @@ Read `ice/BRIEF.md` slots: film or edit type, platform, aspect ratio, language, 
 
 1. **Classify the text.** For each on-screen text, assign a role: caption, display (hero, headline, support, label), title card, lower third, diegetic, texture. See `references/captions-system.md` section 1 and `references/type-system.md` section 1.
 2. **Decide captions on or off** with the table in `references/captions-system.md` section 2. Speech in social edits: on. No-voice motion films: off, text performs.
-3. **Set density** for the film type with `references/text-density.md`. Cut copy before shrinking type.
+3. **Set density** for the film type with `references/reading-time.md` (section "Text density and hierarchy per film type"). Cut copy before shrinking type.
 4. **Set sizes** for the aspect ratio and viewing context with `references/sizes-and-scale.md`. Respect the phone floors for any feed delivery.
 5. **Set the type system** (weights, family count, tracking, case, punctuation, numbers) with `references/type-system.md`, using the families chosen by `ice-direction`.
 6. **Choose motion** for display text with `references/kinetic-type.md`; pull numbers for named effects from `references/type-effects-specs.md`.
 7. **Build captions** (when on): grouping in `references/captions-system.md`, look in `references/caption-styles.md`, text and timing in `references/caption-timing-and-truth.md`, position and contrast in `references/caption-placement-safe-zones.md`, embedded or 3D captions in `references/depth-and-embedded-captions.md`.
-8. **Load fonts** as files and assert them before the first frame with `references/font-loading-and-measuring.md`.
+8. **Load fonts** as files and assert them before the first frame with `references/type-system.md` (section "Font loading, fallback and text measurement").
 9. **Set holds** with `references/reading-time.md` and hand its gate thresholds to `ice-qa`.
 
 ## 3. Non-negotiables
@@ -84,8 +84,8 @@ When two references give different numbers, use the row scoped to the current fi
 | `references/reading-time.md` | Setting any hold; QA thresholds | Hold formulas by role, floors, rates by script, readability gates |
 | `references/sizes-and-scale.md` | Setting font sizes | %H role scale, landscape, vertical, caption sizes, web to video scale |
 | `references/type-system.md` | Setting weights, families count, tracking, case, punctuation, numbers | Type roles, weight systems, scoped family rules, tracking and alignment, emphasis, numerals |
-| `references/text-density.md` | Writing on-screen copy; storyboarding text | Density rules, words per film type, callouts, text over picture |
+| `references/reading-time.md` (section "Text density and hierarchy per film type") | Writing on-screen copy; storyboarding text | Density rules, words per film type, callouts, text over picture |
 | `references/kinetic-type.md` | Animating display text | Principles, onset gaps, entry mechanics, exits, holds, typing rules, beat type, named techniques |
 | `references/type-effects-specs.md` | The storyboard names an effect | Numbers for depth, glow, sweeps, counters, odometers, markers, broadcast text (pointer reveal, coloured-head typewriter, blink exit, scanline headline, lower third, location tag, source credit, glass subtitle box, crimson-to-white title), write-on, Lottie text |
-| `references/font-loading-and-measuring.md` | Before any render with text | Font files, loading, glyph coverage, measuring and fitting, determinism |
+| `references/type-system.md` (section "Font loading, fallback and text measurement") | Before any render with text | Font files, loading, glyph coverage, measuring and fitting, determinism |
 | `scripts/align_script_to_asr.py` | A script exists and ASR timings exist; before delivery of any captioned film | Aligns script words onto ASR timings, exit 3 on a stale script; `--check-captions` checks delivered captions against a fresh transcript, exit 4 on a mismatch |

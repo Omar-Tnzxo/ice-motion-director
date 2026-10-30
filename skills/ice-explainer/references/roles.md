@@ -108,7 +108,7 @@ Method:
 1. Pull your own frames: a light pass across the film and a dense pass around every cut. Make a silent contact sheet.
 2. Retell the story from the frames before reading the brief. Where your retelling differs, the film is at fault.
 3. Read as four specialists: director (point, first second, payoff, last frame), illustrator (drawing, style), motion and finish (timing, seams, stillness), sound and sync (beats, words on screen at the right time).
-4. Check coverage: what should be on screen is there (name plates, numbers, sources, call to action), plus the explainer additions in `verification-loop.md` section 7.
+4. Check coverage: what should be on screen is there (name plates, numbers, sources, call to action), plus the explainer additions in `research-and-facts.md` (section "Verification loop for agents that cannot watch") section 7.
 
 Output: a review file written line by line as you go, one line per segment (even "OK"), each finding with timecode, frame evidence, cause, and severity (P0, P1, P2 as defined in the `ice-qa` skill, `references/critic-loop.md` section 4), ending with an explicit completion line and the first fixes to make.
 

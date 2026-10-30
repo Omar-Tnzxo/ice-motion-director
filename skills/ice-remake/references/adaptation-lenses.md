@@ -34,4 +34,4 @@ Jokes about the original presenter's looks, life or persona are rethought for th
 
 ## 5. Compare by function
 
-Judge the remake by whether each transformed element does the same job at its corresponding word or action, not by pixel similarity. Where the Treatment deliberately changes the job, the Treatment is the authority. (Frame-locked mode adds pixel-level checks: `frame-locked-remake.md`.)
+Judge the remake by whether each transformed element does the same job at its corresponding word or action, not by pixel similarity. Where the Treatment deliberately changes the job, the Treatment is the authority. (Frame-locked mode adds pixel-level checks: `rights-and-modes.md` (section "Frame-locked remake mode (frame by frame, parallel agents)").)

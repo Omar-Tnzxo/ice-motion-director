@@ -2,7 +2,7 @@
 
 > Ideas from remotion-dev/skills (no license file; ideas rewritten in this repo's words, nothing copied), haidrrrry/claude-remotion-skill (MIT, (c) 2025 haidrrrry) and digitalsamba/claude-code-video-toolkit (MIT, (c) 2024 Digital Samba). Changes: merged, reworded, dashes removed.
 
-Contents: 1 License gate. 2 Setup. 3 Project structure. 4 Frame-driven animation. 5 Sequencing and transitions. 6 Media, fonts, async loading. 7 Audio-driven timing. 8 Effects and 3D. 9 Preview and render. 10 Operational traps. Studio-editable code rules: `remotion-studio-code.md`.
+Contents: 1 License gate. 2 Setup. 3 Project structure. 4 Frame-driven animation. 5 Sequencing and transitions. 6 Media, fonts, async loading. 7 Audio-driven timing. 8 Effects and 3D. 9 Preview and render. 10 Operational traps. Studio-editable code rules: `engine-choice.md` (section "Remotion: Studio-editable code rules").
 
 ## 1. License gate
 
@@ -85,7 +85,7 @@ public/           assets referenced with staticFile()
 - Color correction ranges (neutral defaults): exposure -5 to 5 stops (0), temperature and tint -1 to 1, shadows, highlights, blacks, whites -1 to 1, contrast multiplier 1 around pivot 0.5, saturation multiplier 1, vibrance -1 to 1; order exposure, white balance, tonal regions, contrast, saturation, vibrance. LUTs: 3D `.cube` only, size 2 to 256, exactly size cubed rows, no strength parameter.
 - Motion blur component: shutter angle default 180 (0 to 360), samples default 8 (1 to 64); call the frame hook inside the blurred child. Version-gated features (light leak 4.0.500+, motion blur 4.0.529+): check the pinned version.
 - Grade and grain with `mixBlendMode` are fine here because the page is one DOM composite (contrast with HyperFrames overlay tracks, `hyperframes.md` section 12).
-- 3D: wrap in Remotion's three canvas with explicit width and height and real lighting; no `useFrame`, no autonomous shader time; animate only from the frame or it flickers. More in `threejs.md`.
+- 3D: wrap in Remotion's three canvas with explicit width and height and real lighting; no `useFrame`, no autonomous shader time; animate only from the frame or it flickers. More in `engine-choice.md` (section "Three.js guide").
 - Dense charts: draw on canvas, scale the backing store by device pixel ratio.
 
 ## 9. Preview and render

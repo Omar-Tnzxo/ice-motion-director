@@ -4,9 +4,9 @@
 
 These skeletons are CSS for the animated SVG route. For a Lottie deliverable,
 use the same timeline shapes and ratios as keyframe times (`frame = ms / 1000 * fps`)
-and the curves as `o`/`i` handles (see `lottie-spec-map.md`).
+and the curves as `o`/`i` handles (see `svg-compatibility.md` (section "Lottie Spec Map")).
 
-Reveal, loop, and hover patterns. Each entry: when to use, principles it leans on, timeline shape, and a CSS skeleton targeting motion-ready part ids. All durations assume the personality tokens from `motion-personality.md`; multiply, don't hardcode.
+Reveal, loop, and hover patterns. Each entry: when to use, principles it leans on, timeline shape, and a CSS skeleton targeting motion-ready part ids. All durations assume the personality tokens from `logo-pipeline.md` (section "Motion Personality: Brand → Parameters"); multiply, don't hardcode.
 
 The timeline shape notation `A:B:C` = anticipation : action : follow-through as % of total (golden ratio default 20:50:30).
 

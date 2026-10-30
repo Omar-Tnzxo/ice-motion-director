@@ -29,13 +29,13 @@ Before any script, layout or caption work, fill a language profile and record it
 | Register | Everyday spoken, polished spoken, formal | From brand voice and film type |
 | Digits | Western (0-9) or Arabic-Indic | Section 4 of `references/bidi-numerals-line-breaks.md` |
 | Font roles | Display, text, Latin companion, sacred text if any | `references/fonts-and-shaping.md` with `ice-direction` type pairing |
-| Voice source | Human, TTS with a dialect voice, TTS in diacritized MSA, the speaker on camera | `references/voiceover-tts.md` |
+| Voice source | Human, TTS with a dialect voice, TTS in diacritized MSA, the speaker on camera | `references/asr-timing.md` (section "Arabic voiceover and TTS") |
 | ASR hint | Language code and model choice | `references/asr-timing.md` |
 | Native reader | Who signs off the final script | The user by default, never asked as a question; or a person the user names |
 
 Ask only when the answer changes the film. The usual case: there is a script or voiceover and the dialect is unknown. Ask once, through `ice-direction` question rules, with the audience city's dialect as the recommended option. Everything else is decided and logged.
 
-The dialect is a setting, never a constant. No rule in this skill assumes Egyptian, Gulf, Levantine or any other variety; the profiles in `references/dialect-profiles.md` are illustrations of how to fill the setting.
+The dialect is a setting, never a constant. No rule in this skill assumes Egyptian, Gulf, Levantine or any other variety; the profiles in `references/asr-timing.md` (section "Dialect as a setting") are illustrations of how to fill the setting.
 
 ## 2. Hard rules (every film type)
 
@@ -75,17 +75,17 @@ Type names follow the film types of the `ice-film` skill (`references/film-types
 
 | Stage of the calling workflow | Open |
 |---|---|
-| Intake (language slot) | This file, section 1; `references/dialect-profiles.md` |
-| Script and copy | `references/dialect-profiles.md`; `references/bidi-numerals-line-breaks.md` |
-| Voiceover | `references/voiceover-tts.md` |
+| Intake (language slot) | This file, section 1; `references/asr-timing.md` (section "Dialect as a setting") |
+| Script and copy | `references/asr-timing.md` (section "Dialect as a setting"); `references/bidi-numerals-line-breaks.md` |
+| Voiceover | `references/asr-timing.md` (section "Arabic voiceover and TTS") |
 | Transcribing footage or VO | `references/asr-timing.md` |
 | Type and font choice | `references/fonts-and-shaping.md` |
 | Building motion with Arabic text | `references/letterforms-in-motion.md`; `references/kashida.md` when a stretch effect is planned |
 | Engine setup | `references/engine-overrides.md` |
 | Captions and subtitles | `references/arabic-captions.md`; `references/safe-zones-rtl.md` |
-| Cover or thumbnail | `references/covers-and-thumbnails.md` |
-| Sacred text, seasons, culture | `references/sacred-and-cultural.md` |
-| Debugging a strange Arabic defect | `references/failure-lessons.md` |
+| Cover or thumbnail | `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") |
+| Sacred text, seasons, culture | `references/arabic-qa-checks.md` (section "Sacred text, seasons and culture") |
+| Debugging a strange Arabic defect | `references/arabic-qa-checks.md` (section "Arabic failure lessons") |
 | QA before delivery | `references/arabic-qa-checks.md` (run through `ice-qa`) |
 
 ## 5. What other skills own
@@ -118,10 +118,10 @@ When called, return to the workflow:
 | `references/bidi-numerals-line-breaks.md` | Mixed Arabic and Latin lines, numbers, units, ranges, line breaks, subtitle files, multi-language versions |
 | `references/arabic-captions.md` | Building Arabic captions, karaoke highlights, hooks over footage, SRT and VTT sidecars |
 | `references/safe-zones-rtl.md` | Placing Arabic text on vertical video for Instagram, TikTok, YouTube Shorts, Snapchat, Facebook Reels |
-| `references/covers-and-thumbnails.md` | Reel covers, profile grid legibility, YouTube thumbnails with Arabic text |
-| `references/dialect-profiles.md` | Filling the dialect setting, dialect review, spelling, dialect hooks, narrator patterns |
-| `references/voiceover-tts.md` | Choosing an Arabic voice, preparing text for TTS, pace by dialect |
+| `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") | Reel covers, profile grid legibility, YouTube thumbnails with Arabic text |
+| `references/asr-timing.md` (section "Dialect as a setting") | Filling the dialect setting, dialect review, spelling, dialect hooks, narrator patterns |
+| `references/asr-timing.md` (section "Arabic voiceover and TTS") | Choosing an Arabic voice, preparing text for TTS, pace by dialect |
 | `references/asr-timing.md` | Transcribing Arabic speech for timing, correcting transcripts, aligning to the script, sync checks |
-| `references/sacred-and-cultural.md` | Quran or other sacred text, religious seasons, regional culture in motion and imagery |
-| `references/failure-lessons.md` | A defect appeared; check whether it is a known Arabic failure before debugging |
+| `references/arabic-qa-checks.md` (section "Sacred text, seasons and culture") | Quran or other sacred text, religious seasons, regional culture in motion and imagery |
+| `references/arabic-qa-checks.md` (section "Arabic failure lessons") | A defect appeared; check whether it is a known Arabic failure before debugging |
 | `references/arabic-qa-checks.md` | Before every review round and before delivery |
