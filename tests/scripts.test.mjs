@@ -579,3 +579,194 @@ test("craft_gate.py build: a user frame:flash row lifts only the flash windows i
   assert.deepEqual(others.exempt, []);
   assert.ok(others.warnings.some((w) => /exemption X-03 lifts frame:flash but is ignored \(a style row cannot lift it \(allowed: user\)\)/.test(w)), JSON.stringify(others.warnings));
 });
+
+// ---------------------------------------------------------------- craft_gate.py 0.2.6 (package G2): depth from pixels,
+// finishing per shot, grade per source class, fixed marks and the speaker. Frames are drawn with numpy and opencv and
+// piped to ffmpeg (no network); `frame(i, t)` returns one BGR frame, `blocks()` a picture of random flat blocks.
+const GEN = String.raw`
+import sys, subprocess, numpy as np, cv2
+out, W, H, FPS, DUR, audio, body = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), float(sys.argv[5]), sys.argv[6], sys.argv[7]
+def blocks(w, h, cell, lo=30, hi=225, seed=1, ch=3):
+    r = np.random.default_rng(seed)
+    small = r.integers(lo, hi, (h // cell + 1, w // cell + 1, ch), dtype=np.uint8)
+    return cv2.resize(small, ((w // cell + 1) * cell, (h // cell + 1) * cell), interpolation=cv2.INTER_NEAREST).reshape((h // cell + 1) * cell, (w // cell + 1) * cell, ch)[:h, :w].copy()
+exec(body)
+cmd = ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
+if audio: cmd += ["-f", "lavfi", "-i", audio]
+cmd += ["-map", "0:v"] + (["-map", "1:a", "-c:a", "aac"] if audio else []) + ["-c:v", "libx264", "-crf", "12", "-pix_fmt", "yuv420p", "-t", str(DUR), out]
+p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+for i in range(int(round(DUR * FPS))):
+    p.stdin.write(np.ascontiguousarray(np.clip(frame(i, i / FPS), 0, 255), dtype=np.uint8).tobytes())
+p.stdin.close()
+sys.exit(p.wait())
+`;
+function drawVideo(file, body, { w = 640, h = 360, fps = 25, dur = 4, audio = "" } = {}) {
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", GEN, file, String(w), String(h), String(fps), String(dur), audio, body],
+    { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  return file;
+}
+const writeShots = (dir, data) => writeFileSync(join(dir, "ice", "plan", "shots.json"), JSON.stringify(data, null, 1));
+const craftBuild = (dir, film, ...extra) => {
+  const r = craftPy("build", dir, "--render", film, "--json", ...extra);
+  assert.ok(r.status === 0 || r.status === 2, r.stdout + r.stderr);
+  return JSON.parse(r.stdout);
+};
+
+test("craft_gate.py measure: a parallax pan (a near band three times faster than its ground) writes 2 planes to <video>.depth.json for motion_check.py; a flat pan of one picture writes 1 plane", { skip: CV_SKIP }, () => {
+  const dir = join(work, "craft depth");
+  mkdirSync(dir, { recursive: true });
+  const parallax = drawVideo(join(dir, "parallax.mp4"), [
+    "BG = blocks(1400, 360, 12, seed=1)", "FG = blocks(2400, 120, 12, 0, 255, seed=2)",
+    "def frame(i, t):", "    f = BG[:, 2 * i:2 * i + W].copy()", "    f[240:360] = FG[:, 6 * i:6 * i + W]", "    return f"].join("\n"));
+  const flat = drawVideo(join(dir, "flat pan.mp4"), ["BG = blocks(1400, 360, 12, seed=1)",
+    "def frame(i, t):", "    return BG[:, 3 * i:3 * i + W].copy()"].join("\n"));
+  writeFileSync(join(dir, "parallax.depth.json"), JSON.stringify({ layers: 9, elements_3d: ["card stack"], dof: { present: true, blur_px: 4 }, triggers: [] }));
+
+  let r = craftPy("measure", parallax, "--out", join(dir, "parallax measure.json"));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const deep = JSON.parse(readFileSync(join(dir, "parallax.depth.json"), "utf8"));
+  assert.equal(deep.layers, 2, JSON.stringify(deep.measured));
+  assert.ok(deep.parallax_ratio >= 2.4 && deep.parallax_ratio <= 3.6, `parallax ratio ${deep.parallax_ratio}`);
+  assert.equal(deep.push_through, 0);
+  assert.equal(deep.camera_moving_share, 1);
+  assert.deepEqual(deep.elements_3d, ["card stack"], "elements_3d written by hand are kept");
+  assert.equal(deep.dof.present, true, "dof written by hand is kept");
+
+  r = craftPy("measure", flat, "--out", join(dir, "flat measure.json"));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const one = JSON.parse(readFileSync(join(dir, "flat pan.depth.json"), "utf8"));
+  assert.equal(one.layers, 1, JSON.stringify(one.measured));
+  assert.equal(one.parallax_ratio, null);
+
+  // motion_check.py reads the file craft_gate.py wrote, beside the render
+  const ref = join(dir, "reference depth.json");
+  writeFileSync(ref, JSON.stringify({ camera_moving_share: 1, layers: 2, parallax_ratio: 3, push_through: 0, elements_3d: [], dof: { present: false } }));
+  const motion = (video) => spawnSync(PYTHON[0], [...PYTHON.slice(1), abs("skills/ice-qa/scripts/motion_check.py"), video, "--pacing-only",
+    "--reference-depth", ref], { encoding: "utf8", timeout: 120000 });
+  r = motion(parallax);
+  assert.match(r.stdout + r.stderr, /depth: PASS/);
+  r = motion(flat);
+  assert.match(r.stdout + r.stderr, /depth: FAIL/);
+  assert.match(r.stdout + r.stderr, /parallax_ratio: the reference has 3, the film has none/);
+});
+
+test("craft_gate.py build: grain where the finish row names it passes; grain on a shot the row does not name is red, and the named shot without grain is red", { skip: CV_SKIP }, () => {
+  const finish = (where) => ({ ...useRow("finish", where), devices: ["film grain"] });
+  const dir = craftProject("craft finishing", { rows: swapRow(notUseAll(), "finish", finish(["0-3"])), stage: "07" });
+  const film = drawVideo(join(dir, "two shots.mp4"), [
+    "rng = np.random.default_rng(3)",
+    "def frame(i, t):",
+    "    if t < 3:",
+    "        f = np.full((H, W, 3), 122, np.float32)",
+    "        f[150:210, 80:200] = 40",
+    "        return f + rng.normal(0, 7, (H, W, 1))",
+    "    f = np.zeros((H, W, 3), np.uint8); f[:] = (150, 190, 215)",
+    "    f[60:300, 380:560] = (60, 70, 90)",
+    "    return f"].join("\n"), { dur: 6 });
+
+  let out = craftBuild(dir, film);
+  assert.equal(out.checks.finishing.ran, true);
+  assert.equal(out.checks.finishing.ok, true, JSON.stringify(out.checks.finishing));
+
+  craftProject("craft finishing", { rows: swapRow(notUseAll(), "finish", finish(["3-6"])), stage: "07" });
+  out = craftBuild(dir, film);
+  const items = out.checks.finishing.items.join("\n");
+  assert.equal(out.checks.finishing.ok, false, JSON.stringify(out.checks.finishing));
+  assert.match(items, /grain [\d.]+ on \S+ \(0-3 s\), which neither the finish row nor shots\.json names/);
+  assert.match(items, /grain is named on \S+ \(3-6 s\) but measures [\d.]+ \(not above the floor 1\)/);
+  assert.ok(out.reds.some((x) => x.startsWith("finishing: ")), JSON.stringify(out.reds));
+});
+
+test("craft_gate.py build: an archive source class graded outside_mono is red in colour and passes in monochrome against the film's own colour world", { skip: CV_SKIP }, () => {
+  const dir = craftProject("craft grade", { rows: notUseAll(), stage: "07" });
+  writeShots(dir, { shots: [{ id: "S1", start_s: 0, end_s: 3 }, { id: "S2", start_s: 3, end_s: 6, source_class: "archive", grade: "outside_mono" }] });
+  const body = (grey) => ["OWN = blocks(W, H, 40, seed=4)", "ARC = blocks(W, H, 24, seed=5)",
+    `ARC = cv2.cvtColor(cv2.cvtColor(ARC, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR) if ${grey ? "True" : "False"} else ARC`,
+    "def frame(i, t):", "    return OWN if t < 3 else ARC"].join("\n");
+
+  let out = craftBuild(dir, drawVideo(join(dir, "archive colour.mp4"), body(false), { dur: 6 }));
+  const grade = out.checks.grade;
+  assert.equal(grade.ok, false, JSON.stringify(grade));
+  assert.equal(grade.classes_from, "the edit plan or shots.json");
+  assert.match(grade.items.join("\n"), /\(3-6 s\) \(class archive, grade outside_mono\) is not inside its planned look, monochrome/);
+
+  out = craftBuild(dir, drawVideo(join(dir, "archive mono.mp4"), body(true), { dur: 6 }));
+  assert.equal(out.checks.grade.ok, true, JSON.stringify(out.checks.grade));
+  assert.ok(out.checks.grade.own.saturation > 0.2, JSON.stringify(out.checks.grade.own));
+});
+
+test("craft_gate.py build: a fixed mark in its slot over a moving camera passes; a mark that rides the camera, sits 3 percent off its slot or goes missing for 1.2 s is red", { skip: CV_SKIP }, () => {
+  const dir = craftProject("craft marks", { rows: notUseAll(), stage: "07" });
+  writeShots(dir, { fixed_marks: [{ mark: "corner logo", x_pct: 80, y_pct: 5, w_pct: 12, file: "logo.png" }] });
+  const logo = ["LOGO = np.zeros((40, 120, 3), np.uint8); LOGO[:] = (70, 30, 20)",
+    "cv2.rectangle(LOGO, (2, 2), (117, 37), (255, 255, 255), 2)",
+    "cv2.putText(LOGO, 'ICE', (22, 31), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 3)"].join("\n");
+  const save = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", `import numpy as np, cv2, sys\n${logo}\ncv2.imwrite(sys.argv[1], LOGO)`, join(dir, "logo.png")], { encoding: "utf8" });
+  assert.equal(save.status, 0, save.stderr);
+  const body = (x, rides, gap) => [logo, "BG = blocks(1400, 360, 16, 40, 200, seed=6)",
+    "M = cv2.resize(LOGO, (77, 26), interpolation=cv2.INTER_AREA)",
+    "def frame(i, t):", "    f = BG[:, 2 * i:2 * i + W].copy()",
+    `    if ${gap ? "not 2.0 <= t < 3.2" : "True"}:`,
+    `        x = ${x} - ${rides ? "2 * i // 3" : "0"}`, "        f[18:44, x:x + 77] = M", "    return f"].join("\n");
+  const marks = (name, ...args) => craftBuild(dir, drawVideo(join(dir, `${name}.mp4`), body(...args))).checks.marks;
+
+  let mk = marks("in its slot", 512, false, false);
+  assert.equal(mk.ok, true, JSON.stringify(mk));
+  assert.equal(mk.marks[0].template, "its file");
+  assert.ok(mk.marks[0].found >= mk.marks[0].samples - 1, JSON.stringify(mk.marks[0]));
+
+  mk = marks("rides the camera", 512, true, false);
+  assert.equal(mk.ok, false, JSON.stringify(mk));
+  assert.match(mk.items.join("\n"), /mark 1 \(corner logo\) moves by [\d.]+% of the frame across its range/);
+
+  mk = marks("off its slot", 493, false, false);
+  assert.equal(mk.ok, false, JSON.stringify(mk));
+  assert.match(mk.items.join("\n"), /mark 1 \(corner logo\) sits at x 77\.\d%, y 5\.\d%; its slot is x 80\.0%, y 5\.0% \(more than 2 percent of the frame off\)/);
+
+  mk = marks("missing a while", 512, false, true);
+  assert.equal(mk.ok, false, JSON.stringify(mk));
+  assert.match(mk.items.join("\n"), /mark 1 \(corner logo\) is missing from its slot 2(\.\d+)?-3(\.\d+)? s/);
+});
+
+test("craft_gate.py build: inside a recede window a speaker dimmed while speaking or dimmed 30 percent while silent is red; a scale back with partial desaturation while speaking and a 10 percent dim while silent pass", { skip: CV_SKIP }, () => {
+  const cutout = { ...notUseRow("cutout", "type policy: not part of this fixture", "type: fixture"), recede_windows: [{ start: 3, end: 7 }] };
+  const dir = craftProject("craft speaker", { rows: swapRow(notUseAll(), "cutout", cutout), stage: "07" });
+  // a voice from 0 to 5 s (syllables of 0.15 s every 0.25 s), silence after
+  const voice = "aevalsrc='if(lt(t,5),if(lt(mod(t,0.25),0.15),0.4*sin(2*PI*300*t)+0.3*sin(2*PI*1200*t),0),0)':s=16000:d=10";
+  const faceBox = (scale) => { const w = 120 * scale, h = 150 * scale; return [320 - w / 2, 175 - h / 2, w, h]; };
+  const facesFile = (name, scaleBack) => {
+    const f = join(dir, `${name} faces.json`);
+    writeFileSync(f, JSON.stringify(Array.from({ length: 51 }, (_, i) => i / 5).map((t) => ({ t, width: 640, height: 360,
+      faces: [faceBox(scaleBack && t >= 3 && t < 7 ? 0.8 : 1)] }))));
+    return f;
+  };
+  const body = (speaking, silent, scaleBack) => ["BG = blocks(W, H, 40, 90, 130, seed=8)",
+    "FACE = blocks(120, 150, 6, 0, 80, seed=9, ch=1).astype(np.float32) + np.array([110, 140, 190], np.float32) - 40",
+    "def frame(i, t):",
+    "    f = BG.astype(np.float32)",
+    `    back = ${scaleBack ? "True" : "False"} and 3 <= t < 7`,
+    "    s = 0.8 if back else 1.0",
+    "    face = cv2.resize(FACE, (int(round(120 * s)), int(round(150 * s))), interpolation=cv2.INTER_NEAREST)",
+    "    if back: face = face * 0.6 + face.mean(axis=2, keepdims=True) * 0.4",
+    `    if 3 <= t < 5: face = face * ${speaking}`,
+    `    if 5.4 <= t < 7: face = face * ${silent}`,
+    "    h, w = face.shape[:2]; y, x = int(round(175 - h / 2)), int(round(320 - w / 2))",
+    "    f[y:y + h, x:x + w] = face",
+    "    return f"].join("\n");
+  const run = (name, speaking, silent, scaleBack) => craftBuild(dir,
+    drawVideo(join(dir, `${name}.mp4`), body(speaking, silent, scaleBack), { dur: 10, audio: voice }),
+    "--faces", facesFile(name, scaleBack)).checks.speaker;
+
+  const dimmed = run("dimmed", 0.7, 0.7, false);
+  assert.equal(dimmed.ran, true, JSON.stringify(dimmed));
+  assert.equal(dimmed.ok, false, JSON.stringify(dimmed));
+  const items = dimmed.items.join("\n");
+  assert.match(items, /the speaker is dimmed over 5 percent inside a recede window while speaking from 3/);
+  assert.match(items, /the speaker is dimmed over 15 percent inside a recede window while silent from 5\.[4-6]/);
+  assert.ok(dimmed.voice_spans.length >= 1 && dimmed.voice_spans.at(-1)[1] <= 5.4, JSON.stringify(dimmed.voice_spans));
+
+  const receded = run("receded", 1, 0.9, true);
+  assert.equal(receded.ran, true, JSON.stringify(receded));
+  assert.equal(receded.ok, true, JSON.stringify(receded));
+});

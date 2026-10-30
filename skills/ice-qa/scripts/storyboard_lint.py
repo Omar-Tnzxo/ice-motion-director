@@ -307,7 +307,7 @@ RULE_KINDS = {
                      "film:longest_still", "film:element_events_per_min", "film:longest_bare_talk_s", "film:fast_ratio",
                      "film:blank_run_s", "film:mean_shot_s", "film:max_shot_s", "film:first_cut_s",
                      "film:max_event_gap_s", "contract:*", "lint:depth_layers", "art:tones", "art:shading", "art:shapes", "art:texture",
-                     "art:shadow", "look:g2", "look:g3", "story:*"), KINDS_NO_CONTENT),
+                     "art:shadow", "look:g2", "look:g3", "frame:b9", "story:*"), KINDS_NO_CONTENT),
     "film:blue_purple_share": KINDS_ALL,       # content: the subject's real colours, logged
     "lint:t1": KINDS_ALL,                      # content: the product's own input shown as it really works; Arabic never
     "frame:flash": ("user",),                  # the faithful strobe

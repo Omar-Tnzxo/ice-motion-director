@@ -12,6 +12,8 @@ Every notable change to Ice Motion Director is listed here. The format follows [
 
 - **Every sound effect is heard, on time (L25).** `master_audio.py --no-sfx-premix` writes the same mix without effects, and `qc.py --audit` measures each cue against it: a hero effect that is masked or late blocks delivery, more than half masked blocks, and level jumps at cuts and the longest unchanged repeat go to the "For your ears" list with their times.
 
+- **Pixels of the render checked (L26).** `craft_gate.py measure` writes depth planes from optical flow, and `build` checks finishing per shot against the plan, the grade of each source class, fixed marks in their slots (never riding the camera) and the speaker's light inside and outside the recede windows.
+
 ### Changed
 
 - `probe-mp4.mjs` is now the `probe` subcommand of `ice-qa/scripts/quick-checks.mjs`, same checks and output.

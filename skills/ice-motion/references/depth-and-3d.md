@@ -25,6 +25,7 @@ When to fake depth, when to use real 3D, and the measured values for depth moves
 - Parallax ratios used by sources: 0.3 / 0.6 / 1.0; 1 : 0.8 : 0.6 (isometric); 2-2.4x between neighbours; up to 5-6 layers (far 0.05, mid 0.12-0.3, near 0.65, subject 1.0, foreground 1.5 blurred and dark).
 - The cue that does the most depth work is occlusion, not blur; prefer one strong foreground element crossing the lens.
 - Two planes, one slow move each, in opposite directions is the minimal parallax; never per-element drift.
+- The render's planes, parallax ratio and push-throughs are measured from its pixels by `craft_gate.py measure` (the `ice-qa` skill), written to `<render>.depth.json` for the depth gate.
 - Depth without an engine: preserve-3d and a static z of 12-22 px on story elements. Opacity or filter on a preserve-3d element flattens it; a filter on a 3D-transformed element flattens it.
 - Fine textures (2 px features, 24 px spacing or smaller) must not live in a continuously zoomed layer: enlarge them or move them to screen space.
 
