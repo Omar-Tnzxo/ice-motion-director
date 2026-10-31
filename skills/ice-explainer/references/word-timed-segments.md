@@ -61,7 +61,7 @@ Rules for the contract:
 
 | Mode | Length rule |
 |---|---|
-| Standard explainers | One idea per scene, usually 1 to 3 sentences, 4 to 15 s; a scene over 40 s of narration should be split |
+| Standard explainers | One idea per segment, usually 1 to 3 sentences, 4 to 15 s; a segment over 40 s of narration should be split. Inside a segment the picture moves to a new counted scene about every sentence (measured: median 3.3 s and 9 spoken words per scene, 15 words or fewer in 14 of 15 explainers, the `ice-film` skill, `references/genres/explainer.md`) |
 | Diagram topic explainers | At least 120 frames (4 s at 30 fps) per shot |
 | Parameterized clip pipelines | A clip holds at most 8 s; 3 to 8 s clips are most comfortable with 2 to 5 cues |
 | Collage shorts (30 to 60 s) | 8 to 14 shots, one sentence each; shot 1 is the question |

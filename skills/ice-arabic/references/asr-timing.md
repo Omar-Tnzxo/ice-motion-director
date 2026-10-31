@@ -84,6 +84,7 @@ Cloning a real person's voice follows the `ice-assets` skill, `references/ai-med
 | English (for mixed films) | 2.5 to 3.0 |
 
 - Free TTS voices are slower once their pauses count (about 2.0 to 2.3 for Egyptian at +22%). Plan about 10 to 12 words for a 6 s shot at that pace.
+- Explainer narration is slower than an ad read: 4 measured Arabic explainers (Al Jazeera 360, AJ+ Arabic, BBC News Arabic, Asharq Bloomberg; MSA) speak 90 to 117 words per minute, median 103 (about 1.7 words per second; the `ice-film` skill, `references/genres/explainer.md`).
 - Rate settings seen: ad energy +15% to +25%; calm brand films +0% to +10%. Do not speed past about +30%; a fit tool may stretch a line from -15% to +35%, but a line that still does not fit gets shorter, not faster.
 - One VO line per shot; the line starts after the shot starts and ends before the cut (except deliberate J and L cuts). The first word starts within 0.3 to 0.8 s of the film start; the last line ends before the end card's final second.
 

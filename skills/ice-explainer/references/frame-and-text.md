@@ -22,7 +22,7 @@ Spine stages 05 and 07. What fills the frame and how much text it carries. Typog
 
 ## 3. Screen text
 
-- Screen text is a distilled phrase (a few words; about 12 to 14 CJK characters), never a copy of the narration sentence.
+- Screen text is a distilled phrase (a few words; about 12 to 14 CJK characters), never a copy of the narration sentence. Measured: at most 8 display words readable at once in 10 of 15 explainers (median 7), labels naming things in the picture (median 5 per film), display text on about a third of the runtime (the `ice-film` skill, `references/genres/explainer.md`).
 - On-screen words do one of three jobs: drive the eye, promote one sentence per act, name things.
 - At most three text levels per screen. An explanation longer than two lines splits into two beats.
 - Only one hero-sized number or big word per screen.
@@ -47,7 +47,7 @@ Subtitles go last in the render chain so overlays never hide them (`ice-engines`
 
 | Topic | Rule |
 |---|---|
-| Real events, places, products, documents, people | Real footage or images are required. A film with zero footage or image shots fails; under one third warns. "No footage" is not a design choice: degrade from video to images, then to the unfinished list |
+| Real events, places, products, documents, people | Real footage or images are required. A film with zero footage or image shots fails; under one third warns. "No footage" is not a design choice: degrade from video to images, then to the unfinished list. Exception: a product, service or policy explained as a mechanism (what it does, how it works), when its real look is not the point, may be fully drawn (the drawn variant; 4 measured professional explainers of a real product or policy carry 0 to 6 percent real material, the `ice-film` skill, `references/genres/explainer.md`); its logo and colours stay real (`ice-assets`) |
 | A real web page exists | Never fake it with a mock; film the real capture (`references/grammar-selection.md` (section "Code, pull request, product UI and website explainers")) |
 | Narration talks about an output or an effect | Show a real clip of it, muted |
 | Abstract concepts | Invented visuals that embody the metaphor |
@@ -55,7 +55,7 @@ Subtitles go last in the render chain so overlays never hide them (`ice-engines`
 
 ## 6. First and last frame
 
-- The first frame is often the cover on social apps: it carries the title or product name as plain readable text from frame zero, never a blank, a fade from black or a tiny unreadable window.
+- The first frame is often the cover on social apps: it carries the title or product name as plain readable text from frame zero, never a blank, a fade from black or a tiny unreadable window. This is for vertical and square social cuts; a 16:9 explainer published with its own cover or thumbnail may open on its first picture (3 of 13 measured horizontal explainers had text on frame zero, the `ice-film` skill, `references/genres/explainer.md`).
 - The last frame shows the main idea clearly and holds long enough to read and screenshot.
 
 ## 7. Clutter limits

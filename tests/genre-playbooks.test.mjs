@@ -18,7 +18,10 @@ const PIXEL_KEYS = ["move_onset_lift", "scene_median_s", "cuts_per_10s", "events
   "end_bg_std"];
 const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "hard_cut_share", "end_logo", "end_background",
   "product_first_s", "end_product", "hero_shot_kind", "ground",
-  "type_text_share", "type_words_per_line", "type_max_words", "type_only_share"];
+  "type_text_share", "type_words_per_line", "type_max_words", "type_only_share",
+  "brand_carrier", "brand_shot_median_s", "brand_first_s", "brand_footage_share",
+  "expl_sentence_change", "expl_words_per_scene", "expl_scene_median_s", "expl_wpm", "expl_text_share",
+  "expl_diagram_share", "expl_real_share", "expl_builds"];
 
 function has(relPath, phrases) {
   const text = readText(relPath);
@@ -175,6 +178,108 @@ test("genre_check.py: the type coding keys read the coding sheet's type block",
       const bad = spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "kinetic-type", "--measures", join(dir, "m.json"),
         "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
       assert.equal(bad.status, 2, "two type keys outside the fingerprint are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the explainer route points to its playbook, and the playbook names it", () => {
+  has("skills/ice-explainer/SKILL.md", ["references/genres/explainer.md", "genre_check.py check --genre explainer"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/explainer.md`"]);
+  has(`${GENRES}/explainer.md`, ["`ice-explainer`", "15 films", "## Rules this genre replaces"]);
+});
+
+test("genre playbooks: the general rules the explainer corpus contradicts stay house defaults, scoped by genre", () => {
+  // each general rule is still there for every other film, and names the explainer exception
+  has("skills/ice-audio/references/voiceover.md", ["Plan budgets at 2.2 to 2.5 wps", "human-voiced English explainer"]);
+  has("skills/ice-motion/references/anti-slideshow-and-density.md", ["a new visual element at least every 3 s",
+    "Narrated explainers (measured"]);
+  has("skills/ice-explainer/references/word-timed-segments.md", ["4 to 15 s", "new counted scene about every sentence"]);
+  has("skills/ice-explainer/references/minimal-motion.md", ["no bare cuts", "measured explainer variant"]);
+  has("skills/ice-explainer/references/frame-and-text.md", ["A film with zero footage or image shots fails",
+    "explained as a mechanism", "plain readable text from frame zero", "vertical and square social cuts"]);
+  has("skills/ice-qa/references/motion-density.md", ["| explainer | reading | reading | 0 |"]);
+});
+
+test("genre playbooks: explainer ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/explainer.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["140 to 160 wpm", "every 3 s", "4 to 15 s", "first frame", "every move", "question"]) {
+    assert.ok(rejected.includes(idea), `the rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the explainer coding keys read the sentence sample, the voice words and the scenes",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-expl-"));
+    try {
+      const meas = { median_event_gap_s: 0.42, max_event_gap_s: 5.3, events_per_s: 1.4, hook_events_3s: 4,
+        scene_median_s: 1.8, cuts_per_10s: 1.8, move_onset_lift: 1.0 };
+      const scenes = Array.from({ length: 20 }, (_, i) => ({ start: i * 3, end: i * 3 + 3 }));
+      const sample = Array.from({ length: 10 }, (_, i) => ({ t: i * 6, words: "w", picture_change: true }));
+      const coding = { scenes, transitions: { hard_cut: 5, push_or_slide: 14 }, end_card: { logo_position: "center" },
+        explainer: { sentence_sample: sample, voice_words: 160, wpm: 160, text_on_screen_share: 0.3,
+          diagram_scene_share: 0.2, real_material_share: 0.0, builds: { count: 2, max_parts: 4 } } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      const run = () => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "explainer", "--measures",
+        join(dir, "m.json"), "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.expl_sentence_change.value, 1.0);
+      assert.equal(rows.expl_words_per_scene.value, 8.0);
+      assert.equal(rows.expl_scene_median_s.value, 3.0);
+      // a slideshow: one picture per 40 words, half the sentences with no change
+      coding.scenes = Array.from({ length: 4 }, (_, i) => ({ start: i * 15, end: i * 15 + 15 }));
+      coding.explainer.sentence_sample = sample.map((s, i) => ({ ...s, picture_change: i % 2 === 0 }));
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      assert.equal(run().status, 2, "three explainer keys outside the fingerprint are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the brand film type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/brand-film.md", ["`../genres/brand-film.md`", "Word-led by default"]);
+  has(`${GENRES}/brand-film.md`, ["`brand-film`", "14 films", "events_per_s >=1.0", "max_event_gap_s <=7.5"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/brand-film.md` for brand films"]);
+});
+
+test("genre playbooks: the general rules the brand film corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-film/references/film-types/brand-film.md", ["Motion-led brand films (designed animation over most of the runtime): nearly every transition turns the current object into the next one",
+    "Filmed brand films cut hard", "Manifesto lines land whole"]);
+  has("skills/ice-motion/references/anti-slideshow-and-density.md", ["| Still frames | at least about 25 percent dead still", "Brand film: a designed quiet beat once"]);
+  has("skills/ice-film/references/openers-and-endings.md", ["End on an action of the hero or the main object", "Brand film genre (`genres/brand-film.md`)"]);
+  has("skills/ice-audio/SKILL.md", ["gentle -16 for calm films; social -14 for brand anthems and montages"]);
+  const rejected = readText(`${GENRES}/brand-film.md`).split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["Music-led by default", "Nearly every transition", "word by word", "25 percent of the film dead still", "End on an action"]) {
+    assert.ok(rejected.includes(idea), `the brand film rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the brand coding keys read the coding sheet's brand block",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-brand-"));
+    try {
+      const meas = { median_event_gap_s: 0.42, max_event_gap_s: 4.75, events_per_s: 1.7, hook_events_3s: 7,
+        scene_median_s: 1.1, cuts_per_10s: 1.0, move_onset_lift: 1.0 };
+      const coding = { transitions: { hard_cut: 9, morph_or_match: 1 }, end_card: { logo_position: "center", background: "plain-solid" },
+        brand: { carrier: "voice", shot_len: { median_s: 1.33 }, brand_first: { any_s: 10.0 },
+          material_share: { live_action: 0.8, archive_or_ugc: 0.1, motion_or_animation: 0.1 } } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      const run = () => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "brand-film", "--measures", join(dir, "m.json"),
+        "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.brand_carrier.value, "voice");
+      assert.equal(rows.brand_footage_share.value, 0.9);
+      meas.events_per_s = 0.5;
+      meas.max_event_gap_s = 12;
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      assert.equal(run().status, 2, "two gated brand film keys outside the fingerprint are red");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

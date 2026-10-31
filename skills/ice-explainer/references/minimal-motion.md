@@ -55,7 +55,7 @@ A shot of only text gets a companion schematic drawn to the line's meaning (icon
 
 | Film type | Rule |
 |---|---|
-| Card and talk films | Every boundary gets an explicit treatment; no bare cuts. Transition kinds per film: the `ice-motion` skill, `references/transition-policy.md` section 2 (a 100 s film has 5 to 7 boundaries). Reserve the strongest (a black slam) for the single biggest reversal |
+| Card and talk films | Every boundary gets an explicit treatment; no bare cuts. Transition kinds per film: the `ice-motion` skill, `references/transition-policy.md` section 2 (a 100 s film has 5 to 7 boundaries). Reserve the strongest (a black slam) for the single biggest reversal. A film the plan declares as a measured explainer variant cuts as its variant does (the `ice-film` skill, `references/genres/explainer.md`): drawn explainers carry or cut between illustrated scenes (hard cuts 33 percent of seams at the median), real-material explainers cut like an edit (84 percent) |
 | Diagram explainers | Write boundaries as "outgoing fades to zero over its last frames while incoming starts entering on its first frame"; a written "hard cut" made both sides wait and left blank frames. Exits before a cut reach exactly zero on a power curve; 0 to 4 frames of overlap, never blank frames |
 | Collage and storytime | Hard cuts dominate, placed on punctuation and breaths |
 
@@ -71,8 +71,8 @@ Smooth camera with stepped hand-made elements: the `ice-motion` skill, `referenc
 |---|---|---|---|
 | Stillness | Elements dead still after landing; life comes from the camera only (card and talk films) | A sustained verb action continues on screen; no element fully still over 3 s (diagram and topic explainers) | `references/minimal-motion.md` |
 | Camera | One slow scale curve per shot, push 1.00 to 1.06, no pans (card and talk films) | Camera moves budgeted per chapter, push to about 1.33 toward the hero (diagram explainers); board pans (whiteboard); world windows (long-form) | `references/minimal-motion.md` |
-| Cuts | Every boundary gets an explicit treatment, no bare cuts (card films) | Hard cuts on punctuation dominate (collage, storytime) | `references/minimal-motion.md`, `references/grammar-selection.md` (section "Collage explainers (archival desk style)") |
-| Shot length | One idea per scene, 4 to 15 s, split by paragraph | One sentence per shot (short collage explainers, storytime) | `references/word-timed-segments.md` |
+| Cuts | Every boundary gets an explicit treatment, no bare cuts (card films) | Hard cuts on punctuation dominate (collage, storytime, real-material explainers; hard cut is the main seam in 9 of 15 measured explainers, the `ice-film` skill, `references/genres/explainer.md`) | `references/minimal-motion.md`, `references/grammar-selection.md` (section "Collage explainers (archival desk style)") |
+| Shot length | One idea per segment, 4 to 15 s, split by paragraph (the planning unit); the counted scene inside it changes about every sentence, median 3.3 s (measured, the `ice-film` skill, `references/genres/explainer.md`) | One sentence per shot (short collage explainers, storytime) | `references/word-timed-segments.md` |
 | Visual lead | Picture lands with or slightly before its word | Handwriting starts slightly after its phrase (whiteboard) | `references/word-timed-segments.md` |
 | Captions | On by default for vertical, square and 4:5 social | Off by default; words live in the picture (cartoon stage, whiteboard, collage, persistent-world long-form unless asked) | the `ice-type` skill, `references/captions-system.md` section 2; `references/frame-and-text.md` |
 

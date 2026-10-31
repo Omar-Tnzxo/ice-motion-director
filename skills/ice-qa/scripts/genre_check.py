@@ -3,6 +3,9 @@
 # made for the first measured genre playbook (UI and app motion ads): the same code measured the 15-video corpus and
 # measures a render, so a film is compared with the corpus on the very numbers the corpus was described by. The
 # product launch and kinetic type playbooks (same release) add their coding keys to coding_value; no new pixel measure.
+# The explainer playbook adds the expl_ keys: the sentence sample, spoken words per counted scene, the counted scene
+# median (gated) and the voice rate, text, diagram, real material and build counts (reported). The brand film
+# playbook adds the brand_ keys (carrier, counted shot median, first brand sighting, footage share), all reported.
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -169,6 +172,38 @@ def coding_value(coding, key):
         return ty.get("max_words_on_screen")
     if key == "type_only_share":
         return ty.get("type_only_share")
+    b = coding.get("brand") or {}
+    if key == "brand_carrier":
+        return b.get("carrier")
+    if key == "brand_shot_median_s":
+        return (b.get("shot_len") or {}).get("median_s")
+    if key == "brand_first_s":
+        return (b.get("brand_first") or {}).get("any_s")
+    if key == "brand_footage_share":
+        ms = b.get("material_share") or {}
+        return round((ms.get("live_action") or 0) + (ms.get("archive_or_ugc") or 0), 2) if ms else None
+    ex = coding.get("explainer") or {}
+    if key == "expl_sentence_change":
+        ss = ex.get("sentence_sample") or []
+        return round(sum(1 for s in ss if s.get("picture_change")) / len(ss), 2) if ss else None
+    if key in ("expl_words_per_scene", "expl_scene_median_s"):
+        lens = sorted(s["end"] - s["start"] for s in coding.get("scenes") or [] if "end" in s and "start" in s)
+        if not lens:
+            return None
+        if key == "expl_words_per_scene":
+            return round(ex["voice_words"] / len(lens), 1) if ex.get("voice_words") else None
+        mid = len(lens) // 2
+        return round(lens[mid] if len(lens) % 2 else (lens[mid - 1] + lens[mid]) / 2, 2)
+    if key == "expl_wpm":
+        return ex.get("wpm")
+    if key == "expl_text_share":
+        return ex.get("text_on_screen_share")
+    if key == "expl_diagram_share":
+        return ex.get("diagram_scene_share")
+    if key == "expl_real_share":
+        return ex.get("real_material_share")
+    if key == "expl_builds":
+        return (ex.get("builds") or {}).get("count")
     return coding.get(key)
 
 

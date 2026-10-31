@@ -28,6 +28,8 @@ Leads with: the story.
 | Notch or device world | Brands with an iconic device language | 6-8 scenes of about 2.5 s; one background and one caption per scene; springs worked out from the start of the film so a reopening element continues from where it is |
 | Narrative shapes | Story-led brand films | reveal, proof, behind-the-scenes, transformation, contrast, or accumulation; start from a tension gap (seen versus hidden, complex versus simple, before versus after, chaos versus control) |
 | Image-led spine | Photo or footage-rich brands | imagery, motif, benefit, emotional payoff, logo |
+| Anthem montage (measured) | Sport, telecom, seasonal and purpose anthems, filmed | 60-170 s; a voiceover or a song carries it; counted shots of about 1.3 s with one or two emotional holds of 6-10 s; slow and fast passages; the brand seen by 40 percent of the film; the music peaks and resolves on a centred logo (`../genres/brand-film.md`, 6 of 14 measured films) |
+| Story with characters (measured) | The brand's role in one person's or one family's day | 60-170 s; dialogue in scene or a voice; a quiet beat before the last act; the product or service doing its real job once; the logo centred with a tagline (`../genres/brand-film.md`) |
 
 ## Rhythm ranges
 
@@ -37,16 +39,16 @@ Leads with: the story.
 
 Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
 
-Where the row's numbers come from: No field is gated: the structure options disagree (cut-free acts of 2.5-4 s, scenes of about 2.5 s, an archival film with no number) and calm brands expect still holds (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+Where the row's numbers come from: No field is gated: the structure options disagree (cut-free acts of 2.5-4 s, scenes of about 2.5 s, an archival film with no number) and calm brands expect still holds (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated. The genre's measured pace (visual events, the longest gap, whole-frame changes, a centred end card) is checked by the fingerprint of `../genres/brand-film.md`, which reads the render's pixels: the cut detector misses most cuts in graded live action, so the row stays ungated.
 
 ## Timing master
 
-Music-led by default; voice-led with a manifesto voiceover; free for a calm film without a steady beat. When the music is a score composed by code, its tempo is chosen at 05 with the sound lead, written into the cue sheet at 06 and composed at 08a; a licensed track that leads the cut is taken at 01 like a track-led type (the `ice-audio` skill, `SKILL.md` section 4, steps 1, 3 and 5). Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting on the grid and the pre-drop gap: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.
+Word-led by default: a voiceover, the lyrics of a song or the dialogue carries the meaning and sets the clock (11 of 14 measured films, `../genres/brand-film.md`); music-led when supers alone carry the film (identity reveals, corporate claim films, motion-led films); free for a calm film without a steady beat. When the music is a score composed by code, its tempo is chosen at 05 with the sound lead, written into the cue sheet at 06 and composed at 08a; a licensed track that leads the cut is taken at 01 like a track-led type (the `ice-audio` skill, `SKILL.md` section 4, steps 1, 3 and 5). Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting on the grid and the pre-drop gap: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.
 
 ## Transition policy
 
-- Nearly every transition turns the current object into the next one; hard cuts are reserved for a flurry.
-- Every chapter change flips value (dark to light) or saturation (neutral to full-bleed accent).
+- Motion-led brand films (designed animation over most of the runtime): nearly every transition turns the current object into the next one; hard cuts are reserved for a flurry. Filmed brand films cut hard (97 percent of transitions in the measured corpus, `../genres/brand-film.md`); a match cut that carries a shape or a movement across the cut is their option.
+- Motion-led brand films: every chapter change flips value (dark to light) or saturation (neutral to full-bleed accent). Filmed brand films flip at some chapter changes, where the story turns.
 - Ground or colour changes need a visible trigger (a wipe, an object, a push into a colour field, a cut on the beat), never an unmotivated crossfade.
 
 ## Camera policy during holds
@@ -62,7 +64,7 @@ Music is the spine. One held-back colour or sound appears only in the climax. If
 
 ## Text density
 
-Manifesto lines word by word on beats; about 6% of frame height per line, at most 2 lines; three type voices at most (display, accent, mono machine layer). Type rules: ice-type.
+Manifesto lines land whole, one line per shot or beat (6 of 8 measured films with supers; word by word on beats is the motion-led option, `../genres/brand-film.md`); about 6% of frame height per line, at most 2 lines, about 8 words or fewer per line (measured median 7.5); three type voices at most (display, accent, mono machine layer). Type rules: ice-type.
 
 ## Truth and content
 
@@ -82,13 +84,13 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 | `in_shot_motion` | 70 percent |
 | `longest_still` | 1.5 s outside declared true stills |
 | `surface_detail` | yes in every shot |
-| `light_events` | 2 per film (darkness-to-light films build the whole film on them) |
+| `light_events` | 1 per film; 2 or more in darkness-to-light and outdoor films, which build on them (5 of 14 measured films use 2 or more, `../genres/brand-film.md`) |
 | `real_material` | 100 percent: the brand's current logo files, exact colours and type read from its own materials |
 
 ## QA thresholds
 
 - Brand test and competitor swap at the brand film's share: every masked frame reads as the brand (6 of 6 at 09). The tests, the masking and the stages they run at (02 written, 04 and 05 on masked frames, 09 as a confirmation): the `ice-qa` skill, `references/identity-tests.md`.
-- Every transition transforms the object (except flurry cuts); value flips at every chapter change.
+- Motion-led brand films: every transition transforms the object (except flurry cuts) and value flips at every chapter change. Every brand film: the genre fingerprint of `../genres/brand-film.md` (visual events, the longest gap, whole-frame changes, a centred end card).
 
 ## Deliverables
 
@@ -96,6 +98,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Style catalogs: ice-styles. Colour psychology and direction: ice-direction. Showreel HUD and motion: ice-motion. Endings: `../openers-and-endings.md`.
+Measured genre playbook (conventions, the two variants, the fingerprint the render is checked against): `../genres/brand-film.md`. Style catalogs: ice-styles. Colour psychology and direction: ice-direction. Showreel HUD and motion: ice-motion. Endings: `../openers-and-endings.md`.
 
 Sources: bangtutorial/bang-motion, nateherkai/herk-edit-kit, video-production-studio (Omar-Tnzxo), charlie947/motion-graphics-skills, imMamdouhaboammar/motion-graphics-skills (ideas only), Tejashmakwana/motionmaxxing.

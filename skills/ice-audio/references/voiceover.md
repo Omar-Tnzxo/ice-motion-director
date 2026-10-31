@@ -34,10 +34,10 @@ Arabic and dialect narration (dialect words per second, vocalized spelling, dial
 | Hook or claim lines | 1.5 to 2.5 wps | Let the claim land |
 | Sign-off | 1.2 to 1.7 wps | |
 
-- Plan budgets at 2.2 to 2.5 wps for explainers and anything TTS-voiced (TTS output is not reliably 150 wpm; a local English voice measured about 2.3 wps, so write about 125 to 140 wpm); 2.5 to 3.0 wps for ads and promos.
+- Plan budgets at 2.2 to 2.5 wps for explainers and anything TTS-voiced (TTS output is not reliably 150 wpm; a local English voice measured about 2.3 wps, so write about 125 to 140 wpm); 2.5 to 3.0 wps for ads and promos. A human-voiced English explainer is planned at 2.5 to 3.0 wps (150 to 180 wpm): 15 measured professional explainers speak at 166 wpm at the median, 135 to 185 in 10 of 11 English films (the `ice-film` skill, `references/genres/explainer.md`); Arabic explainer narration: the `ice-arabic` skill, `references/asr-timing.md` section 3.
 - Film totals: about 28 to 38 words at 15 s, 60 to 80 at 30 s, about 150 at 60 s; about 225 words at 90 s is the ceiling. The script should feel shorter than the video.
 - Per-beat budgets (promo): hook 4 to 10 words, turn 6 to 12, proof 0 to 14, CTA 3 to 8. Per frame in narrated sequences: default at most 19 words (about 9 s); at most 26 words for at most 2 frames; over 26, trim or split.
-- Flags: above about 170 wpm is rushed, under 110 wpm drags; below 6 words a wpm figure is noise.
+- Flags: above about 170 wpm is rushed, under 110 wpm drags; below 6 words a wpm figure is noise. A human-voiced English explainer is rushed above about 185 wpm (4 of 11 measured explainers run 172 to 183, the `ice-film` skill, `references/genres/explainer.md`).
 - Make a film fast with fewer words per screen, never by cutting before people finish reading or hearing.
 
 ## 4. Duration estimate before generating
