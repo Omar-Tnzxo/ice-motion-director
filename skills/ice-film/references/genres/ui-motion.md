@@ -11,7 +11,7 @@ deliverables, this file gives the genre's measured grammar and the fingerprint t
 - Film types that point here: `app-ad`, `product-launch` (a product with screens), `ui-walkthrough`. Use it whenever
   product interface parts are the main material of a short promo (app promo, feature launch, SaaS or tool launch, UI
   motion design reel), 10 to 70 s.
-- Not for: a product without screens, a talking-head edit with screen inserts (ice-edit), a teaching explainer
+- Not for: a product without screens (`product-launch.md`), a talking-head edit with screen inserts (ice-edit), a teaching explainer
   (ice-explainer), a long tutorial that walks every screen at real speed (the ui-walkthrough "Calm demo" option keeps
   its own pace; the fingerprint is reported, not gated, for it).
 - Precedence: the user's words, a reference the film follows (its own measures win, `ice-remake`), and a chosen style

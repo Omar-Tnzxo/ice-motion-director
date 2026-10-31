@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Ice Motion Director, 2026-10-31 (0.2.8): written for this repository, not adapted from a source. The measures were
 # made for the first measured genre playbook (UI and app motion ads): the same code measured the 15-video corpus and
-# measures a render, so a film is compared with the corpus on the very numbers the corpus was described by.
+# measures a render, so a film is compared with the corpus on the very numbers the corpus was described by. The
+# product launch and kinetic type playbooks (same release) add their coding keys to coding_value; no new pixel measure.
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -152,6 +153,22 @@ def coding_value(coding, key):
         return e.get("logo_position")
     if key == "end_background":
         return e.get("background")
+    if key == "end_product":
+        return e.get("product_in_close")
+    p = coding.get("product") or {}
+    if key == "product_first_s":
+        return p.get("first_product_s")
+    if key in ("hero_shot_kind", "ground", "close_offer"):
+        return p.get(key)
+    ty = coding.get("type") or {}
+    if key == "type_text_share":
+        return ty.get("text_on_screen_share")
+    if key == "type_words_per_line":
+        return ty.get("words_per_line_median")
+    if key == "type_max_words":
+        return ty.get("max_words_on_screen")
+    if key == "type_only_share":
+        return ty.get("type_only_share")
     return coding.get(key)
 
 

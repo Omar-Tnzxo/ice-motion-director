@@ -37,7 +37,7 @@ The measured beat grid of the track (ice-audio analyzes it; check the kick-band 
 
 ## Transition policy
 
-A shape carries the eye across every transition (a spark becomes a line, the line floods into the next background, a full stop detaches and becomes the next scene's object). A hard cut between scenes only on a downbeat, at most twice, except inside the flurry.
+A shape carries the eye across every transition (a spark becomes a line, the line floods into the next background, a full stop detaches and becomes the next scene's object). A hard cut between scenes only on a downbeat, at most twice, except inside the flurry. A hype cut whose subject is a physical product (footage or a render of the product) follows the measured genre `../genres/product-launch.md` instead: hard cuts carry most seams (3.5 per 10 s, 62 percent of seams in 15 films), still cut on the beat.
 
 ## Camera policy during holds
 
@@ -82,6 +82,6 @@ Cut offsets within about 35 ms of a beat or half beat; something happens on ever
 
 ## Pointers
 
-Beat analysis and splicing: ice-audio. Flurry and slam motion: ice-motion. Styles: ice-styles.
+Beat analysis and splicing: ice-audio. Flurry and slam motion: ice-motion. Styles: ice-styles. A physical product hype cut: the measured genre playbook `../genres/product-launch.md` (pace, cuts, tempo 95 to 140 BPM, the closing packshot, the fingerprint).
 
 Sources: Barty-Bart/motion-graphics, bangtutorial/bang-motion, nateherkai/herk-edit-kit, Vincentwei1021/mg-styles-15, AbubakrChan/product-launch-motion.

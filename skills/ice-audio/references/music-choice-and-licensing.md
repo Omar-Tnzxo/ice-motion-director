@@ -45,6 +45,7 @@ Rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses
 | Elite or sophisticated launch | 115-123 | product-launch-motion |
 | Hype, sizzle, showreel | 120-130 and above 125 | product-launch-motion, herk motion-showreel |
 | UI and app motion ads (measured) | 100-125, median 114 (7 of 10 films with a readable tempo) | `ice-film` skill, `references/genres/ui-motion.md` |
+| Product launch without screens (measured) | 95-140, median 121 (10 of 12 films with a readable tempo; 120-140 in 5 of 12) | `ice-film` skill, `references/genres/product-launch.md` |
 | Meditation, ambient loop | 50-70, no percussion | anidoodle |
 
 Tempo and mode are the strongest emotional cues: filter candidates by both (item 3), then rank them by measurement (`scripts/match_music.py`, `ice-audio/SKILL.md` section 5).

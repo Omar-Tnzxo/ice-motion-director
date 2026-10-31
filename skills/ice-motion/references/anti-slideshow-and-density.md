@@ -40,7 +40,7 @@ Three yes answers fail the scene. If three or more primary scenes fail, reject t
 | Beat length | 3-7 s per beat in launch films (never above about 7.5 s); add beats rather than stretching; type-only hook 2-3 s | Product launch, app ad |
 | Shot length | 2-6 s per shot, up to 8 s for individual shots | Explainers |
 | Showreel pace | 1.5-4 s per idea, hard cuts, overlapping entrances | Showreel, hype |
-| Kinetic density | big visual events every 0.66-0.83 s (about one per beat at 99-105 BPM); new element every 0.3-0.6 s; every 7-8 s of density give a 1 s rest beat | Kinetic type, music video, hype |
+| Kinetic density | big visual events every 0.66-0.83 s (about one per beat at 99-105 BPM); new element every 0.3-0.6 s (measured kinetic type: median gap 0.33 s, 1.6 visual events per s, `ice-film` skill, `references/genres/kinetic-type.md`); every 7-8 s of density give a 1 s rest beat | Kinetic type, music video, hype |
 | Scene length ceiling | 5 s per scene unless there is a named reason (hero hold, cinematic push, long counter, a one-take or slow-reveal style, or the reference's longest scene). A single take may run much longer in any type when inner events carry it: a single take over about 8 s gets a visible change every 3 to 5 s (`camera.md` section 1, long takes), within the reference's longest gap and event density when there is one (the `ice-qa` skill, `references/motion-density.md`, "Pacing against the reference"). The news reel is the measured case (edit type `news-reel`, style family `family-broadcast-news.md`): a presenter hold of 10-34 s on one take, a camera move, graphic in or out, or flash at least every 2-5 s; B-roll shots 2-4 s; archive bursts of 0.3-0.5 s cuts | Social reel, launch teaser; long takes as scoped |
 | Scene counts | social reel 9:16 10-15 s with 5-7 scenes; launch teaser 16:9 15-25 s with 7-10; product explainer 30-60 s with 10-18; cinematic title 45-90 s with 7-12; about 12-15 compositions per 30 s for energetic business ads | Starting points |
 
@@ -54,7 +54,7 @@ These are targets the motion plan aims for; ice-qa measures them on the render. 
 |---|---|---|
 | Frozen screen | at most about 1 s per 30 s; no hold over about 0.6 s except the CTA | Business commercial, industry spot, energetic launch |
 | Still frames | at least about 25 percent dead still and at least one quiet stretch of 1 s or more | Calm minimal product films, brand film (idea, rewritten) |
-| Dead air | nothing still longer than about 1 s unintentionally; something visibly changes every second | Drawn films, loops, kinetic |
+| Dead air | nothing still longer than about 1 s unintentionally; something visibly changes every second | Drawn films, loops. Kinetic type: a landed line holds still for its reading time (median 1.0 s); the longest gap without an event stays at 6.2 s or less (measured median 3.1 s, `ice-film` skill, `references/genres/kinetic-type.md`) |
 | Low-change interval before the CTA | at most 0.75 s unless a musical rest and a narrative reason are documented | Music-synced commercials (idea, rewritten) |
 | Event density per beat | largest gap between authored events at most 3 s; a still run over 3 s is a planning bug | Collage explainers |
 | Human motion band | mean frame-to-frame luma change median 6.8 (IQR 4.4-9.8) for whole human films: a question, never a gate; above about 10 ask whether the film breathes anywhere, below about 3 ask whether it exists | All, as a diagnostic |

@@ -60,7 +60,7 @@ The doctrine for music-first UI morph films, one-take launches and loops (scope:
 
 - Name one signature move per film: it expresses the claim, repeats two or three times, and is cheap enough to do perfectly. Take the product's core verb and make the film do it.
 - Name three signature transformations you can describe without effect names.
-- Give the logo a job (the button, the cursor, a word in the sentence); a logo that only appears at the end as a sticker is wasted. UI and app motion genre (`genres/ui-motion.md`): the logo centred on a plain ground is the measured close of the genre (13 of 15 films) and is not a sticker there; an earlier job for the logo stays welcome (9 of 15 show the brand before the end).
+- Give the logo a job (the button, the cursor, a word in the sentence); a logo that only appears at the end as a sticker is wasted. UI and app motion genre (`genres/ui-motion.md`): the logo centred on a plain ground is the measured close of the genre (13 of 15 films) and is not a sticker there; an earlier job for the logo stays welcome (9 of 15 show the brand before the end). Product launch without screens (`genres/product-launch.md`): the closing packshot with the mark is that genre's close (11 of 15), not a sticker; 10 of 15 also show the brand earlier.
 - In films that scored best, the strongest moment was the brand's own inventory (its icon, material, control) turning into the product's action.
 
 ## 7. Films that differ in structure

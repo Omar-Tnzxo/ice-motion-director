@@ -16,7 +16,7 @@ Motion is the message. The type performs the meaning of the words (a word about 
 
 ## Structure options
 
-Tempo, line counts, opacities and hold numbers for the first eight options: the `ice-type` skill, `references/kinetic-type.md` section 8 (copy segmentation by breath: section 2). This table names the skeletons only.
+Tempo, line counts, opacities and hold numbers for the first eight options: the `ice-type` skill, `references/kinetic-type.md` section 8 (copy segmentation by breath: section 2). This table names the skeletons only. Measured variants (`../genres/kinetic-type.md`): pure type on a plain ground with the brand's shapes, almost no hard cuts; or type cut over footage, about 4 hard cuts per 10 s. Pick one at 02.
 
 | Option | Skeleton |
 |---|---|
@@ -55,11 +55,11 @@ Camera locked on type lines; camera punches only on accents; a held thesis is tr
 
 ## Sound policy
 
-Hits on hits, silence before the thesis. Ice-audio owns levels.
+The music carries the film and the type cuts on its grid; effects only on a few landings, never one per word (measured: sounds land on visual events no more often than chance in 11 of 11 films, `../genres/kinetic-type.md`). Silence before the thesis. Ice-audio owns levels.
 
 ## Text density
 
-One statement per shot, at most about 5 words on screen unless a deliberate text wall is the image. One highlight form per film (or none). Arabic: whole words or lines only, never letter by letter (ice-arabic).
+One statement per shot. Measured (`../genres/kinetic-type.md`): lines of 1 to 4 words (median 2), at most 8 words readable at once (median 6) unless a deliberate text wall is the image, readable words on screen at least half the runtime (median 78 percent), about 1.75 words per second of text time. Emphasis on about a third of the lines, mixing two or more treatments (colour, scale, weight, italic, underline, box) in one accent hue; one highlight form per film stays the house rule for other types. Arabic: whole words or lines only, never letter by letter (ice-arabic).
 
 ## Truth and content
 
@@ -77,7 +77,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 | `empty_half` | 0 s for vertical (re-break lines to fill the band); 2 s in total for 16:9 |
 | `depth_layers` | 2 (type and a ground with its own plane, light or texture) |
 | `in_shot_motion` | 75 percent (a held thesis is a declared true still) |
-| `longest_still` | 1 s outside declared rests |
+| `longest_still` | 1 s outside declared rests; a landed line held for its reading time is a declared rest (measured line hold median 1.0 s, longest gap without an event at most 6.2 s, `../genres/kinetic-type.md`) |
 | `surface_detail` | yes in every shot |
 | `light_events` | 1 |
 | `real_material` | 100 percent when a real brand's name, logo or type appears; otherwise n/a |
@@ -92,6 +92,6 @@ Master in the brief's aspect; vertical re-laid out (lines re-broken by meaning, 
 
 ## Pointers
 
-Type motion, captions, readability gates: ice-type. Arabic type in motion: ice-arabic. Cut catalog: ice-motion.
+Measured genre playbook (conventions, the two variants, the fingerprint the render is checked against): `../genres/kinetic-type.md`. Type motion, captions, readability gates: ice-type. Arabic type in motion: ice-arabic. Cut catalog: ice-motion.
 
 Sources: AbubakrChan/product-launch-motion, heygen-com/hyperframes (blueprints, motion-graphics), Barty-Bart/motion-graphics, bangtutorial/bang-motion, video-production-studio (Omar-Tnzxo), huashu-art-motion.

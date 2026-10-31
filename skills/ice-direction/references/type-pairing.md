@@ -38,7 +38,8 @@ Families per film (scoped; the default is the first row unless a later row names
 | One family, at most two weights; scale carries emphasis | Captions, talking-head ad, podcast, UI walkthrough, restrained product launch |
 | One family plus at most one second face (a serif only when it is the brand's heading face, or a deliberate second voice used rarely and large) | Product launch, app ad, brand film |
 | One display family plus one mono | Explainer, data story |
-| Serif plus sans, never two sans | Title-led films without a brand face: kinetic type, art film, industry spot |
+| Serif plus sans, never two sans | Title-led films without a brand face: art film, industry spot |
+| One sans family at 2 to 4 weights (bold or black present); a second face only as a rare accent (measured: 10 of 11 films with no serif, `ice-film` skill, `references/genres/kinetic-type.md`) | Kinetic type |
 | Up to three type voices: a heavy display for statements, a contrasting accent voice (an italic serif or the brand's UI face), a wide-tracked mono for the machine layer | Showreel, hype promo, music video. Log a D-entry naming each voice's job; the brand face, when there is one, stays one of the three |
 | A different family per beat | Only a sizzle or showreel montage whose brief asks for maximal variety; never narrative or brand work. Log the reason |
 

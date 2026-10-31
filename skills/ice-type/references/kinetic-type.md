@@ -20,7 +20,7 @@ Easing families, springs and camera moves belong to the `ice-motion` skill. This
 
 - Kinetic typography is phrase performance, not uniform text entrance. Animate at least one major word or phrase with meaning-driven position, scale, masking, layout change, framing, rhythm or emphasis. A uniform entrance applied to every word is not kinetic type.
 - Semantic map (choose motion from the word): fall drops, rise lifts, snap hits sharply, break separates, flow travels, soft eases gently, heavy lands low with weight, loud expands or hits harder, quiet recedes, fast compresses timing, slow holds longer.
-- Act out meaning for the one word that carries the film, once per film (illustration only; take the word from this film's script: a bar slices "splitting"; "with leverage" widens its own tracking; "more expensive" tightens; a word too big for the frame makes the camera pan across it).
+- Act out meaning for the one word that carries the film, once per film; in a kinetic type film, for the 1 to 3 words that carry it (measured median 2, the `ice-film` skill, `references/genres/kinetic-type.md`) (illustration only; take the word from this film's script: a bar slices "splitting"; "with leverage" widens its own tracking; "more expensive" tightens; a word too big for the frame makes the camera pan across it).
 - Choose the smallest text unit that helps meaning: phrase, line, word, glyph, outline. Per-character is not more advanced. Avoid random per-letter motion unless the prompt asks for it.
 - Different entrance per phrase: one reused entrance for every line is the flat-but-competent tell.
 - Importance budget per beat: 1 connective (fast, small, a cut or word swap), 2 supporting, 3 the point (slower, larger, held to reading time plus 0.5 to 1 s, its own sound). At most 25% of beats are the point. Animating every line the same is the number one AI tell.
@@ -122,11 +122,11 @@ Scope line, news reel (edit type `news-reel`, style family `family-broadcast-new
 
 ## 8. Beat and music type
 
-- Kinetic beat slam: beat spacing 1.2 to 1.8 s (under 0.8 s reads frantic, over 2.5 s loses the pulse); entrances 0.35 to 0.6 s, exits 0.25 s or less; exactly one accent hue; display 150 px and up in a heavy face; one beat array, not scattered offsets.
+- Kinetic beat slam: beat spacing 1.2 to 1.8 s (under 0.8 s reads frantic, over 2.5 s loses the pulse); entrances 0.35 to 0.6 s, exits 0.25 s or less; exactly one accent hue; display 150 px and up in a heavy face; one beat array, not scattered offsets. This is one named technique; across measured kinetic type films a line holds 1.0 s at the median (0.6 to 2.0 s in 8 of 11, word barrages at 0.4 s; the `ice-film` skill, `references/genres/kinetic-type.md`).
 - Kinetic triplet: three words or phrases, two beats each (three for a handwritten word so it can be read), each with its own treatment and background, swapped hard on the beat; each enters with a fast blur or slide and lands with a slight overshoot.
 - Brand slam: heavy grotesk all caps revealed by masks on consecutive 1/16 notes, a mono kicker above, an italic serif line below; weight can morph thin to black; the full stop detaches and grows.
 - Big changes on beats, typography on 1/8 or 1/16 notes; overshoot slightly for impacts then settle (beat grid owned by the `ice-audio` skill).
-- Benefits staccato: 8 to 12 short value phrases at about 0.4 s per beat; statement relay: 2 to 4 statements held about 1.5 s or more; verb barrage at about 0.2 s cadence with hard cuts; a relay-to-URL end card holds about 40 to 75% of the runtime in that blueprint.
+- Benefits staccato: 8 to 12 short value phrases at about 0.4 s per beat; statement relay: 2 to 4 statements held about 1.5 s or more; verb barrage at about 0.2 s cadence with hard cuts; a relay-to-URL end card holds about 40 to 75% of the runtime in that blueprint (a named blueprint; measured kinetic type films give the end card about 10 percent of the runtime, 2 to 7 s).
 - Kinetic shot (launch): 3.5 to 5 s, 3 to 5 lines, one emphasis verb each, stale lines at 0.30 opacity, rise 28 px in 0.3 s on the measured verb, the last line three micro-hits, final 4 px settle with about 8% ground brighten; camera locked; fails on even rhythm. Held thesis 1.8 to 2.5 s, deliberately the shortest frame.
 - Durations: short title 60 to 120 frames, quote 90 to 180 frames at 30 fps; a motion graphic with no narration is usually under 10 s (up to about 30 s); first and last frames of an overlay clear cleanly.
 

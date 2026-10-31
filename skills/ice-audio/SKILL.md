@@ -54,7 +54,7 @@ Use the film and edit type names from the architecture. Each row is a default; t
 | app ad, social short, shorts and reels | hybrid or voice-led | library track with a hook in 2 to 4 s | at most about 15 per minute | social -14 |
 | brand film, industry spot | voice-led or free | licensed human-made track, one continuous piece | sparse, material-true, recorded | gentle -16 (social -14 if posted to feeds) |
 | logo sting | music-led | short library button or sting | one hero hit plus a few landings | social -14 |
-| kinetic type | music-led (under about 15 s) | library track, cut on a whole-frame tempo | hits only on landings | social -14 |
+| kinetic type | music-led (any length without a voiceover; voice-led when a voice carries the copy) | library track, cut on a whole-frame tempo | hits only on a few landings, never one per word | social -14 |
 | data story | voice-led | steady bed leaving 1 to 4 kHz | counters and landings | gentle -16 or social -14 |
 | hype promo, showreel | music-led | library track with bar-line splices | dense but every hit has a cause | social -14 |
 | UI walkthrough | voice-led | quiet bed | clicks, typing texture, small UI | gentle -16 |

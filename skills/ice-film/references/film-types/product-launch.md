@@ -50,9 +50,9 @@ Warning: hook, feature, feature, promise, logo, CTA is one possibility, never a 
 |---|---|---|
 | Length | 20-90 s band; sweet spot 30-90 s; 30-45 s for a social launch; 45-90 s (default 60) for a calm narrated demo; ads: a 30-40 s main cut plus a 15 s cutdown | pick by platform slot in ice/BRIEF.md |
 | Hook | One hook in the first 3-5 s; the promise lands by beat 2; a stranger knows what is launching by second 4 | all |
-| Compositions | 12-15 per 30 s for energetic edits; beats 1.4-3.5 s | music-led, energetic |
+| Compositions | 12-15 per 30 s for energetic edits; beats 1.4-3.5 s. A product without screens (measured, `../genres/product-launch.md`): about 18 scenes per 30 s (12 to 29), a counted scene 1.6 s at the median (0.85 to 2.3), hard cuts 3.5 per 10 s | music-led, energetic |
 | Beats | 3-7 s per beat; add beats rather than stretching one past 7.5 s | proof-led, narrated |
-| Proof | About one proof per 8-10 s, never zero, at most three in a row unless one object runs through them; proof beats are about half the runtime | all |
+| Proof | About one proof per 8-10 s, never zero, at most three in a row unless one object runs through them; proof beats are about half the runtime. A product without screens: a proof beat is the product working (in use) or a macro detail of what the claim names; on-screen numbers are an option (7 of 15 measured films), never a rate (`../genres/product-launch.md`) | all |
 | Energy | Strongest single frame at 60-75% of the film; beats shorten toward it | all |
 | UI demo | A sequence of 3 or more consecutive feature beats on the same surface (input, response, result, benefit), not one isolated frame | when value depends on workflow |
 
@@ -68,7 +68,7 @@ Where the row's numbers come from: max_event_gap_s: never stretch a beat past 7.
 ## Transition policy
 
 - Transitions carry meaning: zoom-through where one thing causes the next, a push through a product sequence. A film where every crossing is the same move reads as a slideshow.
-- Crossfades and dissolves: banned between scenes in product launches; fade only a single object whose motion continues across the seam (the `ice-motion` skill, `references/transition-policy.md` section 3).
+- Crossfades and dissolves: banned between scenes in product launches; fade only a single object whose motion continues across the seam (the `ice-motion` skill, `references/transition-policy.md` section 3). A product without screens, object film variant (`../genres/product-launch.md`): dissolves between product shots are a measured option (6 of 11) for light-led reveals; never two copies of one thing; the in-use variant keeps the ban.
 - One-shape and continuous-take launches: no cuts at all; every change is a morph, a camera move or a zoom into an element that becomes the next scene.
 - Multi-frame narrated launches assembled from frames: a small set of between-frame transitions repeated (one primary for most seams, one or two accents), per `references/transition-policy.md` section 2 of the `ice-motion` skill.
 - Every seam names its carrier (`../storyboard.md`). Cut catalog and numbers: ice-motion.
@@ -91,7 +91,7 @@ Where the row's numbers come from: max_event_gap_s: never stretch a beat past 7.
 
 - One clear takeaway per scene; short prompts and answers; enough settled time to read the result.
 - Typing belongs only inside the product's real input box, never on headlines.
-- One emphasis word per headline carries the accent. Reading-time rules and type scale: ice-type. A launch with screens: the UI motion genre measured colour emphasis as an option of its motion design variant, not a default (0 of 6 brand launch films colour a word; `../genres/ui-motion.md`, Options).
+- One emphasis word per headline carries the accent. Reading-time rules and type scale: ice-type. A launch with screens: the UI motion genre measured colour emphasis as an option of its motion design variant, not a default (0 of 6 brand launch films colour a word; `../genres/ui-motion.md`, Options). A product without screens: not a default either (2 of 14 films with text; `../genres/product-launch.md`); lines are short (5.5 words at most at the median) and often appear whole.
 
 ## Truth and content
 
@@ -134,6 +134,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Launch rules that span types: `../launch-principles.md`. A product with screens: the measured genre playbook `../genres/ui-motion.md` (conventions with numbers, the two variants, the fingerprint the render is checked against). Openers and endings: `../openers-and-endings.md`. Script shapes per beat role: `../script-shapes.md`. Motion grammar, cut catalog, camera: ice-motion. Truth sheet: ice-assets. Engines and aspect re-layout: ice-engines. Gates: ice-qa.
+Launch rules that span types: `../launch-principles.md`. A product with screens: the measured genre playbook `../genres/ui-motion.md` (conventions with numbers, the two variants, the fingerprint the render is checked against). A product without screens, or a device shown as an object: the measured genre playbook `../genres/product-launch.md` (object film and in-use film variants, the closing packshot, the fingerprint). Openers and endings: `../openers-and-endings.md`. Script shapes per beat role: `../script-shapes.md`. Motion grammar, cut catalog, camera: ice-motion. Truth sheet: ice-assets. Engines and aspect re-layout: ice-engines. Gates: ice-qa.
 
 Sources: AbubakrChan/product-launch-motion, heygen-com/hyperframes (product-launch-video), charlie947/motion-graphics-skills, howseen-ai/claude-motion-design, echris6/motion-video-kit, bangtutorial/bang-motion, alexgreensh/anidoodle, Tejashmakwana/motionmaxxing, video-production-studio (Omar-Tnzxo).

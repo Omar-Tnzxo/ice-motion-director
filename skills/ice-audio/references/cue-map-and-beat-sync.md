@@ -7,7 +7,7 @@ Read when planning timing for any film with sound: before animating (the cue map
 | Mode | Use for | The clock |
 |---|---|---|
 | Voice-led | explainers, product story, talking-head ad, UI walkthrough with narration, long-form | The voice. "Once a video has a voice, the voice is the clock"; the narration never waits for the visuals. Cues name words, not seconds. |
-| Music-led | kinetic type under about 15 s, logo sting, hype promo, showreel, music video, social short without voice | The beat grid of the chosen or composed music. Storyboard timings in beats, not seconds. |
+| Music-led | kinetic type without a voiceover at any length (measured: 9 of 11 films, 15 to 76 s, `ice-film` skill, `references/genres/kinetic-type.md`), logo sting, hype promo, showreel, music video, social short without voice | The beat grid of the chosen or composed music. Storyboard timings in beats, not seconds. |
 | Hybrid | one VO line over a music bed (hook, turn or CTA only) | The voice for spoken beats; the grid for everything else. Voice and music grids meet only at the payoff. |
 | No voice, no beat (calm, rubato, ambient music) | art film, calm brand film | Phrases and energy. Every reveal is cued to what motivates it: a measured SFX transient, reading time, or the on-screen action. Never force a cut onto every measured beat. |
 
