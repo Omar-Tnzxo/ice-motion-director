@@ -72,6 +72,7 @@ When to fake depth, when to use real 3D, and the measured values for depth moves
 - Without an environment map everything is grey plastic; soft area lights plus a low-intensity HDRI read more real than bright ambient light; one light with no ambient renders a flat black cutout (add a fill).
 - Tone-map before bloom; filmic tone mapping for dark chrome, neutral when a brand colour must be exact; bloom strength about 0.03-0.08.
 - Extruded chrome type with flat faces flashes whole letters: bend the shading normals. Chrome on black with bloom is not a default look. It is right when the chosen style is chrome by nature (illustration only, several kinds: a Y2K title, a synthwave sunset, a 3D title package), the brand's material is metal, or the reference measures it, recorded in the plan; then bloom follows the line above and lens flares come from a light in the scene.
+- Several moving objects of one kind (vehicles, aircraft, drones, birds, people, ships) move the way the real thing moves: a formation, a lane or a flock with a leader, steady spacing and turns taken together, from research footage of the real thing. Random positions, random headings and random speeds read as generated, not as the thing. One group behaviour per shot, with its source in the craft plan row; the frame check is `ice-qa/references/frame-checks.md` B10.
 - Render family per film (one, or two if the switch is a moment): flat solid, soft clay, glossy, glass, isometric, realistic PBR, neon line.
 
 ## 7. Build routes for depth and 3D

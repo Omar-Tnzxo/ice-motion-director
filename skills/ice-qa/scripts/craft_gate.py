@@ -88,11 +88,12 @@ measure (numpy and opencv): pixel measures of any video, a reference or a render
            counts when the field moves at least 0.25 px (a card sliding over a still ground is element motion, not
            depth). Per shot: layers (the most planes that half of its moving pairs show), parallax ratio (fastest
            plane over slowest, median over those pairs), push-throughs (a push in during which the nearest plane,
-           at least 1.25 times the slowest, grows by 30 percent or more and crosses the frame edge). The film: most
+           at least 1.25 times the slowest, grows by 30 percent or more and crosses the frame edge; one that grows
+           1.26 to 1.30 times is counted apart as push_through_near, on the threshold). The film: most
            layers of any shot, the median parallax ratio, the push-throughs summed, and camera_moving_share from the
            camera track. Written to --depth-out, else <video>.depth.json beside the video, in the depth file format
            of the ice-qa skill, references/motion-density.md section 8 (read by motion_check.py): the measured keys
-           camera_moving_share, layers, parallax_ratio and push_through are rewritten from pixels; elements_3d, dof and
+           camera_moving_share, layers, parallax_ratio, push_through and push_through_near are rewritten from pixels; elements_3d, dof and
            triggers are kept from the file when it exists (written from the plan or by hand), else written empty.
 
 build (numpy and opencv; stages 07 and 09). Runs measure on the render, then red when:
@@ -146,7 +147,9 @@ build (numpy and opencv; stages 07 and 09). Runs measure on the render, then red
            desaturated with lifted blacks, is red (the outside treatment reached the speaker or the film's own world).
   marks    each fixed mark of shots.json "fixed_marks" (else the identity row's "fixed_marks"), same entries: x_pct,
            y_pct, w_pct, optional h_pct, "from" and "to" (seconds or plan ids; the whole film when absent), and
-           optional "file" (the mark's image; PNG alpha is the match mask). Template match (normalized correlation,
+           optional "file" (the mark's image; PNG alpha is the match mask; a file whose ink is one colour, a flat
+           grey inside its alpha, is matched by its alpha silhouette in either polarity, so position and size are
+           still measured). Template match (normalized correlation,
            scales 0.80 to 1.25) on the 0.2 s samples in its range, inside the slot widened by 6 percent of the frame:
            red when it is missing for 0.4 s or more (score under 0.5), moves by more than 1 percent of the frame
            across the range (it rides the camera or drifts), and, with a file, sits more than 2 percent of the frame
@@ -156,7 +159,10 @@ build (numpy and opencv; stages 07 and 09). Runs measure on the render, then red
            course or webinar type, or a cutout row with "recede_windows"): the speaker's face box (the face nearest
            the speaker's median box outside the windows; held through a shot when the cascades lose it) gives the
            mean luma, saturation and Laplacian variance of its inner box every 0.2 s, against the speaker's median
-           outside the recede windows. Recede windows: the cutout row's "recede_windows" ([{"start": s, "end": s}],
+           outside the recede windows. Outside the windows, a sample that reads dimmed against the median is
+           then compared with the same face in its source frame (from the EDL, --edl or found beside the edit plan):
+           within 5 percent luma and 15 percent saturation of the source it passes, because the take itself changed
+           (a turned head, a look down). Recede windows: the cutout row's "recede_windows" ([{"start": s, "end": s}],
            'a-b' ranges or plan ids). Voice activity: from the render's audio, or --voice (a voice stem), by energy in
            the speech band and syllable-rate modulation. Red for 0.4 s or more: outside the windows, dimmed over 5
            percent or desaturated over 15 percent; inside a window while the voice is active, dimmed over 5 percent,
@@ -1443,6 +1449,7 @@ PLANE_MIN_SHARE = 0.05       # a plane holds at least this share of the points
 PLANE_SEP = math.log(1.25)   # planes differ in rate by 25 percent or more
 NEAR_MIN = 1.25              # the near plane of a push-through moves at least this many times the slowest
 PUSH_SCALE = 1.3             # and grows by this much over the push
+PUSH_NEAR = 0.03             # a push that grows within 3 percent under PUSH_SCALE is near: reported, never counted
 DEPTH_KEYS = ("camera_moving_share", "layers", "parallax_ratio", "push_through")
 
 
@@ -1525,14 +1532,20 @@ def depth_summary(pairs, shots, cuts, camera_share, every):
 
     def pushes_in(moving):
         """Push-throughs: runs of consecutive pairs pushing in (zoom rate over ZOOM_T) whose nearest plane, at least
-        NEAR_MIN times the slowest, grows by PUSH_SCALE or more and touches the frame edge."""
-        count, run = 0, None
+        NEAR_MIN times the slowest, grows by PUSH_SCALE or more and touches the frame edge. -> (count, near): near
+        counts the runs that meet every condition but grow within PUSH_NEAR under PUSH_SCALE (on the threshold)."""
+        count, near_count, run = 0, 0, None
+        def ok(r):
+            return bool(r) and r["end"] - r["start"] >= MOVE_MIN_S - eps and r["edge"]
         def counts(r):
-            return bool(r) and r["end"] - r["start"] >= MOVE_MIN_S - eps and r["edge"] and math.exp(r["log_scale"]) >= PUSH_SCALE
+            return ok(r) and math.exp(r["log_scale"]) >= PUSH_SCALE
+        def nearly(r):
+            return ok(r) and PUSH_SCALE * (1 - PUSH_NEAR) <= math.exp(r["log_scale"]) < PUSH_SCALE
         for p in moving:
             push = p["zoom"] / max(eps, p["t1"] - p["t0"]) > ZOOM_T
             if not (push and run is not None and abs(p["t0"] - run["end"]) < eps):
                 count += counts(run)
+                near_count += nearly(run)
                 run = {"start": p["t0"], "end": p["t0"], "log_scale": 0.0, "edge": False} if push else None
             if run is not None:
                 run["end"] = p["t1"]
@@ -1540,9 +1553,9 @@ def depth_summary(pairs, shots, cuts, camera_share, every):
                 if len(p["planes"]) >= 2 and near["rate"] >= NEAR_MIN * far["rate"]:
                     run["log_scale"] += near["rate"] * p["zoom"]
                     run["edge"] = run["edge"] or touches_edge(near["bbox"])
-        return count + counts(run)
+        return count + counts(run), near_count + nearly(run)
 
-    film_ratios, pushes, moving_total = [], 0, 0
+    film_ratios, pushes, near_pushes, moving_total = [], 0, 0, 0
     for k, s in enumerate(shots):
         moving = sorted((p for p in pairs if p["shot"] == k and p["planes"]), key=lambda p: p["t0"])
         moving_total += len(moving)
@@ -1554,19 +1567,20 @@ def depth_summary(pairs, shots, cuts, camera_share, every):
         ratio = round(float(np.median(ratios)), 3) if layers >= 2 and ratios else None
         if ratio is not None:
             film_ratios += ratios
-        count = pushes_in(moving)
+        count, near = pushes_in(moving)
         pushes += count
-        s.update(layers=layers, parallax_ratio=ratio, push_through=count, depth_pairs=len(moving))
+        near_pushes += near
+        s.update(layers=layers, parallax_ratio=ratio, push_through=count, push_through_near=near, depth_pairs=len(moving))
     return {
         "camera_moving_share": camera_share,
         "layers": max([s["layers"] for s in shots] or [1]),
         "parallax_ratio": round(float(np.median(film_ratios)), 3) if film_ratios else None,
-        "push_through": pushes,
+        "push_through": pushes, "push_through_near": near_pushes,
         "pairs": len(pairs), "moving_pairs": moving_total,
         "screen_share": median_or_none([p["screen_share"] for p in pairs if p["planes"]]),
         "shots": [{"id": s["id"], "start": s["start"], "end": s["end"], "layers": s["layers"],
                    "parallax_ratio": s["parallax_ratio"], "push_through": s["push_through"],
-                   "moving_pairs": s["depth_pairs"]} for s in shots],
+                   "push_through_near": s["push_through_near"], "moving_pairs": s["depth_pairs"]} for s in shots],
         "settings": {"width": DEPTH_WIDTH, "pair_s": DEPTH_EVERY, "min_field_px": DEPTH_MIN_FIELD,
                      "plane_min_share": PLANE_MIN_SHARE, "plane_separation": 1.25},
     }
@@ -1581,6 +1595,7 @@ def write_depth_file(m, path):
     d = m["depth"]
     data = dict(old)
     data.update({k: d[k] for k in DEPTH_KEYS})
+    data["push_through_near"] = d.get("push_through_near", 0)
     data.setdefault("elements_3d", [])
     if not isinstance(data.get("dof"), dict):
         data["dof"] = {"present": False, "blur_px": None}
@@ -1638,7 +1653,7 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
         else:
             faces = [[int(round(x * fsx)), int(round(y * fsy)), int(round(w * fsx)), int(round(h * fsy))]
                      for x, y, w, h in detect_faces(face_grey, cascades)]
-        rec = {"t": t, "faces": faces}
+        rec = {"t": t, "faces": faces, "luma": round(float(grey.mean()), 2)}
         if faces:
             rec["focus_ratio"] = focus_ratio(grey, faces, sx, sy)
         if want_text:
@@ -2437,6 +2452,7 @@ def check_grade(m, plan, files, edl, edl_from):
 MARK_PAD = 0.06           # the slot widened by this share of the frame on every side
 MARK_SCALES = tuple(round(0.80 + 0.05 * k, 2) for k in range(10))
 MARK_SCORE = 0.5          # normalized correlation under this: the mark is not there
+MARK_FLAT_INK = 4.0       # grey std (of 255) inside a file's alpha under this: one-colour ink
 MARK_MAX_SAMPLES = 150
 
 
@@ -2528,6 +2544,10 @@ def mark_template(mk):
                 return None, None, f"its file {mk['file']} is almost fully transparent"
             if mask.mean() > 254:
                 mask = None
+        if mask is not None and float(grey[mask > 0].std()) < MARK_FLAT_INK:
+            # one-colour ink: inside its alpha the template is flat and a masked normalized correlation is undefined,
+            # so the mark is matched by its shape (the alpha), light on dark or dark on light
+            return mask.copy(), None, "its file's alpha silhouette (one-colour ink, either polarity)"
         return grey, mask, "its file"
     stack = np.stack([c for _, c in mk["crops"]]).astype(np.float32)
     med = np.median(stack, axis=0).astype(np.uint8)
@@ -2586,7 +2606,9 @@ def check_marks(marks, problems, step):
             continue
         x0, y0, _, _, W, H = mk["window"]
         scales = MARK_SCALES if mk["file"] else (1.0,)
-        hits = [(t,) + match_mark(c, tpl, mask, scales) for t, c in mk["crops"]]
+        both = "silhouette" in how     # a one-colour mark may sit light on dark or dark on light
+        hits = [(t,) + (max(match_mark(c, tpl, mask, scales), match_mark(255 - c, tpl, mask, scales)) if both
+                        else match_mark(c, tpl, mask, scales)) for t, c in mk["crops"]]
         found = [h for h in hits if h[1] >= MARK_SCORE]
         entry["found"] = len(found)
         run, runs = [], []
@@ -2708,7 +2730,69 @@ def recede_windows(plan, files, dur):
     return sorted(out), notes
 
 
-def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from):
+class SourceFaces:
+    """The speaker's face in his source frame, through the EDL ("sources" map and "ranges" with source, start, end and
+    optional reel_in; times accumulate range by range when reel_in is absent, as render.py plays them): one frame read
+    with ffmpeg per asked sample, the render's box when the source and the render have the same size, else the face
+    the cascades find nearest the render box's place (relative to the frame), and FaceProbe.stats of its inner box."""
+
+    def __init__(self, edl, files, edl_from, size):
+        self.spans, self.cascades, self.size = [], None, size
+        self.label = edl_from or "the EDL"
+        srcs = edl.get("sources") if isinstance(edl.get("sources"), dict) else {}
+        bases = [b for b in (files.ice.parent if files.ice else None, files.ice,
+                             Path(edl_from).parent if edl_from else None) if b is not None]
+        isnum = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        t = 0.0
+        for r in edl.get("ranges") or []:
+            if not isinstance(r, dict) or not isnum(r.get("start")) or not isnum(r.get("end")):
+                continue
+            length = float(r["end"]) - float(r["start"])
+            if length <= 0:
+                continue
+            a = float(r["reel_in"]) if isnum(r.get("reel_in")) else t
+            name = srcs.get(r.get("source"), r.get("source"))
+            p = Path(str(name)) if name else None
+            path = None
+            for c in ([p] if p and p.is_absolute() else [b / p for b in bases] if p else []):
+                if c.is_file():
+                    path = c
+                    break
+            if path:
+                self.spans.append((a, a + length, path, float(r["start"])))
+            t = a + length
+        self.ok = bool(self.spans)
+
+    def stats(self, t, box):
+        hit = next(((p, s + t - a) for a, b, p, s in self.spans if a - 1e-6 <= t < b), None)
+        if hit is None:
+            return None
+        try:
+            sw, sh, _, _ = probe(hit[0])
+        except (subprocess.CalledProcessError, RuntimeError, ValueError, KeyError, OSError):
+            return None
+        W, H = self.size
+        dw = min(sw, DETAIL_WIDTH) // 2 * 2
+        dh = even(sh * dw / sw)
+        proc = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{hit[1]:.3f}", "-i", str(hit[0]), "-frames:v", "1",
+                               "-vf", f"scale={dw}:{dh}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
+        if len(proc.stdout) < dw * dh * 3:
+            return None
+        rgb = np.frombuffer(proc.stdout[:dw * dh * 3], np.uint8).reshape(dh, dw, 3)
+        grey = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+        if (sw, sh) != (W, H):
+            if self.cascades is None:
+                self.cascades = load_cascades()
+            faces = detect_faces(grey, self.cascades)
+            if not faces:
+                return None
+            cx, cy = (box[0] + box[2] / 2) / W, (box[1] + box[3] / 2) / H
+            f = min(faces, key=lambda f: math.hypot((f[0] + f[2] / 2) / dw - cx, (f[1] + f[3] / 2) / dh - cy))
+            box = [f[0] * sw / dw, f[1] * sh / dh, f[2] * sw / dw, f[3] * sh / dh]
+        return FaceProbe.stats(rgb, grey, box, (sw / dw, sh / dh))
+
+
+def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from, edl=None, edl_from=None):
     """The speaker stays lit (the ice-edit skill, references/layers-and-isolation.md section 5)."""
     dur, step = m["video"]["duration_s"], m["settings"]["face_every_s"]
     windows, notes = recede_windows(plan, files, dur)
@@ -2744,7 +2828,7 @@ def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from):
             continue                       # a held box never crosses a cut
         hit = pick(s["faces"])
         if hit:
-            track.append({"t": s["t"], "held": s["held"], **hit[2]})
+            track.append({"t": s["t"], "held": s["held"], "box": hit[1], **hit[2]})
     out_w = [x for x in track if not inside(x["t"]) and not x["held"]]
     if len(out_w) < 3:
         res["notes"].append("the speaker's face is found on too few samples outside the recede windows")
@@ -2781,7 +2865,29 @@ def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from):
             if desat > 0.15:
                 kinds.append("desaturated over 15 percent outside the recede windows")
         for kd in kinds:
-            findings.append((kd, t, dim, desat, sharp))
+            findings.append((kd, t, dim, desat, sharp, x))
+    src = SourceFaces(edl, files, edl_from, (m["video"]["width"], m["video"]["height"])) if isinstance(edl, dict) else None
+    if src and src.ok:
+        kept = []
+        for f in findings:
+            kd, t, x = f[0], f[1], f[5]
+            got = src.stats(t, x["box"]) if "outside the recede windows" in kd else None
+            if got is None:
+                kept.append(f)                   # no source frame or no face there: the median finding stands
+                continue
+            dim = 1 - x["luma"] / max(got["luma"], 1e-6)
+            desat = 1 - x["sat"] / got["sat"] if got["sat"] >= 0.03 else 0.0
+            if dim > 0.05 or desat > 0.15:
+                kept.append((kd.replace("outside the recede windows", "outside the recede windows, against his "
+                                        "source frame"), t, dim, desat, f[4], x))
+            else:
+                res["source_cleared"] = res.get("source_cleared", 0) + 1
+        findings = kept
+        res["baseline_source"] = src.label
+    elif findings and not src:
+        res["notes"].append("no EDL: the speaker is compared with his own median outside the windows, so a change in the "
+                            "take itself (a turn of the head, a look down) reads as dimming; pass --edl with the source "
+                            "ranges so each sample is compared with its source frame")
     for kd in dict.fromkeys(f[0] for f in findings):
         times = [f for f in findings if f[0] == kd]
         run, runs = [], []
@@ -2795,8 +2901,8 @@ def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from):
         for r in runs[:4]:
             worst = max(r, key=lambda f: f[2])
             res["items"].append(f"the speaker is {kd} from {r[0][1]:g} to {r[-1][1] + step:g} s (at worst: luma "
-                                f"{-worst[2]:+.0%}, saturation {-worst[3]:+.0%}, sharpness x{worst[4]:.2f}, against the "
-                                "speaker's median outside the windows)")
+                                f"{-worst[2]:+.0%}, saturation {-worst[3]:+.0%}, sharpness x{worst[4]:.2f}, against "
+                                + ("his source frame)" if "source frame" in kd else "the speaker's median outside the windows)"))
     res["ok"] = not res["items"]
     return res
 
@@ -2858,7 +2964,7 @@ def run_build(args):
               "grade": check_grade(m, plan, files, edl, edl_from),
               "marks": check_marks(marks, mark_problems, m["settings"]["face_every_s"]),
               "speaker": check_speaker(face_probe, m, plan, files, route, subtype, voice,
-                                       f"--voice {args.voice}" if args.voice else "the render's audio")}
+                                       f"--voice {args.voice}" if args.voice else "the render's audio", edl, edl_from)}
     evidence = check_evidence(plan, m, files, lint, boxes is not None and any(s["boxes"] for s in boxes))
     depth_path, depth_why = write_depth_file(m, render.with_suffix(".depth.json"))
     reds = []
@@ -2923,6 +3029,9 @@ def build_lines(r):
     L.append(f"  {light(sp['ok'])} speaker: " + (f"baseline luma {sp['baseline']['luma']:g}, saturation "
                                                  f"{sp['baseline']['sat']:g}; {len(sp['windows'])} recede window(s); "
                                                  f"{len(sp['voice_spans'])} voice span(s) from {sp['voice_from']}"
+                                                 + (f"; compared with the source frames of {sp['baseline_source']} "
+                                                    f"({sp.get('source_cleared', 0)} sample(s) cleared: the take itself "
+                                                    "changes)" if sp.get("baseline_source") else "")
                                                  if sp["ran"] else "not checked"))
     L += [f"         - {x}" for x in sp["items"]] + [f"         note: {x}" for x in sp["notes"]]
     d = r["depth"]
@@ -2972,7 +3081,7 @@ def main(argv=None):
     p.add_argument("--boxes", help="text and card boxes per sample (lint.mjs --boxes-out)")
     p.add_argument("--faces", help="face boxes per sample; replaces face detection")
     p.add_argument("--lint", help="lint.mjs --json output with craft_marks (HTML builds)")
-    p.add_argument("--edl", help="the edit's EDL (render.py format) for the grade per source class")
+    p.add_argument("--edl", help="the edit's EDL (render.py format) for the grade per source class and the speaker's source frames")
     p.add_argument("--voice", help="an audio or video file whose audio is the voice alone (the voice stem), for the "
                                    "speaker check; default: the render's own audio")
     p.add_argument("--json", action="store_true")

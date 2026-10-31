@@ -68,11 +68,13 @@ Each stage entry: `status`, `artifact` (path relative to the project folder, emp
 | `in_progress` | The stage is running | The stage starts, or it is reopened |
 | `in_review` | The artifact is written and waits for approval | The artifact is saved; in step mode the review card is shown |
 | `approved` | Done | Auto mode: the approver role passed it (router section 5). Step mode: the user said so |
+| `held` | The artifact is done; a hard-rule test on it failed and only the user's words can accept it (`ice-qa/references/identity-tests.md` section 6 item 4, and the other hard gates) | Auto mode: the approver sets it with the test and its result in `--notes` (`ice-state set NN held --notes "<test and result>"`) |
 | `not_used` | The route or the size does not use this stage | The route's `## Spine stages` row says `not used`, the size skips it, or the stage order leaves it out |
 
 Rules:
 - Create the file in stage 01 as soon as the route is known (router section 3), with `"01"` set to `in_progress` and the other nine stages set from the detection of supplied material and from the route.
 - A stage counts as ready for the stages after it only when it is `approved`, `supplied` or `not_used`. A `partial` stage becomes `approved` once its filled fields pass review.
+- A `held` stage counts as ready for the stages after it, so the state follows the work while a hard test waits for the user; the delivery stage (10) is not approved while any stage is held. Only the user's own words move a held stage to `approved` (`--by user`, in every mode), and the words must answer a question that names the test.
 - Never mark a stage `approved` in step mode without the user's own words of approval. Record each approval in `approvals`.
 - Reopening a stage (a change request, or its command typed again) sets it to `in_progress`. Every later stage that is `approved` goes back to `in_review` with the note `upstream change in <NN>`. Stages the user supplied stay `supplied`. A planned part of a split stage (for example `08b` after `08a`) is not a reopening.
 - `commercial_use` comes from the brief. `unknown` blocks any material marked noncommercial-only until the user answers.

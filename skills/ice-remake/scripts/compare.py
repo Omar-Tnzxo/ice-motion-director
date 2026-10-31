@@ -20,7 +20,9 @@ The stats contract (the ice-remake skill, references/shot-mapping.md section 4),
 reference (a share also within plus or minus 0.05, so a share near zero is not held to a hundredth):
     mean_shot_s           mean detected shot length (report.json pacing.mean_shot_s); not compared when the reference
                           has fewer than 3 detected shots (noted)
-    mean_shot_beats       the same in beats, when the reference has it and the plan's music.bpm is set
+    mean_shot_beats       the same in beats, when the reference has it and the plan's music.bpm is set; counted on the
+                          bed's tempo when the reference's reading is 2, 3, 1/2 or 1/3 of it (within 6 percent: a voice
+                          over the music shifts the beat tracker), with a note
     low_key_shots         share of shots whose dark ratio is over 0.5 (look_summary.low_key_shots)
     moving_camera_shots   share of shots whose camera is not static (look_summary.moving_camera_shots)
     stillness_ratio       analyze.py stillness on both films, when the reference has it
@@ -48,6 +50,7 @@ from analyze import probe, shot_details, shots, stillness, imwrite  # same measu
 BAND = 0.30          # the stats contract: within plus or minus 30 percent
 SHARE_FLOOR = 0.05   # a share is also allowed plus or minus 0.05
 MIN_REF_SHOTS = 3    # fewer detected reference shots: no shot-length statistic
+OCTAVE_TOL = 0.06    # a reference tempo within 6 percent of 2, 3, 1/2 or 1/3 times the bed's is the same tempo
 LIFT_KINDS = ("user", "style")   # who may lift a contract stat (the reference cannot excuse a departure from itself)
 
 
@@ -129,7 +132,17 @@ def contract(rep, plan, ours_d, our_spans, our_still, pairs):
         add("mean_shot_s", pace["mean_shot_s"], ours_mean)
         bpm = ((plan.get("music") or {}).get("bpm") or 0)
         if pace.get("mean_shot_beats") and bpm:
-            add("mean_shot_beats", pace["mean_shot_beats"], ours_mean / (60.0 / bpm))
+            ref_beats, note = pace["mean_shot_beats"], None
+            beat = (rep.get("audio") or {}).get("beat_seconds")
+            if beat:
+                ratio = (60.0 / beat) / bpm
+                for k in (2.0, 0.5, 3.0, 1 / 3):
+                    if abs(ratio / k - 1) <= OCTAVE_TOL:
+                        ref_beats = round(pace["mean_shot_s"] / (60.0 / bpm), 1)
+                        note = (f"the reference's tempo read {60.0 / beat:.1f} BPM, {k:.3g} times the bed's {bpm:g} "
+                                f"(a voice over the music shifts the beat tracker): both sides counted at {bpm:g}")
+                        break
+            add("mean_shot_beats", ref_beats, ours_mean / (60.0 / bpm), note=note)
     if ours_d:
         low = sum(1 for x in ours_d if x["look"]["dark_ratio"] > 0.5) / len(ours_d)
         moving = sum(1 for x in ours_d if x["camera"]["kind"] != ["static"]) / len(ours_d)

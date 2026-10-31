@@ -5,6 +5,7 @@ Two tests prove a film belongs to its brand and not to its category: the **brand
 ## Contents
 
 1. The two tests
+1b. Can the brand test pass at all (stage 01)
 2. What counts as brand-owned
 3. Where they run
 4. Masking
@@ -25,6 +26,14 @@ They run on every film made for a named brand, company, product, app or service,
 The competitor is named, never imagined: the closest rival from the business brief's market and competitors section (`ice/BRIEF.md`) or research note RQ-category. When the brief names no rival, the critic takes the category's best-known brand from that research and writes which one it used.
 
 The strength never changes between stages. Only the material changes: a written description at 02, masked frames at 04 and 05, masked frames from the draft at 09.
+
+## 1b. Can the brand test pass at all (stage 01)
+
+At stage 01, after the brand research and the reference's measurement, the director lists the brand-owned elements the film can show (section 2), each with its source. When none would survive the masking of section 4, the brand test cannot pass whatever the film does. Two common cases: the identity is carried only by covered things (the logo, the wordmark, the name, a presenter whom only the named programme makes known) because the brand is a niche programme or series with no distinctive device found by research; or the film is a concept for a brand's interface (a "what if <app> had <feature>" film), where the brand is the UI and the UI is covered. Then:
+
+1. `ice/BRIEF.md` says it in one line: `Brand test: cannot pass by construction (<why>; elements found: none)`, and the D-entry of the identity choice repeats it.
+2. The stage 01 message tells the user in plain words, once, as the `brand_test` question of `ice-direction/references/questions.md` (`Q-brand-test`): (1, recommended) the competitor swap and the fixed marks carry the identity check, and the masked test runs once at 04-05 and once at 09 for the record; (2) a real brand-owned element found by research is added to the film (named in the option; never invented, section 2); (3) the masked test stays a hard rule and the film holds before delivery for your words; (4) your own answer.
+3. A question waiver does not answer this slot (only the user's words accept a failed test, section 6 item 4): with a waiver the test runs once at 04-05 and once at 09, no redraw round is spent on it (redrawn frames cannot change a result fixed by construction), and the run holds before 10 with one plain question that names the test and its result.
 
 ## 2. What counts as brand-owned
 
@@ -76,7 +85,7 @@ A viewer answer "a music app", "a bank", or any category instead of the brand is
 1. **An early fail is cleared only by a changed concept or a changed look.** At 02 that is a different concept, or the same concept with a new brand-owned element written into what the viewer sees. At 04 and 05 it is redrawn frames that carry a section 2 element in the hero moment and in the beats that missed.
 2. **The re-test runs at full strength, by a fresh judge,** on the changed material: a new blind description and a new critic at 02, new masked frames and a new viewer and critic at 04 and 05. A judge that saw the failing version has learned it.
 3. **A pass never rests on a note, a promise or a later stage.** "The UI will make it clear", "the logo lands at the end", "the build will add it", a planned search query with the brand's name, or a critic's reservation marked as accepted do not clear a fail. The approver refuses any pass that does (`ice-direction/references/roles.md` section 5).
-4. **Two failed rounds at the same stage:** go back one owner. A fail at 04 or 05 after two rounds goes to 02 with a superseding D-entry (the concept critic's next-ranked concept that passed at 02, or the same concept rebuilt around a brand-owned element). In step mode the user may accept a failed test in their own words; the acceptance is logged with their quote and named in the delivery note. In auto mode the film does not reach 06 or 10 with a failed test.
+4. **Two failed rounds at the same stage:** go back one owner. A fail at 04 or 05 after two rounds goes to 02 with a superseding D-entry (the concept critic's next-ranked concept that passed at 02, or the same concept rebuilt around a brand-owned element). In step mode the user may accept a failed test in their own words; the words must answer a question that names the test (a blanket "decide everything" or "approve whatever you choose", given before the test failed, is a waiver of questions, not an acceptance); a test marked at 01 as unable to pass (section 1b) may be accepted in the user's answer to that 01 question; the acceptance is logged with their quote and named in the delivery note. In auto mode the film does not reach 06 or 10 with a failed test. A test marked at 01 as unable to pass runs once at 04-05 and once at 09 with no redraw rounds, and holds before 10 only (section 1b).
 
 ## 7. Logging
 
@@ -90,6 +99,7 @@ Scope (lesson L10, owner decision, 2026-10-29): remakes and edits that follow a 
 
 - **What is checked.** The reference's fixed marks, measured on the reference (what, box as x and y percent of the frame, width as percent of frame width, opacity, colour, first and last frame, layer `screen`): the `ice-remake` skill, `references/measuring.md`, "Fixed marks", recorded in the ANALYSIS.md Recipe notes `Fixed marks:` line. Which mark fills each slot follows the identity choice: the `ice-remake` skill, `references/rights-and-modes.md`, "Fixed identity marks" (as they are: the same mark; the user's identity: the user's mark, or the name set as text; a mix: per element as named). A slot is never left empty because a mark was not fetched.
 - **Pass rule.** Every fixed mark of the reference is present in its slot on every frame where the reference shows it: position within 2 percent of the frame width and height, size within 10 percent, on the screen layer (never moved by the camera or hit by a flash). The marks are read on unmasked frames; the masking of section 4 applies to the brand test only.
+- **End card and sign-off lockups.** Every logo or lockup that a sign-off title, an end card or a closing sting shows is a fixed mark too, for the range of its card: one `fixed_marks` row with its official `file` and the slot measured on the reference's card (or, with the user's identity, the slot the 05 frames set). A name retyped in a font in place of the lockup is not the logo (`ice-assets/references/brand-authenticity.md` section 3 and section 5); a programme or series that has a logo lockup signs off with that lockup, not with its name set as a title. The build check measures its slot and size like any corner mark, and a one-colour logo is found from its own file by its shape.
 - **Where.** At 05 on the style frames, against the reference frames at the same times; at 07 on the build frames (the contact sheet before render) and again on the draft at 09. A missing or misplaced mark at 05 fails before any build; it is cleared only by changed frames re-checked, never by a note.
 - **Script.** On the render: `craft_gate.py build` (the `ice-qa` skill, `scripts/craft_gate.py`, "marks"), from the marks of `ice/plan/shots.json` `fixed_marks`.
 - **Logging.** One line in the `Gates:` line of the `ice/DIRECTION.md` summary: `fixed marks <05 / 07 / 09> <PASS / FAIL> <marks found>/<marks measured>`; the per-mark table (mark, slot measured, slot found, size measured, size found, frames) in `ice/review/identity/fixed-marks-<stage>.md`.

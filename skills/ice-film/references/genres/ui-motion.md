@@ -98,7 +98,7 @@ with:
 - `transitions`: counts of `hard_cut`, `morph_or_match`, `scale_through`, `push_or_slide`, `camera_move_through`,
   `dissolve`, `other`.
 - `end_card`: `start_s` (when the end card appears; the event gaps stop there), `logo_position` (center, left, other,
-  none), `background` (plain-solid, plain-gradient, ui, footage, none), `length_s`, `tagline`.
+  none; a logo is the brand's mark or its wordmark in the brand's own logotype; a line of plain text set in the film's type (a tagline, a credit, a product name), even centred, is not a logo: code `none` and put the line in `tagline`), `background` (plain-solid, plain-gradient, ui, footage, none), `length_s`, `tagline`.
 - `scenes`: one row per scene a viewer would count (`start`, `end`, `hero`).
 
 ## Fingerprint
@@ -116,7 +116,9 @@ The longest gap is measured on the body: with a coding sheet the event list stop
 end card is judged by the end card keys (measured that way the corpus body gaps run 0.84 to 6.17 s). `pointer_presses`
 is a house rule the corpus confirms: every one of the 9 films that shows a pointer presses with it at least once (the
 6 others show none), so a pointer that only rides along while UI parts change on their own fails, and no allowed miss
-lifts it (the cause of every UI change is visible: `film-types/ui-walkthrough.md`, the clarity gate).
+lifts it (the cause of every UI change is visible: `film-types/ui-walkthrough.md`, the clarity gate). The press is
+planned before the build: `storyboard_lint.py` check (22) (the `ice-qa` skill) reds a storyboard row where a UI part
+changes while a pointer is shown and nothing presses it.
 
 Calibration: only keys that 13 or more of the 15 corpus films hold are gated, at bounds that cover the corpus, and one
 gated key may miss (`misses_allowed 1`, printed yellow with a sentence in the delivery report). On its own corpus the

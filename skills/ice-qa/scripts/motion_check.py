@@ -12,7 +12,8 @@
 # render): the pacing gate also reads the render's measured changes (craft_gate.py measure JSON, or measured here with
 # its functions): a declared event with no measured change within 2 frames fails as "declared, not visible", and the
 # mean shot length and cuts per minute on detected cuts are held within 30 percent of the reference's; --measure alone
-# (no reference) runs the declared-event check. See NOTICE.md.
+# (no reference) runs the declared-event check. 2026-10-31 (0.2.12, lessons L59 and L60): the gaps stop at the end
+# card's start, a measured fade is a change, and a depth value on its threshold is yellow. See NOTICE.md.
 # Needs: Python 3.11+; on the video path also ffmpeg/ffprobe on PATH (or FFMPEG_DIR) and numpy (pinned in
 # requirements.txt), plus opencv when the render is measured here. --pacing-only needs neither.
 """motion_check.py: find the motion defects that stills can't show, in a rendered video; check the film's pacing, depth
@@ -54,7 +55,10 @@ Pacing against the reference (lesson L9, references/motion-density.md "Pacing ag
   The kind may sit under "type" (the older film events file); a bare list of events is read when the duration comes
   from elsewhere (--duration, or the video on the video path). An event is an authored visual change: hold entries and
   sound entries are not events. The film's events: --events, else <video>.events.json next to the render.
-  Longest gap = the largest difference between consecutive event times, with 0 and the duration as bounds; events per
+  The end card: "end_card": {"start_s": <s>} in the file, or an event of kind end_card; it is not itself an event.
+  Longest gap = the largest difference between consecutive event times, with 0 and the end of the body as bounds: the
+  duration, or the end card's start when the events file gives one, as genre_check.py does (the held end card is
+  judged by its own hold, not as a gap; when only one side marks its end card, a note says so); events per
   minute = events / duration x 60; both are always recomputed from the events (stored longest_gap, longest_gap_at and
   events_per_minute fields are ignored, whatever their shape). The film fails when its longest gap is over the reference's x 1.10 plus one
   frame (1 / fps; 0.04 s when no fps is known), or its events per minute are under the reference's x 0.90. A declared
@@ -71,8 +75,10 @@ appearing or leaving (detail[].text_boxes of the measure, or --boxes: lint.mjs -
   declared, not visible  every film event (holds and sound left out) needs a measured change of its class within 2
           frames of its time, plus the sample step of the measure it is read from (a measured time sits on that grid):
           a cut needs a cut; a camera event a move start or end, a punch-in or a cut; a graphic (also show, text, title,
-          caption, card, label, overlay, cta) a box in or out, or a cut; a flash (also wash, dip) a flash transition or
-          a cut; any other kind any measured change. A graphic with no box source (a measure written without --text and
+          caption, card, label, overlay, cta) a box in or out, or a cut; a flash (also wash, dip, fade) a flash
+          transition, a measured fade or a cut; any other kind any measured change. A fade is measured on the frame's
+          mean light (the measure's detail luma): a ramp one way by 25 percent of the brighter end (or 25 grey levels)
+          within 2 s with no cut inside, a change at its start and at its end. A graphic with no box source (a measure written without --text and
           no --boxes) cannot be checked: unless a cut sits on it, it fails with the way to measure it.
   shots   mean shot length (duration / (cuts + 1)) and cuts per minute on detected cuts, film against reference, each
           within plus or minus 30 percent (the stats contract: the ice-remake skill, references/shot-mapping.md
@@ -92,7 +98,9 @@ reference"), with --reference-depth and the film's --depth (else <video>.depth.j
    "other:<word>"], "dof": {"present": true|false, "blur_px": <n or null>}, "triggers": [{"kind", "t", "words"}]}
   When the reference has 3D, 2.5D or camera movement: camera_moving_share, parallax_ratio and push_through of the film
   within 30 percent of the reference's (relative; a value the reference does not have is not asked for), every kind in
-  the reference's elements_3d present in the film's, depth of field present when the reference has it. Result: a
+  the reference's elements_3d present in the film's, depth of field present when the reference has it. A value within
+  3 percent of a bound, and a push_through that reaches the band once its near pushes (push_through_near: grew 1.26 to
+  1.30 times) are counted, is yellow: reported in "yellow", re-measured, never cleared by a note, and not blocking. Result: a
   "depth" block of the same shape, printed as JSON and written to <out>/depth-check.json with --out.
 
 Exit codes: 0 when every check run passes (the video checks alone never fail the exit); 1 when the pacing, the declared
@@ -128,6 +136,7 @@ class BadInput(Exception):
 
 
 # ---------------------------------------------------------------- pacing against the reference (lesson L9)
+END_CARD_KINDS = ("end_card", "end card", "endcard")   # the end card's start: the body's end, not an event
 NOT_EVENTS = ("hold", "sound")   # an event is an authored visual change; holds and sound cues are not
 
 
@@ -160,24 +169,33 @@ def read_events(path, what, duration=None, fps=None):
     dur = dur if dur and dur > 0 else duration
     if not dur or dur <= 0:
         raise BadInput(f"the {what} {path} has no duration: write \"duration\" in the file, or pass --duration")
+    ec = data.get("end_card") if isinstance(data, dict) and isinstance(data.get("end_card"), dict) else {}
+    end_card = _num(ec.get("start_s"))
     events, holds = [], []
     for e in raw:
         if not isinstance(e, dict) or _num(e.get("t")) is None: continue
         kind = str(e.get("kind") or e.get("type") or "").strip().lower()
         t = _num(e["t"])
+        if kind in END_CARD_KINDS:
+            end_card = t if end_card is None else min(end_card, t)
+            continue
         if kind == "hold":
             end = _num(e.get("end"))
             if end is not None: holds.append((t, end))
         elif kind not in NOT_EVENTS and 0 <= t <= dur:
             events.append((t, kind or "event"))
-    return {"path": path, "duration": dur, "fps": f or fps, "events": sorted(events), "holds": sorted(holds)}
+    return {"path": path, "duration": dur, "fps": f or fps, "events": sorted(events), "holds": sorted(holds),
+            "end_card": end_card if end_card is not None and 0 < end_card < dur else None}
 
 
 def pacing_numbers(ev):
-    """Longest gap (with 0 and the duration as bounds), where it starts, events per minute."""
-    times = [0.0] + [t for t, _ in ev["events"]] + [ev["duration"]]
-    gap, at = max(((b - a, a) for a, b in zip(times, times[1:])), key=lambda g: g[0], default=(ev["duration"], 0.0))   # first longest
-    return {"path": ev["path"], "duration": round(ev["duration"], 3), "events": len(ev["events"]),
+    """Longest gap (with 0 and the end of the body as bounds: the end card's start when given, else the duration),
+    where it starts, events per minute (on the whole duration)."""
+    body = ev.get("end_card") or ev["duration"]
+    times = [0.0] + [t for t, _ in ev["events"] if t < body] + [body]
+    gap, at = max(((b - a, a) for a, b in zip(times, times[1:])), key=lambda g: g[0], default=(body, 0.0))   # first longest
+    return {"path": ev["path"], "duration": round(ev["duration"], 3), "body_end": round(body, 3),
+            "end_card": ev.get("end_card"), "events": len(ev["events"]),
             "longest_gap": round(gap, 3), "longest_gap_at": [round(at, 3), round(at + gap, 3)],
             "events_per_minute": round(len(ev["events"]) / ev["duration"] * 60, 2)}
 
@@ -199,9 +217,14 @@ def pacing_check(ref, film, render=None):
     if f["events_per_minute"] < min_epm - 1e-9:
         reasons.append(f"{f['events_per_minute']:g} events per minute is under the limit {min_epm:.2f} "
                        f"(reference {r['events_per_minute']:g} x 0.90)")
+    notes = []
+    if (ref.get("end_card") is None) != (film.get("end_card") is None):
+        side, other = ("reference", "film") if ref.get("end_card") is not None else ("film", "reference")
+        notes.append(f"the {side} has an end card start and the {other} has none, so one side's gaps run to its "
+                     f"duration: write \"end_card\": {{\"start_s\": <s>}} in the {other}'s events file")
     out = {"reference": r, "film": f,
            "limits": {"max_gap": round(max_gap, 3), "min_events_per_minute": round(min_epm, 2), "frame": round(frame, 4)},
-           "ok": True, "blocking": True, "reasons": reasons, "render_measured": render is not None,
+           "ok": True, "blocking": True, "reasons": reasons, "notes": notes, "render_measured": render is not None,
            "rule": "references/motion-density.md, \"Pacing against the reference\": cleared only by changed material "
                    "re-checked, or the user's own words accepting a slower pace, logged in ice/DIRECTION.md"}
     if render is None:
@@ -229,6 +252,7 @@ def declared_check(film, render):
 
 # ---------------------------------------------------------------- depth and camera against the reference (lesson L12)
 DEPTH_VALUES = ("camera_moving_share", "parallax_ratio", "push_through")
+DEPTH_NEAR = 0.03     # a miss within 3 percent of the allowed band: yellow, not a reason
 
 
 def read_depth(path, what):
@@ -239,6 +263,7 @@ def read_depth(path, what):
     dof = d.get("dof") if isinstance(d.get("dof"), dict) else {}
     return {"path": path, "camera_moving_share": _num(d.get("camera_moving_share")), "layers": _num(d.get("layers")),
             "parallax_ratio": _num(d.get("parallax_ratio")), "push_through": _num(d.get("push_through")),
+            "push_through_near": _num(d.get("push_through_near")) or 0,
             "elements_3d": sorted({str(k).strip().lower() for k in kinds if str(k).strip()}) if isinstance(kinds, list) else [],
             "dof": bool(dof.get("present")), "dof_blur_px": _num(dof.get("blur_px")),
             "triggers": [t for t in d.get("triggers") or [] if isinstance(t, dict)]}
@@ -248,6 +273,7 @@ def depth_check(ref, film):
     has = bool(ref["elements_3d"] or ref["dof"] or any((ref[k] or 0) > 0 for k in DEPTH_VALUES) or (ref["layers"] or 0) > 1)
     show = lambda d: {k: d[k] for k in ("path", "camera_moving_share", "layers", "parallax_ratio", "push_through", "elements_3d", "dof")}
     out = {"reference": show(ref), "film": show(film) if film else None, "ok": True, "blocking": True, "reasons": [],
+           "yellow": [],
            "rule": "references/motion-density.md, \"Depth and camera against the reference\": cleared only by changed "
                    "material re-checked"}
     if not has:
@@ -261,11 +287,19 @@ def depth_check(ref, film):
         for k in DEPTH_VALUES:
             rv, fv = ref[k], film[k]
             if not rv: continue
+            near = film["push_through_near"] if k == "push_through" else 0
             if fv is None:
                 reasons.append(f"{k}: the reference has {rv:g}, the film has none")
             elif abs(fv - rv) > 0.30 * rv + 1e-9:
-                reasons.append(f"{k}: film {fv:g} against reference {rv:g}, more than 30 percent apart "
-                               f"(allowed {rv * 0.7:.3g} to {rv * 1.3:.3g})")
+                with_near = bool(near) and abs(fv + near - rv) <= 0.30 * rv + 1e-9
+                if abs(fv - rv) <= 0.30 * rv * (1 + DEPTH_NEAR) + 1e-9 or with_near:
+                    out["yellow"].append(f"on the threshold: {k} film {fv:g} against reference {rv:g} (allowed "
+                                         f"{rv * 0.7:.3g} to {rv * 1.3:.3g})" + (f", {near:g} push-through(s) grew "
+                                         "1.26 to 1.30 times and are not counted" if with_near else "") +
+                                         "; re-measure, never cleared by a note")
+                else:
+                    reasons.append(f"{k}: film {fv:g} against reference {rv:g}, more than 30 percent apart "
+                                   f"(allowed {rv * 0.7:.3g} to {rv * 1.3:.3g})")
         missing = [k for k in ref["elements_3d"] if k not in film["elements_3d"]]
         if missing:
             reasons.append("3D or depth element(s) of the reference missing in the film: " + ", ".join(missing))
@@ -286,9 +320,10 @@ CLASS_WORDS = (("cut", ("cut",)),
                            "orbit", "crane", "whip")),
                ("graphic", ("graphic", "show", "text", "title", "caption", "card", "lower", "label", "overlay", "cta",
                             "super", "graphics", "sticker", "badge")),
-               ("flash", ("flash", "wash", "dip", "strobe", "white")))
-ACCEPTS = {"cut": ("cut",), "camera": ("move", "punch", "cut"), "graphic": ("box", "cut"), "flash": ("flash", "cut"),
-           None: ("cut", "move", "punch", "box", "flash")}
+               ("flash", ("flash", "wash", "dip", "strobe", "white", "fade")))
+ACCEPTS = {"cut": ("cut",), "camera": ("move", "punch", "cut"), "graphic": ("box", "cut"), "flash": ("flash", "fade", "cut"),
+           None: ("cut", "move", "punch", "box", "flash", "fade")}
+FADE_S, FADE_SHARE, FADE_LEVELS = 2.0, 0.25, 25.0   # a fade: one-way ramp of the mean light within 2 s, no cut inside
 STATS_BAND = 0.30     # the stats contract: within plus or minus 30 percent (ice-remake shot-mapping.md section 4)
 MIN_REF_CUTS = 2      # fewer detected cuts on the reference: no shot statistic
 
@@ -391,6 +426,30 @@ def move_onset(move, steps, every):
     return round(onset, 3)
 
 
+def luma_fades(detail, cuts):
+    """[(start, end)] of measured fades: runs of detail samples whose mean light ("luma") moves one way by FADE_SHARE
+    of the brighter end, or FADE_LEVELS grey levels, within FADE_S with no cut inside."""
+    pts = sorted((float(d["t"]), float(d["luma"])) for d in detail
+                 if isinstance(d, dict) and _num(d.get("t")) is not None and _num(d.get("luma")) is not None)
+    out, i = [], 0
+    while i < len(pts) - 1:
+        j, sign = i, 0
+        while j + 1 < len(pts):
+            d = pts[j + 1][1] - pts[j][1]
+            s = (d > 0.5) - (d < -0.5)
+            if s == 0 or (sign and s != sign) or pts[j + 1][0] - pts[i][0] > FADE_S + 1e-6 \
+                    or any(pts[j][0] < c <= pts[j + 1][0] for c in cuts):
+                break
+            sign, j = s, j + 1
+        a, b = pts[i][1], pts[j][1]
+        if j > i and abs(b - a) >= max(8.0, min(FADE_LEVELS, FADE_SHARE * max(a, b))):
+            out.append((pts[i][0], pts[j][0]))
+            i = j
+        else:
+            i += 1
+    return out
+
+
 def render_changes(m, box_samples=None, box_source=None):
     """The render's measured changes: [(t, what, step)] with what in cut, move, punch, box, flash, plus a summary."""
     vid, cam, st = m["video"], m["camera"], m.get("settings") or {}
@@ -417,10 +476,15 @@ def render_changes(m, box_samples=None, box_source=None):
     ch += [(t, "box", bstep) for t in box_t]
     fl = m.get("flashes") if isinstance(m.get("flashes"), dict) else {}
     ch += [(float(t), "flash", 1.0 / fps) for t in fl.get("transition_times_s") or [] if _num(t) is not None]
+    fades = luma_fades(m.get("detail") or [], [c[0] for c in ch if c[1] == "cut"])
+    lstep = _spacing([float(d["t"]) for d in m.get("detail") or [] if isinstance(d, dict) and _num(d.get("luma")) is not None
+                      and _num(d.get("t")) is not None])
+    ch += [(t, "fade", lstep) for a, b in fades for t in (a, b)]
     summary = {"measure": m.get("_path") or "measured here", "duration_s": _num(vid.get("duration_s")), "fps": fps,
                "every_s": every, "cuts": len(cam["cuts_s"]), "moves": len(moves),
                "punch_ins": sum(1 for c in ch if c[1] == "punch"), "box_changes": len(box_t),
-               "boxes_from": box_source if box_samples else None, "flash_transitions": len(fl.get("transition_times_s") or [])}
+               "boxes_from": box_source if box_samples else None, "flash_transitions": len(fl.get("transition_times_s") or []),
+               "fades": len(fades)}
     return sorted(ch), summary
 
 
@@ -508,6 +572,10 @@ def print_block(title, block, stream=None):
     print(f"{title}: {'PASS' if block['ok'] else 'FAIL (blocking: the film is not delivered)'}", file=stream)
     for r in block["reasons"]:
         print("  " + r, file=stream)
+    for r in block.get("yellow") or []:
+        print("  yellow: " + r, file=stream)
+    for r in block.get("notes") or []:
+        print("  note: " + r, file=stream)
 
 
 def beside(video, suffix):

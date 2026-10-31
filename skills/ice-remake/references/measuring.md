@@ -166,7 +166,7 @@ Owner decision, 2026-10-29 (lesson L10; scope: category: remakes and edits that 
 Each mark also gets a `REASONS.md` row with trigger kind `always` (`notes-files.md` section 6). The Recipe notes get one line, read by `scripts/recipe.py` into the recipe field `fixed_marks`:
 `Fixed marks: <what> x <x>% y <y>% w <w>%, opacity <n>%, <hex>, frames <first>-<last>, layer <screen or rig>; <the next mark> (or: none)`
 
-**On the render.** `craft_gate.py build` finds each mark of `ice/plan/shots.json` `fixed_marks` (these x, y and w as `x_pct`, `y_pct`, `w_pct`, plus `from`, `to` and the mark's `file`) across its range (the script's help, "marks").
+**On the render.** `craft_gate.py build` finds each mark of `ice/plan/shots.json` `fixed_marks` (these x, y and w as `x_pct`, `y_pct`, `w_pct`, plus `from`, `to` and the mark's `file`) across its range (the script's help, "marks"). The end card's and the sign-off's logo lockups are measured here too, each as a mark held for its card's range (`ice-qa/references/identity-tests.md` section 8, "End card and sign-off lockups").
 
 ## 12. Depth, 3D and camera
 

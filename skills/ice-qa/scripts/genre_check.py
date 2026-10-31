@@ -58,7 +58,8 @@ allowed: exit 2; 0 otherwise; 1 for bad input.
 The event gaps (median_event_gap_s, max_event_gap_s) stop at the coding sheet's end_card.start_s when it is given: the
 held end card is judged by the end card keys, not as a gap in the film's body. HARD_KEYS are house rules every corpus
 film holds (pointer_presses: a pointer shown on screen presses something at least once, so the cause of a UI change is
-visible); a miss on one is red whatever misses_allowed says.
+visible); a miss on one is red whatever misses_allowed says. end_logo reads end_card.logo_position: a logo only (the
+brand's mark, or its wordmark in its own logotype); a centred line of plain text is coded none.
 
 Reference mode (--reference-measures, with --reference-coding for the coding keys): a film that follows a reference is
 checked against the reference's own value on every gated key and on presses, with the pacing gate's tolerance (30

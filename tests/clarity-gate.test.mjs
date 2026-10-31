@@ -172,3 +172,19 @@ test("AGENTS.md carries the founder's rule line", () => {
   assert.match(arch, /\*\*Cold-viewer clarity gate\*\*/, "architecture.md must describe the gate in the spine section");
   assert.doesNotMatch(arch, /[A-Za-z]:[\\/](?:Users|Tnzxo|Program)|\/Users\/|\/home\//, "architecture.md holds an absolute machine path");
 });
+
+// Lesson L63 (remake test run 01): a voice-led reference remade without a voice lost the tone of its turn, which no read
+// asked for until the draft.
+test("clarity gate: a voice-led reference remade without a voice reads the turn's tone from read 1, and Q-voice says what option 1 costs", () => {
+  const gate = readText(GATE);
+  const takeaway = gate.slice(gate.indexOf("## 2. The takeaway"), gate.indexOf("## 3. The viewer's packet"));
+  assert.match(takeaway, /^Turn's tone: <optional: the feeling at the turn/m);
+  assert.match(takeaway, /required when a supplied reference is voice-led and the film has no voice/);
+  const report = sectionOf(gate, "## 4. The viewer's report");
+  assert.match(report, /\*\*The one idea or feeling\*\*: one sentence, and the feeling at the turn in one or two words\./);
+  const match = sectionOf(gate, "## 5. The match and the pass rule");
+  assert.match(match, /^\| Turn's tone \| 4 \| It names the same feeling at the turn/m);
+  assert.match(match, /\*\*PASS\*\*: MATCH on Sells, Offer's job \(unless "none"\), One-line idea, and Turn's tone when the takeaway has one/);
+  const voice = sectionOf(readText("skills/ice-direction/references/questions.md"), "### Q-voice");
+  assert.match(voice, /voice-led .*the meaning the voice carried moves into on-screen words, and the tone of the turn .* rests on words and picture alone/);
+});

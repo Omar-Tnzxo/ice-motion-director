@@ -110,7 +110,7 @@ with: the shared fields of `ui-motion.md` (Coding sheet) plus these.
 - `hook_0_3s.kind`: `product-hero` when the first 3 s show the product itself, whole or in part.
 - `transitions`: counts of `hard_cut`, `morph_or_match`, `scale_through`, `push_or_slide`, `camera_move_through`,
   `dissolve`, `other` (flash, glitch, whip blur).
-- `end_card`: `logo_position`, `background`, `length_s`, `tagline`, and `product_in_close` (true when the product is on
+- `end_card`: `logo_position` (a logo is the brand's mark or its wordmark in the brand's own logotype; a line of plain text set in the film's type (a tagline, a credit, a product name), even centred, is not a logo: code `none` and put the line in `tagline`), `background`, `length_s`, `tagline`, and `product_in_close` (true when the product is on
   screen in the closing beat, with or just before the brand mark).
 - `product`: `hero_shot_kind` (cgi-studio, live-action-studio, live-action-in-use, mixed when two each take 30 percent
   or more), `first_product_s`, `product_on_screen_share` (0.0 to 1.0), `ground` (dark, light, coloured-solid,

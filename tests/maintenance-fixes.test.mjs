@@ -186,6 +186,40 @@ test("ice-state.mjs redirect checklist on another route keeps the shared rows an
   assert.match(r.stdout, /for every stage from 01 on: the files the workflow's "## Spine stages" row names/);
 });
 
+test("ice-state.mjs: a stage held on a hard test lets later stages be recorded, refuses to approve 10, and only --by user approves it", () => {
+  const dir = join(work, "held project");
+  const st = (...args) => spawnSync(process.execPath, [abs("skills/ice-motion-director/scripts/ice-state.mjs"), ...args, "--dir", dir], { encoding: "utf8", timeout: 60000 });
+  assert.equal(st("init", "--project", "held", "--route", "film", "--mode", "auto").status, 0);
+  mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+  mkdirSync(join(dir, "ice", "renders"), { recursive: true });
+  writeFileSync(join(dir, "ice", "plan", "craft-plan.json"), "{}");
+  writeFileSync(join(dir, "ice", "renders", "draft-1.mp4"), "");
+  st("set", "01", "in_review");
+  assert.equal(st("set", "01", "approved", "--by", "approver").status, 0);
+  let r = st("set", "02", "held");
+  assert.notEqual(r.status, 0, "held needs the test named in --notes");
+  assert.match(r.stderr, /held needs --notes/);
+  r = st("set", "02", "held", "--notes", "brand test 0 of 6 on masked frames");
+  assert.equal(r.status, 0, r.stderr);
+  for (const nn of ["03", "04", "05", "06", "07", "08a", "08b", "09"]) {
+    r = st("set", nn, "in_progress");
+    assert.equal(r.status, 0, `${nn}: ${r.stdout}${r.stderr}`);
+    r = st("set", nn, "approved", "--by", "approver");
+    assert.equal(r.status, 0, `${nn}: ${r.stdout}${r.stderr}`);
+  }
+  assert.equal(st("check", "10").status, 0, "the delivery stage still runs");
+  assert.equal(st("set", "10", "in_review").status, 0);
+  r = st("set", "10", "approved", "--by", "approver");
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stderr + r.stdout, /The .*concept.* is held: brand test 0 of 6 on masked frames\. Delivery waits for your words on that test\./i);
+  assert.match(st("show").stdout, /done, one test waits for your words[\s\S]*is held \(brand test 0 of 6 on masked frames\): only your words on that test approve it/);
+  assert.match(st("next").stdout, /^held: 02 \(brand test 0 of 6 on masked frames\)/);
+  r = st("set", "02", "approved", "--by", "approver");
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stderr, /only the user's own words accept it/);
+  assert.equal(st("set", "02", "approved", "--by", "user").status, 0);
+  assert.equal(st("set", "10", "approved", "--by", "approver").status, 0, "nothing held: delivery is approved");
+});
 // ---------------------------------------------------------------- 6. disk space (owner decision, 2026-10-29)
 // `ice-state.mjs space` reads free space with fs.statfsSync before downloads, installs and renders
 // (ice-engines references/engine-choice.md section 7.7): exit 0 when every path has the need, 1 when one is short,

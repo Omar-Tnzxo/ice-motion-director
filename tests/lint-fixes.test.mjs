@@ -233,6 +233,46 @@ Style exception: continuous take of the presenter, reframed digitally
   assert.doesNotMatch(r.stdout, /\(18\) cites: the cited phrase 'the water ran out'/);
 });
 
+test("storyboard_lint.py (22): with a pointer on screen, a row where a toggle changes with no press is red; a row with the press or 'no press: <reason>' passes; a board with no pointer has no (22)", { skip: NO_PY }, () => {
+  const run = (name, body) => {
+    const f = join(dir, name);
+    writeFileSync(f, body, "utf8");
+    return spawnSync(PY[0], [...PY.slice(1), abs("skills/ice-qa/scripts/storyboard_lint.py"), f, "--type", "ui walkthrough"], { encoding: "utf8", timeout: 60000 });
+  };
+  // a remake board in the Picture and On screen shape: no Object and Action columns, so no shot table is found
+  const remake = (third) => `| Shot | Time | Picture | On screen | Trigger |
+|---|---|---|---|---|
+| S01 | 0-2 | the settings screen, the cursor rests on the list | Settings | the opening beat |
+| S02 | 2-4 | the cursor taps the dark mode row and the switch turns on under it | Dark mode | "dark" at 2 s |
+| S03 | 4-6 | ${third} | Saved | "saved" at 4 s |
+`;
+  let r = run("press remake red.md", remake("the sync switch toggles on while the cursor waits at the side"));
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /No shot table found/);
+  assert.match(r.stdout, /\[RED\] \(22\) pointer press: line 5 \(S03\): a UI part changes \('toggles'\) while a pointer is on screen and nothing presses it/);
+  assert.doesNotMatch(r.stdout, /line 4 \(S02\)/, "a row with the press passes");
+
+  r = run("press remake no press.md", remake("the sync switch toggles on by itself (no press: the timer ends)"));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+  assert.doesNotMatch(r.stdout, /\(22\)/);
+
+  r = run("press no pointer.md", remake("the sync switch toggles on").replace(/the cursor (rests on|taps)/g, "the camera finds"));
+  assert.doesNotMatch(r.stdout, /\(22\)/, "no pointer shown: the check does not apply");
+
+  // a full shot table: the red sits on its shot
+  r = run("press full table.md", `Style: flat product UI on a soft ground
+Palette: #F4EFE6 ground, #1F1F1F ink, #E85D3A accent
+Characters: hands only
+
+| Time | Object | Action | Camera | On-screen text | Trigger | Reason | Method |
+|---|---|---|---|---|---|---|---|
+| 0-3 | the settings list with the cursor | the cursor glides to the sync row | slow push | Settings | the opening beat | the viewer finds the row | code scene |
+| 3-6 | the sync switch | it toggles on as the cursor waits | hold | Sync on | "sync" at 3 s | the feature the film sells | code scene |
+`);
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /\[RED\] shot 2[\s\S]*?\(22\) pointer press: a UI part changes \('toggles'\)/);
+});
+
 // ---------------------------------------------------------------- craft plan exemption rows (0.2.5)
 // Rows of ice/plan/craft-plan.json lift a gate's hit when they name its rule id, cover its shot or time and hold its
 // measured value within the amount plus the tolerance; rows that name a never-lifted class are ignored with a warning.
@@ -746,6 +786,57 @@ test("motion_check without a reference: --measure checks the declared events alo
   assert.equal(paper.status, 0, paper.err);
   assert.equal(paper.out.pacing.render_measured, false);
   assert.match(paper.out.pacing.note, /declared events only/);
+});
+
+test("motion_check.py pacing: the gaps stop at the end card's start on both sides; a held end card longer than the reference's longest gap passes, a body gap over the limit still fails", { skip: NO_PY }, () => {
+  // the reference: events every 1 s to 24 s, its end card from 25 s (longest body gap 1 s)
+  const ref = json("ec-ref.events.json", { duration: 30, fps: 25, end_card: { start_s: 25 }, events: every(1, 24, 1) });
+  // the film: the same body, its end card from 25 s held to 30 s with nothing after it (a 5 s hold)
+  const held = json("ec-held.events.json", { duration: 30, fps: 25, events: [...every(1, 24, 1), { t: 25, kind: "end_card" }] });
+  let r = motion(["--events", held, "--reference-events", ref]);
+  assert.equal(r.status, 0, JSON.stringify(r.out.pacing.reasons));
+  assert.equal(r.out.pacing.film.body_end, 25);
+  assert.equal(r.out.pacing.film.end_card, 25, "an event of kind end_card sets the body's end and is not an event");
+  assert.equal(r.out.pacing.film.events, 24);
+  // the same film without its end card marked: the hold reads as a 6 s gap, and a note says one side has none
+  const unmarked = json("ec-unmarked.events.json", { duration: 30, fps: 25, events: every(1, 24, 1) });
+  r = motion(["--events", unmarked, "--reference-events", ref]);
+  assert.equal(r.status, 1, r.err);
+  assert.ok(r.out.pacing.notes.some((x) => /the reference has an end card start and the film has none/.test(x)), JSON.stringify(r.out.pacing.notes));
+  // a body gap still fails: events stop at 20 s, the end card at 25 s
+  const gap = json("ec-gap.events.json", { duration: 30, fps: 25, end_card: { start_s: 25 }, events: every(1, 20, 1) });
+  r = motion(["--events", gap, "--reference-events", ref]);
+  assert.equal(r.status, 1, r.err);
+  assert.deepEqual(r.out.pacing.film.longest_gap_at, [20, 25]);
+});
+
+test("motion_check.py: a fade on the render is a measured change, so a declared fade is visible", { skip: NO_PY }, () => {
+  const fadeMeasure = (name, fade) => json(name, {
+    tool: "craft_gate.py measure", video: { width: 1920, height: 1080, duration_s: 10, fps: 25 },
+    settings: { every_s: 0.1, face_every_s: 0.2 }, camera: { cuts_s: [], moves: [], steps: [] }, flashes: { transition_times_s: [] },
+    detail: range(0, 10, 0.2).map((t) => ({ t, faces: [], luma: fade && t >= 8 && t <= 9 ? +(120 * (9 - t)).toFixed(2) : (fade && t > 9 ? 0 : 120) })),
+  });
+  const film = json("fade.events.json", { duration: 10, fps: 25, events: [{ t: 8, kind: "fade out" }] });
+  let r = motion(["--events", film, "--measure", fadeMeasure("fade.measure.json", true)]);
+  assert.equal(r.status, 0, JSON.stringify(r.out));
+  assert.equal(r.out.declared.render.fades, 1, JSON.stringify(r.out.declared.render));
+  r = motion(["--events", film, "--measure", fadeMeasure("no-fade.measure.json", false)]);
+  assert.equal(r.status, 1, r.err);
+  assert.ok(r.out.declared.reasons.some((x) => /declared, not visible: fade out at 8 s/.test(x)), JSON.stringify(r.out.declared.reasons));
+});
+
+test("motion_check.py depth: a value within 3 percent of the band and a push-through grown 1.26 to 1.30 times are yellow, not blocking; further off stays red", { skip: NO_PY }, () => {
+  const ref = json("near-ref.depth.json", { camera_moving_share: 0.5, layers: 2, parallax_ratio: 2, push_through: 1, elements_3d: [], dof: { present: false } });
+  const film = (name, d) => json(name, { camera_moving_share: 0.5, layers: 2, parallax_ratio: 2, push_through: 1, elements_3d: [], dof: { present: false }, ...d });
+  let r = motion(["--reference-depth", ref, "--depth", film("near-push.depth.json", { push_through: 0, push_through_near: 1 })]);
+  assert.equal(r.status, 0, JSON.stringify(r.out.depth));
+  assert.ok(r.out.depth.yellow.some((x) => /on the threshold: push_through film 0 .*1 push-through\(s\) grew 1\.26 to 1\.30 times/.test(x)), JSON.stringify(r.out.depth.yellow));
+  r = motion(["--reference-depth", ref, "--depth", film("edge-share.depth.json", { camera_moving_share: 0.347 })]);
+  assert.equal(r.status, 0, JSON.stringify(r.out.depth));
+  assert.ok(r.out.depth.yellow.some((x) => /camera_moving_share/.test(x)), JSON.stringify(r.out.depth.yellow));
+  r = motion(["--reference-depth", ref, "--depth", film("no-push.depth.json", { push_through: 0 })]);
+  assert.equal(r.status, 1, r.err);
+  assert.ok(r.out.depth.reasons.some((x) => /^push_through: film 0 against reference 1/.test(x)), JSON.stringify(r.out.depth.reasons));
 });
 
 test("film_gate gate 5: a single take fails the shorts rhythm row, a cut on the row passes, and only a user, reference or style row lifts it", { skip: NO_FILM }, () => {

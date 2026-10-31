@@ -639,3 +639,28 @@ test("aep: analyze.py reads a synthetic After Effects project's comp, layer and 
   assert.notEqual(r2.status, 0);
   assert.match(r2.stderr, /does not start with RIFX/);
 });
+
+// Remake test run 01 (lesson L61): the reference's beat tracker read the voice's syllables at twice the bed's tempo, so
+// its shots counted twice as many beats and the contract was red on a pace that matched.
+test("compare.py: a reference tempo read at twice the bed's counts both sides on the bed's tempo, with a note", (t) => {
+  const py = visionPython();
+  if (!py) { t.skip("needs a Python with numpy and opencv"); return; }
+  const code = [
+    "import json, sys", "sys.path.insert(0, sys.argv[1])", "import compare",
+    "rep = {'pacing': {'count': 9, 'mean_shot_s': 4.86, 'mean_shot_beats': 16.4}, 'audio': {'beat_seconds': 0.2963}, 'look_summary': {}}",
+    "spans = [(k * 4.319, (k + 1) * 4.319) for k in range(10)]",
+    "out = {}",
+    "for name, bpm in (('octave', 101.6), ('same', 202.5), ('other', 150.0)):",
+    "    rows, reasons = compare.contract(rep, {'music': {'bpm': bpm}}, [], spans, None, [])",
+    "    out[name] = next(r for r in rows if r['stat'] == 'mean_shot_beats')",
+    "print(json.dumps(out))"].join("\n");
+  const r = spawnSync(py[0], [...py.slice(1), "-c", code, abs("skills/ice-remake/scripts")], { encoding: "utf8", timeout: 60000 });
+  assert.equal(r.status, 0, r.stderr);
+  const { octave, same, other } = JSON.parse(r.stdout);
+  assert.equal(octave.reference, 8.2, JSON.stringify(octave));
+  assert.equal(octave.ok, true, JSON.stringify(octave));
+  assert.match(octave.note, /read 202\.5 BPM, 2 times the bed's 101\.6 .*both sides counted at 101\.6/);
+  assert.equal(same.reference, 16.4, "the same tempo on both sides keeps the reference's count");
+  assert.equal(same.note, undefined);
+  assert.equal(other.reference, 16.4, "a tempo that is no simple multiple is not folded");
+});

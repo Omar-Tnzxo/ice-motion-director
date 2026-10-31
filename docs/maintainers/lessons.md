@@ -413,3 +413,107 @@ Field format: **Note** (the original observation, in English), **Trial** (the ru
 - **Scope:** category: every film checked by the genre fingerprint (`genre_check.py measure`).
 - **Rule:** `skills/ice-qa/scripts/genre_check.py` (`_cuts`, the `cuts_per_10s` definition in the help text).
 - **Test:** `tests/genre-playbooks.test.mjs`: "genre_check.py measure: hard cuts between shots graded alike are found at the frame rate, a flash is not a cut"
+
+## L52. A one-colour logo is found from its own file, and the end card and sign-off lockups are fixed marks
+
+- **Note:** In the 3D news reel test the channel's corner logo, a one-colour mark given as its own transparent file, sat in its slot on every frame, yet the fixed-mark check found it on almost no sample and called it missing. The review also found the programme's name retyped as a title on the sign-off, where the official reels show the programme's logo lockup.
+- **Trial:** plain-prompt test run 01 (3D news reel from a plain prompt; the founder's notes on drafts 15 and 16, the lead's review `tests/plain-prompt/run-01-REVIEW.md`, maintainer test, not published), 2026-10-31. Reproduced on the final render: the old check found the logo on 1 of 120 samples (and placed it at x 10.9, y 4.6 percent); matched by its alpha silhouette in either polarity it is found on 120 of 120 at x 8.12, y 10.39 (slot 8.06, 10.42), size 1.00; the same slot moved to an empty area finds it on 0 of 120. Inside its alpha the file is one flat grey (std 1.01 of 255), so a masked normalized correlation has nothing to correlate.
+- **Scope:** category: remakes and edits that follow a reference carrying an organisation's identity (the L10 scope); the one-colour match holds for every fixed mark given as a file.
+- **Rule:** `skills/ice-qa/scripts/craft_gate.py` (`mark_template`, `MARK_FLAT_INK`, `check_marks`, the "marks" help); `skills/ice-qa/references/identity-tests.md` (section 8, "End card and sign-off lockups"); `skills/ice-remake/references/measuring.md` (section 11, "On the render").
+- **Test:** `tests/scripts.test.mjs`: "craft_gate.py build: a one-colour logo given as its file (flat ink inside its alpha) is found in its slot by its silhouette, white on dark and dark on light; the same slot with no logo is red"; `tests/lessons.test.mjs`: "lessons: end card and sign-off lockups are fixed marks with their official file, never a retyped name (L52)"
+
+## L53. The speaker is compared with his own source frame, not with his own median
+
+- **Note:** The 3D news reel's build check called the presenter dimmed for up to 14 percent on four stretches, and the run spent a round proving it was not: the presenter turns his head and looks down in the take itself, so the face darkens against his own median while the render matches the source.
+- **Trial:** plain-prompt test run 01 (see L52), 2026-10-31. `craft_gate_v17.json` red at 21.2-21.8, 22-23.4, 35-35.8 and 44.2-45 s (worst -14 percent luma against the median); the run's own source compare (`speaker_source_final.json`, 180 samples): the render against the same box of the source plate is -2.8 percent at worst, 0 samples over the limit; the source luma itself falls from 89.5 to 73.2 there.
+- **Scope:** category: speaker-led videos (talking-head, podcast, long-form, news, interview, presenter).
+- **Rule:** `skills/ice-qa/scripts/craft_gate.py` (`SourceFaces`, `check_speaker` with the EDL, the "speaker" help, `--edl`); `skills/ice-edit/references/layers-and-isolation.md` (section 5, "The speaker stays lit").
+- **Test:** `tests/scripts.test.mjs`: "craft_gate.py build: a speaker whose source take darkens (a turned head) passes against its source frames through the EDL; the same render darkened over its source is red"
+
+## L54. A brand test that cannot pass is said at 01, and only words that name a failed test accept it
+
+- **Note:** Both tests spent rounds on a masked brand test that no frame could ever pass: in the news reel the identity is the logo, the wordmark and a presenter known only through the programme; in the remake of a feature concept the brand is its interface, which masking covers. The runs held correctly when the founder's blanket "decide everything" came in, but no sentence said that a blanket approval is not an acceptance of a failed test.
+- **Trial:** plain-prompt test run 01 (see L52) and remake test run 01 (frame-locked remake of an Instagram feature concept as a YouTube concept; the lead's review `tests/remake/run-01-REVIEW.md`, maintainer test, not published), 2026-10-31. News reel: 0 of 2, 0 of 3 at 05, then 0 of 6 four times at 09 (six rounds); remake: 0 of 6 on full masks at 04-05 and 09.
+- **Scope:** general.
+- **Rule:** `skills/ice-qa/references/identity-tests.md` (section 1b, section 6 item 4); `skills/ice-direction/references/questions.md` (slot `brand_test`, `Q-brand-test`); `skills/ice-direction/references/roles.md` (section 5 item 9).
+- **Test:** `tests/lessons.test.mjs`: "identity tests: a brand test that cannot pass by construction is found at 01, asked once, and spends no redraw rounds (L54)"; `tests/lessons.test.mjs`: "identity tests: a blanket approval given before a test failed is not its acceptance (L54)"; `tests/questions-four-choices.test.mjs`: "every decision slot of section 1 has a bank entry"
+
+## L55. A news reel keeps its music under the last line and never stops dead
+
+- **Note:** The founder heard draft 16 of the news reel end abruptly: the bed left 2.4 s before the last word, as the news reel rule said, the voice was cut 48 ms after the last word, and 40 ms of digital silence led into the end card. Every gate passed. The official reels measured keep the music under the sign-off.
+- **Trial:** plain-prompt test run 01 (see L52), 2026-10-31. A13 passed draft 16; the new check finds the mix at digital silence inside 0.25 s of the last word.
+- **Scope:** category: news reel (edit type news-reel); the A13 dead stop goes to the ear list in every other video.
+- **Rule:** `skills/ice-audio/references/mix-and-master.md` (section 5, news reel item 8, and the section 4 pointer); `skills/ice-audio/references/sfx.md` (section 3b, the call to action row); `skills/ice-audio/scripts/qc.py` (`audit_ending`, `DEAD_DB`).
+- **Test:** `tests/audio-fixes.test.mjs`: "audit A13: the mix falling to digital silence 40 ms after the last word blocks a news reel and goes to the ear list elsewhere; a bed resolving under the last word passes (generated tones)"; `tests/lessons.test.mjs`: "news reel: the music stays under the last line, voice alone only on a take with its own room tone (L55)"
+
+## L56. No effect under speech is an air-only filter of a full sound
+
+- **Note:** The founder heard the sound at 0:08 of the news reel as made by code. The mix had high-passed full whooshes to the air band (an 8th-order filter at 4 kHz) so they would clear the voice, as the under-speech rule asked; what was left was a thin hiss.
+- **Trial:** plain-prompt test run 01 (see L52), 2026-10-31. `audio/mix.py` filtered every effect of band `air` that way; A15 passed draft 15; the run removed the whooshes at 6.9 to 9.3 s.
+- **Scope:** general.
+- **Rule:** `skills/ice-audio/references/sfx.md` ("Under speech, in any film", the digital zoom row); `skills/ice-audio/scripts/qc.py` (`audit_sfx_under_speech`, `AIR_ONLY`).
+- **Test:** `tests/audio-fixes.test.mjs`: "audit A15: a noise whoosh high-passed to the air band under speech goes to the ear list as possibly made by code; a broadband pink effect does not (generated tones)"; `tests/lessons.test.mjs`: "sound: no effect under speech is an air-only filter of a full sound (L56)"
+
+## L57. Groups of moving objects move like the real thing, never as a random scatter
+
+- **Note:** The founder found the news reel's drones random and generated-looking. The run rebuilt them as a V formation that climbs, peels off and turns together.
+- **Trial:** plain-prompt test run 01 (see L52), 2026-10-31.
+- **Scope:** general.
+- **Rule:** `skills/ice-motion/references/depth-and-3d.md` (section 6); `skills/ice-qa/references/frame-checks.md` (B10).
+- **Test:** `tests/lessons.test.mjs`: "3D: groups of moving objects follow a real formation, lane or flock, never a random scatter (L57)" (the look itself is judged by the critic at 05 and 09: no script can tell a believable formation)
+
+## L58. A shown pointer presses what changes, already on the storyboard
+
+- **Note:** In the remake, five UI parts changed with a cursor on screen that never pressed them; the genre check catches it after the build since L48, but the storyboard already showed it, and the storyboard lint could not read a remake board (Picture and On screen columns, no Object and Action).
+- **Trial:** remake test run 01 (see L54), 2026-10-31. The old lint printed "No shot table found"; check 22 on the same board reds S04 (a selection with the pointer on screen and no press).
+- **Scope:** category: films that show a pointer (genre ui-motion and remakes of UI films).
+- **Rule:** `skills/ice-qa/scripts/storyboard_lint.py` (check 22, `pointer_presses`); `skills/ice-film/references/genres/ui-motion.md` (Fingerprint).
+- **Test:** `tests/lint-fixes.test.mjs`: "storyboard_lint.py (22): with a pointer on screen, a row where a toggle changes with no press is red; a row with the press or 'no press: <reason>' passes; a board with no pointer has no (22)"
+
+## L59. Pacing is measured on the body, and a fade is an event
+
+- **Note:** The remake's pacing gate was red by 0.15 s: the held end card counted as the film's longest gap, while the reference's fade out was an event and the film's fade at the same time was not measured.
+- **Trial:** remake test run 01 (see L54), 2026-10-31. `motion_draft06a/pacing.json`: film gap 6.6 s at 32.2-38.8 (the end card hold) against the reference's 5.83 s, limit 6.446 s.
+- **Scope:** category: any video made with a reference (the L9 scope).
+- **Rule:** `skills/ice-qa/scripts/motion_check.py` (`read_events`, `pacing_numbers`, `luma_fades`, `render_changes`); `skills/ice-qa/scripts/craft_gate.py` (`measure`, the detail `luma`); `skills/ice-qa/references/motion-density.md` (section 7).
+- **Test:** `tests/lint-fixes.test.mjs`: "motion_check.py pacing: the gaps stop at the end card's start on both sides; a held end card longer than the reference's longest gap passes, a body gap over the limit still fails"; `tests/lint-fixes.test.mjs`: "motion_check.py: a fade on the render is a measured change, so a declared fade is visible"
+
+## L60. A value on its threshold is yellow, never a flip between red and pass
+
+- **Note:** On the same camera path the remake's push-through count flipped between drafts (1, 1, 0, 0, 1, 1, 0): the near plane grew 1.31 times in one draft and 1.30 in the next, against a bound of 1.3, so the depth gate went red and back with no change in the film.
+- **Trial:** remake test run 01 (see L54), 2026-10-31. `motion_draft0*/depth-check.json`, drafts 03 to 06a.
+- **Scope:** general.
+- **Rule:** `skills/ice-qa/scripts/craft_gate.py` (`depth_summary`, `PUSH_NEAR`, `push_through_near`); `skills/ice-qa/scripts/motion_check.py` (`depth_check`, `DEPTH_NEAR`); `skills/ice-qa/references/motion-density.md` (section 8).
+- **Test:** `tests/scripts.test.mjs`: "craft_gate.py depth: a push whose near plane grows 1.28x counts as near, not as a push-through; 1.20x counts neither"; `tests/lint-fixes.test.mjs`: "motion_check.py depth: a value within 3 percent of the band and a push-through grown 1.26 to 1.30 times are yellow, not blocking; further off stays red"
+
+## L61. Beats are compared on one tempo
+
+- **Note:** The remake's stats contract was red on shot length in beats: the reference's tempo was read at 202.5 BPM because the voice over the music doubled the beat tracker, while the film's bed was 101.6 BPM, so the same shot length counted 16.4 beats against 7.31.
+- **Trial:** remake test run 01 (see L54), 2026-10-31. `compare06/contract.json` and the reference's `report.json` (beat 0.2963 s, mean shot 4.86 s); on one tempo the reference is 8.2 beats, inside the band.
+- **Scope:** category: remakes (compare.py).
+- **Rule:** `skills/ice-remake/scripts/compare.py` (`contract`, `OCTAVE_TOL`).
+- **Test:** `tests/style-recipe.test.mjs`: "compare.py: a reference tempo read at twice the bed's counts both sides on the bed's tempo, with a note"
+
+## L62. The state records built stages while a hard test waits for the user
+
+- **Note:** In the remake, stage 02 waited on the founder's words about a failed brand test, and the state tool refused to record stages 03 to 10 although they were built, so the state no longer followed the work.
+- **Trial:** remake test run 01 (see L54), 2026-10-31.
+- **Scope:** general.
+- **Rule:** `skills/ice-motion-director/scripts/ice-state.mjs` (status `held`, `blockedBy`, `setStage`, `next`); `skills/ice-motion-director/references/state.md` (Stage statuses and Rules).
+- **Test:** `tests/maintenance-fixes.test.mjs`: "ice-state.mjs: a stage held on a hard test lets later stages be recorded, refuses to approve 10, and only --by user approves it"
+
+## L63. A voice-led reference with no voice: said at 01, the turn's tone read early
+
+- **Note:** The remake's reference was carried by its narrator; with no voice source the film moved the meaning into on-screen words, and the review found the turn's light tone lost. No question said what going without a voice costs, and no read asked for the turn's tone before the draft.
+- **Trial:** remake test run 01 (see L54), 2026-10-31.
+- **Scope:** category: remakes of a voice-led reference without a voice source.
+- **Rule:** `skills/ice-direction/references/questions.md` (`Q-voice`); `skills/ice-qa/references/clarity-gate.md` (section 2 `Turn's tone`, section 4 item 4, section 5).
+- **Test:** `tests/clarity-gate.test.mjs`: "clarity gate: a voice-led reference remade without a voice reads the turn's tone from read 1, and Q-voice says what option 1 costs"
+
+## L64. A centred line of text is not a logo on the coding sheet
+
+- **Note:** The remake's coding sheet coded the reference's centred line of plain text at the close as a centred logo, so `end_logo center` passed for a film that ends on no logo.
+- **Trial:** remake test run 01 (see L54), 2026-10-31.
+- **Scope:** category: films checked by the genre fingerprint (`genre_check.py`).
+- **Rule:** `skills/ice-film/references/genres/ui-motion.md` (Coding sheet, `end_card`); `skills/ice-film/references/genres/product-launch.md` (Coding sheet, `end_card`); `skills/ice-qa/scripts/genre_check.py` (help, `end_logo`).
+- **Test:** `tests/genre-playbooks.test.mjs`: "genre playbooks: every coding sheet that codes logo_position says a centred line of plain text is not a logo"

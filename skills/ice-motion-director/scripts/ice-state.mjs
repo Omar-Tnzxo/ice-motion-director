@@ -28,10 +28,14 @@ const NAMES = { "01": "brief", "02": "concept", "03": "script", "04": "storyboar
 const COMMANDS = { "01": "ice-01-brief", "02": "ice-02-concept", "03": "ice-03-script", "04": "ice-04-storyboard", "05": "ice-05-look",
   "06": "ice-06-animatic", "07": "ice-07-build", "08": "ice-08-sound", "09": "ice-09-review", "10": "ice-10-deliver" };
 const PART_NAMES = { "08a": "score, sound effects and voice", "08b": "mix and master" };
-const STATUSES = ["missing", "supplied", "partial", "in_progress", "in_review", "approved", "not_used"];
+const STATUSES = ["missing", "supplied", "partial", "in_progress", "in_review", "approved", "held", "not_used"];
 const READY = new Set(["approved", "supplied", "not_used"]);
+// held (lesson L62): the stage is built, but a hard-rule test on it failed and only the user's words can accept it. It
+// counts as ready for the stages after it, so the state follows the work; the delivery stage is not approved while one
+// is held, and only --by user moves a held stage to approved.
 const PLAIN = { missing: "not started", supplied: "you supplied it", partial: "you supplied part of it", in_progress: "in progress",
-  in_review: "waiting for review", approved: "approved", not_used: "not needed for this film" };
+  in_review: "waiting for review", approved: "approved", held: "done, one test waits for your words", not_used: "not needed for this film" };
+const passable = (s) => READY.has(s) || s === "held";
 const ENUMS = {
   route: ["film", "explainer", "remake", "edit", "lottie", "ideas"],
   mode: ["auto", "step"],
@@ -74,7 +78,8 @@ Usage:
        measured at its nearest existing parent); with --need, exit 1 when one of them has less than <GB> free
        (the disk space rule: ice-engines references/engine-choice.md section 7.7). Needs no project
 
-Statuses: ${STATUSES.join(", ")}.
+Statuses: ${STATUSES.join(", ")}. "held" needs --notes naming the hard test and its result; only --by user approves a
+  held stage, and stage 10 is not approved while any stage is held.
 Order: stage numbers in run order, a parallel lane in brackets, a stage split in parts with a letter,
   for example "${DEFAULT_ORDER}" (the default). Stages left out of the order become not_used.
 Options: --dir <project folder> (default: current folder), --prefix <command prefix> (default "/", Codex uses "$").
@@ -289,9 +294,16 @@ function needsCraftPlan(state, groups, entry) {
 }
 
 // The sentence that refuses `entry`, or null when every earlier stage is ready (and the draft exists where one is needed).
-function blockedBy(p, opt, state, groups, entry) {
-  const blocker = prerequisites(groups, entry).find((e) => !READY.has(entryStatus(state, e)));
+// A held stage lets later stages run and be recorded; it refuses only the approval of the delivery stage (status).
+function blockedBy(p, opt, state, groups, entry, status) {
+  const blocker = prerequisites(groups, entry).find((e) => !passable(entryStatus(state, e)));
   if (blocker) return blockerSentence(state, opt, entry, blocker);
+  const held = stageOf(entry) === "10" && status === "approved"
+    && groups.flat().find((e) => stageOf(e) !== "10" && entryStatus(state, e) === "held");
+  if (held) {
+    const notes = state.stages[stageOf(held)].notes;
+    return `The ${label(held)} is held${notes ? `: ${notes}` : ""}. Delivery waits for your words on that test.`;
+  }
   if (needsCraftPlan(state, groups, entry) && !existsSync(join(p.ice, "plan", "craft-plan.json"))) {
     return `The ${label(entry)} needs the craft plan from the concept stage first (ice/plan/craft-plan.json, one row per craft dimension: ice-direction/references/treatment.md section 11). Write it, or run ${cmd(opt, "02")} again.`;
   }
@@ -313,7 +325,7 @@ function blockerSentence(state, opt, target, blocker) {
 
 function nextGroup(groups, state) {
   for (const g of groups) {
-    const open = g.filter((e) => !READY.has(entryStatus(state, e)));
+    const open = g.filter((e) => !passable(entryStatus(state, e)));
     if (open.length) return open;
   }
   return [];
@@ -322,7 +334,15 @@ function nextGroup(groups, state) {
 // What comes next, in plain words: the first group in the order that is not ready; inside it, a stage waiting for
 // review comes first, then one in progress, then the stages still to run.
 function nextSentence(groups, state, opt) {
+  const held = groups.flat().filter((e) => entryStatus(state, e) === "held");
+  const said = held.map((e) => `The ${label(e)} is held${state.stages[stageOf(e)].notes ? ` (${state.stages[stageOf(e)].notes})` : ""}: only your words on that test approve it.`);
+  const rest = nextSentenceOpen(groups, state, opt);
+  return said.length ? [...said, rest].join(" ") : rest;
+}
+
+function nextSentenceOpen(groups, state, opt) {
   const open = nextGroup(groups, state);
+  if (!open.length && groups.flat().some((e) => entryStatus(state, e) === "held")) return "Every other stage is done; delivery waits for your words on the held test.";
   if (!open.length) return state.run_mode === "recipe-only"
     ? "Everything is approved: the style recipe is delivered. A change reopens the stage that owns it."
     : "Everything is approved: the film is delivered. A change reopens the stage that owns it.";
@@ -435,9 +455,13 @@ function check(p, opt, nn) {
 function next(p, opt) {
   const state = loadValid(p);
   if (!state) { process.stdout.write(opt.json ? '{"next":["01"]}\n' : "next: 01 (no project yet)\n"); return; }
-  const open = nextGroup(parseOrder(state.order), state);
-  if (opt.json) process.stdout.write(JSON.stringify({ next: open, status: Object.fromEntries(open.map((e) => [e, entryStatus(state, e)])) }) + "\n");
-  else process.stdout.write(open.length ? `next: ${open.map((e) => `${e} (${entryStatus(state, e)})`).join(", ")}\n` : "next: none (every stage is ready)\n");
+  const groups = parseOrder(state.order);
+  const open = nextGroup(groups, state);
+  const held = groups.flat().filter((e) => entryStatus(state, e) === "held");
+  const heldText = held.map((e) => `held: ${e} (${state.stages[stageOf(e)].notes})\n`).join("");
+  if (opt.json) process.stdout.write(JSON.stringify({ next: open, status: Object.fromEntries(open.map((e) => [e, entryStatus(state, e)])),
+    held: held.map((e) => ({ stage: e, notes: state.stages[stageOf(e)].notes })) }) + "\n");
+  else process.stdout.write(heldText + (open.length ? `next: ${open.map((e) => `${e} (${entryStatus(state, e)})`).join(", ")}\n` : "next: none (every stage is ready)\n"));
 }
 
 function set(p, opt, key, value) {
@@ -529,7 +553,10 @@ function setStage(files, state, opt, entry, status, t, history) {
   if (status === "approved") {
     if (!["user", "approver"].includes(opt.by)) fail("approving needs --by user (the user's own words) or --by approver (auto mode only)");
     if (state.mode === "step" && opt.by !== "user") fail("refused: in step mode only the user's own words approve a stage", 1);
+    if ((p ? st.parts?.[p] : st.status) === "held" && opt.by !== "user")
+      fail(`refused: the ${label(entry)} is held on a hard test (${st.notes}); only the user's own words accept it (--by user)`, 1);
   }
+  if (status === "held" && !String(opt.notes ?? "").trim()) fail(`set ${entry} held needs --notes "<the test and its result>"`);
   const groups = parseOrder(state.order);
   if (!p && st.parts && !["supplied", "not_used", "missing"].includes(status)) {
     const first = targetEntry(groups, state, nn);
@@ -537,9 +564,9 @@ function setStage(files, state, opt, entry, status, t, history) {
     entry = first;
     return setStage(files, state, opt, entry, status, t, history);
   }
-  if (["in_progress", "in_review", "approved"].includes(status) && nn !== "01") {
+  if (["in_progress", "in_review", "approved", "held"].includes(status) && nn !== "01") {
     const target = p ? entry : targetEntry(groups, state, nn) ?? nn;
-    const blocked = blockedBy(files, opt, state, groups, target);
+    const blocked = blockedBy(files, opt, state, groups, target, status);
     if (blocked) fail(`refused: ${blocked}`, 1);
   }
   const before = p ? st.parts[p] : st.status;

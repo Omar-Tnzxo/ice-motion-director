@@ -66,8 +66,8 @@ Audit mode (08b on the draft, 10 on the delivered file; needs numpy from require
              its kind, what or sound names a hero, signature, reveal, payoff or logo moment.
   Checks: A1 loudness, A3 voice over bed, A5 (read from align_script_to_asr.py --stem), A6 clicks and
   truncation at joins, A7 level jumps at cuts (ear list only), A8 clipping runs, A9 DC offset, A10 stereo, phase
-  and mono loss, A11 stream spec and length, A12 holes and declared silences, A13 music ending and cut voice,
-  A14 each effect cue heard and in sync, A15 effects under speech, A17 the longest repeated pattern (ear list only).
+  and mono loss, A11 stream spec and length, A12 holes and declared silences, A13 music ending, cut voice and a
+  dead stop after the last word, A14 each effect cue heard and in sync, A15 effects under speech (and air-only ones), A17 the longest repeated pattern (ear list only).
   Writes <project>/ice/review/audio-audit.json (per check: value, threshold, source, pass, blocking; "presence":
   music, voice, sfx, ambience, foley and silence found measured or cued, with "presence_sources") and
   <project>/ice/review/ear-list.json (5 to 7 items for a human ear), and prints the "## For your ears" block.
@@ -421,6 +421,8 @@ DC_LIMIT = 0.001
 HOLE_DB, HOLE_S = -50.0, 0.25
 QUIET_DIP_DB = 6.0
 CUT_TAIL_DB = -40.0               # energy after the film end that counts as a cut sound
+DEAD_DB, DEAD_S = -80.0, 0.25     # digital silence this soon after the last word: the sound stops dead
+AIR_ONLY, AIR_LOW = 0.85, 0.03    # an effect over this share above 4 kHz and under this one below 1 kHz: air only
 EAR_MIN, EAR_MAX = 5, 7
 EAR_CAPS = {1: 3}                 # words may take 3 items; every other source 1 (notes order, ear list rules)
 MM = "the ice-audio skill, references/mix-and-master.md"
@@ -1028,8 +1030,10 @@ def audit_silences(np, mono, cues: dict, profile_id: str) -> dict:
     return _check("Holes and declared silences", value, thr, src, not findings, hard, findings)
 
 
-def audit_ending(np, render: Path, film_s: float | None, master_json: Path | None, voice) -> tuple[dict, list]:
-    """A13: looped or short music (master.json), voice or effects cut at the film end."""
+def audit_ending(np, render: Path, film_s: float | None, master_json: Path | None, voice, mono=None,
+                 voice_info: dict | None = None, profile_id: str = "") -> tuple[dict, list]:
+    """A13: looped or short music (master.json), voice or effects cut at the film end, and the mix falling to digital
+    silence right after the last word (the end of the voice stem's last voiced window)."""
     findings, hard, ear, value = [], False, [], {}
     data = None
     if master_json and master_json.is_file():
@@ -1070,11 +1074,29 @@ def audit_ending(np, render: Path, film_s: float | None, master_json: Path | Non
             if peak > CUT_TAIL_DB:
                 hard = True
                 findings.append(f"the voice stem carries speech after the film end ({peak:.0f} dBFS): the last words are cut")
+    if voice_info is not None and voice_info["voiced"].any() and mono is not None:
+        voiced = voice_info["voiced"]
+        last = (len(voiced) - 1 - int(np.argmax(voiced[::-1]))) * voice_info["hop"] + voice_info["hop"]
+        n = int(0.02 * AUDIT_SR)
+        tail = mono[int(last * AUDIT_SR):int((last + 0.6) * AUDIT_SR)]
+        fr = _db(np, (_frames(tail.astype(np.float64), n) ** 2).mean(axis=1)) if len(tail) >= n else None
+        dead = int(np.argmax(fr < DEAD_DB)) if fr is not None and (fr < DEAD_DB).any() else None
+        value["last_word_s"] = _r(last)
+        if dead is not None and dead * 0.02 < DEAD_S:
+            msg = f"the sound stops dead {dead * 0.02:.2f} s after the last word at {_fmt(last)} (digital silence)"
+            hard = hard or profile_id == "news-reel"
+            findings.append(msg if profile_id == "news-reel" else f"{msg} ({NO_EAR})")
+            ear.append(_ear(max(0.0, last - 2), last + 1, f"Does the end at {_fmt(last)} stop suddenly, sound and picture "
+                            "cut?", "The mix falls to digital silence right after the last word (A13); a designed hard "
+                            "stop and a clipped ending look the same to the machine", "Keep the bed under the last line "
+                            "and let it resolve; never cut inside 0.25 s of the last word (mix-and-master.md section 5, "
+                            "news reel item 8)", "A13", 2, 0.8, "A13: " + msg))
     src = ("the ice-audio skill, references/music-choice-and-licensing.md section 4 item 6 (ending), "
-           f"{MM} section 6 (music edges recorded in master.json)")
+           f"{MM} section 6 (music edges recorded in master.json) and section 5, news reel item 8 (no dead stop)")
     passed = None if not value and not findings else not findings
     c = _check("Music ending and cut sounds", value, {"voice_after_end": "blocks", "looped_or_short_music": NO_EAR,
-               "effect_after_end": NO_EAR}, src, passed, hard, findings)
+               "effect_after_end": NO_EAR, "dead_stop_after_last_word_s": f"under {DEAD_S:g}: blocks (news-reel), "
+               f"{NO_EAR} (others)"}, src, passed, hard, findings)
     return c, ear
 
 
@@ -1082,7 +1104,8 @@ def audit_sfx_under_speech(np, sfx_track, voice_info: dict | None, voice, profil
     """A15: per effect overlapping voiced windows, its energy share in 150 Hz to 4 kHz and its level against the voice."""
     src = ("the ice-audio skill, references/sfx.md section 3b, NEVER item 1 (news reel: under speech, sub or air only); "
            "other types: a hit on a word goes to the ear list")
-    thr = {"voice_band": [150, 4000], "share_max": 0.5, "blocks": profile_id == "news-reel"}
+    thr = {"voice_band": [150, 4000], "share_max": 0.5, "blocks": profile_id == "news-reel",
+           "air_only": {"above_4k_over": AIR_ONLY, "under_1k_under": AIR_LOW, "goes_to": NO_EAR}}
     if sfx_track is None or voice_info is None or not voice_info["voiced"].any():
         return _check("Effects under speech", None, thr, src, None, False, ["no effects stem or list, or no voice stem"]), []
     n = int(0.1 * AUDIT_SR)
@@ -1091,6 +1114,8 @@ def audit_sfx_under_speech(np, sfx_track, voice_info: dict | None, voice, profil
     k = min(len(S), len(V), len(voice_info["voiced"]))
     S, V, voiced = S[:k], V[:k], voice_info["voiced"][:k]
     sfull, sband = _band_power(np, S, 150, 4000)
+    _, sair = _band_power(np, S, 4000, AUDIT_SR / 2 + 1)
+    _, slow = _band_power(np, S, 0, 1000)
     sdb = _db(np, (S ** 2).mean(axis=1))
     vdb = _db(np, (V ** 2).mean(axis=1))
     active = sdb > max(-60.0, float(sdb.max()) - 40.0)
@@ -1098,7 +1123,16 @@ def audit_sfx_under_speech(np, sfx_track, voice_info: dict | None, voice, profil
     for s, e in _runs(list(active & voiced)):
         share = float(sband[s:e].sum() / max(sfull[s:e].sum(), 1e-20))
         rel = float(sdb[s:e].max() - vdb[s:e].max())
-        events.append({"start": _r(s * 0.1), "end": _r(e * 0.1), "voice_band_share": _r(share, 3), "level_vs_voice_db": _r(rel)})
+        air = float(sair[s:e].sum() / max(sfull[s:e].sum(), 1e-20))
+        low = float(slow[s:e].sum() / max(sfull[s:e].sum(), 1e-20))
+        events.append({"start": _r(s * 0.1), "end": _r(e * 0.1), "voice_band_share": _r(share, 3), "level_vs_voice_db": _r(rel),
+                       "air_share": _r(air, 3), "low_share": _r(low, 3)})
+        if air > AIR_ONLY and low < AIR_LOW:
+            ear.append(_ear(s * 0.1 - 0.5, e * 0.1 + 0.5, f"Does the effect at {_fmt(s * 0.1)} under speech sound like a "
+                            "real recorded sound, not a thin hiss made by code?", f"Almost all of its energy ({air:.0%}) "
+                            "sits above 4 kHz with nothing under 1 kHz (A15): the shape of a full sound high-passed to "
+                            "the air band", "Use a recorded effect whose own energy sits there, or none (sfx.md, "
+                            "\"Under speech, in any film\")", "A15", 6, 0.6, f"A15: air-only effect, {air:.0%} above 4 kHz"))
         if share > 0.5:
             if profile_id == "news-reel":
                 hard = True
@@ -2044,7 +2078,7 @@ def run_audit(args) -> int:
     film_s = film_s or len(mono) / AUDIT_SR
     checks["A12"] = audit_silences(np, mono, cues, args.profile)
     mj = rel(args.master_json) if args.master_json else render.parent / "master.json"
-    c, eear = audit_ending(np, render, film_s, mj, voice)
+    c, eear = audit_ending(np, render, film_s, mj, voice, mono, voice_info, args.profile)
     checks["A13"] = c
     ear += eear
     c, fear = audit_sfx_under_speech(np, sfx_track, voice_info, voice, args.profile)

@@ -44,11 +44,13 @@ Sells: <the brand, product or subject, named as the film shows it>
 Offer's job: <what the product or brand does for people, as "<name> lets you <action> <object>" or "<name> <does what> for <whom>"; "none" only when no brand, product or offer is in the film>
 One-line idea: <the one thing the viewer should get, one sentence, without "and">
 Literal anchors: <for each symbolic or abstract device: the device -> the literal thing it stands for -> the beat where that literal thing is first seen; or "no symbolic device">
+Turn's tone: <optional: the feeling at the turn, one or two words (funny, warm, sad, tense); required when a voice-led reference is remade without a voice>
 ```
 
 Rules:
 - `Offer's job` comes from the product truth of the business brief (`ice/BRIEF.md`) and the truth sheet, never from the concept: the concept serves the offer, it does not redefine it.
 - A brand whose offer is an app, a SaaS or a product always has an `Offer's job`, whatever the film type (the product job rule: `ice-film/references/film-setup.md` section 1).
+- `Turn's tone` is required when a supplied reference is voice-led and the film has no voice (`ice-direction/references/questions.md`, `Q-voice`): the tone the voice carried at the turn now rests on words and picture alone, so it is matched from read 1, the earliest stage that can show it.
 - The takeaway is locked with the concept. Changing it is a new D-entry that supersedes the concept entry, and every read runs again.
 - A user-supplied concept gets its takeaway written from the user's own words; the user's fields stay untouched.
 
@@ -82,7 +84,7 @@ Report: `ice/review/clarity/<point>-r<round>.md`, plain words, under 300 words, 
 1. **What happens**: the story in two to four sentences, in order.
 2. **What it is selling**: the brand, product or subject, or "I can't tell".
 3. **What the product does**: what it does for people, one sentence, or "I can't tell".
-4. **The one idea or feeling**: one sentence.
+4. **The one idea or feeling**: one sentence, and the feeling at the turn in one or two words.
 5. **What I did not understand**: every such moment, with its time in seconds or its frame number, what was seen, and what the viewer thought it was.
 
 Then one line, `seen vs measured`: what was looked at, what was measured, what could not be checked.
@@ -97,13 +99,14 @@ The approver (`ice-direction/references/roles.md` section 5) matches the report 
 | Offer's job | 3 | It names the same action for the same people or object, in any words. Naming only the category, only the brand, only a feeling, or a different job is a MISS. Skipped only when the takeaway says "none" |
 | One-line idea | 4 | It says the same thing in other words. A vaguer, partial or different idea is a MISS |
 | What happens | 1 | Nothing in it misreads the turn (the moment the change happens) or the hero moment |
+| Turn's tone | 4 | It names the same feeling at the turn, in any words. Skipped when the takeaway has no `Turn's tone` line |
 | Confusions | 5 | None of them is major |
 
 A confusion is **major** when it is about the brand, the offer, the idea, the turn or the hero moment; when a symbol was read as something other than its literal anchor; when the viewer did not see the cause of a product interaction; when, in a news, explainer or talk-show film, the viewer took the speaker or guest for one of the people being talked about (a dimmed, silhouetted or circled speaker: the `ice-edit` skill, `references/layers-and-isolation.md`, "The speaker stays lit"); or when the viewer was still unsure at the end. Every other confusion is minor, and every minor one still goes on the fix list.
 
 On platforms that play muted first, answers 2, 3 and 4 must come from the picture alone: on-screen words and burned-in captions count, speech and sound do not (a moment the viewer marked as relying on sound does not count toward a MATCH).
 
-**PASS**: MATCH on Sells, Offer's job (unless "none") and One-line idea; What happens without a misread; no major confusion. Anything else is a **FAIL**. There is no partial pass, no pass with notes, and no averaging against other gates or scores.
+**PASS**: MATCH on Sells, Offer's job (unless "none"), One-line idea, and Turn's tone when the takeaway has one; What happens without a misread; no major confusion. Anything else is a **FAIL**. There is no partial pass, no pass with notes, and no averaging against other gates or scores.
 
 ## 6. The grounding rule
 

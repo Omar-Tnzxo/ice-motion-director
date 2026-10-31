@@ -23,7 +23,8 @@
 # reader checks the source kind each rule id accepts (allowed_kinds, the table of treatment.md 11.7) and ignores a
 # content row written at stage 07, each with a warning (exemption_issues); check 17 accepts "measured: <ref-id>
 # REASONS.md #<row>" only in the Reason cell and only when that row exists in ice/reference/<ref-id>/REASONS.md, and
-# reds "measured" in a Trigger cell.
+# reds "measured" in a Trigger cell. 2026-10-31 (0.2.12, lesson L58): check 22 reads pointer presses on every table of
+# the file, so a board without Object and Action columns is read too.
 # See NOTICE.md.
 """storyboard_lint.py: check a shot table mechanically before any code is written.
 
@@ -87,6 +88,14 @@ Per row:
   (21) A row naming a depth or 3D element (2.5D, 3D, parallax, push-through, card field, cards in space,
        extruded or wrapped text, virtual set, depth planes) names "build: <route>" (css-3d, threejs-hyperframes,
        remotion-three, blender)                                                                             -> red
+  (22) Pointer presses (lesson L58): when any table row of the storyboard shows a pointer (cursor, pointer, mouse,
+       finger, tap target), a row whose picture names a UI part changing (toggles, selects, checks, switches on or
+       off, opens a sheet or menu, expands, collapses, fills in, types into, sets a value) names the press (press,
+       tap, click) or writes "no press: <why>" (a system event, a timer)                                    -> red
+       Read on every markdown table of the file (Trigger, Reason, Cites and sound columns left out), so a remake
+       board with Picture and On screen columns is read too; with no shot table its reds print under the "No shot
+       table found" line and exit 1. Rule: the ice-film skill, references/genres/ui-motion.md (Coding sheet,
+       pointer_presses).
 Whole table:
   (5) Text-led shots <= 30% of shots                                                                        -> red
   Method column (when present): one reusable template or clip file (.json/.html) running over 8 s in total -> red;
@@ -110,7 +119,8 @@ text-led share) is at most amount x (1 + tolerance). Check 5 passes when the tex
 class, has no source, or is a content row written at stage 07 is ignored with a warning. The rule itself: the
 ice-direction skill, references/treatment.md section "Craft plan".
 
-Exit codes: 1 with any red; 0 with only yellow or all green; 2 when the file cannot be read or has no table.
+Exit codes: 1 with any red; 0 with only yellow or all green; 2 when the file cannot be read or has no table (1 when it
+has no shot table but a (22) red).
 Standard library only.
 """
 import json
@@ -914,6 +924,44 @@ NOT_DEPTH = re.compile(r"\b(?:no|not|without|non)[- ]+(?:3d|2\.5d|parallax|depth
 BUILD_ROUTE = re.compile(r"\bbuild\s*:\s*([a-z0-9-]+)", re.I)
 BUILD_ROUTES = ("css-3d", "threejs-hyperframes", "remotion-three", "blender")
 CONTINUOUS_TAKE = re.compile(r"continuous|one take|single take|long take|locked take|oner\b|one shot", re.I)
+# (22) pointer presses (lesson L58): a shown pointer presses what changes, already on the storyboard
+POINTER_WORDS = re.compile(r"\b(?:cursor|pointer|mouse|finger|tap target)s?\b", re.I)
+PRESS_WORDS = re.compile(r"\b(?:press(?:es|ed|ing)?|tap(?:s|ped|ping)?|click(?:s|ed|ing)?)\b|no press:", re.I)
+UI_CHANGE = re.compile(r"\b(?:toggles?|toggled|select(?:s|ed|ion)?|checks|checked|switch(?:es|ed)? (?:on|off)|"
+                       r"turns? (?:on|off)|opens? (?:the|a) (?:sheet|menu|panel|list|dialog|picker|drawer)|"
+                       r"expands?|expanded|collapses?|collapsed|fills? in|types? into|sets? (?:the|a))\b", re.I)
+NOT_PICTURE = re.compile(r"trigger|reason|cites?|script|voice|sound|audio|music|sfx|note", re.I)
+
+
+def pointer_presses(text):
+    """(22) on every markdown table of the text outside code fences: [(line number, row label, change word)] of rows
+    where a UI part changes with no press while some row shows a pointer; [] when no row shows one."""
+    lines, fence, i, rows = text.splitlines(), False, 0, []
+    while i < len(lines):
+        ln = lines[i]
+        if ln.strip().startswith("```"):
+            fence = not fence; i += 1; continue
+        if not fence and ln.strip().startswith("|") and i + 1 < len(lines) and re.match(r"^\s*\|?\s*:?-{2,}", lines[i + 1]):
+            head = strip_cells(ln)
+            keep = [k for k, h in enumerate(head) if not NOT_PICTURE.search(h)]
+            j = i + 2
+            while j < len(lines) and lines[j].strip().startswith("|"):
+                cells = strip_cells(lines[j])
+                blob = " ".join(clean_cell(cells[k]) for k in keep if k < len(cells))
+                rows.append((j + 1, clean_cell(cells[0]) if cells else "", blob))
+                j += 1
+            i = j; continue
+        i += 1
+    if not any(POINTER_WORDS.search(b) for _, _, b in rows):
+        return []
+    return [(n, label, m.group(0)) for n, label, b in rows
+            for m in [UI_CHANGE.search(b)] if m and not PRESS_WORDS.search(b)]
+
+
+PRESS_ISSUE = ("(22) pointer press", "a UI part changes ('{}') while a pointer is on screen and nothing presses it",
+               "show the press (the pointer touches the part, the part reacts under it) or write 'no press: <why>' (a "
+               "system event, a timer); rule: the ice-film skill, references/genres/ui-motion.md (Coding sheet, "
+               "pointer_presses)")
 
 
 def fold_words(t):
@@ -1017,8 +1065,10 @@ def lint(text, script=None, scope=None, plan=None, reasons_from=()):
         return row
     info_cap = int(num(scope["values"].get("cta_info_units")) or 0)
     head, raw = find_table(text)
+    presses = pointer_presses(text)
     if head is None:
-        return {"error": "No shot table found: a markdown table whose header has at least an Object column and an Action column (tables in code fences do not count)."}
+        return {"error": "No shot table found: a markdown table whose header has at least an Object column and an Action column (tables in code fences do not count).",
+                "presses": presses}
     col = columns(head)
     miss = [n for k, n in (("time", "Time"), ("obj", "Object"), ("act", "Action"), ("cam", "Camera"), ("text", "On-screen text")) if k not in col]
     if miss:
@@ -1192,6 +1242,14 @@ def lint(text, script=None, scope=None, plan=None, reasons_from=()):
         if not routes or bad_routes:
             r["issues"].append((RED, "(21) depth route", "a depth or 3D element with no build route" if not routes else f"unknown build route(s): {', '.join(bad_routes)}",
                                 "write 'build: <route>' in the Method cell, one of " + ", ".join(BUILD_ROUTES) + " (blender only when Blender is installed); routes: the ice-motion skill, references/depth-and-3d.md, \"Build routes for depth and 3D\""))
+    # (22) a shown pointer presses what changes (lesson L58); rows of other tables are reported for the whole table
+    by_line = {r["line"]: r for r in rows}
+    for lineno, label, word in presses:
+        issue = (RED, PRESS_ISSUE[0], PRESS_ISSUE[1].format(word), PRESS_ISSUE[2])
+        if lineno in by_line:
+            by_line[lineno]["issues"].append(issue)
+        else:
+            table.append((RED, PRESS_ISSUE[0], f"line {lineno} ({label}): " + issue[2], PRESS_ISSUE[2]))
     # (7) three shots in a row with the same camera
     for k in range(2, len(rows)):
         c = rows[k]["cam"].lower()
@@ -1298,7 +1356,9 @@ def lint(text, script=None, scope=None, plan=None, reasons_from=()):
 
 
 def report(res):
-    if "error" in res: return [res["error"]]
+    if "error" in res:
+        return [res["error"]] + [f"[{RED}] {PRESS_ISSUE[0]}: line {n} ({label}): {PRESS_ISSUE[1].format(word)}. Fix: {PRESS_ISSUE[2]}"
+                                 for n, label, word in res.get("presses") or []]
     sc = res["scope"]
     L = [f"Film type: {sc['type_text'] or 'unknown'} ({sc['type_source'] or 'not found'}) -> row '{sc['row']}' of motion-density.md section 6; "
          f"CTA info allowance {int(num(sc['values'].get('cta_info_units')) or 0)} units"]
@@ -1371,7 +1431,7 @@ def main(argv=None):
     if plan is not None and "error" not in res:
         res["craft_plan"] = str(plan_path)
     print("\n".join(report(res)))
-    if "error" in res: return 2
+    if "error" in res: return 1 if res.get("presses") else 2
     return 1 if res["verdict"] == RED else 0
 
 

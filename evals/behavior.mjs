@@ -76,6 +76,19 @@ const NOT_GRADED = {
   L49: "the hype promo fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L50: "the social short fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L51: "the cut count is a measure inside genre_check.py with its own test on a synthetic video, not an agent behaviour",
+  L52: "the fixed-mark match runs on a render at stages 07 and 09 (craft_gate.py build), after the cases stop",
+  L53: "the speaker compare reads the render and its EDL at stages 07 and 09 (craft_gate.py build), after the cases stop",
+  L54: "a brand test that cannot pass needs a brand whose identity is only covered things; the cases name none",
+  L55: "the dead stop and the bed under the last line are measured on the mix at stage 08 and 09 (qc.py --audit), after the cases stop",
+  L56: "an air-only effect is measured on the effects stem at stage 08 and 09 (qc.py --audit), after the cases stop",
+  L57: "group motion is judged on frames by the critic at 05 and 09, after the cases stop",
+  L58: "the pointer press check reads the storyboard at stage 04 (storyboard_lint.py), after the cases stop",
+  L59: "the pacing gate runs on events files and a render at stages 06 to 09 (motion_check.py), after the cases stop",
+  L60: "the threshold band is a measure inside craft_gate.py and motion_check.py with its own tests, not an agent behaviour",
+  L61: "the tempo fold is a measure inside compare.py with its own test, not an agent behaviour",
+  L62: "a held stage needs a hard test failed at 04 or later, after the cases stop",
+  L63: "a voice-led reference with no voice needs a supplied reference video; the cases supply none",
+  L64: "the coding sheet is filled from a render at gate D, after the cases stop",
 };
 const GRADERS = [
   {

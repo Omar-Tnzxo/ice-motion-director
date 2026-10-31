@@ -39,6 +39,7 @@ A fixed, named list. Each slot fills one or more slots of `ice/BRIEF.md` (`intak
 | 23 | `reference_file` | How a linked reference is obtained | `references` | Only when a linked reference cannot be fetched (private, behind a login, removed or blocked); a link that can be fetched is downloaded by default, without a question, so it can be measured (`ice-assets/references/sourcing-and-licenses.md` section 0, "Standing consent") |
 | 24 | `identity` | Whether a reference's own logo, end card, look, footage and music go into the video, or its style is carried by an identity that fits the content | `references`, look seed | Only when a reference is used and the user's words leave it open, or ask for the reference's identity on a video of another content type that its outlet does not own; the recommendation compares the content type with the reference's type (`ice-remake/references/rights-and-modes.md` section 1, "The identity fits the content") |
 | 25 | `tools` | What happens about a tool that cannot be installed for free | prerequisites | Only when a missing tool is paid, needs an account or a sign-in, or has no install route on this machine; free tools, models and packages are installed without a question (`ice-engines/references/engine-choice.md` section 7.6) |
+| 26 | `brand_test` | How the identity is checked when the masked brand test cannot pass by construction | `ice/BRIEF.md` "Brand test" line | Only when `ice-qa/references/identity-tests.md` section 1b finds no brand-owned element that survives masking; a question waiver does not answer it (section 1b step 3) |
 
 A slot that does not apply to the deliverable (no sound in a silent loader, no call to action in a caption pass, no aspect in an ideas-only run) is written `not applicable: <reason>` in `ice/BRIEF.md`, never asked.
 
@@ -226,6 +227,7 @@ Ask when: the user's words or supplied design do not set the feel. Each option i
 
 ### Q-voice (field Voice source): who speaks
 Ask when: the film has sound and no recording or approved voice source exists (`intake-and-brief.md` section 3, "Voice implied").
+When a supplied reference is voice-led (its sound map shows a voice over most of its runtime, `ice-audio/references/sound-map.md`) and no voice source exists, the question says in plain words what option 1 costs: the meaning the voice carried moves into on-screen words, and the tone of the turn (funny, warm, sad) rests on words and picture alone; the turn's tone is then read early (`ice-qa/references/clarity-gate.md` section 2, `Turn's tone`).
 1. (Recommended) No voice: every word on screen in the chosen language, with music and sound; built so a voice can be added later without re-cutting.
 2. Your own recording: I send a timed script and you record it.
 3. A voice source you approve by name (a voice actor, or a voice tool you choose and accept), disclosed in the delivery notes.
@@ -308,6 +310,13 @@ Ask when: a reference is used and the user's words leave open whether its own lo
 2. The reference as it is: its logo, end card, look, footage and music in the video.
 3. A mix: you name which parts come from the reference (for example its music with your logo and end card).
 4. The style only: everything drawn or shot new, with new music and sound.
+
+### Q-brand-test: a brand check that cannot pass
+Ask when: `ice-qa/references/identity-tests.md` section 1b finds that no brand-owned element the film can show survives the masking (the identity is only the logo, the wordmark, the name or a presenter known through the programme, or the brand is the interface the film shows). Say it once in plain words: with the logo, name and screens covered, no frame can read as this brand, whatever the film does. Only the user's answer here accepts that result; a waiver of questions does not.
+1. (Recommended) The competitor swap and the fixed marks carry the identity check; the covered-frames test runs once at the storyboard and once at the review, for the record, with no redraw rounds spent on it.
+2. I add a real brand-owned element found by research to the film (named here, with its source); never an invented one.
+3. The covered-frames test stays a hard rule: the video is built and held before delivery until you answer on its result.
+4. Your own answer.
 
 ### Q-tools: a tool that cannot be installed for free
 Ask when: a tool the run needs is paid, needs an account or a sign-in, or has no install route on this machine (no exact pin, no network, no drive with room). Free tools, models and packages are installed without a question, told in one plain line and recorded (`ice-engines/references/engine-choice.md` section 7.6); a system tool that needs an administrator password is one plain step for the user, given once, never this question (section 7.3). Option 2's description gives the one setup step (`ice-motion-director/references/prerequisites.md`).

@@ -984,3 +984,53 @@ test("lessons: a crash in the audio analysis is retried for a plain CPU target, 
   } finally { rmSync(dir, { recursive: true, force: true }); }
   assert.doesNotMatch(readText("skills/ice-remake/scripts/analyze.py"), /ThreadPoolExecutor/, "librosa must not run in a thread of the main process");
 });
+
+// ---------------------------------------------------------------- 0.2.12: lessons of the 3D plain-prompt and remake tests
+test("lessons: end card and sign-off lockups are fixed marks with their official file, never a retyped name (L52)", () => {
+  const marks = section("skills/ice-qa/references/identity-tests.md", "## 8. Fixed identity marks");
+  assert.match(marks, /\*\*End card and sign-off lockups\.\*\* Every logo or lockup that a sign-off title, an end card or a closing sting shows is a fixed mark too/);
+  assert.match(marks, /A name retyped in a font in place of the lockup is not the logo \(`ice-assets\/references\/brand-authenticity\.md` section 3 and section 5\)/);
+  assert.match(readText("skills/ice-remake/references/measuring.md"), /The end card's and the sign-off's logo lockups are measured here too.*"End card and sign-off lockups"/);
+});
+
+test("identity tests: a brand test that cannot pass by construction is found at 01, asked once, and spends no redraw rounds (L54)", () => {
+  const one = section("skills/ice-qa/references/identity-tests.md", "## 1b. Can the brand test pass at all (stage 01)");
+  assert.match(one, /`Brand test: cannot pass by construction \(<why>; elements found: none\)`/);
+  assert.match(one, /the `brand_test` question of `ice-direction\/references\/questions\.md` \(`Q-brand-test`\)/);
+  assert.match(one, /no redraw round is spent on it/);
+  assert.match(section("skills/ice-qa/references/identity-tests.md", "## 6. On a fail"), /A test marked at 01 as unable to pass runs once at 04-05 and once at 09 with no redraw rounds/);
+  const q = readText("skills/ice-direction/references/questions.md");
+  assert.match(q, /^\| 26 \| `brand_test` \|/m);
+  const bank = q.slice(q.indexOf("### Q-brand-test"), q.indexOf("### Q-tools"));
+  assert.equal((bank.match(/^\d\. /gm) || []).length, 4, bank);
+  assert.match(bank, /a waiver of questions does not/);
+});
+
+test("identity tests: a blanket approval given before a test failed is not its acceptance (L54)", () => {
+  const blanket = /a blanket "decide everything" or "approve whatever you choose"(,| given) .*is a waiver of questions, not an acceptance/;
+  assert.match(section("skills/ice-qa/references/identity-tests.md", "## 6. On a fail"), blanket);
+  assert.match(readText("skills/ice-direction/references/roles.md"), /A user acceptance of a failed test counts only when the user's words answer a question that names that test/);
+  assert.match(readText("skills/ice-direction/references/roles.md"), blanket);
+});
+
+test("news reel: the music stays under the last line, voice alone only on a take with its own room tone (L55)", () => {
+  const mm = readText("skills/ice-audio/references/mix-and-master.md");
+  assert.match(mm, /the bed stays under the last line, dipped 3 to 6 dB, and lifts or resolves as the last word ends/);
+  assert.match(mm, /the last line goes voice alone only when the take has at least 0\.4 s of its own room tone after the last word/);
+  assert.match(mm, /never a cut inside the 0\.25 s after the last word, and no digital silence between the last word and the end card/);
+  assert.doesNotMatch(mm, /so the last line is voice alone/);
+  assert.doesNotMatch(readText("skills/ice-audio/references/sfx.md"), /\| The bed leaves \|/);
+});
+
+test("sound: no effect under speech is an air-only filter of a full sound (L56)", () => {
+  const sfx = readText("skills/ice-audio/references/sfx.md");
+  assert.match(sfx, /never high-pass a full whoosh to its air band to make it fit, which leaves a thin hiss a viewer hears as made by code/);
+  assert.match(sfx, /A recorded soft air whoosh whose own energy sits above 4 kHz \(never a full whoosh high-passed to get there\)/);
+  assert.doesNotMatch(sfx, /Soft air whoosh, high-passed so its energy under speech is above 4 kHz/);
+});
+
+test("3D: groups of moving objects follow a real formation, lane or flock, never a random scatter (L57)", () => {
+  assert.match(section("skills/ice-motion/references/depth-and-3d.md", "## 6. Real 3D look rules"),
+    /Several moving objects of one kind .* move the way the real thing moves: a formation, a lane or a flock with a leader.*Random positions, random headings and random speeds read as generated/);
+  assert.match(readText("skills/ice-qa/references/frame-checks.md"), /^\| B10 \| Groups of moving objects \| .*Random positions, headings or speeds fail/m);
+});

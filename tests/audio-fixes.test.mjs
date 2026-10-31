@@ -821,3 +821,97 @@ test("sfx pack: pack list reads a fixture manifest offline, filters under speech
   assert.equal(r.status, 2);
   assert.match(r.stderr, /the pack is not installed: run match_music.py pack fetch/);
 });
+
+// 9 s at 48 kHz: a voice stem of syllable-gated tones from 1 s to the last word at 6.0 s, a bed stem, an effects stem,
+// and their sum as mix.wav. argv[2] "dead": the bed and everything stop at 6.04 s; "resolve": the bed goes on under the
+// last word and fades out over 1.5 s; "air": the bed resolves, and the effects stem carries a noise burst high-passed
+// to the air band at 3.0 s and a pink noise burst at 5.0 s, both under speech. Illustration only.
+const ENDING_TONES = String.raw`
+import os, sys, wave
+import numpy as np
+sr, dur = 48000, 9.0
+d, mode = sys.argv[1], sys.argv[2]
+t = np.arange(int(sr * dur)) / sr
+gate = (((t % 0.3) < 0.2) & (t > 1.0) & (t < 6.0)).astype(float)
+gate = np.convolve(gate, np.ones(240) / 240, mode="same")
+voice = gate * (0.12 * np.sin(2 * np.pi * 220 * t) + 0.08 * np.sin(2 * np.pi * 1500 * t) + 0.06 * np.sin(2 * np.pi * 2600 * t))
+rng = np.random.default_rng(2)
+bed = 0.03 * np.sin(2 * np.pi * 110 * t) + 0.015 * np.sin(2 * np.pi * 330 * t)
+if mode == "dead":
+    bed[t >= 6.04] = 0
+else:
+    bed *= np.interp(t, [0, 6.0, 7.5, dur], [1, 1, 0, 0])
+sfx = np.zeros_like(t)
+if mode == "air":
+    def burst(at, spec):
+        n = int(0.5 * sr)
+        x = np.fft.rfft(rng.standard_normal(n))
+        f = np.fft.rfftfreq(n, 1 / sr)
+        y = np.fft.irfft(x * spec(f), n)
+        y = 0.05 * y / np.abs(y).max() * np.hanning(n)
+        s = int(at * sr)
+        sfx[s:s + n] += y
+    burst(3.0, lambda f: (f >= 4000).astype(float))
+    burst(5.0, lambda f: 1 / np.sqrt(np.maximum(f, 20)))
+os.makedirs(os.path.join(d, "stems"), exist_ok=True)
+def save(name, x):
+    with wave.open(os.path.join(d, name), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.stack([x, x], axis=1) * 32767).astype("<i2").tobytes())
+save("stems/voice.wav", voice)
+save("stems/bed.wav", bed)
+if mode == "air":
+    save("stems/sfx.wav", sfx)
+mix = voice + bed + sfx
+if mode == "dead":
+    mix[t >= 6.04] = 0
+save("mix.wav", mix)
+`;
+function endingRun(mode, profile) {
+  const dir = join(work, `ending ${mode} ${profile}`);
+  mkdirSync(dir, { recursive: true });
+  let r = runPy("-c", ENDING_TONES, dir, mode);
+  assert.equal(r.status, 0, r.stderr);
+  r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=9",
+    "-i", join(dir, "mix.wav"), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "pcm_s16le", "-shortest",
+    join(dir, "film.mov")], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  r = runPy(QC, "--audit", "--project", dir, "--render", "film.mov", "--stems", "stems", "--profile", profile);
+  assert.ok(r.status === 0 || r.status === 1, r.stdout + r.stderr);
+  const read = (f) => JSON.parse(readFileSync(join(dir, "ice", "review", f), "utf8"));
+  return { audit: read("audio-audit.json"), ear: read("ear-list.json") };
+}
+
+test("audit A13: the mix falling to digital silence 40 ms after the last word blocks a news reel and goes to the ear list elsewhere; a bed resolving under the last word passes (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const news = endingRun("dead", "news-reel");
+  const a13 = news.audit.checks.A13;
+  assert.ok(Math.abs(a13.value.last_word_s - 6.0) <= 0.15, JSON.stringify(a13.value));
+  assert.equal(a13.blocking, true, JSON.stringify(a13));
+  assert.match(a13.findings.join("\n"), /the sound stops dead 0\.\d\d s after the last word at 0:0[56]\.\d \(digital silence\)/);
+  assert.ok(news.audit.blocking.includes("A13"), JSON.stringify(news.audit.blocking));
+
+  const social = endingRun("dead", "social").audit.checks.A13;
+  assert.equal(social.blocking, false, JSON.stringify(social));
+  assert.match(social.findings.join("\n"), /stops dead .*the ear list/);
+
+  const resolved = endingRun("resolve", "news-reel");
+  assert.deepEqual(resolved.audit.checks.A13.findings, [], JSON.stringify(resolved.audit.checks.A13));
+  assert.ok(!resolved.ear.candidates.some((c) => /stops dead/.test(c.measure || "")), "no dead-stop item");
+});
+
+test("audit A15: a noise whoosh high-passed to the air band under speech goes to the ear list as possibly made by code; a broadband pink effect does not (generated tones)", { skip: AUDIT_SKIP }, () => {
+  const run = endingRun("air", "news-reel");
+  const a15 = run.audit.checks.A15;
+  const events = a15.value.events;
+  const air = events.find((e) => e.start >= 2.9 && e.start <= 3.2);
+  const pink = events.find((e) => e.start >= 4.9 && e.start <= 5.2);
+  assert.ok(air && pink, JSON.stringify(events));
+  assert.ok(air.air_share > 0.85 && air.low_share < 0.03, JSON.stringify(air));
+  assert.ok(pink.low_share > 0.3, JSON.stringify(pink));
+  const items = run.ear.candidates.filter((c) => c.source === "A15" && /air-only/.test(c.measure));
+  assert.ok(items.length >= 1, JSON.stringify(run.ear.candidates.map((c) => c.measure)));
+  for (const it of items) assert.match(it.question, /at 0:03\.\d under speech sound like a real recorded sound/);
+  assert.equal(a15.blocking, false, "an air-only effect is the shape the news reel asks for: heard, never blocked");
+});

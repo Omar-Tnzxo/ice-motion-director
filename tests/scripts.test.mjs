@@ -732,6 +732,34 @@ test("craft_gate.py build: a fixed mark in its slot over a moving camera passes;
   assert.match(mk.items.join("\n"), /mark 1 \(corner logo\) is missing from its slot 2(\.\d+)?-3(\.\d+)? s/);
 });
 
+test("craft_gate.py build: a one-colour logo given as its file (flat ink inside its alpha) is found in its slot by its silhouette, white on dark and dark on light; the same slot with no logo is red", { skip: CV_SKIP }, () => {
+  const dir = craftProject("craft flat mark", { rows: notUseAll(), stage: "07" });
+  writeShots(dir, { fixed_marks: [{ mark: "one-colour logo", x_pct: 8, y_pct: 10, w_pct: 9, file: "logo.png" }] });
+  const ink = ["A = np.zeros((90, 90), np.uint8)", "cv2.circle(A, (45, 38), 28, 255, 8)", "cv2.rectangle(A, (12, 76), (78, 86), 255, -1)"].join("\n");
+  const save = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", `import numpy as np, cv2, sys\n${ink}\nL = np.dstack([np.full_like(A, 255)] * 3 + [A])\ncv2.imwrite(sys.argv[1], L)`, join(dir, "logo.png")], { encoding: "utf8" });
+  assert.equal(save.status, 0, save.stderr);
+  // the mark drawn at 9 percent of 640 px (58 px) from x 51, y 36: ink white on a dark ground or black on a light one
+  const body = (mode) => [ink, `BG = blocks(1400, 360, 16, ${mode === "dark" ? "60, 230" : "10, 90"}, seed=11)`,
+    "M = cv2.resize(A, (58, 58), interpolation=cv2.INTER_AREA).astype(np.float32)[..., None] / 255",
+    "def frame(i, t):", "    f = BG[:, 2 * i:2 * i + W].astype(np.float32)",
+    `    if "${mode}" != "none":`, "        r = f[36:94, 51:109]",
+    `        f[36:94, 51:109] = r * (1 - M) + M * ${mode === "dark" ? 0 : 255}`, "    return f"].join("\n");
+  const marks = (mode) => craftBuild(dir, drawVideo(join(dir, `flat ${mode}.mp4`), body(mode))).checks.marks;
+
+  for (const mode of ["light", "dark"]) {
+    const mk = marks(mode);
+    assert.equal(mk.ok, true, mode + ": " + JSON.stringify(mk));
+    assert.match(mk.marks[0].template, /alpha silhouette/);
+    assert.ok(mk.marks[0].found >= mk.marks[0].samples - 1, JSON.stringify(mk.marks[0]));
+    const [px, py] = mk.marks[0].position_pct;
+    assert.ok(Math.abs(px - 8) <= 1 && Math.abs(py - 10) <= 1, JSON.stringify(mk.marks[0]));
+    assert.ok(mk.marks[0].size_ratio >= 0.9 && mk.marks[0].size_ratio <= 1.1, JSON.stringify(mk.marks[0]));
+  }
+  const none = marks("none");
+  assert.equal(none.ok, false, JSON.stringify(none));
+  assert.match(none.items.join("\n"), /mark 1 \(one-colour logo\) is missing from its slot/);
+});
+
 test("craft_gate.py build: inside a recede window a speaker dimmed while speaking or dimmed 30 percent while silent is red; a scale back with partial desaturation while speaking and a 10 percent dim while silent pass", { skip: CV_SKIP }, () => {
   const cutout = { ...notUseRow("cutout", "type policy: not part of this fixture", "type: fixture"), recede_windows: [{ start: 3, end: 7 }] };
   const dir = craftProject("craft speaker", { rows: swapRow(notUseAll(), "cutout", cutout), stage: "07" });
@@ -774,6 +802,35 @@ test("craft_gate.py build: inside a recede window a speaker dimmed while speakin
   assert.equal(receded.ok, true, JSON.stringify(receded));
 });
 
+test("craft_gate.py build: a speaker whose source take darkens (a turned head) passes against its source frames through the EDL; the same render darkened over its source is red", { skip: CV_SKIP }, () => {
+  const cutout = { ...notUseRow("cutout", "type policy: not part of this fixture", "type: fixture"), recede_windows: [{ start: 9, end: 9.8 }] };
+  const dir = craftProject("craft speaker source", { rows: swapRow(notUseAll(), "cutout", cutout), stage: "07" });
+  mkdirSync(join(dir, "ice", "edit"), { recursive: true });
+  const faces = join(dir, "faces.json");
+  writeFileSync(faces, JSON.stringify(Array.from({ length: 51 }, (_, i) => ({ t: i / 5, width: 640, height: 360, faces: [[260, 100, 120, 150]] }))));
+  // the face patch at full light, times k from a to b
+  const body = (a, b, k) => ["BG = blocks(W, H, 40, 90, 130, seed=8)",
+    "FACE = blocks(120, 150, 6, 0, 80, seed=9, ch=1).astype(np.float32) + np.array([110, 140, 190], np.float32) - 40",
+    "def frame(i, t):", "    f = BG.astype(np.float32)", `    f[100:250, 260:380] = FACE * (${k} if ${a} <= t < ${b} else 1.0)`, "    return f"].join("\n");
+  const run = (source, render) => {
+    writeFileSync(join(dir, "ice", "edit", "edl.json"), JSON.stringify({ sources: { take: source }, ranges: [{ source: "take", start: 0, end: 10 }] }));
+    return craftBuild(dir, render, "--faces", faces).checks.speaker;
+  };
+  const turning = drawVideo(join(dir, "take turning.mp4"), body(4, 6, 0.8), { dur: 10 });
+  drawVideo(join(dir, "take flat.mp4"), body(0, 0, 1.0), { dur: 10 });
+  const dimmed = drawVideo(join(dir, "render dimmed.mp4"), body(1, 3, 0.8), { dur: 10 });
+
+  const own = run("take turning.mp4", turning);
+  assert.equal(own.ran, true, JSON.stringify(own));
+  assert.equal(own.ok, true, JSON.stringify(own));
+  assert.ok(own.source_cleared >= 2, JSON.stringify(own));
+  assert.match(own.baseline_source, /edl\.json$/);
+
+  const over = run("take flat.mp4", dimmed);
+  assert.equal(over.ok, false, JSON.stringify(over));
+  assert.match(over.items.join("\n"), /dimmed over 5 percent outside the recede windows, against his source frame from 1/);
+});
+
 // Push-through counting (depth_summary, measuring.md section 12) on synthetic sample pairs: a 1.2 s push-in whose
 // near plane, twice the far plane's rate, grows past PUSH_SCALE and touches the frame edge counts once; the same push
 // whose near plane stays inside the frame, a push too short, and a push whose planes move together count none.
@@ -804,4 +861,14 @@ test("craft_gate.py depth: a push-in whose near plane grows past 1.3x and touche
   const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", PUSH_PY, abs("skills/ice-qa/scripts")], { encoding: "utf8", timeout: 120000 });
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(JSON.parse(r.stdout), { push: 1, inside: 0, short: 0, together: 0, two: 2 });
+});
+
+test("craft_gate.py depth: a push whose near plane grows 1.28x counts as near, not as a push-through; 1.20x counts neither", { skip: CV_SKIP }, () => {
+  const near = PUSH_PY.replace(/cases = \{[\s\S]*?start=2\.0\)\}/, 'cases = {"near": pairs(12, 0.0103, 2.0, EDGE), "under": pairs(12, 0.0076, 2.0, EDGE)}')
+    .replace('["push_through"]', '')
+    .replace("res[name] = g.depth_summary(ps, shots, [], 1.0, 0.1)", 'd = g.depth_summary(ps, shots, [], 1.0, 0.1); res[name] = [d["push_through"], d["push_through_near"], d["shots"][0]["push_through_near"]]');
+  assert.notEqual(near, PUSH_PY, "the fixture was rewritten");
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", near, abs("skills/ice-qa/scripts")], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(JSON.parse(r.stdout), { near: [0, 1, 1], under: [0, 0, 0] });
 });

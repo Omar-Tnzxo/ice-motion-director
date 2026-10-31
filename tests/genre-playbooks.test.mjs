@@ -446,3 +446,11 @@ test("genre_check.py measure: hard cuts between shots graded alike are found at 
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+test("genre playbooks: every coding sheet that codes logo_position says a centred line of plain text is not a logo", () => {
+  const coded = playbooks().filter((f) => readText(`${GENRES}/${f}`).includes("`logo_position`"));
+  assert.ok(coded.length >= 2, `expected the UI motion and product launch sheets, found ${coded.join(", ")}`);
+  for (const f of coded) has(`${GENRES}/${f}`, ["even centred, is not a logo: code `none` and put the line in `tagline`"]);
+  has(CHECK, ["end_logo reads end_card.logo_position: a logo only", "a centred line of plain text is coded none"]);
+  has(`${GENRES}/ui-motion.md`, ["`storyboard_lint.py` check (22)"]);
+});
