@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
-import { abs, findPython, readText } from "./helpers.mjs";
+import { abs, findPython, hasCommand, readText } from "./helpers.mjs";
 
 const LESSONS = "docs/maintainers/lessons.md";
 const FIELDS = ["Note", "Trial", "Scope", "Rule", "Test"];
@@ -956,4 +956,31 @@ test("lessons: portraits and flags come through Wikidata routes, stage 05 opens 
   assert.match(row05, /Only if art is drawn in code: `ice-styles\/references\/code-illustration-craft\.md`/);
   assert.match(readText("skills/ice-film/references/film-setup.md"), /## 3\. Music at 01/);
   assert.match(readText("skills/ice-assets/references/sourcing-and-licenses.md"), /\| `music_options` \| How many real music options/);
+});
+
+// L43: numba's compiled beat tracker crashed the interpreter on an AMD znver3 under Windows, and the analysis ended
+// with no report and no word. ICE_TEST_AUDIO_CRASH makes the audio child crash on purpose: "native" until the generic
+// retry, "always" on both tries.
+test("lessons: a crash in the audio analysis is retried for a plain CPU target, and a second crash fails loudly (L43)", (t) => {
+  const py = findPython();
+  if (!py || !hasCommand("ffmpeg") || spawnSync(py[0], [...py.slice(1), "-c", "import numpy"]).status !== 0) { t.skip("needs ffmpeg and a Python with numpy"); return; }
+  const dir = mkdtempSync(join(tmpdir(), "ice-audio-crash-"));
+  try {
+    const clip = join(dir, "clip.mp4");
+    const mk = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=gray:s=320x180:r=25:d=3", "-f", "lavfi", "-i",
+      "sine=frequency=440:duration=3", "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", clip], { encoding: "utf8" });
+    assert.equal(mk.status, 0, mk.stderr);
+    const run = (mode, out) => spawnSync(py[0], [...py.slice(1), abs("skills/ice-remake/scripts/analyze.py"), clip, "--out", join(dir, out)],
+      { encoding: "utf8", timeout: 300000, env: { ...process.env, ICE_TEST_AUDIO_CRASH: mode } });
+    const report = (out) => JSON.parse(readFileSync(join(dir, out, "report.json"), "utf8"));
+    const once = run("native", "once");
+    assert.equal(once.status, 0, once.stderr);
+    assert.match(once.stderr, /audio analysis crashed .*retrying with NUMBA_CPU_NAME=generic/);
+    assert.ok(!report("once").audio.error, JSON.stringify(report("once").audio));
+    const twice = run("always", "twice");
+    assert.notEqual(twice.status, 0, "a second crash must not exit 0");
+    assert.match(twice.stderr, /report\.json was written, but the audio analysis crashed twice/);
+    assert.match(report("twice").audio.error, /crashed twice/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+  assert.doesNotMatch(readText("skills/ice-remake/scripts/analyze.py"), /ThreadPoolExecutor/, "librosa must not run in a thread of the main process");
 });

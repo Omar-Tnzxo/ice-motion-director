@@ -67,6 +67,7 @@ const NOT_GRADED = {
   L40: "short music, beat error, halftone, fringe and contrast are measured at stages 07 to 09, after the cases stop",
   L41: "the portrait and flag routes are judged by l24-footage-by-script; stage 05 and music options by the L13 and L1 graders",
   L42: "the genre fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
+  L43: "a native crash of analyze.py depends on the machine's CPU, not on the agent's behaviour; the script test covers it",
 };
 const GRADERS = [
   {

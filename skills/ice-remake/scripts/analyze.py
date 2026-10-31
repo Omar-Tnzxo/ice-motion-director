@@ -31,10 +31,12 @@ Lessons baked in (each one broke a real run):
     - phone screen recordings: the video is a strip in the middle of a UI → cropdetect, then analyse the proxy
     - stereo recordings with inverted phase cancel to silence when summed to mono → measure L, R and L+R separately
     - loudness: normalise the chosen channel so beat tracking sees the music, not the noise floor
+    - numba's compiled beat tracker can crash the interpreter on some CPUs (an AMD znver3 under Windows, 2026-10-31)
+      → the audio runs in a child process, retried once for a plain x86-64 target; a crash is reported, never silent
 """
-import argparse, hashlib, importlib.util, json, os, re, shutil, struct, subprocess, sys, collections
+import argparse, faulthandler, hashlib, importlib.util, json, os, re, shutil, struct, subprocess, sys, collections
 
-ANALYZE_VERSION = 6   # bump when report.json gains fields, so cached analyses are redone
+ANALYZE_VERSION = 7   # bump when report.json gains fields, so cached analyses are redone
 
 FFMPEG_FALLBACK = os.environ.get("FFMPEG_DIR", "")   # folder with ffmpeg/ffprobe when they are not on PATH
 if not shutil.which("ffmpeg") and FFMPEG_FALLBACK and os.path.isdir(FFMPEG_FALLBACK):
@@ -459,6 +461,47 @@ def audio(path, info, out):
             "best_30s_starts": [{"start": round(s, 2), "density": round(m, 3)} for m, s in cands[:5]],
             "peak_candidates": peaks,
             "quality_warning": ("mono only (phase-inverted stereo)" if phase_inverted else None)}
+
+
+def audio_child(path, out, result):
+    """--audio-child: audio() alone, its result written to a JSON file for the parent (see audio_start)."""
+    crash = os.environ.get("ICE_TEST_AUDIO_CRASH")   # tests only: "always", or "native" = crash until the generic retry
+    if crash == "always" or (crash == "native" and os.environ.get("NUMBA_CPU_NAME") != "generic"):
+        faulthandler._sigsegv()
+    res = audio(path, {"has_audio": True}, out)
+    with open(result, "w", encoding="utf-8") as f: json.dump(res, f)
+
+
+def audio_start(path, info, out, env=None):
+    """Start audio() in a child process, so it runs beside the video work and a native crash in numba's compiled
+    beat tracker (seen with llvmlite 0.48 on an AMD znver3 under Windows) cannot kill the whole analysis."""
+    if not info["has_audio"]: return None
+    res, log = os.path.join(out, "_audio.json"), os.path.join(out, "_audio.log")
+    if os.path.exists(res): os.remove(res)
+    cmd = [sys.executable, *(["-I"] if sys.flags.isolated else []), os.path.abspath(__file__), path, "--out", out, "--audio-child", res]
+    with open(log, "w", encoding="utf-8") as f:
+        return {"proc": subprocess.Popen(cmd, env=env, stdout=f, stderr=subprocess.STDOUT), "result": res, "log": log}
+
+
+def audio_finish(job, path, info, out):
+    """Wait for the audio child. A crash is retried once with NUMBA_CPU_NAME=generic (numba then compiles for a plain
+    x86-64 target, which fixed the znver3 crash); a second crash returns an error entry that main() reports loudly."""
+    if job is None: return {"present": False}
+    for attempt in (1, 2):
+        rc = job["proc"].wait()
+        with open(job["log"], encoding="utf-8", errors="replace") as f: log = f.read().strip()
+        if rc == 0 and os.path.isfile(job["result"]):
+            with open(job["result"], encoding="utf-8") as f: res = json.load(f)
+            for p in (job["result"], job["log"]): os.remove(p)
+            if log: print(log, file=sys.stderr)
+            if attempt == 2: res["numba_cpu"] = "generic (the default target crashed)"
+            return res
+        code = f"{rc}, signal {-rc}" if rc < 0 else f"0x{rc:08X}" if rc > 255 else str(rc)   # Windows: 0xC0000005 is a crash
+        if attempt == 1:
+            print(f"audio   the audio analysis crashed (exit {code}); retrying with NUMBA_CPU_NAME=generic", file=sys.stderr)
+            job = audio_start(path, info, out, dict(os.environ, NUMBA_CPU_NAME="generic"))
+    return {"present": True, "error": f"the audio analysis crashed twice (exit {code}), the second time with NUMBA_CPU_NAME=generic: "
+            "no tempo, beats or peaks measured", "log": job["log"], "log_tail": log[-1500:]}
 
 
 def peak_candidates(y, sr, beats, n=3):
@@ -948,7 +991,9 @@ def summary(rep, out):
     if rep.get("stillness"): print(f"still   {rep['stillness']['ratio']} (calm {rep['stillness']['calm_ratio']}) on the content ({rep['stillness']['content_area']} of the frame); raw whole-frame {rep['stillness']['raw_frame_ratio']}")
     print(f"shots   {rep['pacing']}")
     if rep.get("look_summary"): print(f"look    {rep['look_summary']}")
-    if au.get("skipped"):
+    if au.get("error"):
+        print("audio   CRASHED:", au["error"])
+    elif au.get("skipped"):
         print("audio   skipped:", au["skipped"])
     elif au.get("silent"):
         print("audio   SILENT:", au["note"])
@@ -978,7 +1023,12 @@ def main():
     ap.add_argument("--no-crop", action="store_true", help="analyse the whole frame: no letterbox or phone-chrome crop")
     ap.add_argument("--rotate", default="auto", choices=["auto", "0", "90", "180", "270"],
                     help="degrees clockwise that make a sideways picture upright; auto turns it only when the orientation check is sure")
+    ap.add_argument("--audio-child", help=argparse.SUPPRESS)   # internal: see audio_start
     a = ap.parse_args()
+    faulthandler.enable()   # a native crash prints where it happened instead of ending the run without a word
+    if a.audio_child:
+        audio_child(a.src, a.out, a.audio_child)
+        return
     if os.path.isfile(a.src) and is_aep(a.src):   # an After Effects project: read with the standard library only
         os.makedirs(a.out, exist_ok=True)
         aep_main(a.src, a.out)
@@ -1015,8 +1065,7 @@ def main():
             if not crop: crop, kind = ui_strip_crop(base, info["duration"], bw, bh), "ui"
             if crop: crop, crop_note = crop_check(base, info["duration"], bw, bh, crop, kind)
     vid = make_proxy(base, crop, a.out) if crop or info["duration"] > 120 else base
-    from concurrent.futures import ThreadPoolExecutor
-    pool = ThreadPoolExecutor(1); aud = pool.submit(audio, src, info, a.out)   # audio (librosa) in parallel with the video work
+    aud = audio_start(src, info, a.out)   # audio (librosa) in a child process, in parallel with the video work
     cuts = shots(vid) if info["width"] else []
     one_take = bool(info["width"]) and not cuts and "scenedetect" not in missing and info["duration"] > 0
     if one_take: cuts = [[0.0, round(info["duration"], 3)]]   # no hard cut found: the whole film is one shot
@@ -1026,7 +1075,7 @@ def main():
            "orientation": orient, "picture": {"width": bw, "height": bh, "rotate": rot}, **({"crop_refused": crop_note} if crop_note else {}),
            "shots": cuts, "pacing": {"count": len(cuts), "mean_shot_s": round(sum(lens) / len(lens), 2) if lens else None,
                                      "shortest_s": round(min(lens), 2) if lens else None, "longest_s": round(max(lens), 2) if lens else None},
-           "audio": aud.result(),
+           "audio": audio_finish(aud, src, info, a.out),
            "shot_details": shot_details(vid, cuts, info["duration"]) if info["width"] else []}
     if one_take: rep["pacing"]["one_take"] = True
     if len(cuts) > 1: rep["boundaries"] = boundaries(vid, [a_ for a_, _ in cuts[1:]])
@@ -1042,14 +1091,19 @@ def main():
         rep["pacing"]["mean_shot_beats"] = round(rep["pacing"]["mean_shot_s"] / rep["audio"]["beat_seconds"], 1)
     with open(os.path.join(a.out, "report.json"), "w", encoding="utf-8") as f:
         json.dump(rep, f, ensure_ascii=False, indent=1)
-    if cdir and missing:
-        print("cache   not written: an optional package is missing, so this analysis is incomplete")
+    if cdir and (missing or rep["audio"].get("error")):
+        print("cache   not written: an optional package is missing or the audio analysis crashed, so this analysis is incomplete")
     elif cdir:
         try:   # cache the whole analysis folder (the agents later read source/proxy from it too)
             shutil.copytree(a.out, cdir, dirs_exist_ok=True, ignore=shutil.ignore_patterns("STYLE.md", "route.json", "proposed_style_*", "song", "lyrics"))
         except OSError as e:
             print("cache   not written:", e)
     summary(rep, a.out)
+    if not os.path.isfile(os.path.join(a.out, "report.json")):
+        sys.exit(f"error: no report.json in {a.out}: the analysis did not finish")
+    if rep["audio"].get("error"):
+        sys.exit(f"error: report.json was written, but {rep['audio']['error']}. The log is {rep['audio']['log']}; "
+                 "tell the user the tempo and beats are missing, and measure them another way before relying on them.")
 
 
 if __name__ == "__main__":
