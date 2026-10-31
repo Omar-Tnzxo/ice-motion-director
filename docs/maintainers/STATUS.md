@@ -2,9 +2,9 @@
 
 ## Current state (2026-10-31)
 
-- Released: 0.2.8 (2026-10-31): measured genre playbooks with fingerprints for UI and app motion, product launch without screens and kinetic type (lessons L42, L44, L45), and the analyze.py crash fix (L43).
+- Released: 0.2.9 (2026-10-31): measured genre playbooks with fingerprints for explainers (L46) and brand films (L47), after UI and app motion, product launch without screens and kinetic type in 0.2.8.
 - Public repository since 2026-10-26, Apache-2.0, no hosted CI: `node scripts/gates.mjs` runs every check and the pre-push hook runs it.
-- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 45 lessons in `docs/maintainers/lessons.md`, each with its test.
+- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 47 lessons in `docs/maintainers/lessons.md`, each with its test.
 - File budget: about 580 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
 - Release check: a manual one-prompt run on a clean Claude before every major release (`AGENTS.md`, Behaviour check before a release).
 

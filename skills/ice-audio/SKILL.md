@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.8
+  version: 0.2.9
 ---
 
 # Ice Audio

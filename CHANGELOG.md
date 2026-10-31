@@ -2,6 +2,19 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.9 - 2026-10-31
+
+Two more film genres are measured, not collected: explainers and brand films each get a playbook from a corpus of professional films and a fingerprint the render is checked against at gate D (`ice-qa/scripts/genre_check.py`).
+
+### Added
+
+- **Explainer (L46),** from 15 films (explainer studios, publishers, brands and four Arabic explainers): the voice on most of the runtime at about 166 words a minute in English and 103 in Arabic, a picture change on 8 or more of 10 sampled sentences, counted scenes of about 3.3 s, about one spoken sentence each, and an end card held for its reading time. The `ice-explainer` route reads the playbook at 02, 04 and 09 and runs its fingerprint at 09 (`expl_` coding keys).
+- **Brand film (L47),** from 14 official brand films (3 from the Arabic market): words carry the film (voice, song or dialogue), filmed brand films cut hard with counted shots of about 1.3 s and one or two emotional holds, the brand seen through the film, and the logo centred at the end. The anthem montage and the story with characters are added as measured structure options (`brand_` coding keys).
+
+### Changed
+
+- **General rules these genres contradict are scoped, never deleted (AGENTS.md rule 6):** the 2.2 to 2.5 words a second voice budget, a new element every 3 s, 4 to 15 s segments, no bare cuts in card explainers, real footage for every real product, the explainer end hold; and for brand films music-led by default, every transition transforming the object, value flips at every chapter, manifesto lines word by word, 25 percent dead still, two light events, and gentle -16 loudness. Each stays the house default where it holds and names the genre or variant where the measured way wins.
+
 ## 0.2.8 - 2026-10-31
 
 Three film genres are now measured, not collected: each playbook comes from a corpus of professional films measured with the plugin's own tools, and each carries a fingerprint that the render is checked against at gate D (`ice-qa/scripts/genre_check.py`).
