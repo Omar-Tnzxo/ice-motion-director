@@ -2,10 +2,10 @@
 
 ## Current state (2026-10-31)
 
-- Released: 0.2.12 (2026-10-31): thirteen lessons of the 3D plain-prompt and remake test runs (L52 to L64), after the hype promo and social short playbooks of 0.2.11 (L49 to L51).
+- Released: 0.2.13 (2026-10-31): measured genre playbooks for news reels (L65) and logo stings (L66), after the thirteen lessons of the 3D plain-prompt and remake test runs in 0.2.12 (L52 to L64).
 - Public repository since 2026-10-26, Apache-2.0, no hosted CI: `node scripts/gates.mjs` runs every check and the pre-push hook runs it.
-- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 64 lessons in `docs/maintainers/lessons.md`, each with its test.
-- File budget: about 582 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
+- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 66 lessons in `docs/maintainers/lessons.md`, each with its test.
+- File budget: about 584 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
 - Release check: a manual one-prompt run on a clean Claude before every major release (`AGENTS.md`, Behaviour check before a release).
 
 Everything below is the build history from 2026-10-19, kept as written; numbers in it (skills, tests, files, CI) are from that day.

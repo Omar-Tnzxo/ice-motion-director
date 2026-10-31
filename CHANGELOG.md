@@ -2,6 +2,21 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.13 - 2026-10-31
+
+Two more genres are measured from professional work instead of collected rules: news reels (14 reels from 9 newsrooms, 7 in Arabic) and logo stings (15 stings and idents of 15 brands). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft.
+
+### Added
+
+- **News reel playbook (L65).** `ice-film/references/genres/news-reel.md`: three variants (presenter-led, footage under a voice, captioned footage), something new every 0.33 s, the first concrete fact at 2.4 s at the median, the spoken words on screen verbatim, attribution on screen. The fingerprint gates the first fact by 15 s and words on screen through the new `news_` keys; the edit type `news-reel` runs it at 07 and 09.
+- **Logo sting playbook (L66).** `ice-film/references/genres/logo-sting.md`: mark stings (2.3 to 7 s) and idents or studio fanfares (8.6 to 24 s), the logo held 1.0 to 3.5 s after it locks, the sound starting with the picture and peaking on or just before the lock. The fingerprint gates the hold (at least 0.9 s) through the new `sting_` keys.
+
+### Changed
+
+- **A news reference with no presenter on screen no longer asks for presenter footage (L65):** the user's news footage runs the edit type `news-reel` with variant B or C. A reference with a presenter or anchor still asks for the presenter footage.
+- **News reel package rules are scoped, not deleted (L65):** the presenter share of 75 to 87 percent, the end card on every reel, the 36 to 78 s length, the caption size floor and the Arabic caption length stay the programme packages' values; the measured genre numbers apply to a reel that follows no package and no reference.
+- **Logo stings run 2 to 12 s and hold their logo up to 6.1 s (L66):** gate G3's logo sting row moves from 1.4 to 6.1 s; the 1.4 s end hold stays for product launches, app ads, hype promos and social shorts. A light event is an option, and a sting may exit after its hold, with the Final Frame Contract checked on the held logo.
+
 ## 0.2.12 - 2026-10-31
 
 Thirteen lessons from two maintainer test runs (a 3D news reel from a plain prompt and a frame-locked remake of a feature concept) become rules, checks and tests. The checks now measure what they used to guess: a one-colour logo is found from its own file, the speaker is compared with his source frame, pacing stops at the end card, and a value on its threshold is yellow instead of flipping between red and pass.
