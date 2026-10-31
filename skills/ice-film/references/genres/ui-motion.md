@@ -88,14 +88,17 @@ with:
 
 - `text`: `dominant_reveal` (word_by_word, line, letter, typed, static or none), `lines_total`,
   `lines_with_emphasis_colour` (a word or phrase in a colour different from the rest of its line), `max_words_per_line`.
+  Text lines are the film's headline and body copy only: UI labels, bracketed or subtitle captions and end card lines
+  are not counted (the end card is coded in `end_card`), and `dominant_reveal` is the most frequent mode over the
+  counted lines, so two coders of the same film agree.
 - `hero`: `ui_parts_hero` (true when UI parts, not whole screens, carry the shots), `device_frame` (none, phone,
   laptop, browser-window, mixed).
 - `interaction`: `presses` (a pointer touching a part, or the part reacting as pressed under it), `pointer`
-  (cursor, finger, none, both), `typing_in_field`.
+  (cursor, finger, none, both; any pointer shown, even one that only rides along), `typing_in_field`.
 - `transitions`: counts of `hard_cut`, `morph_or_match`, `scale_through`, `push_or_slide`, `camera_move_through`,
   `dissolve`, `other`.
-- `end_card`: `logo_position` (center, left, other, none), `background` (plain-solid, plain-gradient, ui, footage,
-  none), `length_s`, `tagline`.
+- `end_card`: `start_s` (when the end card appears; the event gaps stop there), `logo_position` (center, left, other,
+  none), `background` (plain-solid, plain-gradient, ui, footage, none), `length_s`, `tagline`.
 - `scenes`: one row per scene a viewer would count (`start`, `end`, `hero`).
 
 ## Fingerprint
@@ -104,7 +107,16 @@ with:
 runs at gate D on every draft of a film of this genre that follows no reference, and its numbers go into the delivery
 report. A red key is fixed in the film (more UI acts in a long gap, a tighter first 3 s, a centred plain end card), never
 by padding with idle motion; a key the user, a reference or the chosen style sets differently is lifted by its
-exemption row and passed as `--exempt <key>=<source>`. Keys marked `-` are reported for the critic, not gated.
+exemption row and passed as `--exempt <key>=<source>`. Keys marked `-` are reported for the critic, not gated. A film
+that follows a reference (a remake) runs the same check with `--reference-measures <reference measures>` and
+`--reference-coding <reference coding sheet>`: each gated key and `presses` is held to the reference's own value
+(within 30 percent, as the pacing gate), and the genre line's light is printed beside it.
+
+The longest gap is measured on the body: with a coding sheet the event list stops at `end_card.start_s`, so the held
+end card is judged by the end card keys (measured that way the corpus body gaps run 0.84 to 6.17 s). `pointer_presses`
+is a house rule the corpus confirms: every one of the 9 films that shows a pointer presses with it at least once (the
+6 others show none), so a pointer that only rides along while UI parts change on their own fails, and no allowed miss
+lifts it (the cause of every UI change is visible: `film-types/ui-walkthrough.md`, the clarity gate).
 
 Calibration: only keys that 13 or more of the 15 corpus films hold are gated, at bounds that cover the corpus, and one
 gated key may miss (`misses_allowed 1`, printed yellow with a sentence in the delivery report). On its own corpus the
@@ -112,7 +124,7 @@ line passes 13 of 15 films; the two it flags are the 10 s icon loop with no text
 launch film with 0.43 events per second. Conventions held by 60 to 86 percent (a busy first 3 s, at most 2.5 hard cuts
 per 10 s, presses, depth) are craft targets for the storyboard and the critic, reported by the check, never gated.
 
-Genre fingerprint: events_per_s >=1.0; median_event_gap_s <=0.6; max_event_gap_s <=6.2; scene_median_s 0.8-6.2; text_reveal word_by_word|line|typed|letter; ui_hero true; end_logo center; end_background plain-solid|plain-gradient; misses_allowed 1; hook_events_3s -; cuts_per_10s -; end_center_dx -; presses -; emphasis_share -; hard_cut_share -; sfx_per_min -; move_onset_lift -; end_bg_std -.
+Genre fingerprint: events_per_s >=1.0; median_event_gap_s <=0.6; max_event_gap_s <=6.2; scene_median_s 0.8-6.2; text_reveal word_by_word|line|typed|letter; ui_hero true; end_logo center; end_background plain-solid|plain-gradient; pointer_presses >=1; misses_allowed 1; hook_events_3s -; cuts_per_10s -; end_center_dx -; presses -; emphasis_share -; hard_cut_share -; sfx_per_min -; move_onset_lift -; end_bg_std -.
 
 ## Rules this genre replaces
 

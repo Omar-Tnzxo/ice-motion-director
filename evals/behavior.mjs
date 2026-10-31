@@ -72,6 +72,7 @@ const NOT_GRADED = {
   L45: "the kinetic type fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L46: "the explainer fingerprint runs on a render at stage 09 (genre_check.py), after the cases stop",
   L47: "the brand film fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
+  L48: "the pointer press, body gap and reference checks run on a render and its coding sheet at gate D, after the cases stop",
 };
 const GRADERS = [
   {

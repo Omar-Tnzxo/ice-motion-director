@@ -19,7 +19,7 @@ const PIXEL_KEYS = ["move_onset_lift", "scene_median_s", "cuts_per_10s", "events
 const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "hard_cut_share", "end_logo", "end_background",
   "product_first_s", "end_product", "hero_shot_kind", "ground",
   "type_text_share", "type_words_per_line", "type_max_words", "type_only_share",
-  "brand_carrier", "brand_shot_median_s", "brand_first_s", "brand_footage_share",
+  "brand_carrier", "brand_shot_median_s", "brand_first_s", "brand_footage_share", "pointer_presses",
   "expl_sentence_change", "expl_words_per_scene", "expl_scene_median_s", "expl_wpm", "expl_text_share",
   "expl_diagram_share", "expl_real_share", "expl_builds"];
 
@@ -280,6 +280,60 @@ test("genre_check.py: the brand coding keys read the coding sheet's brand block"
       meas.max_event_gap_s = 12;
       writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
       assert.equal(run().status, 2, "two gated brand film keys outside the fingerprint are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the UI coding sheet says which lines are text, when the end card starts, and that a shown pointer presses", () => {
+  has(`${GENRES}/ui-motion.md`, ["headline and body copy only", "`start_s` (when the end card appears", "pointer_presses >=1",
+    "--reference-measures", "every one of the 9 films that shows a pointer presses with it"]);
+  has("skills/ice-film/references/film-types/ui-walkthrough.md", ["a cursor clicks real element centres with a press and release"]);
+  has("skills/ice-film/references/film-setup.md", ["`--reference-measures` and `--reference-coding`"]);
+});
+
+test("genre_check.py: the gaps stop at the end card, a pointer that never presses is red, a reference's values gate a remake",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-ref-"));
+    try {
+      // events every 0.5 s up to 31 s, then a 7.8 s held end card: the whole-film longest gap is the card
+      const events = Array.from({ length: 62 }, (_, i) => +(i * 0.5).toFixed(2));
+      const film = { duration_s: 38.8, events_s: events, events_per_s: 1.6, median_event_gap_s: 0.5, max_event_gap_s: 8.3,
+        scene_median_s: 1.0, cuts_per_10s: 1.3, hook_events_3s: 6 };
+      const coding = { text: { dominant_reveal: "word_by_word", lines_total: 9, lines_with_emphasis_colour: 2 },
+        hero: { ui_parts_hero: true }, interaction: { presses: 3, pointer: "cursor" },
+        end_card: { start_s: 31.0, logo_position: "center", background: "plain-solid" } };
+      const w = (name, obj) => { writeFileSync(join(dir, name), JSON.stringify(obj)); return join(dir, name); };
+      const run = (...a) => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "ui-motion", ...a, "--json"],
+        { encoding: "utf8", timeout: 60000 });
+      const ok = run("--measures", w("f.json", film), "--coding", w("c.json", coding));
+      assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.max_event_gap_s.value, 0.5, "the held end card is not a body gap");
+      assert.equal(rows.max_event_gap_s.light, "green");
+      // a cursor rides along while UI parts change by themselves: red even though one miss is allowed
+      const ride = run("--measures", join(dir, "f.json"), "--coding", w("r.json", { ...coding, interaction: { presses: 0, pointer: "cursor" } }));
+      assert.equal(ride.status, 2, "a shown pointer with no press is red: " + ride.stdout);
+      assert.deepEqual(JSON.parse(ride.stdout).red, ["pointer_presses"]);
+      const none = run("--measures", join(dir, "f.json"), "--coding", w("n.json", { ...coding, interaction: { presses: 0, pointer: "none" } }));
+      assert.equal(none.status, 0, "a film with no pointer has nothing to press with");
+      // reference mode: the reference's values win, the genre line is printed beside them
+      // a calm reference: an event every 1.25 s, slower than the genre line on two keys
+      const slow = Array.from({ length: 25 }, (_, i) => +(i * 1.25).toFixed(2));
+      const ref = { ...film, events_s: slow, events_per_s: 0.8 };
+      const calm = { ...film, events_s: slow, events_per_s: 0.8 };
+      const g = run("--measures", w("calm.json", calm), "--coding", join(dir, "c.json"));
+      assert.equal(g.status, 2, "a calm film is red on the genre line");
+      const rm = run("--measures", join(dir, "calm.json"), "--coding", join(dir, "c.json"),
+        "--reference-measures", w("ref.json", ref), "--reference-coding", join(dir, "c.json"));
+      assert.equal(rm.status, 0, "the same film passes against the calm reference it follows: " + rm.stdout);
+      const rj = JSON.parse(rm.stdout);
+      assert.equal(rj.reference, true);
+      assert.equal(rj.rows.events_per_s.genre_light, "red");
+      assert.equal(rj.rows.events_per_s.reference, 0.8);
+      const fewer = run("--measures", join(dir, "f.json"), "--coding", join(dir, "n.json"),
+        "--reference-measures", join(dir, "ref.json"), "--reference-coding", join(dir, "c.json"));
+      assert.ok(JSON.parse(fewer.stdout).misses.includes("presses"), "a remake with no press where its reference presses 3 times misses");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

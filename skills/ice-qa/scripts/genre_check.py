@@ -6,12 +6,16 @@
 # The explainer playbook adds the expl_ keys: the sentence sample, spoken words per counted scene, the counted scene
 # median (gated) and the voice rate, text, diagram, real material and build counts (reported). The brand film
 # playbook adds the brand_ keys (carrier, counted shot median, first brand sighting, footage share), all reported.
+# 0.2.10, after the first Ice film was checked against the UI corpus: the event gaps stop at the coded end card start,
+# a followed reference is checked by its own values (--reference-measures), and pointer_presses gates a shown pointer
+# that never presses (a house rule every corpus film holds, so no allowed miss lifts it).
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
 Usage:
   python genre_check.py measure <video> --out <json>
   python genre_check.py check --genre <name> (--video <mp4> | --measures <json>) [--coding <json>] [--json]
+                         [--reference-measures <json> [--reference-coding <json>]]
   python genre_check.py genres                      list the playbooks that carry a fingerprint
 
 measure (numpy; ffmpeg and ffprobe on PATH): pixel and audio measures, written as JSON.
@@ -42,6 +46,16 @@ miss is then yellow and needs a sentence in the delivery report). A key misses o
 within 10 percent of the range's width from an edge, or a coding key with no coding sheet. Red when more keys miss than
 allowed: exit 2; 0 otherwise; 1 for bad input.
 
+The event gaps (median_event_gap_s, max_event_gap_s) stop at the coding sheet's end_card.start_s when it is given: the
+held end card is judged by the end card keys, not as a gap in the film's body. HARD_KEYS are house rules every corpus
+film holds (pointer_presses: a pointer shown on screen presses something at least once, so the cause of a UI change is
+visible); a miss on one is red whatever misses_allowed says.
+
+Reference mode (--reference-measures, with --reference-coding for the coding keys): a film that follows a reference is
+checked against the reference's own value on every gated key and on presses, with the pacing gate's tolerance (30
+percent; one-sided for a <= or >= key, so a tighter or busier film than its reference passes; a categorical key must
+match). The genre line's light is printed beside each row; a key the reference has no value for keeps the genre rule.
+
 The fingerprint describes the genre, not one film: a film that follows a reference, a chosen style or the user's own
 words on a key is checked against that source instead, with an exemption row of the craft plan lifting genre:<key>
 (the ice-direction skill, references/treatment.md section "Craft plan"); the check prints the source it was given with
@@ -68,6 +82,8 @@ SHIFTS = (0.37, 0.61, 0.83, 1.13, 1.41, 1.79)
 PIXEL_KEYS = ("move_onset_lift", "scene_median_s", "cuts_per_10s", "events_per_s", "median_event_gap_s", "max_event_gap_s",
               "hook_events_3s", "sfx_per_min", "move_with_onset", "end_center_dx", "end_center_dy", "end_area",
               "end_bg_std")
+HARD_KEYS = ("pointer_presses",)
+REF_BAND = 0.30   # the pacing gate's tolerance (motion_check.py STATS_BAND)
 
 
 # ---------------------------------------------------------------- fingerprint line
@@ -148,6 +164,11 @@ def coding_value(coding, key):
     if key == "ui_hero":
         return bool(h.get("ui_parts_hero"))
     if key == "presses":
+        return i.get("presses")
+    if key == "pointer_presses":
+        # no pointer shown: nothing to press with, so the key holds (the coding sheet's pointer "none")
+        if str(i.get("pointer") or "").lower() in ("", "none"):
+            return None if i.get("pointer") is None else "no pointer"
         return i.get("presses")
     if key == "hard_cut_share":
         tot = sum(v for k, v in tr.items() if isinstance(v, (int, float)) and k != "dominant")
@@ -359,23 +380,67 @@ def measure(video):
 LIGHTS = {"red": "[RED]   ", "yellow": "[YELLOW]", "green": "[GREEN] ", "exempt": "[EXEMPT]", "--": "[  --  ]"}
 
 
-def check(genre, meas, coding, exempt):
+def body_gaps(meas, coding):
+    """The measures with the event gaps cut at the coded end card start (the held card is not a body gap)."""
+    es = ((coding or {}).get("end_card") or {}).get("start_s")
+    ev, dur = meas.get("events_s"), meas.get("duration_s")
+    if not isinstance(es, (int, float)) or not ev or not dur or not 0 < es < dur:
+        return meas, None
+    body = [t for t in ev if t < es]
+    gaps = sorted(b - a for a, b in zip([0.0] + body, body + [float(es)]))
+    mid = len(gaps) // 2
+    out = dict(meas)
+    out["median_event_gap_s"] = round(gaps[mid] if len(gaps) % 2 else (gaps[mid - 1] + gaps[mid]) / 2, 2)
+    out["max_event_gap_s"] = round(gaps[-1], 2)
+    return out, float(es)
+
+
+def value_of(k, meas, coding):
+    if k in PIXEL_KEYS:
+        v = meas.get(k)
+        if k in ("end_center_dx", "end_center_dy") and v is not None:
+            v = abs(v)
+        return v, "measured"
+    return (coding_value(coding, k) if coding else None), "coding sheet"
+
+
+def ref_light(v, rv, rule):
+    """The film's value against the reference's: 30 percent band, one-sided for a <= or >= rule, equal otherwise."""
+    if v is None:
+        return "red"
+    if isinstance(rv, (bool, str)) or isinstance(v, (bool, str)):
+        return "green" if str(v).lower() == str(rv).lower() else "red"
+    v, rv = float(v), float(rv)
+    kind = rule[0] if rule else "range"
+    if kind == "max":
+        return "green" if v <= rv * (1 + REF_BAND) + 1e-9 else "red"
+    if kind == "min":
+        return "green" if v >= rv * (1 - REF_BAND) - 1e-9 else "red"
+    return "green" if rv * (1 - REF_BAND) - 1e-9 <= v <= rv * (1 + REF_BAND) + 1e-9 else "red"
+
+
+def check(genre, meas, coding, exempt, ref_meas=None, ref_coding=None):
     fp, line, path = read_fingerprint(genre)
     if fp is None:
         return {"genre": genre, "error": f"no 'Genre fingerprint:' line in {path}"}
     rows = {}
     allowed = fp.get("misses_allowed", 0)
+    meas, body_end = body_gaps(meas, coding)
+    if ref_meas is not None:
+        ref_meas, _ = body_gaps(ref_meas, ref_coding)
+        if "presses" not in fp:
+            fp = dict(fp, presses=None)
     for k, rule in fp.items():
         if k == "misses_allowed":
             continue
-        if k in PIXEL_KEYS:
-            v, src = meas.get(k), "measured"
-            if k in ("end_center_dx", "end_center_dy") and v is not None:
-                v = abs(v)
-        else:
-            src = "coding sheet"
-            v = coding_value(coding, k) if coding else None
-        lt = light(v, rule)
+        v, src = value_of(k, meas, coding)
+        lt = "green" if k == "pointer_presses" and v == "no pointer" else light(v, rule)
+        rv = genre_lt = None
+        if ref_meas is not None:
+            rv, _ = value_of(k, ref_meas, ref_coding)
+            rv = None if rv == "no pointer" else rv
+        if rv is not None and (rule is not None or k == "presses"):
+            genre_lt, lt = lt, ref_light(v, rv, rule or ("min",))
         if k in exempt:
             lt = "exempt"
         elif v is None and src == "coding sheet" and rule is not None:
@@ -388,17 +453,25 @@ def check(genre, meas, coding, exempt):
                    "source": src, "light": lt}
         if k in exempt:
             rows[k]["exempt"] = exempt[k]
+        if rv is not None:
+            rows[k]["reference"] = rv
+            if genre_lt is not None:
+                rows[k]["source"] = src + ", against the reference"
+                rows[k]["genre_light"] = genre_lt
+        if body_end is not None and k in ("median_event_gap_s", "max_event_gap_s"):
+            rows[k]["note"] = f"body only: events up to the end card at {body_end:g} s"
         if v is None and lt == "yellow":
             rows[k]["note"] = "no coding sheet: a fresh reviewer codes the render" if src == "coding sheet" else "no audio"
     misses = [k for k, r in rows.items() if r["light"] == "red"]
-    red = misses if len(misses) > allowed else []
+    hard = [k for k in misses if k in HARD_KEYS]
+    red = misses if len(misses) - len(hard) > allowed else hard
     if misses and not red:
         for k in misses:
             rows[k]["light"] = "yellow"
             rows[k]["note"] = (f"one of {allowed} allowed miss(es): a film of the genre may differ on {allowed} key(s); "
                                "say why in the delivery report")
     return {"genre": genre, "from": str(path), "line": line, "rows": rows, "red": red, "misses": misses,
-            "misses_allowed": allowed,
+            "misses_allowed": allowed, "reference": ref_meas is not None,
             "verdict": "red" if red else "yellow" if any(r["light"] == "yellow" for r in rows.values()) else "green"}
 
 
@@ -414,6 +487,8 @@ def main():
     p.add_argument("--measures", help="a measure JSON (written by measure); standard library only")
     p.add_argument("--coding", help="the coding sheet of the render, filled by a fresh reviewer")
     p.add_argument("--exempt", action="append", default=[], help="key=source and reason (a craft plan row lifting genre:<key>)")
+    p.add_argument("--reference-measures", help="measures of the reference the film follows: its values gate the keys")
+    p.add_argument("--reference-coding", help="the reference's coding sheet, for the coding keys in reference mode")
     p.add_argument("--json", action="store_true")
     sub.add_parser("genres", help="list the genre playbooks that carry a fingerprint")
     a = ap.parse_args()
@@ -435,6 +510,8 @@ def main():
     try:
         meas = measure(Path(a.video)) if a.video else json.loads(Path(a.measures).read_text(encoding="utf-8"))
         coding = json.loads(Path(a.coding).read_text(encoding="utf-8")) if a.coding else None
+        rmeas = json.loads(Path(a.reference_measures).read_text(encoding="utf-8")) if a.reference_measures else None
+        rcoding = json.loads(Path(a.reference_coding).read_text(encoding="utf-8")) if a.reference_coding else None
     except (OSError, ValueError) as e:
         print(f"genre_check.py: cannot read input: {e}", file=sys.stderr)
         return 1
@@ -442,17 +519,22 @@ def main():
     for x in a.exempt:
         k, _, why = x.partition("=")
         exempt[k.strip()] = why.strip() or "no reason given"
-    res = check(a.genre, meas, coding, exempt)
+    if rcoding is not None and rmeas is None:
+        print("--reference-coding needs --reference-measures", file=sys.stderr)
+        return 1
+    res = check(a.genre, meas, coding, exempt, rmeas, rcoding)
     if "error" in res:
         print(res["error"], file=sys.stderr)
         return 1
     if a.json:
         print(json.dumps(res, indent=1))
     else:
-        print(f"Genre fingerprint {a.genre} from {res['from']}")
+        print(f"Genre fingerprint {a.genre} from {res['from']}" + (", checked against the reference" if res["reference"] else ""))
         for k, r in res["rows"].items():
             v = "none" if r["value"] is None else r["value"]
-            print(f"  {LIGHTS[r['light']]} {k}: {v}   fingerprint: {r['rule'] or '- (reported)'}   ({r['source']})"
+            ref = ((f"   reference: {r['reference']}" + (f" (genre line: {r['genre_light']})" if r.get("genre_light") else ""))
+                   if "reference" in r else "")
+            print(f"  {LIGHTS[r['light']]} {k}: {v}   fingerprint: {r['rule'] or '- (reported)'}{ref}   ({r['source']})"
                   + (f"   exempt: {r['exempt']}" if r.get("exempt") else "") + (f"   {r['note']}" if r.get("note") else ""))
         print(f"verdict: {res['verdict']}")
     return 2 if res["red"] else 0
