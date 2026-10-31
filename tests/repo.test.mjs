@@ -148,3 +148,12 @@ test(`every SKILL.md is at most ${MAX_SKILL_MD} bytes`, () => {
     .map(([f, size]) => `${f}: ${size} bytes`);
   assert.deepEqual(problems, []);
 });
+
+// The site moved to https://icemotion.dev on 2026-10-31 (the old workers.dev host answers with a 301). Only the dated
+// history in CHANGELOG.md may still name the old host.
+test("links: the website is https://icemotion.dev; the old workers.dev host stays only in the changelog history", () => {
+  const OLD_HOST = ["omarhassan", "workers", "dev"].join(".");
+  const old = repoFiles().filter((f) => f !== "CHANGELOG.md" && isText(f) && readText(f).includes(OLD_HOST));
+  assert.deepEqual(old, [], "replace the old host with https://icemotion.dev, keeping the path");
+  assert.match(readText("README.md"), /https:\/\/icemotion\.dev\//);
+});

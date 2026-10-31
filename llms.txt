@@ -48,5 +48,5 @@
 
 ## Optional
 
-- [Website](https://ice-motion-director.omarhassan.workers.dev/)
-- [Showcase: Spotify concept ad with its full workflow (unofficial concept, not affiliated with Spotify)](https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/)
+- [Website](https://icemotion.dev/)
+- [Showcase: Spotify concept ad with its full workflow (unofficial concept, not affiliated with Spotify)](https://icemotion.dev/showcase/spotify-concept-ad/)

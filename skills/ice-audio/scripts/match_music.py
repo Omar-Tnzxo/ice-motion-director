@@ -3,6 +3,8 @@
 # match_music.py and rank_sfx.py, merged into one script with two modes). It measures with sound_map.py from this folder.
 # 2026-10-29 (0.2.5): the pack mode (fetch and list Ice's own CC0 Release asset pack, founder decision D4) and the
 # under-speech alias of the news-reel SFX profile.
+# 2026-10-31 (0.2.15): sharp hits sync on their arrival, and the taste file (lesson L69; the ideas come from Clipwing's
+# Real SFX, MIT, rewritten here with no code copied).
 """Rank real music tracks, or recorded sound effects, by measured closeness. No network except `pack fetch` (the
 pinned Release asset pack): the candidates are local files the sourcing routes already fetched (the ice-audio skill,
 SKILL.md section 5).
@@ -21,7 +23,11 @@ and one cand-<name>/ folder per candidate with its sound map (kept as a cache: a
 sfx mode: the selection rules of references/sfx.md sections 5 and 6 as numbers, per file: lead-in to the sync point,
 rise time, tail, energy share under 150 Hz and over 6 kHz, peak. Rejects: over 50 % of the energy under 150 Hz
 (whoosh), over 40 % over 6 kHz (any). Whooshes score on an 80 to 400 ms rise and a short lead-in; impacts on a
-0.6 to 1.0 s tail and a fast transient. Lower score is better.
+0.6 to 1.0 s tail and a fast transient. Lower score is better. The sync point of an impact is its arrival when it
+climbs fast (references/sfx.md section 5 item 1: the first 60 ms within 6 dB of the loudest, used when the climb is
+under 0.45 s and the arrival is 0.10 s or more before the loudest 10 ms); a whoosh keeps its pass-by peak. Each row
+gives sync_s, peak_s and sync_rule (arrival or peak). The user's taste file (~/.ice-motion-director/sfx-taste.json, or
+ICE_SFX_TASTE, written by preview_options.py sfx) rejects a banned sound (+10) and favours a loved one (-1).
 --profile news-reel (references/sfx.md section 3b), or its alias under-speech for a cue under speech in any film:
 under speech an effect is sub or air, so the two band rejects and the phone note are replaced by one reject: over
 50 % of the energy in the 150 Hz to 4 kHz voice band (any kind). Impacts score on a 0.6 to 1.4 s tail (the sub booms
@@ -34,7 +40,9 @@ checks the zip and every file against their SHA-256, and refuses unsafe paths; I
 "routes": {"ice_sfx_pack": false} in sources.json turn it down (the ice-assets skill, sourcing-and-licenses.md
 section 0), and "ask" there needs --yes after the user agreed. `pack list` prints the files of one or more types with
 their sync point and levels (references/sfx.md section 7), filtered for speech with --profile news-reel or
-under-speech; rank hero sounds by piping the paths into the sfx mode.
+under-speech; rank hero sounds by piping the paths into the sfx mode. A file of sync kind peak is measured at run time
+and its arrival printed beside the manifest's stored sync_s when the arrival rule holds (numpy and ffmpeg; without
+them the stored value, marked not measured). Sounds banned in the taste file are left out; loved ones come first.
 
 Usage (Windows, macOS, Linux; needs ffmpeg on PATH, ffprobe too for sfx, and numpy plus scipy from requirements.txt):
     python match_music.py music --ref <sound_map.json or reference file> --out <folder> <track> <track> [...]
@@ -246,15 +254,36 @@ def load_sfx(np, path: Path):
     return frames.mean(axis=1).astype(np.float64), float(np.max(np.abs(frames)))
 
 
-def measure_sfx(np, path: Path) -> dict:
+def arrival_s(np, x, peak_s: float) -> float | None:
+    """The audible arrival of a sharp hit (references/sfx.md section 5 item 1; idea from Clipwing's Real SFX, MIT,
+    rewritten): 20 ms energy windows, each averaged with the next two (60 ms); the arrival is the first window within
+    6 dB of the loudest. Used only when the sound climbs fast (first window within 3 dB minus first within 20 dB under
+    0.45 s) and the arrival is 0.10 s or more before peak_s; otherwise None and the peak stays."""
+    w = SFX_SR // 50
+    n = len(x) // w
+    if n < 3:
+        return None
+    e = (x[: n * w].reshape(n, w) ** 2).sum(axis=1)
+    es = np.convolve(np.concatenate([e, [0.0, 0.0]]), np.ones(3) / 3, mode="valid")[:n]
+    top = float(es.max())
+    if top <= 0:
+        return None
+    first = lambda db: int(np.nonzero(es >= top * 10 ** (-db / 10))[0][0]) * w / SFX_SR + 0.01
+    arrive, climb = first(6), first(3) - first(20)
+    return round(arrive, 3) if climb < 0.45 and peak_s - arrive >= 0.10 else None
+
+
+def measure_sfx(np, path: Path, sync_kind: str = "pass_by") -> dict:
     x, peak = load_sfx(np, path)
     n = max(1, int(SFX_SR * 0.010))  # 10 ms RMS envelope
     env = np.sqrt(np.convolve(np.pad(x ** 2, (n // 2, n - n // 2 - 1)), np.ones(n) / n, mode="valid"))
     top = float(env.max()) or 1e-12
     sounding = np.nonzero(20 * np.log10(np.maximum(env, 1e-12) / top) > -40)[0]
     start, end = (int(sounding[0]), int(sounding[-1])) if len(sounding) else (0, len(x) - 1)
-    sync = int(np.argmax(env))  # the pass-by peak of a whoosh, the body of a hit
-    seg = env[start:sync + 1]
+    loudest = int(np.argmax(env))  # the pass-by peak of a whoosh, the body of a hit
+    arrive = arrival_s(np, x, loudest / SFX_SR) if sync_kind == "peak" else None
+    sync = int(round(arrive * SFX_SR)) if arrive is not None else loudest
+    seg = env[start:loudest + 1]
     a10, a90 = np.nonzero(seg >= 0.1 * top)[0], np.nonzero(seg >= 0.9 * top)[0]
     rise = (a90[0] - a10[0]) / SFX_SR if len(a10) and len(a90) else 0.0
     spec = np.abs(np.fft.rfft(x[start:end + 1])) ** 2
@@ -262,7 +291,8 @@ def measure_sfx(np, path: Path) -> dict:
     total = float(spec.sum()) or 1e-12
     rms = float(np.sqrt(np.mean(x[start:end + 1] ** 2))) or 1e-12
     return {"file": path.name, "lead_in_s": round(start / SFX_SR, 3), "sync_s": round(sync / SFX_SR, 3),
-            "rise_ms": round(rise * 1000), "tail_s": round((end - sync) / SFX_SR, 2),
+            "peak_s": round(loudest / SFX_SR, 3), "sync_rule": "arrival" if arrive is not None else "peak",
+            "rise_ms": round(rise * 1000), "tail_s": round((end - loudest) / SFX_SR, 2),
             "low_share": round(float(spec[freqs < 150].sum()) / total, 2),
             "high_share": round(float(spec[freqs > 6000].sum()) / total, 2),
             "voice_band_share": round(float(spec[(freqs >= 150) & (freqs <= 4000)].sum()) / total, 2),
@@ -304,6 +334,35 @@ def score_sfx(kind: str, m: dict, profile: str = "default") -> tuple[float, list
         notes.append("quiet file: level it before use (sfx.md section 6)")
         s += 1
     return round(s, 2), notes
+
+
+def taste_path() -> Path:
+    """The user's SFX taste file (references/sfx.md section 7 item 3): ICE_SFX_TASTE, else ~/.ice-motion-director/sfx-taste.json."""
+    return Path(os.environ.get("ICE_SFX_TASTE") or Path.home() / ".ice-motion-director" / "sfx-taste.json")
+
+
+def load_taste() -> dict:
+    """{"version": 1, "love": {sha256: row}, "ban": {sha256: row}}; an unreadable file reads as empty, with a warning."""
+    empty = {"version": 1, "love": {}, "ban": {}}
+    f = taste_path()
+    if not f.is_file():
+        return empty
+    try:
+        t = json.loads(f.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as e:
+        sys.stderr.write(f"warning: {f} is not readable JSON ({e}); no taste applied\n")
+        return empty
+    if not isinstance(t, dict):
+        return empty
+    return {"version": 1, "love": dict(t.get("love") or {}), "ban": dict(t.get("ban") or {})}
+
+
+def file_sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(1 << 20):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def pack_dir() -> Path:
@@ -400,6 +459,23 @@ def run_pack_fetch(args: argparse.Namespace) -> int:
     return 0
 
 
+def pack_peak_sync(np, path: Path, row: dict) -> str:
+    """The sync text of a pack file of sync kind peak: its arrival measured now (references/sfx.md section 5 item 1)
+    when the rule holds against the manifest's stored sync_s, else that stored value. assets-sfx-v1 stores the peak;
+    measuring at run time fixes its early first clicks without a new pack."""
+    stored = row.get("sync_s")
+    if np is None or shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
+        return f"sync {stored} s (peak, not measured: numpy, ffmpeg or ffprobe missing)"
+    try:
+        x, _ = load_sfx(np, path)
+    except (OSError, ValueError) as e:
+        return f"sync {stored} s (peak, not measured: {e})"
+    arrive = arrival_s(np, x, float(stored or 0.0))
+    if arrive is None:
+        return f"sync {stored} s (peak)"
+    return f"sync {arrive} s (peak, arrival; manifest {stored} s)"
+
+
 def run_pack_list(args: argparse.Namespace) -> int:
     man = pack_manifest()
     if not man:
@@ -411,9 +487,25 @@ def run_pack_list(args: argparse.Namespace) -> int:
         rows = [r for r in rows if (r.get("band_share") or {}).get("voice_150_4k", 1.0) <= 0.5]
     if args.max_dur:
         rows = [r for r in rows if r.get("duration_s", 0) <= args.max_dur]
+    taste = load_taste()
+    banned = [r for r in rows if r.get("sha256") in taste["ban"]]
+    for r in banned:
+        sys.stderr.write(f"left out: {r['file']} is banned in your taste file ({taste_path()})\n")
+    rows = [r for r in rows if r.get("sha256") not in taste["ban"]]
+    rows.sort(key=lambda r: r.get("sha256") not in taste["love"])  # loved sounds first, the manifest order kept inside
+    np = None
+    if any(r.get("sync_kind") == "peak" for r in rows):
+        try:
+            import numpy as np
+        except ImportError:
+            np = None
     for r in rows:
-        print(f"{root / r['file']}\tsync {r.get('sync_s')} s ({r.get('sync_kind')})\t{r.get('duration_s')} s\t"
-              f"{r.get('lufs_momentary_max')} LUFS-M\t{r.get('peak_dbfs')} dBFS\tcentroid {r.get('centroid_hz')} Hz")
+        sync = f"sync {r.get('sync_s')} s ({r.get('sync_kind')})"
+        if r.get("sync_kind") == "peak":
+            sync = pack_peak_sync(np, root / r["file"], r)
+        love = "\tloved" if r.get("sha256") in taste["love"] else ""
+        print(f"{root / r['file']}\t{sync}\t{r.get('duration_s')} s\t"
+              f"{r.get('lufs_momentary_max')} LUFS-M\t{r.get('peak_dbfs')} dBFS\tcentroid {r.get('centroid_hz')} Hz{love}")
     if not rows:
         sys.stderr.write(f"no pack file of type {', '.join(args.type)} passes the filters\n")
     return 0 if rows else 2
@@ -425,21 +517,29 @@ def run_sfx(args: argparse.Namespace) -> int:
         sys.stderr.write("error: not a file: " + ", ".join(str(p) for p in missing) + "\n")
         return 2
     np = need_numpy()
+    taste = load_taste()
     rows, skipped = [], []
     for path in args.files:
         try:
-            m = measure_sfx(np, path)
+            m = measure_sfx(np, path, "peak" if args.kind == "impact" else "pass_by")
         except ValueError as exc:
             skipped.append({"file": path.name, "reason": str(exc)})
             continue
         s, notes = score_sfx(args.kind, m, args.profile)
+        sha = file_sha256(path)
+        if sha in taste["ban"]:
+            notes.append("reject: banned in your taste file")
+            s = round(s + 10, 2)
+        elif sha in taste["love"]:
+            notes.append("loved in your taste file")
+            s = round(s - 1, 2)
         rows.append({**m, "path": str(path.resolve()), "score": s, "notes": notes})
     if not rows:
         sys.stderr.write("error: no file could be measured: " + "; ".join(f"{s['file']}: {s['reason']}" for s in skipped) + "\n")
         return 2
     rows.sort(key=lambda r: r["score"])
     for i, r in enumerate(rows, 1):
-        print(f"{i}. {r['score']:5.2f} {r['file']}: rise {r['rise_ms']} ms, sync {r['sync_s']} s, tail {r['tail_s']} s, "
+        print(f"{i}. {r['score']:5.2f} {r['file']}: rise {r['rise_ms']} ms, sync {r['sync_s']} s ({r['sync_rule']}), tail {r['tail_s']} s, "
               f"under 150 Hz {r['low_share']}, over 6 kHz {r['high_share']}, voice band {r['voice_band_share']}, "
               f"peak {r['peak_db']} dB {' '.join(r['notes'])}")
     for s in skipped:

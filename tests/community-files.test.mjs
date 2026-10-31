@@ -55,7 +55,7 @@ test("issue forms ask for what a bug needs and link the site and Discussions", (
   }
   assert.match(bug, /ice\/case-study\/run-log\.html/);
   const config = readText(".github/ISSUE_TEMPLATE/config.yml");
-  assert.match(config, /ice-motion-director\.omarhassan\.workers\.dev/);
+  assert.match(config, /https:\/\/icemotion\.dev\//);
   assert.match(config, /\/discussions/);
 });
 

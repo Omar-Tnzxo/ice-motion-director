@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/Omar-Tnzxo/ice-motion-director/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Omar-Tnzxo/ice-motion-director?color=FF6F5E&label=release"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/Omar-Tnzxo/ice-motion-director?color=1E2A5A"></a>
-  <a href="https://ice-motion-director.omarhassan.workers.dev/"><img alt="Website" src="https://img.shields.io/badge/website-ice--motion--director-7FD8FF"></a>
+  <a href="https://icemotion.dev/"><img alt="Website" src="https://img.shields.io/badge/website-ice--motion--director-7FD8FF"></a>
   <a href="#support-the-project"><img alt="Support the project" src="https://img.shields.io/badge/support-the_project-FFB38A"></a>
 </p>
 
@@ -25,20 +25,20 @@
   <a href="#gallery">Gallery</a> ·
   <a href="#faq">FAQ</a> ·
   <a href="#support-the-project">Support</a> ·
-  <a href="https://ice-motion-director.omarhassan.workers.dev/">Website</a>
+  <a href="https://icemotion.dev/">Website</a>
 </p>
 
 <!-- Each preview is a short loop of the real delivered film; click it to open the case study with the full video and every stage. -->
 <table>
   <tr>
-    <td colspan="2" width="50%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/"><img src="assets/readme/gallery/spotify-concept-ad.webp" width="100%" alt="Spotify concept ad: a drawn night street in a traffic jam; after play is pressed, the honks, the drill and the motorbike become the beat and the windows light up"></a><br><sub><b>Spotify</b> concept ad, made from scratch</sub></td>
-    <td colspan="2" width="50%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/aj360-raw-edit/"><img src="assets/readme/gallery/aj360-raw-edit.webp" width="100%" alt="AJ360 style edit: a seated presenter with Arabic kinetic words, NASA mission-control footage and an app end card"></a><br><sub><b>AJ360 style edit</b>, raw take recut in a reference style</sub></td>
+    <td colspan="2" width="50%" valign="top"><a href="https://icemotion.dev/showcase/spotify-concept-ad/"><img src="assets/readme/gallery/spotify-concept-ad.webp" width="100%" alt="Spotify concept ad: a drawn night street in a traffic jam; after play is pressed, the honks, the drill and the motorbike become the beat and the windows light up"></a><br><sub><b>Spotify</b> concept ad, made from scratch</sub></td>
+    <td colspan="2" width="50%" valign="top"><a href="https://icemotion.dev/showcase/aj360-raw-edit/"><img src="assets/readme/gallery/aj360-raw-edit.webp" width="100%" alt="AJ360 style edit: a seated presenter with Arabic kinetic words, NASA mission-control footage and an app end card"></a><br><sub><b>AJ360 style edit</b>, raw take recut in a reference style</sub></td>
   </tr>
   <tr>
-    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/mohawalat-fahm-france-reel/"><img src="assets/readme/gallery/mohawalat-fahm-france-reel.webp" width="100%" alt="Mohawalat Fahm reel: a vertical Arabic reel cut from a TV talk-show episode, with lower thirds, big Arabic keywords and protest footage"></a><br><sub><b>Mohawalat Fahm</b> reel</sub></td>
-    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/carney-alberta-aj-reel/"><img src="assets/readme/gallery/carney-alberta-aj-reel.webp" width="100%" alt="Carney on Alberta: a vertical news reel of a government video message with a red disc, a name strap, bullet cards and a result card"></a><br><sub><b>Carney on Alberta</b></sub></td>
-    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/obama-iran-aj-reel/"><img src="assets/readme/gallery/obama-iran-aj-reel.webp" width="100%" alt="Obama on Iran: a vertical news reel of a weekly address over a map wall, with flags, a figure card and big keywords"></a><br><sub><b>Obama on Iran</b></sub></td>
-    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/aj-greenscreen-lawyers-ad/"><img src="assets/readme/gallery/aj-greenscreen-lawyers-ad.webp" width="100%" alt="Green screen ad: a keyed presenter over a map wall with big numbers, the Capitol, real footage and the advertiser's end card"></a><br><sub><b>Green screen ad</b></sub></td>
+    <td width="25%" valign="top"><a href="https://icemotion.dev/showcase/mohawalat-fahm-france-reel/"><img src="assets/readme/gallery/mohawalat-fahm-france-reel.webp" width="100%" alt="Mohawalat Fahm reel: a vertical Arabic reel cut from a TV talk-show episode, with lower thirds, big Arabic keywords and protest footage"></a><br><sub><b>Mohawalat Fahm</b> reel</sub></td>
+    <td width="25%" valign="top"><a href="https://icemotion.dev/showcase/carney-alberta-aj-reel/"><img src="assets/readme/gallery/carney-alberta-aj-reel.webp" width="100%" alt="Carney on Alberta: a vertical news reel of a government video message with a red disc, a name strap, bullet cards and a result card"></a><br><sub><b>Carney on Alberta</b></sub></td>
+    <td width="25%" valign="top"><a href="https://icemotion.dev/showcase/obama-iran-aj-reel/"><img src="assets/readme/gallery/obama-iran-aj-reel.webp" width="100%" alt="Obama on Iran: a vertical news reel of a weekly address over a map wall, with flags, a figure card and big keywords"></a><br><sub><b>Obama on Iran</b></sub></td>
+    <td width="25%" valign="top"><a href="https://icemotion.dev/showcase/aj-greenscreen-lawyers-ad/"><img src="assets/readme/gallery/aj-greenscreen-lawyers-ad.webp" width="100%" alt="Green screen ad: a keyed presenter over a map wall with big numbers, the Capitol, real footage and the advertiser's end card"></a><br><sub><b>Green screen ad</b></sub></td>
   </tr>
 </table>
 
@@ -383,21 +383,21 @@ Every video below is a real delivery made with Ice Motion Director, published wi
 <!-- gallery:start -->
 | Video | What it is | Route | Language, aspect, length | Case study |
 |---|---|---|---|---|
-| **Spotify concept ad** | A brand film made from scratch from a one-line Arabic prompt, then five feedback rounds from the owner; a drawn street in a traffic jam turns into the beat. Unofficial concept, not affiliated with Spotify. | `ice-film` | English, 16:9, 35 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/) |
-| **Mohawalat Fahm reel** | A vertical reel cut from a full TV talk-show episode on the protests in France, in the programme's own reel style. Unofficial edit, not an Al Jazeera production. | `ice-edit` | Arabic, 9:16, 66 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/mohawalat-fahm-france-reel/) |
-| **Carney on Alberta** | An official government video message recut as a news reel, with real agency footage and the result card. Unofficial test, not an Al Jazeera or Government of Canada production. | `ice-edit` | English, 9:16, 96 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/carney-alberta-aj-reel/) |
-| **Obama on Iran** | A presidential weekly address recut as a long news reel with a map wall, figure cards and keywords. Unofficial test, not an Al Jazeera production. | `ice-edit` | English, 9:16, 3 min 22 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/obama-iran-aj-reel/) |
-| **AJ360 style edit** | A seated presenter take recut with Arabic kinetic words, NASA inserts and an app end card. Unofficial test, not an Al Jazeera or Al Jazeera 360 production. | `ice-edit` | Arabic, 16:9, 13.5 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/aj360-raw-edit/) |
-| **Green screen ad** | A 70-second green screen ad keyed into a studio wall, with real footage and the advertiser's own identity. Unofficial concept, not an ad by or for ConsultasAbogado.com. | `ice-edit` | English, 9:16, 73 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/aj-greenscreen-lawyers-ad/) |
+| **Spotify concept ad** | A brand film made from scratch from a one-line Arabic prompt, then five feedback rounds from the owner; a drawn street in a traffic jam turns into the beat. Unofficial concept, not affiliated with Spotify. | `ice-film` | English, 16:9, 35 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/spotify-concept-ad/) |
+| **Mohawalat Fahm reel** | A vertical reel cut from a full TV talk-show episode on the protests in France, in the programme's own reel style. Unofficial edit, not an Al Jazeera production. | `ice-edit` | Arabic, 9:16, 66 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/mohawalat-fahm-france-reel/) |
+| **Carney on Alberta** | An official government video message recut as a news reel, with real agency footage and the result card. Unofficial test, not an Al Jazeera or Government of Canada production. | `ice-edit` | English, 9:16, 96 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/carney-alberta-aj-reel/) |
+| **Obama on Iran** | A presidential weekly address recut as a long news reel with a map wall, figure cards and keywords. Unofficial test, not an Al Jazeera production. | `ice-edit` | English, 9:16, 3 min 22 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/obama-iran-aj-reel/) |
+| **AJ360 style edit** | A seated presenter take recut with Arabic kinetic words, NASA inserts and an app end card. Unofficial test, not an Al Jazeera or Al Jazeera 360 production. | `ice-edit` | Arabic, 16:9, 13.5 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/aj360-raw-edit/) |
+| **Green screen ad** | A 70-second green screen ad keyed into a studio wall, with real footage and the advertiser's own identity. Unofficial concept, not an ad by or for ConsultasAbogado.com. | `ice-edit` | English, 9:16, 73 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://icemotion.dev/showcase/aj-greenscreen-lawyers-ad/) |
 <!-- gallery:end -->
 
-All of them, with before-and-after players for the edits: [showcase](https://ice-motion-director.omarhassan.workers.dev/showcase/). The footage and marks in each video belong to their owners; each case study lists the sources and their licenses.
+All of them, with before-and-after players for the edits: [showcase](https://icemotion.dev/showcase/). The footage and marks in each video belong to their owners; each case study lists the sources and their licenses.
 
 ## On the website
 
-The [website](https://ice-motion-director.omarhassan.workers.dev/) explains Ice for people who do not read GitHub: [how it works](https://ice-motion-director.omarhassan.workers.dev/how-it-works/), [install per agent](https://ice-motion-director.omarhassan.workers.dev/install/), [showcase](https://ice-motion-director.omarhassan.workers.dev/showcase/), [compare](https://ice-motion-director.omarhassan.workers.dev/compare/) and [FAQ](https://ice-motion-director.omarhassan.workers.dev/faq/).
+The [website](https://icemotion.dev/) explains Ice for people who do not read GitHub: [how it works](https://icemotion.dev/how-it-works/), [install per agent](https://icemotion.dev/install/), [showcase](https://icemotion.dev/showcase/), [compare](https://icemotion.dev/compare/) and [FAQ](https://icemotion.dev/faq/).
 
-It is available in 31 languages: [العربية](https://ice-motion-director.omarhassan.workers.dev/ar/) · [Español](https://ice-motion-director.omarhassan.workers.dev/es/) · [Français](https://ice-motion-director.omarhassan.workers.dev/fr/) · [Deutsch](https://ice-motion-director.omarhassan.workers.dev/de/) · [Português (Brasil)](https://ice-motion-director.omarhassan.workers.dev/pt-br/) · [Русский](https://ice-motion-director.omarhassan.workers.dev/ru/) · [Türkçe](https://ice-motion-director.omarhassan.workers.dev/tr/) · [हिन्दी](https://ice-motion-director.omarhassan.workers.dev/hi/) · [日本語](https://ice-motion-director.omarhassan.workers.dev/ja/) · [한국어](https://ice-motion-director.omarhassan.workers.dev/ko/) · [简体中文](https://ice-motion-director.omarhassan.workers.dev/zh-hans/) · [Bahasa Indonesia](https://ice-motion-director.omarhassan.workers.dev/id/), and more from the language menu on the site.
+It is available in 31 languages: [العربية](https://icemotion.dev/ar/) · [Español](https://icemotion.dev/es/) · [Français](https://icemotion.dev/fr/) · [Deutsch](https://icemotion.dev/de/) · [Português (Brasil)](https://icemotion.dev/pt-br/) · [Русский](https://icemotion.dev/ru/) · [Türkçe](https://icemotion.dev/tr/) · [हिन्दी](https://icemotion.dev/hi/) · [日本語](https://icemotion.dev/ja/) · [한국어](https://icemotion.dev/ko/) · [简体中文](https://icemotion.dev/zh-hans/) · [Bahasa Indonesia](https://icemotion.dev/id/), and more from the language menu on the site.
 
 ## What it does not do
 

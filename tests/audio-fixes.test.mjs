@@ -915,3 +915,179 @@ test("audit A15: a noise whoosh high-passed to the air band under speech goes to
   for (const it of items) assert.match(it.question, /at 0:03\.\d under speech sound like a real recorded sound/);
   assert.equal(a15.blocking, false, "an air-only effect is the shape the news reel asks for: heard, never blocked");
 });
+
+// ---------------------------------------------------------------- 0.2.15 (L69): arrival sync and the blind SFX pick
+// Sharp hits (sync kind peak) sync on their audible arrival, not their loudest 10 ms: a two-click shutter put its first
+// click 4.5 to 6.3 frames before the picture. Whooshes keep the pass-by peak. The blind listening page lays 2 or 3
+// recorded sounds on one moment, hides which is which, and keeps the user's pick and bans in a taste file that later
+// films read. The ideas come from Clipwing's Real SFX (MIT), rewritten. Generated test tones, illustration only.
+const CLICKS = String.raw`
+import sys, wave
+import numpy as np
+sr = 48000
+def write(path, x):
+    with wave.open(path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
+def burst(x, at, amp, f):
+    k = np.arange(int(0.03 * sr)) / sr
+    i = int(at * sr)
+    x[i:i + len(k)] += amp * np.sin(2 * np.pi * f * k) * np.exp(-k * 60)
+d = sys.argv[1]
+x = np.zeros(int(0.6 * sr)); burst(x, 0.05, 0.6, 2000); burst(x, 0.22, 0.8, 1500)
+write(d + "/two click.wav", x)
+t = np.arange(int(2.0 * sr)) / sr
+write(d + "/slow swell.wav", 0.7 * np.sin(2 * np.pi * 300 * t) * np.minimum(t / 1.2, 1) * np.exp(-np.maximum(t - 1.2, 0) * 8))
+x = np.zeros(int(0.6 * sr)); burst(x, 0.08, 0.7, 900)
+write(d + "/single hit.wav", x)
+`;
+
+const SFX_SKIP = !PYTHON ? "Python 3 not found" : !hasNumpy ? "numpy or scipy not installed" : !FFMPEG ? "ffmpeg or ffprobe not on PATH" : false;
+
+function clickDir(name) {
+  const dir = join(work, name);
+  mkdirSync(dir, { recursive: true });
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", CLICKS, dir], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  return dir;
+}
+
+test("match_music.py sfx: an impact syncs on its arrival, a whoosh keeps its loudest point, a slow swell keeps its peak (generated tones)", { skip: SFX_SKIP }, () => {
+  const dir = clickDir("arrival sync");
+  const rank = (kind, file) => {
+    const out = join(dir, `${kind} ${file}`);
+    const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "match_music.py"), "sfx", "--kind", kind, "--out", out, join(dir, file)],
+      { encoding: "utf8", timeout: 120000, env: { ...process.env, ICE_SFX_TASTE: join(dir, "no taste.json") } });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    return JSON.parse(readFileSync(join(out, `sfx-${kind}-ranking.json`), "utf8")).ranking[0];
+  };
+  const hit = rank("impact", "two click.wav");
+  assert.equal(hit.sync_rule, "arrival", JSON.stringify(hit));
+  assert.ok(hit.sync_s <= 0.06, `the first click at 0.05 s is the sync point, got ${hit.sync_s}`);
+  assert.ok(Math.abs(hit.peak_s - 0.22) <= 0.02, `the loudest 10 ms stays recorded as peak_s, got ${hit.peak_s}`);
+  const whoosh = rank("whoosh", "two click.wav");
+  assert.equal(whoosh.sync_rule, "peak", "a pass-by sound is not moved (the founder has not listened yet)");
+  assert.equal(whoosh.sync_s, whoosh.peak_s);
+  const swell = rank("impact", "slow swell.wav");
+  assert.equal(swell.sync_rule, "peak", `a climb over 0.45 s keeps the peak: ${JSON.stringify(swell)}`);
+  const single = rank("impact", "single hit.wav");
+  assert.equal(single.sync_rule, "peak", "a hit whose arrival is its peak is not moved");
+});
+
+test("sfx pack: pack list prints the measured arrival of a peak file beside the manifest value, leaves pass-by files alone, and reads the taste file", { skip: SFX_SKIP }, (t) => {
+  const dir = clickDir("pack arrival");
+  const root = mkdtempSync(join(tmpdir(), "ice-sfx-arrival-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const pin = JSON.parse(readText("skills/ice-engines/references/versions.json")).asset_packs.sfx;
+  const pack = join(root, pin.tag, "ice-sfx-pack-v1");
+  mkdirSync(join(pack, "sfx", "camera_shutter"), { recursive: true });
+  writeFileSync(join(root, pin.tag, "ok.json"), JSON.stringify({ tag: pin.tag, sha256: pin.sha256 }));
+  writeFileSync(join(pack, "sfx", "camera_shutter", "camera_shutter_01.wav"), readFileSync(join(dir, "two click.wav")));
+  writeFileSync(join(pack, "sfx", "camera_shutter", "camera_shutter_02.wav"), readFileSync(join(dir, "two click.wav")));
+  writeFileSync(join(pack, "sfx", "camera_shutter", "camera_shutter_03.wav"), readFileSync(join(dir, "single hit.wav")));
+  const row = (n, kind, sha, sync = 0.2208) => ({ file: `sfx/camera_shutter/camera_shutter_0${n}.wav`, type: "camera_shutter", sha256: sha, duration_s: 0.6,
+    sync_s: sync, sync_kind: kind, lufs_momentary_max: -18, peak_dbfs: -3, centroid_hz: 1800, band_share: { voice_150_4k: 0.6 } });
+  writeFileSync(join(pack, "manifest.json"), JSON.stringify({ tag: pin.tag, files: [row(1, "peak", "a".repeat(64)), row(2, "pass_by", "b".repeat(64)), row(3, "peak", "c".repeat(64), 0.0904)] }));
+  const taste = join(root, "taste.json");
+  const env = { ...process.env, ICE_SFX_PACK_DIR: root, ICE_SFX_TASTE: taste, PYTHONIOENCODING: "utf-8" };
+  const list = () => spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "match_music.py"), "pack", "list", "--type", "camera_shutter"],
+    { encoding: "utf8", env, timeout: 120000 });
+  let r = list();
+  assert.equal(r.status, 0, r.stderr);
+  const lines = r.stdout.trim().split(/\r?\n/);
+  assert.match(lines[0], /camera_shutter_01\.wav\tsync 0\.0\d s \(peak, arrival; manifest 0\.2208 s\)/, "the peak file is measured now and moved to its arrival");
+  assert.match(lines[1], /camera_shutter_02\.wav\tsync 0\.2208 s \(pass_by\)\t/, "a pass-by file keeps the stored value");
+  assert.match(lines[2], /camera_shutter_03\.wav\tsync 0\.0904 s \(peak\)\t/, "a peak file the rule does not move keeps the stored value");
+  writeFileSync(taste, JSON.stringify({ version: 1, love: { ["c".repeat(64)]: { name: "camera_shutter_03.wav" } }, ban: { ["a".repeat(64)]: { name: "camera_shutter_01.wav" } } }));
+  r = list();
+  assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(r.stdout, /camera_shutter_01/, "a banned sound is left out");
+  assert.match(r.stderr, /camera_shutter_01\.wav is banned in your taste file/);
+  assert.match(r.stdout.split(/\r?\n/)[0], /camera_shutter_03\.wav.*\tloved$/, "a loved sound comes first, marked");
+});
+
+test("preview_options.py sfx: a blind, level-matched pick on one moment; the choice goes to the taste file and a banned sound stays out of the next film (generated tones)", { skip: SFX_SKIP }, () => {
+  const dir = clickDir("blind sfx");
+  const picture = join(dir, "picture.mp4");
+  let r = spawnSync("ffmpeg", ["-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:size=160x90:rate=30:duration=4",
+    "-c:v", "libx264", "-pix_fmt", "yuv420p", picture], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  const env = { ...process.env, ICE_SFX_TASTE: join(dir, "taste.json"), PYTHONIOENCODING: "utf-8" };
+  const py3 = (...args) => spawnSync(PYTHON[0], [...PYTHON.slice(1), join(SCRIPT_DIR, "preview_options.py"), ...args], { encoding: "utf8", timeout: 300000, env });
+  const sounds = [join(dir, "two click.wav"), join(dir, "single hit.wav")];
+  const out = join(dir, "options");
+  r = py3("sfx", "--video", picture, "--at", "2.0", "--out", out, "--moment", "photo freeze", "--seed", "1", ...sounds);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const opts = JSON.parse(readFileSync(join(out, "options.json"), "utf8"));
+  assert.equal(opts.mode, "sfx");
+  assert.equal(opts.blind, true);
+  assert.deepEqual(opts.options.map((o) => o.label), ["A", "B"]);
+  assert.deepEqual(opts.options.map((o) => o.sound).sort(), ["single hit.wav", "two click.wav"]);
+  assert.ok(opts.options.every((o) => /^[0-9a-f]{64}$/.test(o.sha256)));
+  assert.equal(opts.options.find((o) => o.sound === "two click.wav").sync_rule, "arrival", "the impact lands on its first click");
+  const page = readFileSync(join(out, "compare.html"), "utf8");
+  for (const name of ["two click", "single hit", "sha256", "sync_s", "arrival", ".wav"]) assert.ok(!page.includes(name), `the page must not reveal ${name}`);
+  assert.match(page, /option-A\.mp4/);
+  assert.match(page, /Never use this sound/);
+  const clicked = opts.options.find((o) => o.sound === "two click.wav").label;
+  const other = clicked === "A" ? "B" : "A";
+  r = py3("taste", "pick", join(out, "options.json"), clicked, "--ban", other);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const taste = JSON.parse(readFileSync(join(dir, "taste.json"), "utf8"));
+  assert.deepEqual(Object.values(taste.love).map((x) => x.name), ["two click.wav"]);
+  assert.deepEqual(Object.values(taste.ban).map((x) => x.name), ["single hit.wav"]);
+  assert.equal(Object.values(taste.love)[0].moment, "photo freeze");
+  r = py3("taste", "pick", join(out, "options.json"), "Z");
+  assert.equal(r.status, 2, "an unknown label is refused");
+  r = py3("sfx", "--video", picture, "--at", "2.0", "--out", join(dir, "next film"), ...sounds);
+  assert.equal(r.status, 2, "with the banned sound left out, fewer than 2 remain");
+  assert.match(r.stdout, /single hit\.wav is banned in your taste file/);
+});
+
+test("preview_options.py serve: serves only the page and the option media, and saves one valid choice", { skip: PYTHON ? false : "Python 3 not found" }, (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "ice-sfx-serve-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const opts = { version: 1, mode: "sfx", blind: true, kind: "impact", moment: "logo lock", options: ["A", "B"].map((l, i) =>
+    ({ label: l, file: `option-${l}.m4a`, sound: `sound ${i}.wav`, path: join(dir, `sound ${i}.wav`), sha256: String(i).repeat(64) })) };
+  writeFileSync(join(dir, "options.json"), JSON.stringify(opts));
+  const code = `import json, sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import preview_options as p
+names = ["compare.html", "option-A.m4a", "option-C.mp4", "options.json", "choice.json", "../x", "option-A.wav"]
+served = [n for n in names if p.SERVED.match(n)]
+try:
+    p.apply_choice(Path(sys.argv[2]) / "options.json", {"pick": "C"})
+    bad = "accepted"
+except ValueError as e:
+    bad = str(e)
+r = p.apply_choice(Path(sys.argv[2]) / "options.json", {"pick": "B", "ban": ["A"]})
+print(json.dumps({"served": served, "bad": bad, "result": r}))`;
+  const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-c", code, SCRIPT_DIR, dir], { encoding: "utf8", env: { ...process.env, ICE_SFX_TASTE: join(dir, "taste.json") } });
+  assert.equal(r.status, 0, r.stderr);
+  const out = JSON.parse(r.stdout);
+  assert.deepEqual(out.served, ["compare.html", "option-A.m4a", "option-C.mp4"], "options.json (the key) and anything else stay unserved");
+  assert.match(out.bad, /labels must be among A, B/);
+  assert.equal(out.result.pick, "sound 1.wav");
+  const taste = JSON.parse(readFileSync(join(dir, "taste.json"), "utf8"));
+  assert.ok(taste.love["1".repeat(64)] && taste.ban["0".repeat(64)], JSON.stringify(taste));
+  assert.equal(JSON.parse(readFileSync(join(dir, "choice.json"), "utf8")).labels.pick, "B");
+});
+
+test("sfx.md: sharp hits sync on their arrival (peak kind only), and hero sounds are picked blind with the taste file", () => {
+  const s5 = section("skills/ice-audio/references/sfx.md", 5);
+  assert.match(s5, /arrival/, "section 5 names the arrival");
+  assert.match(s5, /within 6 dB/);
+  assert.match(s5, /0\.45 s/);
+  assert.match(s5, /0\.10 s/);
+  assert.match(s5, /sync kind `peak`/, "the arrival is scoped to sync kind peak");
+  assert.match(s5, /whooshes? keep[s]? the pass-by peak/i, "whooshes are not moved");
+  const s7 = section("skills/ice-audio/references/sfx.md", 7);
+  assert.match(s7, /^3\. .*preview_options\.py sfx/m, "item 3 lays hero sounds with the sfx mode");
+  assert.match(s7, /^3\. .*sfx-taste\.json/m, "item 3 names the taste file");
+  assert.match(s7, /^1\. .*arrival/m, "item 1 says pack list prints the measured arrival");
+  assert.match(section(SKILL, 5), /preview_options\.py sfx/, "the options flow lays hero sounds blind too");
+  assert.match(section(SKILL, 7), /`scripts\/preview_options\.py`[^\n]*sfx/, "SKILL.md section 7 names the sfx mode");
+});
