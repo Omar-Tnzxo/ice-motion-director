@@ -1,7 +1,7 @@
 {
   "name": "ice-motion-director",
   "displayName": "Ice Motion Director",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Motion design and video editing director for coding agents. Writes code (HTML, CSS, GSAP, Remotion, FFmpeg) and renders deterministic films: launch films, app ads, explainers, kinetic type, social shorts, YouTube and podcast edits, reference remakes, Lottie and UI motion, Arabic and RTL included.",
   "author": {
     "name": "Omar-Tnzxo",

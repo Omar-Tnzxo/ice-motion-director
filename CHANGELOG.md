@@ -2,6 +2,24 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.11 - 2026-10-31
+
+Two more film genres are measured, not collected: hype promos and social shorts each get a playbook from a corpus of professional films and a fingerprint the render is checked against at gate D (`ice-qa/scripts/genre_check.py`). The check also finds hard cuts at the video's own frame rate now.
+
+### Added
+
+- **Hype promo (L49),** from 14 official hype promos (leagues, teams, a fight, games, a festival, a launch event, a series, a broadcaster and a city season from the Arabic market): two variants, a beat-cut montage and a slow-burn teaser; 30 s at the median; counted shots of about 0.9 s (0.5 s in the montage); hard cuts on 94 percent of the seams; the name withheld to the close and a date or platform on the end card, held about 3 s; about 147 effects per minute. Cutting on the beat stays a house choice: professional cuts follow the music's phrases, not a frame grid. The flash safety limit stays absolute, with a brightness order planned on the animatic.
+- **Social short (L50),** from 14 brand, creator and trend shorts (6 Arabic, 7 of them the founder's saved references): the first word in the first second, something new about every 0.4 s, caption cues of 1 to 4 words in the lower half at a cap height of about 3 percent of the frame, a music bed under the whole short, and two variants (people on camera, designed with no people) that decide the ending. New `social_` coding keys; the `shorts-reels` edit type reads the people-on-camera variant.
+
+### Changed
+
+- **General rules these genres contradict are scoped, never deleted (AGENTS.md rule 6):** for hype promos the 10 to 20 s runtime, scenes of 1.5 to 3 s, a shape across every transition with at most two hard cuts, the 0.6 to 1.4 s end hold, the 15 effects per minute ceiling and the 120 to 140 BPM band; for social shorts the 2.5 s gap rule, the question hook, the payoff and CTA slots of the 30 s reel, the scene count, the 25 to 45 percent caption colour share, the caption size and the stacked logo end card. Each stays the house default where it holds and names the genre where the measured way wins.
+- **The caption floor of `ice-type` says what it measures:** 4.5 percent of the frame height is a font size (about 3 percent cap height); social shorts use a cap height of at least 2 percent (measured 2 to 4.5, median 3).
+
+### Fixed
+
+- **Cuts are counted at the frame rate (L51).** The genre check compared frames 12 times a second by their grey histogram, so cuts between shots graded alike were missed: a 720p hype promo read 0.81 cuts per 10 s where it has 17.2. All seven genre corpora were measured again: no film changed its result.
+
 ## 0.2.10 - 2026-10-31
 
 The genre fingerprint was run on a film Ice made for the first time (a remake of an app ad). It found three faults in the check and one real fault in the film; all four are fixed (L48).
