@@ -13,6 +13,7 @@
   <a href="https://github.com/Omar-Tnzxo/ice-motion-director/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Omar-Tnzxo/ice-motion-director?color=FF6F5E&label=release"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/Omar-Tnzxo/ice-motion-director?color=1E2A5A"></a>
   <a href="https://ice-motion-director.omarhassan.workers.dev/"><img alt="Website" src="https://img.shields.io/badge/website-ice--motion--director-7FD8FF"></a>
+  <a href="#support-the-project"><img alt="Support the project" src="https://img.shields.io/badge/support-the_project-FFB38A"></a>
 </p>
 
 <p align="center">
@@ -23,6 +24,7 @@
   <a href="#why-it-is-different">Why it is different</a> ·
   <a href="#gallery">Gallery</a> ·
   <a href="#faq">FAQ</a> ·
+  <a href="#support-the-project">Support</a> ·
   <a href="https://ice-motion-director.omarhassan.workers.dev/">Website</a>
 </p>
 
@@ -481,6 +483,23 @@ Yes, the films you make are yours. A few bundled folders named `noncommercial/` 
 
 Say "decide for me" or "don't ask". It will choose, log every reason in `ice/DIRECTION.md`, and list every choice in the delivery report, so you can change any of them in one reply.
 </details>
+
+## Support the project
+
+Ice Motion Director is free and open source. If it saves you time or money, you can support its development with any of the methods below; every one goes to the maintainer, Omar-Tnzxo.
+
+| Method | Network | Address or ID |
+|---|---|---|
+| Binance Pay | Inside the Binance app, no network fee | Binance ID `536243964` |
+| Bybit | Internal transfer by UID | `356028799` |
+| RedotPay | Inside the RedotPay app, by ID | `1801023033` |
+| USDT, USDC, ETH, BNB | BNB Smart Chain (BEP20), Ethereum (ERC20), Arbitrum One, Optimism | `0xB75C7059aF0E567c1A212B7aC416E12761648eB1` |
+| USDT, SOL | Solana | `9MFg45kPbnKFJvwree8nfrCBA4aeckjmAdc8cqjgytY9` |
+| USDT only | Tron (TRC20) | `TDB1vEmzo9kE7DdZADKEnBEcAmnX1AYQWp` |
+
+> Send only on the network written next to the address. A transfer on any other network may be lost and cannot be recovered.
+
+Starring the repository and sharing a video you made with it help too.
 
 ## Credits
 
