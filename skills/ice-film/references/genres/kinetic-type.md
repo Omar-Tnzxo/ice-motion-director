@@ -11,7 +11,7 @@ deliverables, this file gives the genre's measured grammar and the fingerprint t
 - Film type that points here: `kinetic-type`. Use it whenever words are the main actors of a short film: a type-led
   promo, a brand manifesto or statement reel, a quote or list reel, a type-driven social ad, 10 to 90 s.
 - Not for: captions on a talking head (ice-type captions), a news reel's titles (edit type `news-reel`), an app ad
-  whose hero is the product's UI (`genres/ui-motion.md`), a lyric video cut word for word to a song (music video), a
+  whose hero is the product's UI (`genres/ui-motion.md`), a lyric video for a whole song (`genres/music-video.md`), a
   logo sting.
 - Precedence: the user's words, a reference the film follows (its own measures win, `ice-remake`), and a chosen style
   outrank this file, through exemption rows lifting `genre:<key>` (the `ice-direction` skill, `references/treatment.md`

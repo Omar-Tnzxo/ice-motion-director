@@ -7,7 +7,7 @@ Leads with: the data. 01 verifies and sources every number before any concept.
 
 ## Fit
 
-A film or unit where numbers lead: a hero stat, an animated chart, a milestone, a report highlight, a finance chart, a timeline, a map with routes. A narrated data explainer that teaches belongs to ice-explainer.
+A film or unit where numbers lead: a hero stat, an animated chart, a milestone, a report highlight, a finance chart, a timeline, a map with routes. A narrated data explainer that teaches belongs to ice-explainer; when its picture is led by charts and figures (a voice walking through a few charts: variant A of the measured genre playbook `../genres/data-story.md`), ice-explainer keeps its pipeline and voice timing and takes the chart grammar and the fingerprint (`--genre data-story`) from that file.
 
 ## Purpose
 
@@ -29,7 +29,7 @@ One chart, one message. Write the chart's one point as a sentence first; the tit
 
 ## Rhythm ranges
 
-Count-ups decelerate over about 1.2-1.6 s, then hold; the label arrives after the number lands (value, then meaning). A number changes while the thing it counts is changing and stops on the frame the action stops.
+Count-ups decelerate, then hold: a count runs 0.6 to 2.0 s (measured median 1.1 s over 33 counts in 5 films; 1.2 to 1.6 s in 11 of 33, `../genres/data-story.md`), every count in one film the same length; the label may already be on screen (23 of 33 counts) or arrive after the number lands (value, then meaning). A finished figure stays readable about 4.6 s (2 s or more for 56 of 63 measured hero numbers) and a finished chart about 3 s (2 s or more for 45 of 64 charts) before the next change. A number changes while the thing it counts is changing and stops on the frame the action stops.
 
 Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
 
@@ -49,7 +49,7 @@ Locked while the reader reads the value; at most one slow push on the named data
 
 ## Sound policy
 
-A soft tick while counting that slows with the count, a landing sound on the final value; restrained bed (ice-audio).
+A soft tick while counting that slows with the count, a landing sound on the final value; restrained bed (ice-audio). Measured (`../genres/data-story.md`): a music bed runs under 11 of 15 films (the 4 without are newsroom voice pieces); the silent figure stream (variant B, no voice) is music-led; sounds are not placed on every move (13 of 15 films land sounds on visual events no more often than chance), so the ticks and landings stay on counts and lands only.
 
 ## Text density
 
@@ -82,7 +82,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## QA thresholds
 
-Tabular digits so widths never jitter; the count lands on the exact integer; the same number matches across shots; the chart reads at phone size.
+Tabular digits so widths never jitter; the count lands on the exact integer; the same number matches across shots; the chart reads at phone size. Every data story: the genre fingerprint of `../genres/data-story.md` (the first chart or figure by 25 s, data on screen a fifth of the runtime or more, a finished chart or figure readable about 1 s or more at the median, at most 8 figures at once, few hard cuts, the event gaps), checked by the `ice-qa` skill's `scripts/genre_check.py` at 07 and 09.
 
 ## Deliverables
 
@@ -90,6 +90,6 @@ MP4 plus a looping GIF when it is a loop; 4:5 default for feeds; stills of the h
 
 ## Pointers
 
-Counter and odometer mechanics: ice-motion. Number typography: ice-type. Arabic numerals and bidi: ice-arabic.
+Measured genre playbook (conventions, the two variants, rejected rules, the fingerprint the render is checked against; read at 02, 04 and 08): `../genres/data-story.md`. Counter and odometer mechanics: ice-motion. Number typography: ice-type. Arabic numerals and bidi: ice-arabic.
 
 Sources: AbubakrChan/product-launch-motion, charlie947/motion-graphics-skills, heygen-com/hyperframes (motion-graphics categories), video-production-studio (Omar-Tnzxo), huashu-art-motion, Tejashmakwana/motionmaxxing, diffusionstudio/lottie, alexgreensh/anidoodle.

@@ -31,7 +31,7 @@
 | Storytime, comedy, talking-head | Manage pushes, not cuts: mostly hold plus hard jump-in (about 2x on the same world); reactions held 0.8 s or more with the camera still |
 | UI walkthrough, keynote and screenshot tutorial | Full-bleed screenshot; push only to the unreadable part, one or two pushes per image, then return or glide to the next area; camera locked during clicks and streaming |
 | Kinetic type and music-cut sections | Fast-push count not managed; camera follows beats and accents; a camera move at most once per phrase, not per beat by default (a beat-pulse style or a reference that measures beat moves keeps them, with its plan row) |
-| Music video | Verse: slow push and drift; chorus: faster; interlude: pull out; transition peaks on beats |
+| Music video | Verse: slow push and drift; chorus: faster (an option: 5 of 14 measured, `ice-film` skill, `references/genres/music-video.md`); interlude: pull out; transition peaks on beats |
 | Social short hook (first 3 s) | Density not managed; return to normal rhythm after 3 s |
 | Art film, art-style pictures | The painting stays alive; one main action plus 2 motif loops; the camera may drift slowly |
 | Brand film, calm luxury | One slow steady dolly or locked frames; no shake, no spins |

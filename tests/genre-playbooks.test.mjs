@@ -26,7 +26,11 @@ const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "har
   "social_voice_share",
   "news_first_fact_s", "news_words_on_screen", "news_variant", "news_presenter_share", "news_footage_share",
   "news_caption_words", "news_caption_y", "news_attribution", "news_ending",
-  "sting_hold_s", "sting_build", "sting_exit", "sting_readable_s", "sting_lock_s", "sting_dimension", "sting_sonic"];
+  "sting_hold_s", "sting_build", "sting_exit", "sting_readable_s", "sting_lock_s", "sting_dimension", "sting_sonic",
+  "data_first_s", "data_time_share", "data_read_s", "data_numbers_at_once", "data_chart_hold_s", "data_hero_read_s",
+  "data_counters", "data_source", "data_units", "data_build_frame_first", "data_highlight", "data_variant",
+  "mv_variant", "mv_lines_typical", "mv_words_per_line", "mv_line_hold_s", "mv_timing", "mv_chorus_repeat",
+  "mv_waveform", "mv_end_hold_s"];
 
 function has(relPath, phrases) {
   const text = readText(relPath);
@@ -563,3 +567,85 @@ test("genre_check.py: the sting coding keys read the sting block, and the hold i
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+test("genre playbooks: the data story film type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/data-story.md", ["`../genres/data-story.md`", "`--genre data-story`",
+    "a count runs 0.6 to 2.0 s"]);
+  has(`${GENRES}/data-story.md`, ["`data-story`", "`ice-explainer`", "15 chart-led motion videos", "data_first_s <=25"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/data-story.md` for data stories"]);
+  has(`${GENRES}/explainer.md`, ["`genres/data-story.md` variant A"]);
+});
+
+test("genre playbooks: the general rules the data story corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-motion/references/motion-language-by-type.md", ["Staged builds of 0.5-1.3 s per stage as the house default"]);
+  has("skills/ice-qa/references/motion-density.md", ["| data story | reading | reading | 0 |", "data story: a finished chart or figure held for reading"]);
+  has("skills/ice-type/references/reading-time.md", ["Title states the conclusion; subtitle carries metric and unit; source line (Ice house defaults"]);
+  has("skills/ice-audio/SKILL.md", ["| data story | voice-led (a silent figure stream with no voice is music-led"]);
+  const rejected = readText(`${GENRES}/data-story.md`).split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["1.2 to 1.6 s", "The label arrives after the number lands", "0.5 to 1.3 s per stage",
+    "states the conclusion", "End hold at most 1.5 s", "every 6 s", "4:5 for feeds"]) {
+    assert.ok(rejected.includes(idea), `the data story rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the data coding keys read the coding sheet's data block",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-data-"));
+    try {
+      const meas = { median_event_gap_s: 0.5, max_event_gap_s: 7.4, events_per_s: 0.93, hook_events_3s: 4,
+        scene_median_s: 3.5, cuts_per_10s: 0.55, sfx_per_min: 200, move_onset_lift: 1.0 };
+      const coding = { scenes: [{ start: 0, end: 20 }, { start: 20, end: 40 }],
+        data: { variant: "narrated-chart", first_number_s: 9.0, first_chart_s: 4.0, numbers_per_scene: { median: 1, max: 3 },
+          source_line: "every-chart", units_line: "most", highlight_colour: "one-accent-on-grey",
+          charts: [{ start: 4, end: 14, build_order: "frame-data-label", draw_s: 1.0, hold_s: 6.0 },
+            { start: 20, end: 26, build_order: "data-then-frame", draw_s: 1.2, hold_s: 3.0 }],
+          hero_numbers: [{ start: 30, end: 34, counter: "count-up", count_s: 1.1 }, { start: 0, end: 40, counter: "ticker" }] } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      const run = () => {
+        writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+        return spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "data-story", "--measures", join(dir, "m.json"),
+          "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      };
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.data_first_s.value, 4.0);
+      assert.equal(rows.data_time_share.value, 1.0);
+      assert.equal(rows.data_read_s.value, 4.0, "the ticker has no reading time");
+      assert.equal(rows.data_counters.value, 1);
+      assert.equal(rows.data_build_frame_first.value, 0.5);
+      coding.data.first_number_s = 40;
+      coding.data.first_chart_s = 32;
+      coding.data.numbers_per_scene.max = 12;
+      assert.equal(run().status, 2, "late data and a wall of figures are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the music video type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/music-video.md", ["`../genres/music-video.md`", "one or two lyric lines at a time"]);
+  has(`${GENRES}/music-video.md`, ["`music-video`", "14 official music videos", "mv_line_hold_s >=0.7", "## Flashes and safety"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/music-video.md` for music videos"]);
+  has("skills/ice-qa/scripts/genre_check.py", ['"mv_lines_typical"', '"no lines"']);
+});
+
+test("genre playbooks: the general rules the music video corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-audio/references/cue-map-and-beat-sync.md", ["- Cut on downbeats, not every beat.",
+    "Music video (the `ice-film` skill, `references/genres/music-video.md`): the measured genre does not cut on the downbeat",
+    "In a music video the cues are the sung words and the line changes"]);
+  has("skills/ice-qa/references/motion-density.md", ["| music video | 3.0 | 3.0 | 0 |", "| Kinetic type | Cuts on the beat grid"]);
+  has("skills/ice-film/references/film-types/music-video.md", ["cuts on beats; never a slideshow",
+    "Ice house choices for a film cut to its own beat map"]);
+  // the flash safety limit is never lifted by the genre
+  has(`${GENRES}/music-video.md`, ["the strobe safe mode stays absolute"]);
+});
+
+test("genre playbooks: music video ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/music-video.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["Cuts on beats", "Cut on downbeats, not every beat", "Typography on 1/8 or 1/16 notes",
+    "One lyric line per scene", "Up to three type voices", "End hold at most 1.4 s", "Social -14 LUFS"]) {
+    assert.ok(rejected.includes(idea), `the music video rejected list names "${idea}"`);
+  }
+});

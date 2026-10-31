@@ -17,6 +17,13 @@
 # presenter and footage shares, caption cue length and position, on-screen attribution and the ending (reported).
 # The logo sting playbook adds the sting_ keys: the final hold (gated) and the build, exit, first readable
 # moment, lock, depth and sonic logo (reported); its event gaps stop at the lock, coded as end_card.start_s.
+# 0.2.14: the data story playbook adds the data_ keys: the first chart or figure, the share of the runtime with data on
+# screen, the readable time of finished charts and figures and the figures at once (gated); chart holds, hero
+# number reading time, counters, source and unit lines, the build order, the highlight and the variant (reported).
+# The music video playbook adds the mv_ keys, read from the coding sheet's mv block: the variant, lyric lines on
+# screen, words per line and line hold (gated when lyric lines are shown; a film with no lines reads "no lines",
+# which passes), the chorus treatment and the waveform display (gated), lyric timing and the end hold (reported).
+# No beat measure: the measured genre does not cut on the beat grid (cuts on the beat at chance in 8 of 8).
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -240,6 +247,22 @@ def coding_value(coding, key):
         return ex.get("real_material_share")
     if key == "expl_builds":
         return (ex.get("builds") or {}).get("count")
+    mvb = coding.get("mv") or {}
+    lyr = mvb.get("lyrics") or {}
+    if key == "mv_variant":
+        return mvb.get("variant")
+    if key in ("mv_lines_typical", "mv_words_per_line", "mv_line_hold_s", "mv_timing"):
+        if lyr.get("on_screen") is False:
+            return "no lines"  # a film with no lyric lines passes the lyric keys
+        return lyr.get({"mv_lines_typical": "lines_on_screen_typical", "mv_words_per_line": "words_per_line_median",
+                        "mv_line_hold_s": "line_hold_median_s", "mv_timing": "timing_by_eye"}[key])
+    if key == "mv_chorus_repeat":
+        return (mvb.get("chorus") or {}).get("same_treatment")
+    if key == "mv_waveform":
+        shown = (mvb.get("audio_reactive") or {}).get("spectrum_or_waveform_shown")
+        return None if shown is None else "yes" if shown else "no"
+    if key == "mv_end_hold_s":
+        return (mvb.get("ending") or {}).get("final_hold_s")
     so = coding.get("social") or {}
     cp = so.get("captions") or {}
     if key == "social_hook_word_s":
@@ -286,7 +309,56 @@ def coding_value(coding, key):
                     "sting_sonic": "sonic_logo"}
     if key in sting_fields:
         return st.get(sting_fields[key])
+    if key.startswith("data_"):
+        return _data_value(coding, key)
     return coding.get(key)
+
+
+def _data_value(coding, key):
+    """The data story keys, read from the coding sheet's data block (genres/data-story.md "Coding sheet")."""
+    da = coding.get("data") or {}
+    if not da:
+        return None
+    charts = da.get("charts") or []
+    heroes = da.get("hero_numbers") or []
+    if key == "data_first_s":
+        ts = [t for t in (da.get("first_number_s"), da.get("first_chart_s")) if t is not None]
+        return min(ts) if ts else None
+    if key == "data_time_share":
+        ends = [s["end"] for s in coding.get("scenes") or [] if s.get("end") is not None]
+        spans = sorted((x["start"], x["end"]) for x in charts + heroes
+                       if x.get("start") is not None and x.get("end") is not None)
+        if not ends:
+            return None
+        tot, cur = 0.0, None
+        for a, b in spans:
+            if cur and a <= cur[1]:
+                cur[1] = max(cur[1], b)
+            else:
+                tot += cur[1] - cur[0] if cur else 0.0
+                cur = [a, b]
+        tot += cur[1] - cur[0] if cur else 0.0
+        return round(min(1.0, tot / max(ends)), 2)
+    holds = [c["hold_s"] for c in charts if isinstance(c.get("hold_s"), (int, float))]
+    # a ticker (a race's year) never rests, so it has no reading time
+    reads = [h["end"] - h["start"] for h in heroes if h.get("counter") != "ticker"
+             and h.get("start") is not None and h.get("end") is not None]
+    if key in ("data_read_s", "data_chart_hold_s", "data_hero_read_s"):
+        vals = sorted(holds + reads if key == "data_read_s" else holds if key == "data_chart_hold_s" else reads)
+        if not vals:
+            return None
+        mid = len(vals) // 2
+        return round(vals[mid] if len(vals) % 2 else (vals[mid - 1] + vals[mid]) / 2, 2)
+    if key == "data_numbers_at_once":
+        return (da.get("numbers_per_scene") or {}).get("max")
+    if key == "data_counters":
+        return sum(1 for h in heroes if h.get("counter") in ("count-up", "odometer"))
+    if key == "data_build_frame_first":
+        framed = [c.get("build_order") for c in charts
+                  if c.get("build_order") not in (None, "all-at-once", "no-frame")]
+        return round(sum(1 for b in framed if b.startswith("frame")) / len(framed), 2) if framed else None
+    return {"data_source": da.get("source_line"), "data_units": da.get("units_line"),
+            "data_highlight": da.get("highlight_colour"), "data_variant": da.get("variant")}.get(key)
 
 
 # ---------------------------------------------------------------- measure
@@ -517,11 +589,11 @@ def check(genre, meas, coding, exempt, ref_meas=None, ref_coding=None):
         if k == "misses_allowed":
             continue
         v, src = value_of(k, meas, coding)
-        lt = "green" if k == "pointer_presses" and v == "no pointer" else light(v, rule)
+        lt = "green" if (k == "pointer_presses" and v == "no pointer") or v == "no lines" else light(v, rule)
         rv = genre_lt = None
         if ref_meas is not None:
             rv, _ = value_of(k, ref_meas, ref_coding)
-            rv = None if rv == "no pointer" else rv
+            rv = None if rv in ("no pointer", "no lines") or v == "no lines" else rv
         if rv is not None and (rule is not None or k == "presses"):
             genre_lt, lt = lt, ref_light(v, rv, rule or ("min",))
         if k in exempt:

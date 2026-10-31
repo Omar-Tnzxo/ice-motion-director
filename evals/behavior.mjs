@@ -91,6 +91,8 @@ const NOT_GRADED = {
   L64: "the coding sheet is filled from a render at gate D, after the cases stop",
   L65: "the news reel fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
   L66: "the logo sting fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
+  L67: "the data story fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
+  L68: "the music video fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
 };
 const GRADERS = [
   {

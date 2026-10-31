@@ -40,7 +40,7 @@ Families per film (scoped; the default is the first row unless a later row names
 | One display family plus one mono | Explainer, data story |
 | Serif plus sans, never two sans | Title-led films without a brand face: art film, industry spot |
 | One sans family at 2 to 4 weights (bold or black present); a second face only as a rare accent (measured: 10 of 11 films with no serif, `ice-film` skill, `references/genres/kinetic-type.md`) | Kinetic type |
-| Up to three type voices: a heavy display for statements, a contrasting accent voice (an italic serif or the brand's UI face), a wide-tracked mono for the machine layer | Showreel, hype promo, music video. Log a D-entry naming each voice's job; the brand face, when there is one, stays one of the three |
+| Up to three type voices: a heavy display for statements, a contrasting accent voice (an italic serif or the brand's UI face), a wide-tracked mono for the machine layer | Showreel, hype promo, music video. Log a D-entry naming each voice's job; the brand face, when there is one, stays one of the three. A lyric-type music video may set its lines in more styles (measured 4 to 10 in lyric-type videos, the `ice-film` skill, `references/genres/music-video.md`), each line an image, one D-entry for the system |
 | A different family per beat | Only a sizzle or showreel montage whose brief asks for maximal variety; never narrative or brand work. Log the reason |
 
 - Never pair two fonts that are similar but not identical (two geometric sans, two transitional serifs, two humanist sans): friction without hierarchy. Either one family at two weights or optical sizes, or two families that contrast on several axes: serif plus sans, sans plus mono, condensed plus wide, geometric plus humanist.

@@ -55,10 +55,10 @@ Use the film and edit type names from the architecture. Each row is a default; t
 | brand film, industry spot | voice-led or free | licensed human-made track, one continuous piece | sparse, material-true, recorded | gentle -16 for calm films; social -14 for brand anthems and montages (measured brand films: median -12.6, the `ice-film` skill, `references/genres/brand-film.md`) and when posted to feeds |
 | logo sting | music-led | short library button or sting, peaking on or just before the logo's lock and ringing through the hold (measured: the `ice-film` skill, `references/genres/logo-sting.md`) | one hero hit plus a few landings | social -14 |
 | kinetic type | music-led (any length without a voiceover; voice-led when a voice carries the copy) | library track, cut on a whole-frame tempo | hits only on a few landings, never one per word | social -14 |
-| data story | voice-led | steady bed leaving 1 to 4 kHz | counters and landings | gentle -16 or social -14 |
+| data story | voice-led (a silent figure stream with no voice is music-led: 7 of 15 measured data stories, `ice-film/references/genres/data-story.md`) | steady bed leaving 1 to 4 kHz | counters and landings | gentle -16 or social -14 |
 | hype promo, showreel | music-led | library track with bar-line splices | dense but every hit has a cause | social -14 |
 | UI walkthrough | voice-led | quiet bed | clicks, typing texture, small UI | gentle -16 |
-| music video | music-led | the user's track only | as the track allows | reference match or social -14 |
+| music video | music-led | the user's track only | as the track allows | the user's master as it is, true peak fixed (released masters measured at -8.45 LUFS median, 3 of 14 near -14; platforms normalise; `ice-film` skill, `references/genres/music-video.md`) |
 | art film | free or music-led | library track whose instruments fit the style's sound palette | material sounds, designed silences | gentle -16 |
 | explainer (ice-explainer) | voice-led | steady bed or none under speech | one sound per moment, quiet typing | gentle -16 |
 | long-form, podcast | voice-led | optional bed | minimal | gentle -16 |

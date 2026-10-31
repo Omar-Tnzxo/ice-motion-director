@@ -13,7 +13,7 @@ fingerprint the render is checked against.
   teaches a concept, a product, a process or a news story: animated, motion graphics, SaaS, science and news explainers,
   about 45 s to 4 min.
 - Not for: a film that still works with the voice removed (`ice-film` types), a news reel cut from footage (edit type
-  `news-reel`), an app ad whose hero is the UI (`genres/ui-motion.md`), a kinetic type film (`genres/kinetic-type.md`).
+  `news-reel`), an app ad whose hero is the UI (`genres/ui-motion.md`), a kinetic type film (`genres/kinetic-type.md`), a narrated film whose picture is led by charts and figures (`genres/data-story.md` variant A: the same voice pipeline, the chart grammar and the fingerprint from that file).
 - Precedence: the user's words, a reference the film follows (its own measures win, `ice-remake`), and a chosen style
   outrank this file, through exemption rows lifting `genre:<key>` (the `ice-direction` skill, `references/treatment.md`
   section "Craft plan"). This file outranks the house defaults it names in "Rules this genre replaces".

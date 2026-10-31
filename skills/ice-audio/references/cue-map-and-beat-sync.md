@@ -63,7 +63,7 @@ print({'bpm': float(np.atleast_1d(tempo)[0]), 'first_beat': float(beats[0] + shi
 
 | What | Rule |
 |---|---|
-| Primary visual contact (hard cut, slam, hit) | On the cue frame: within 2 frames or 40 ms, whichever is stricter. Hard hits are 0 ms; easing a hit kills it. |
+| Primary visual contact (hard cut, slam, hit) | On the cue frame: within 2 frames or 40 ms, whichever is stricter. Hard hits are 0 ms; easing a hit kills it. In a music video the cues are the sung words and the line changes, not the beat grid (measured: cuts on the beat at chance in 8 of 8, the `ice-film` skill, `references/genres/music-video.md`). |
 | Secondary accents | Within 80 ms. |
 | Sound before or after picture | Prefer picture early rather than late, at most 1 frame early. Broadcast tolerance (EBU R37): sound leading at most 40 ms, lagging at most 60 ms. A sound after its picture reads as lag, which viewers always notice. |
 | Anticipated moves | Start about 40 to 190 ms (about 0.05 s typical) before the beat so they complete on it; reactive entrances fire 0 to 45 ms after. Never start a slow ease on the beat. |
@@ -77,7 +77,7 @@ Detailed motion timing (eases, holds, carry) belongs to the ice-motion skill; th
 
 ## 6. Cutting on the grid (density)
 
-- Cut on downbeats, not every beat. Big changes on beats, typography on 1/8 or 1/16 notes in music-led films. One action, one sound, one cut, but leave time to see.
+- Cut on downbeats, not every beat. Big changes on beats, typography on 1/8 or 1/16 notes in music-led films. One action, one sound, one cut, but leave time to see. Music video (the `ice-film` skill, `references/genres/music-video.md`): the measured genre does not cut on the downbeat or the beat (0 of 8 above chance); the picture follows the sung words, the line changes and the phrase, and a beat-locked cut is a house choice there, never a fail.
 - Strong beats get real transitions; off-beat cuts get no transition. Never the same transition family back to back.
 - Dense music regions carry rapid state progress; sparse regions carry reading and typing; strong onsets carry decisive contact; the ending cadence reduces density. Use musical rests; do not fill every subdivision.
 - A camera move at most once per phrase, never per beat (a news reel follows `ice-motion/references/camera.md` "Digital camera on one take (news reel)" instead); a dense flip or strobe system runs at most 2 to 3 s; in safe mode no strobe and at most 3 flashes per second (WCAG 2.3.1), as the strobe safe mode below sets out.
