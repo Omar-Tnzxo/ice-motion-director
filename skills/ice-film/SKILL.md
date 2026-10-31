@@ -63,7 +63,7 @@ The router owns the spine and `ice/state.json`; this section says what each stag
 
 ## 4. Film types
 
-Twelve types: product launch, app ad, brand film, logo sting, kinetic type, data story, social short, hype promo, UI walkthrough, music video, art film, industry spot. Read `references/film-setup.md` (section 1, Film types) at stage 01 to pick the type: the shared type file fields, the signals table, and what to do when two types fit.
+Twelve types: product launch, app ad, brand film, logo sting, kinetic type, data story, social short, hype promo, UI walkthrough, music video, art film, industry spot. Read `references/film-setup.md` (section 1, Film types) at stage 01 to pick the type and its measured genre playbook (`references/genres/<genre>.md`).
 
 ## 5. Rules that are scoped, not global
 

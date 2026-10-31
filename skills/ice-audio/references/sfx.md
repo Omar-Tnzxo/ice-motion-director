@@ -115,6 +115,7 @@ Density (scope line for section 4): in a news reel the "about 15 events per minu
 ## 4. Density
 
 - Default ceiling: about 15 events per minute in voice-led films and ads, peaks under about -18 dBFS, always under the voice. A reference's sound map (its measured events per minute and riser count) or the chosen style's sound line (illustration only: a trailer with a riser per act, a cartoon, a Foley-dense film) replaces this ceiling and the signature riser rule below, with its plan row; the news reel is the measured case (section 3b, "Density"). About 8 well-chosen effects in 18 s reads as designed; about 20 reads as generic.
+- UI and app motion genre (`ice-film` skill, `references/genres/ui-motion.md`): the ceiling is replaced by the measured genre density, 10 or more effects per minute (median 36 in 15 measured films) on presses, landings, morph hits and reveals. Item 4 of section 1 still holds there: in 13 of the 15 films sounds landed on moves no more often than chance, so a click under every move is not the genre's habit.
 - Choose 3 to 5 SFX kinds per film and reuse them; fifteen distinct sounds sound like a library demo.
 - At most two cues in any 100 ms; if two land within 40 ms keep one; at most three simultaneous cues; soften cues that cluster within about 0.15 s (x0.6 gain). Never two sounds on one instant by accident.
 - One signature riser and one signature impact per film; a second riser halves both. Transitions get soft whooshes or swishes only.

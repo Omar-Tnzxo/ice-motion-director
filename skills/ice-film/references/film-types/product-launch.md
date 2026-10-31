@@ -32,7 +32,7 @@ Pick one parent skeleton per film (two may combine, one leads). None is the defa
 | Argument then evidence (measured shares) | Narrated launch with a clear claim | problem 8-10%, agitate 8-10%, thesis 5%, product 30-35%, proof 20-25%, contrast 10%, CTA 8-10%; the claim lands inside the first 10 s; cap product beats at four |
 | Claim, how, result cycles | Products whose results are visual | claim 1-2.5 s, how in the UI 2-6 s, result 4-6 s; 2 or 3 cycles; closing 4-5 s; luxury from restraint |
 | Chain story | A workflow product where each step feeds the next | problem in the customer's own words (3-5 s), each step produces what the next one uses, the measurable result on screen, the price twist, the CTA; each step 2-7 s; every element finishes and stays readable at least 1.5 s |
-| One shape, never cut (music-first UI morph) | App or SaaS with 8-12 UI states and a song | one element morphs through every state on a beat grid near 120 BPM, something happens on every beat, see `../launch-principles.md` |
+| One shape, never cut (music-first UI morph) | App or SaaS with 8-12 UI states and a song | one element morphs through every state on a beat grid of 100 to 125 BPM (measured median 114, `../genres/ui-motion.md`), something happens on every beat, see `../launch-principles.md` |
 | Continuous-take keynote launch | Consumer apps, AI products | 22-27 s, square, 60 fps; every scene grows out of the last (morphs, floods, iris); a real cursor; last frame equals first |
 | Hook, one core interaction, proof of range | Fast launches | hook, one core interaction, a fast proof of range (a wall, never a slow tour), the brand moment, the call; a visual payoff every 3-5 s |
 | Restraint product film | Fintech, B2B SaaS, premium software | 15 s master recomposed for 9:16; real dashboard rebuilt in layers; object-driven transitions; overshoot under 2%; one strong moment |
@@ -91,7 +91,7 @@ Where the row's numbers come from: max_event_gap_s: never stretch a beat past 7.
 
 - One clear takeaway per scene; short prompts and answers; enough settled time to read the result.
 - Typing belongs only inside the product's real input box, never on headlines.
-- One emphasis word per headline carries the accent. Reading-time rules and type scale: ice-type.
+- One emphasis word per headline carries the accent. Reading-time rules and type scale: ice-type. A launch with screens: the UI motion genre measured colour emphasis as an option of its motion design variant, not a default (0 of 6 brand launch films colour a word; `../genres/ui-motion.md`, Options).
 
 ## Truth and content
 
@@ -134,6 +134,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Launch rules that span types: `../launch-principles.md`. Openers and endings: `../openers-and-endings.md`. Script shapes per beat role: `../script-shapes.md`. Motion grammar, cut catalog, camera: ice-motion. Truth sheet: ice-assets. Engines and aspect re-layout: ice-engines. Gates: ice-qa.
+Launch rules that span types: `../launch-principles.md`. A product with screens: the measured genre playbook `../genres/ui-motion.md` (conventions with numbers, the two variants, the fingerprint the render is checked against). Openers and endings: `../openers-and-endings.md`. Script shapes per beat role: `../script-shapes.md`. Motion grammar, cut catalog, camera: ice-motion. Truth sheet: ice-assets. Engines and aspect re-layout: ice-engines. Gates: ice-qa.
 
 Sources: AbubakrChan/product-launch-motion, heygen-com/hyperframes (product-launch-video), charlie947/motion-graphics-skills, howseen-ai/claude-motion-design, echris6/motion-video-kit, bangtutorial/bang-motion, alexgreensh/anidoodle, Tejashmakwana/motionmaxxing, video-production-studio (Omar-Tnzxo).

@@ -39,7 +39,8 @@ Leads with: real screens. 01 captures the live product first; 05 runs before 04 
 | Cuts | The main cut at the length the brief asks (30-40 s when it names none; the longer structure options above reach 45-60 s), plus the 15 s and 6 s cuts of Deliverables; each stands alone with its own hook |
 | Feature on screen | At least 2.5 s |
 | Chat playback | A five-beat exchange needs about 8 s with four push-ins; at 3-4 s it cannot be followed |
-| Hook | Motion in the first second; first on-screen text before 0.5 s; the first frame is readable (it is also the cover) |
+| Hook | Motion in the first second; first on-screen text before 0.5 s; the first frame is readable (it is also the cover); 4 or more visual events in the first 3 s (measured median 7) |
+| Pace (measured, `../genres/ui-motion.md`) | A new visual event about every 0.33 s (1.45 per s, at least 1.0); scenes a viewer counts last 2 to 4 s (median 2.5); the longest gap without an event stays under 6.2 s |
 
 Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 6; holds excuse.
 
@@ -68,7 +69,7 @@ Voiceover the whole way is the ad default when a voice source exists (the user's
 
 ## Sound policy
 
-Voice over SFX over music. Music chosen by the ad's category, not the country, with tempo ranges: the `ice-audio` skill, `references/music-choice-and-licensing.md` section 3; cutting on the grid: `references/cue-map-and-beat-sync.md` section 6 of the same skill. A few UI sounds only on real actions. Levels and loudness: ice-audio.
+Voice over SFX over music. Music chosen by the ad's category, not the country, with tempo ranges: the `ice-audio` skill, `references/music-choice-and-licensing.md` section 3; cutting on the grid: `references/cue-map-and-beat-sync.md` section 6 of the same skill. UI sounds only on real actions (presses, landings, morph hits, reveals), at the genre's measured density (10 or more per minute, median 36; `../genres/ui-motion.md`), never one under every move. Music 100 to 125 BPM (median 114) unless a reference or the brand's own films say otherwise. Levels and loudness: ice-audio.
 
 ## Text density
 
@@ -124,6 +125,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Device frames and real capture: ice-assets. Camera-follows-tap numbers: ice-motion. Dialect, bidi and Arabic captions: ice-arabic. Industry claim risks: `industry-spot.md`.
+Measured genre playbook (conventions, the two variants, the fingerprint the render is checked against): `../genres/ui-motion.md`. Device frames and real capture: ice-assets. Camera-follows-tap numbers: ice-motion. Dialect, bidi and Arabic captions: ice-arabic. Industry claim risks: `industry-spot.md`.
 
 Sources: video-production-studio (Omar-Tnzxo), bangtutorial/bang-motion, echris6/motion-video-kit, alexgreensh/anidoodle, AbubakrChan/product-launch-motion, feitangyuan/onetake (ideas).

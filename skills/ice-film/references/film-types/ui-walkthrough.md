@@ -53,7 +53,7 @@ Locked while reading; after an action, a pull-back shows the whole screen for a 
 
 ## Sound policy
 
-A gentle bed (soft keys or plucks around 100-110 BPM for calm demos), key ticks while typing, soft clicks, a light tick per completed step. Ice-audio owns levels.
+A gentle bed (soft keys or plucks around 100-110 BPM for calm demos; 100 to 125 BPM, median 114, across the measured genre, `../genres/ui-motion.md`), key ticks while typing, soft clicks, a light tick per completed step; effects on presses and results, never one under every move. Ice-audio owns levels.
 
 ## Text density
 
@@ -92,6 +92,6 @@ Every operation readable at phone size; the cursor never leaves the frame at any
 
 ## Pointers
 
-Launch-wide UI rules: `../launch-principles.md`. Cursor and camera numbers: ice-motion. Real capture and replicas: ice-assets.
+Launch-wide UI rules: `../launch-principles.md`. Measured genre playbook: `../genres/ui-motion.md` (its fingerprint is gated for the short options and reported, not gated, for the Calm demo, which keeps real-speed UI). Cursor and camera numbers: ice-motion. Real capture and replicas: ice-assets.
 
 Sources: Barty-Bart/motion-graphics, howseen-ai/claude-motion-design, video-production-studio (Omar-Tnzxo), heygen-com/hyperframes (blueprints), feitangyuan/onetake (ideas).
