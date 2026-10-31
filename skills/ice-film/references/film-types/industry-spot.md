@@ -7,7 +7,7 @@ Leads with: the story.
 
 ## Fit
 
-A 15-40 s commercial for a real business in a named industry (restaurant, real estate, clinic, home services, retail, hospitality, events, automotive, finance, education, nonprofit). Software products lean on `product-launch.md` or `app-ad.md`; this file adds the industry rules.
+A 15-40 s commercial for a real business in a named industry (restaurant, real estate, clinic, home services, retail, hospitality, events, automotive, finance, education, nonprofit). Software products lean on `product-launch.md` or `app-ad.md`; this file adds the industry rules. Also an industrial, B2B or corporate spot (manufacturing, energy, logistics, engineering, construction, a real estate developer), 45 s to 3 min, sold to buyers, partners or investors: B2B and corporate spots (`../genres/industry-spot.md`) follow the measured genre, whose conventions replace the numbers each section below scopes to the short commercial.
 
 ## Purpose
 
@@ -22,6 +22,7 @@ Business purpose on mute: by the end, a first-time viewer can say what the busin
 | Service spine | context, process, evidence, outcome, promise, logo |
 | Request to confirmation | request, picker, selected time, confirmation (service businesses) |
 | Place walkthrough or map story | the location on a map with real travel times, a walk through the space; renders labelled as renders |
+| B2B capability film | 45 s to 3 min (`../genres/industry-spot.md`): a busy opening on a place, the planet or the work; scale from the air; people at work in protective gear; capability shown (assets, technology, people), a concrete result when the brief has one; 3D inserts for what the camera cannot see; the logo centred with its tagline, no CTA. A map or globe shows reach (4 of 15), never travel times |
 | Food montage on the beat | steam, the sound of cooking, the first bite, the crowd |
 | Timeline reel | company history or anniversary, one moment per scene |
 
@@ -48,19 +49,20 @@ When the industry is not listed, take the closest row and let the stage 01 RQ-ru
 ## Rhythm ranges
 
 - 30 s: about 12-15 compositions, beats of 1.4-3.5 s; frame 0 is a finished composition.
+- B2B and corporate spots (`../genres/industry-spot.md`): 45 s to 3 min (median 104 s); about 8 counted shots per 10 s, shot median 1.2 s, a new visual event about every 0.4 s, a whole-frame change about every second, the longest gap 6 s or less, one or two holds of 6 to 8 s on a scale shot or a 3D reveal.
 - Pilot set: one 20-30 s film plus two hooks plus two aspects.
 
-Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 3.5; holds excuse.
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 9; holds excuse.
 
-Where the row's numbers come from: max_event_gap_s: beats of 1.4-3.5 s (above); compositions are not shots (a carried transition changes the composition without a cut), so the shot fields stay open; holds excuse: calm spots may hold locked reading frames (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+Where the row's numbers come from: max_event_gap_s: the most lenient number that holds for both variants: the short commercial plans beats of 1.4-3.5 s (above), the measured B2B and corporate spots run longest gaps of 2.75 to 8.67 s by `film_gate.py` (14 of 15; `../genres/industry-spot.md`, whose fingerprint gates the genre's own pace); compositions are not shots (a carried transition changes the composition without a cut), so the shot fields stay open; holds excuse: calm spots may hold locked reading frames (Camera policy during holds). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
 
 ## Timing master
 
-Voiceover when the market expects it; otherwise a back-timed real track whose own ending lands on the end card (ice-audio). See `../cue-sheet.md`.
+Voiceover when the market expects it; otherwise a back-timed real track whose own ending lands on the end card (ice-audio). See `../cue-sheet.md`. Measured B2B and corporate spots (`../genres/industry-spot.md`): a voice carries 13 of 15 (voiceover, or voiceover plus supers that add facts), one music track runs under the whole film and resolves on the logo in 13 of 15.
 
 ## Transition policy
 
-Hand objects across scenes at exact pixel coordinates so the last frame of one scene equals the first frame of the next for the carried object; avoid near-black transition frames and pale low-contrast text on key messages (phone viewing).
+Short commercial: hand objects across scenes at exact pixel coordinates so the last frame of one scene equals the first frame of the next for the carried object (B2B and corporate spots cut hard, 81 percent of transitions, with a few dissolves; a carried object is an option, 6 of 15: `../genres/industry-spot.md`); avoid near-black transition frames and pale low-contrast text on key messages (phone viewing).
 
 ## Camera policy during holds
 
@@ -68,6 +70,7 @@ Hand objects across scenes at exact pixel coordinates so the last frame of one s
 |---|---|
 | Energetic spots | No hold over about 0.6 s except the CTA; reading holds only on business-message frames with a slow 3-6% push (the `ice-motion` skill, `references/camera.md` section 4) |
 | Calm spots (services, health, premium) | Locked reading holds are allowed; motion stays gentle |
+| B2B and corporate spots | A scale shot or a 3D reveal may hold 6 to 8 s once or twice; the longest still about 6 s (measured 2.67 s at the median, 6.2 s or less in 14 of 15, `../genres/industry-spot.md`) |
 
 ## Sound policy
 
@@ -77,13 +80,14 @@ Music matched to the buyer's customer, with tempo ranges by category: the `ice-a
 
 One message per frame; the CTA readable at phone size for at least about 1.5 s; business name and action exact.
 
-Scoped exception, the CTA block (industry spots and event invites): the facts a viewer needs to act (name, event or offer, date, hours, address or link) may run to about 16 text units on the end card, above the per-shot text cap. Hold the block for its reading time (the `ice-type` skill, `references/reading-time.md`), or split it across at most three end shots that each add one fact while the earlier facts stay. Mark the end-card rows `CTA block` in the storyboard Tags column so the ice-qa storyboard lint applies this exception instead of the general cap; never shorten an address or a date to pass a lint.
+Scoped exception, the CTA block (industry spots and event invites): the facts a viewer needs to act (name, event or offer, date, hours, address or link) may run to about 16 text units on the end card, above the per-shot text cap. Hold the block for its reading time (the `ice-type` skill, `references/reading-time.md`), or split it across at most three end shots that each add one fact while the earlier facts stay. Mark the end-card rows `CTA block` in the storyboard Tags column so the ice-qa storyboard lint applies this exception instead of the general cap; never shorten an address or a date to pass a lint. B2B and corporate spots end on the logo centred with its tagline on a plain ground and carry no call to action (15 of 15 measured, `../genres/industry-spot.md`); on-screen claims are short (5 words at the median) and each is held for its reading time.
 
 ## Truth and content
 
 - Approved claims, the negative list and labels for concept films and illustrative content: the `ice-assets` skill, `references/truth-sheet.md` sections 6 and 9.
 - Generated imagery (optional, user-initiated, disclosed, never shown as a real job, customer or result): the `ice-assets` skill, `references/ai-media-policy.md` section 1.
 - Local life, not stock life: real streets, real area names, the way people of that city talk.
+- Industrial sites: every person in a hazard shot (a site, a plant floor, near machines or loads) wears the site's protective gear (helmet, vest, glasses, gloves), filmed or generated; a render of anything not yet built carries "Render" or "Artist impression" on screen. The measured genre does not always do either (`../genres/industry-spot.md`, Measured and not adopted); Ice does.
 - A named real business, or a real reference brand for the field: research it (dated today) and use its real material: its own site and app captured live, its official brand or press kit, colours and fonts read from its own site, its untouched logo, its real place. Never invent its look; when the material cannot be obtained, the `ice-assets` skill, `references/brand-authenticity.md` decides what happens (in the stage 01 message, or the no-answer path it defines).
 
 ## Richness floor
@@ -98,14 +102,14 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 | `empty_half` | 0 s for vertical; 1 s in total for 16:9 |
 | `depth_layers` | 3 (the place, the subject, a foreground element of the place) |
 | `in_shot_motion` | 85 percent for energetic spots; 75 percent for calm spots |
-| `longest_still` | 0.6 s for energetic spots and 1.2 s for calm spots, outside declared reading holds |
+| `longest_still` | 0.6 s for energetic spots and 1.2 s for calm spots, outside declared reading holds; about 6 s for B2B and corporate spots (`../genres/industry-spot.md`) |
 | `surface_detail` | yes in every shot |
 | `light_events` | 1 per 10 s of runtime |
 | `real_material` | 100 percent: the real place, product, people and logo; renders labelled as renders |
 
 ## QA thresholds
 
-- Muted viewer states the business and the action; frozen time at most about 1 s per 30 s (energetic); every claim true or labelled; brand colour sampled correctly.
+- Muted viewer states the business and the action; frozen time at most about 1 s per 30 s (energetic); every claim true or labelled; brand colour sampled correctly. B2B and corporate spots: the muted viewer states the company and what it can do (no action asked); still share 0.15 or less; the genre fingerprint of `../genres/industry-spot.md` (ice-qa `scripts/genre_check.py check --genre industry-spot`, gate D).
 - End hold: the CTA block holds for its reading time, which may exceed the 0.6-1.4 s lockup hold. Declare the CTA block's start as its own event in the cue sheet (and in the events file the ice-qa end-hold check reads) so the check measures the CTA reading hold against the reading time, not the lockup limit.
 
 ## Deliverables
@@ -114,6 +118,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Truth sheet and asset rights: ice-assets. Arabic markets: ice-arabic. Music by category: ice-audio.
+Measured genre playbook for B2B and corporate spots: `../genres/industry-spot.md` (the two variants, conventions, rejected rules, the fingerprint; read at 02, 04 and 08). Truth sheet and asset rights: ice-assets. Arabic markets: ice-arabic. Music by category: ice-audio.
 
 Sources: video-production-studio (Omar-Tnzxo), echris6/motion-video-kit, AbubakrChan/product-launch-motion, Tejashmakwana/motionmaxxing.

@@ -30,7 +30,11 @@ const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "har
   "data_first_s", "data_time_share", "data_read_s", "data_numbers_at_once", "data_chart_hold_s", "data_hero_read_s",
   "data_counters", "data_source", "data_units", "data_build_frame_first", "data_highlight", "data_variant",
   "mv_variant", "mv_lines_typical", "mv_words_per_line", "mv_line_hold_s", "mv_timing", "mv_chorus_repeat",
-  "mv_waveform", "mv_end_hold_s"];
+  "mv_waveform", "mv_end_hold_s",
+  "art_variant", "art_motif_mode", "art_motif_states", "art_motif_returns", "art_card_words", "art_card_hold_s",
+  "art_opening", "art_palette_shifts", "art_longest_hold_s", "art_end", "art_end_hold_s",
+  "ind_carrier", "ind_footage_share", "ind_cg_share", "ind_mg_share", "ind_claims", "ind_claim_hold_s",
+  "ind_scale_share", "ind_people_share", "ind_ppe", "ind_proof", "ind_brand_first_s", "ind_cta"];
 
 function has(relPath, phrases) {
   const text = readText(relPath);
@@ -649,3 +653,124 @@ test("genre playbooks: music video ideas the corpus did not confirm are recorded
     assert.ok(rejected.includes(idea), `the music video rejected list names "${idea}"`);
   }
 });
+
+test("genre playbooks: the art film type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/art-film.md", ["`../genres/art-film.md`", "| Measured art film (30 s to 5 min) |"]);
+  has(`${GENRES}/art-film.md`, ["`art-film`", "15 motion-led art films", "art_motif_states >=4", "## Flashes and safety"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/art-film.md` for art films"]);
+  has("skills/ice-qa/scripts/genre_check.py", ['"art_motif_mode"', '"no type"']);
+});
+
+test("genre playbooks: the general rules the art film corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-film/references/openers-and-endings.md", ["never an empty or black frame longer than 0.3 s",
+    "Art film genre (`genres/art-film.md`): a title sequence or festival film may open on a black lead-in"]);
+  has("skills/ice-film/references/film-types/art-film.md", ["| Ten-second style film | a hook in the first 0.5 s",
+    "composed end frame held 0.8-1.2 s", "a breath of 2 s or more is an option"]);
+  has("skills/ice-motion/references/anti-slideshow-and-density.md", ["| Scene length ceiling | 5 s per scene unless there is a named reason",
+    "in an art film one or more slow shots of 5 to 12 s"]);
+  has("skills/ice-qa/references/motion-density.md", ["fast-motion share < 0.035 red", "Art film genre: the held family"]);
+  // the flash safety limit is never lifted by the genre
+  has(`${GENRES}/art-film.md`, ["the strobe safe mode stays absolute in this genre"]);
+});
+
+test("genre playbooks: art film ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/art-film.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["Length 10 to 60 s", "Hero moment at 60 to 75 percent", "End frame held 0.8 to 1.2 s",
+    "Avoid hard cuts", "At least two real silences", "One style and palette to the last frame", "A scene ceiling of 5 s",
+    "A busy hook"]) {
+    assert.ok(rejected.includes(idea), `the art film rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: an art film with a changing motif passes, a template film is red, no credits pass the type keys",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-art-"));
+    try {
+      const meas = { scene_median_s: 1.5, cuts_per_10s: 2, events_per_s: 1.2, median_event_gap_s: 0.5,
+        max_event_gap_s: 5, hook_events_3s: 2, sfx_per_min: 100, move_with_onset: 0.5, move_onset_lift: 1.0,
+        end_center_dx: 0, end_center_dy: 0, end_area: 0.05, end_bg_std: 1 };
+      const art = (motif, type, opening) => ({ transitions: { hard_cut: 8, morph_or_match: 2, dominant: "hard_cut" },
+        end_card: { start_s: 80 }, art: { variant: "title-sequence", motif, type, opening: { kind: opening },
+          palette: { shifts_between_sections: 3 }, stillness: { longest_hold_s: 5 }, ending: { kind: "title-card", final_hold_s: 3 } } });
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      writeFileSync(join(dir, "good.json"), JSON.stringify(art({ mode: "one-motif-transformed", variations: 8, returns_at_end: true },
+        { use: "credits", words_per_card_median: 4, card_hold_median_s: 2.5 }, "from-black-fade")));
+      writeFileSync(join(dir, "none.json"), JSON.stringify(art({ mode: "few-motifs-alternating", variations: 6, returns_at_end: true },
+        { use: "none" }, "cold-in-motion")));
+      writeFileSync(join(dir, "bad.json"), JSON.stringify(art({ mode: "vignettes-no-motif", variations: 1, returns_at_end: false },
+        { use: "credits", words_per_card_median: 14, card_hold_median_s: 0.6 }, "title-first")));
+      const run = (c) => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "art-film", "--measures",
+        join(dir, "m.json"), "--coding", join(dir, c), "--json"], { encoding: "utf8", timeout: 60000 });
+      const g = JSON.parse(run("good.json").stdout);
+      assert.equal(g.verdict, "green", JSON.stringify(g.rows));
+      const n = JSON.parse(run("none.json").stdout);
+      assert.equal(n.verdict, "green", "a film with no credits or title passes the type keys");
+      assert.equal(n.rows.art_card_hold_s.value, "no type");
+      const b = run("bad.json");
+      assert.equal(b.status, 2, "a template film with no motif, crammed cards and a title-first open is red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the industry spot type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/industry-spot.md", ["`../genres/industry-spot.md`", "an industrial, B2B or corporate spot"]);
+  has(`${GENRES}/industry-spot.md`, ["`industry-spot`", "15 industrial, B2B and corporate spots", "ind_footage_share >=0.4", "## Measured and not adopted"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/industry-spot.md` for B2B and corporate industry spots"]);
+  has("skills/ice-film/references/genres/brand-film.md", ["B2B or developer company's corporate film is an industry spot"]);
+  has("skills/ice-qa/scripts/genre_check.py", ['"ind_footage_share"', '"ind_claim_hold_s"']);
+});
+
+test("genre playbooks: the general rules the industry spot corpus contradicts stay house defaults, scoped by genre", () => {
+  const t = has("skills/ice-film/references/film-types/industry-spot.md", [
+    "A 15-40 s commercial for a real business in a named industry",
+    "- 30 s: about 12-15 compositions, beats of 1.4-3.5 s; frame 0 is a finished composition.",
+    "hand objects across scenes at exact pixel coordinates",
+    "No hold over about 0.6 s except the CTA",
+    "Scoped exception, the CTA block (industry spots and event invites)",
+    "B2B and corporate spots (`../genres/industry-spot.md`)"]);
+  assert.ok(t.includes("Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 9; holds excuse."), "the row takes the most lenient measured gap of its two variants");
+  has("skills/ice-motion/references/anti-slideshow-and-density.md", ["at most about 1 s per 30 s; no hold over about 0.6 s except the CTA",
+    "B2B and corporate industry spot: the longest still may reach about 6 s"]);
+  has("skills/ice-audio/SKILL.md", ["gentle -16 for calm films", "B2B and corporate industry spots: social -14"]);
+});
+
+test("genre playbooks: industry spot ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/industry-spot.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["A 15 to 40 s commercial", "Beats of 1.4 to 3.5 s", "A CTA with an action on the end card",
+    "Proof beats promise", "Gentle -16 LUFS"]) assert.ok(rejected.includes(idea), `rejected list lost: ${idea}`);
+  const kept = text.split("## Measured and not adopted")[1].split("\n## ")[0];
+  for (const rule of ["Render", "reading time", "protective gear"]) assert.ok(kept.includes(rule), `truth rule lost: ${rule}`);
+  has("skills/ice-film/references/film-types/industry-spot.md", ["renders labelled as renders", "wears the site's protective gear"]);
+});
+
+test("genre_check.py: the ind coding keys read the coding sheet's ind block, and footage is gated",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "ice-ind-"));
+    try {
+      const meas = { duration_s: 100, events_s: [], events_per_s: 1.8, median_event_gap_s: 0.42, max_event_gap_s: 3.7,
+        scene_median_s: 1.08, cuts_per_10s: 7.3, end_center_dx: 0, end_center_dy: 0 };
+      const coding = { end_card: { logo_position: "center", background: "plain-solid" },
+        ind: { carrier: "both", material_share: { live_footage: 0.3, archive: 0.05, cg_3d: 0.6, motion_graphics: 0.05 },
+          claims: { count: 4, hold_median_s: 2.5 }, ending: { cta: false } } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      const run = (c) => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "industry-spot", "--measures",
+        join(dir, "m.json"), "--coding", join(dir, c), "--json"], { encoding: "utf8", timeout: 60000 });
+      let r = run("c.json");
+      let j = JSON.parse(r.stdout);
+      assert.equal(j.rows.ind_footage_share.value, 0.35);
+      assert.equal(j.rows.ind_footage_share.light, "yellow", "one gated miss is allowed");
+      assert.equal(j.rows.ind_claim_hold_s.value, 2.5);
+      assert.equal(j.rows.ind_cta.value, false);
+      coding.end_card.logo_position = "left";
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      r = run("c.json");
+      j = JSON.parse(r.stdout);
+      assert.equal(j.verdict, "red", "two gated misses are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });

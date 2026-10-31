@@ -22,7 +22,7 @@ Film-side rules: an opener (25-40 s promo, intro or launch opener) picks one con
 Priority test for every hook: "In the first 3 seconds, is someone convinced to watch until the end?" Record the viewer benefit, the unresolved question and the exact payoff that later earns it.
 
 1. Open inside a concrete situation, tension, payoff or question; never on a definition, an agenda, a title card or a slow logo (exception: logo stings and rebrand reveals, where the mark's arrival is the story).
-2. Motion at frame 0: something already mid-action; never an empty or black frame longer than 0.3 s.
+2. Motion at frame 0: something already mid-action; never an empty or black frame longer than 0.3 s. Art film genre (`genres/art-film.md`): a title sequence or festival film may open on a black lead-in of up to 3.1 s that carries the first sound (5 of 15 measured films; 10 of 15 show an image at once, so the image at once stays the default).
 3. The first frame is readable and full: it is also the cover. It meets the type's richness floor (`film-types/<type>.md`, "Richness floor").
 4. Muted test: would the first 2 seconds stop the thumb with the sound off? The visual hook and the spoken hook say different things that complete each other.
 5. The promise must be one this material can keep: no vague teasing, fabricated failure, withheld topic or "wait for it". Loudness is never the only hook.
@@ -31,6 +31,7 @@ Priority test for every hook: "In the first 3 seconds, is someone convinced to w
 |---|---|
 | Social short, app ad, feed placement | Readable caption or picture within 0.5 s; hook complete by 3 s |
 | Short motion graphic with a hero moment | Hook in the first 0.5 s, escalation, hero moment at 60-75 percent of runtime |
+| Art film of 30 s or more (measured genre, `genres/art-film.md`) | An image at once, then a calm start (2 events in the first 3 s); hero moment at 50-85 percent of runtime |
 | Type-only hook (kinetic type, launch) | May run 2-3 s |
 | Product launch 30-90 s | Hook 0-3 s; the claim lands inside the first 10 s |
 | Logo sting | The reveal is the hook; no lead-in |

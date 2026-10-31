@@ -24,6 +24,14 @@
 # screen, words per line and line hold (gated when lyric lines are shown; a film with no lines reads "no lines",
 # which passes), the chorus treatment and the waveform display (gated), lyric timing and the end hold (reported).
 # No beat measure: the measured genre does not cut on the beat grid (cuts on the beat at chance in 8 of 8).
+# 0.2.16: the art film playbook adds the art_ keys, read from the coding sheet's art block: the motif mode, its states and its
+# return at the end, the words per credit or title card and the card hold (a film with no credits or title reads
+# "no type", which passes) and the opening kind (gated); the variant, palette shifts, longest hold, ending and end
+# hold (reported). No new pixel measure: the pace keys use the shared measures with bounds wide enough for both
+# pace families of the corpus.
+# The industry spot playbook (B2B and corporate spots) adds the ind_ keys, read from the coding sheet's ind block: the
+# footage share (gated) and the carrier, 3D and graphics shares, claims and their hold, scale, people, protective gear,
+# the proof, the first brand sighting and the CTA (reported). No new pixel measure: cuts_per_10s reads this genre's cuts.
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -263,6 +271,25 @@ def coding_value(coding, key):
         return None if shown is None else "yes" if shown else "no"
     if key == "mv_end_hold_s":
         return (mvb.get("ending") or {}).get("final_hold_s")
+    ar = coding.get("art") or {}
+    if key.startswith("art_") and ar:
+        mo, ty = ar.get("motif") or {}, ar.get("type") or {}
+        if key in ("art_card_words", "art_card_hold_s"):
+            if str(ty.get("use") or "").lower() in ("", "none"):
+                return None if ty.get("use") is None else "no type"  # no credits or title: the type keys pass
+            return ty.get("words_per_card_median" if key == "art_card_words" else "card_hold_median_s")
+        if key == "art_motif_returns":
+            r = mo.get("returns_at_end")
+            return None if r is None else "yes" if r else "no"
+        art_fields = {"art_variant": ar.get("variant"), "art_motif_mode": mo.get("mode"),
+                      "art_motif_states": mo.get("variations"),
+                      "art_palette_shifts": (ar.get("palette") or {}).get("shifts_between_sections"),
+                      "art_longest_hold_s": (ar.get("stillness") or {}).get("longest_hold_s"),
+                      "art_opening": (ar.get("opening") or {}).get("kind"),
+                      "art_end": (ar.get("ending") or {}).get("kind"),
+                      "art_end_hold_s": (ar.get("ending") or {}).get("final_hold_s")}
+        if key in art_fields:
+            return art_fields[key]
     so = coding.get("social") or {}
     cp = so.get("captions") or {}
     if key == "social_hook_word_s":
@@ -309,6 +336,32 @@ def coding_value(coding, key):
                     "sting_sonic": "sonic_logo"}
     if key in sting_fields:
         return st.get(sting_fields[key])
+    ind = coding.get("ind") or {}
+    ims = ind.get("material_share") or {}
+    if key == "ind_carrier":
+        return ind.get("carrier")
+    if key == "ind_footage_share":
+        return round((ims.get("live_footage") or 0) + (ims.get("archive") or 0), 2) if ims else None
+    if key == "ind_cg_share":
+        return ims.get("cg_3d")
+    if key == "ind_mg_share":
+        return ims.get("motion_graphics")
+    if key == "ind_claims":
+        return (ind.get("claims") or {}).get("count")
+    if key == "ind_claim_hold_s":
+        return (ind.get("claims") or {}).get("hold_median_s")
+    if key == "ind_scale_share":
+        return (ind.get("scale_shots") or {}).get("share_of_runtime")
+    if key == "ind_people_share":
+        return (ind.get("people") or {}).get("share_of_runtime")
+    if key == "ind_ppe":
+        return (ind.get("people") or {}).get("ppe_in_hazard")
+    if key == "ind_proof":
+        return (ind.get("proof") or {}).get("structure")
+    if key == "ind_brand_first_s":
+        return (ind.get("brand_first") or {}).get("any_s")
+    if key == "ind_cta":
+        return (ind.get("ending") or {}).get("cta")
     if key.startswith("data_"):
         return _data_value(coding, key)
     return coding.get(key)
@@ -589,11 +642,11 @@ def check(genre, meas, coding, exempt, ref_meas=None, ref_coding=None):
         if k == "misses_allowed":
             continue
         v, src = value_of(k, meas, coding)
-        lt = "green" if (k == "pointer_presses" and v == "no pointer") or v == "no lines" else light(v, rule)
+        lt = "green" if (k == "pointer_presses" and v == "no pointer") or v in ("no lines", "no type") else light(v, rule)
         rv = genre_lt = None
         if ref_meas is not None:
             rv, _ = value_of(k, ref_meas, ref_coding)
-            rv = None if rv in ("no pointer", "no lines") or v == "no lines" else rv
+            rv = None if rv in ("no pointer", "no lines", "no type") or v in ("no lines", "no type") else rv
         if rv is not None and (rule is not None or k == "presses"):
             genre_lt, lt = lt, ref_light(v, rv, rule or ("min",))
         if k in exempt:

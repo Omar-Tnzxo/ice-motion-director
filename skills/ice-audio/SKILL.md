@@ -52,14 +52,14 @@ Use the film and edit type names from the architecture. Each row is a default; t
 |---|---|---|---|---|
 | product launch | voice-led or music-led | library track back-timed to the end card | signature riser and impact once each, UI sounds on real actions | social -14 |
 | app ad, social short, shorts and reels | hybrid or voice-led | library track with a hook in 2 to 4 s | at most about 15 per minute | social -14 |
-| brand film, industry spot | voice-led or free | licensed human-made track, one continuous piece | sparse, material-true, recorded | gentle -16 for calm films; social -14 for brand anthems and montages (measured brand films: median -12.6, the `ice-film` skill, `references/genres/brand-film.md`) and when posted to feeds |
+| brand film, industry spot | voice-led or free | licensed human-made track, one continuous piece | sparse, material-true, recorded | gentle -16 for calm films; social -14 for brand anthems and montages (measured brand films: median -12.6, the `ice-film` skill, `references/genres/brand-film.md`) and when posted to feeds. B2B and corporate industry spots: social -14 (measured median -14.3, -16 to -12 in 10 of 15, `references/genres/industry-spot.md` of the `ice-film` skill) |
 | logo sting | music-led | short library button or sting, peaking on or just before the logo's lock and ringing through the hold (measured: the `ice-film` skill, `references/genres/logo-sting.md`) | one hero hit plus a few landings | social -14 |
 | kinetic type | music-led (any length without a voiceover; voice-led when a voice carries the copy) | library track, cut on a whole-frame tempo | hits only on a few landings, never one per word | social -14 |
 | data story | voice-led (a silent figure stream with no voice is music-led: 7 of 15 measured data stories, `ice-film/references/genres/data-story.md`) | steady bed leaving 1 to 4 kHz | counters and landings | gentle -16 or social -14 |
 | hype promo, showreel | music-led | library track with bar-line splices | dense but every hit has a cause | social -14 |
 | UI walkthrough | voice-led | quiet bed | clicks, typing texture, small UI | gentle -16 |
 | music video | music-led | the user's track only | as the track allows | the user's master as it is, true peak fixed (released masters measured at -8.45 LUFS median, 3 of 14 near -14; platforms normalise; `ice-film` skill, `references/genres/music-video.md`) |
-| art film | free or music-led | library track whose instruments fit the style's sound palette | material sounds, designed silences | gentle -16 |
+| art film | free or music-led | library track whose instruments fit the style's sound palette | material sounds, designed quiet | gentle -16 (measured median -17.1 LUFS, -14 or quieter in 12 of 15; `ice-film` skill, `references/genres/art-film.md`) |
 | explainer (ice-explainer) | voice-led | steady bed or none under speech | one sound per moment, quiet typing | gentle -16 |
 | long-form, podcast | voice-led | optional bed | minimal | gentle -16 |
 | talking-head ad | voice-led | bed 10 to 14 dB under the voice | on visible actions only | social -14 |

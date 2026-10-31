@@ -10,7 +10,7 @@ the genre's measured grammar and the fingerprint the render is checked against.
 
 - Film type that points here: `brand-film`. Use it for an emotional brand story with no product demo at its centre: a
   brand anthem, a campaign film, a purpose or mission film, a manifesto, a seasonal film (Ramadan, a national moment), a
-  corporate "who we are" film, a rebrand reveal, 30 s to 3 min, filmed, animated or mixed.
+  corporate "who we are" film, a rebrand reveal, 30 s to 3 min, filmed, animated or mixed. An industrial, B2B or developer company's corporate film is an industry spot (`industry-spot.md`), whose proof is capability shown.
 - Not for: a product demo (`product-launch.md`, `ui-motion.md`), a type-led statement reel where words are the main
   actors (`kinetic-type.md`), a 2 to 8 s ident (logo sting), an agency showreel cut from existing work (edit type
   showreel).

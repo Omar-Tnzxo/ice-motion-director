@@ -7,7 +7,7 @@ Leads with: the look. 05 explores the look right after 02; 03 holds the few word
 
 ## Fit
 
-A short where the medium and look carry the film: a style showcase, painted or drawn motion, a hand-made look, an experimental or festival piece, a "same scene through changing styles" film (10-60 s).
+A short where the medium and look carry the film: a style showcase, painted or drawn motion, a hand-made look, an experimental or festival piece, a "same scene through changing styles" film (10-60 s). Measured (`../genres/art-film.md`): festival and conference title films, title sequences and opening credits, festival intros and abstract or generative films run 30 s to 5 min (46 to 214 s, median 90 s); the 10-60 s style film is the short form of the type.
 
 ## Purpose
 
@@ -18,6 +18,7 @@ The canonical, instantly recognizable form of a style, used to say something. A 
 | Option | Skeleton and numbers |
 |---|---|
 | Ten-second style film | a hook in the first 0.5 s, an escalation, one unmistakable hero moment at about 60-75% of the runtime, a composed end frame held 0.8-1.2 s with living micro-motion |
+| Measured art film (30 s to 5 min) | one motif that keeps changing state (8 states, 5 to 15) and comes back at the end; one material to the last frame; the palette shifting by section; an image at once, then a calm start; the hero moment at 50 to 85 percent; a closing title, event name or logo card held 1 to 5.3 s, or a fade to black; the variant and pace family from `../genres/art-film.md` |
 | Living painting scenes | each scene has one main continuous action plus 2-4 motif loops from the style's own world; the camera may drift slowly |
 | One subject, one goal, one turn | setup, turn, an ending that echoes (bookend the opening, reveal the scale, or let the character do the thing right the second time) |
 | One line through everything | a single unbroken line or object draws every scene |
@@ -27,11 +28,11 @@ The canonical, instantly recognizable form of a style, used to say something. A 
 
 ## Rhythm ranges
 
-Vary the pace: at least one clear acceleration or deceleration and one breath; a film at one even speed has failed. One action, one sound, one cut, but not a cut on every beat.
+Vary the pace: at least one clear acceleration or deceleration and one breath; a film at one even speed has failed. One action, one sound, one cut, but not a cut on every beat. Measured (`../genres/art-film.md`): a pace change in 10 of 15 films (the busiest quarter 1.9 times the calmest), shot lengths varying in 14 of 15, cuts at chance against the beat (10 of 11); a breath of 2 s or more is an option (7 of 15), not a rule, for a film over 30 s.
 
 Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
 
-Where the row's numbers come from: No field is gated: this section gives no shot or gap number, and holds and stillness are design choices for this type (`ice-qa/references/motion-density.md` section 3). The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+Where the row's numbers come from: No field is gated: this section gives no shot or gap number, and holds and stillness are design choices for this type (`ice-qa/references/motion-density.md` section 3). The measured pace of the genre (two families: kinetic, a new event about every 0.42 s; held, about every 1.04 s with long camera drifts) is gated by the genre fingerprint of `../genres/art-film.md`, not by this row. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
 
 ## Timing master
 
@@ -39,15 +40,15 @@ Usually music or a score written to a cue map before animating; narration when t
 
 ## Transition policy
 
-Transitions are designed inside the medium (the style's own matter becomes the transition) and carried by elements first; avoid default fades and hard cuts. Crossfades are allowed as "this continues" in art films, never as the default seam (the `ice-motion` skill, `references/transition-policy.md` section 3).
+Transitions are designed inside the medium (the style's own matter becomes the transition) and carried by elements first; avoid default fades. Measured (`../genres/art-film.md`): hard cuts are the common seam (80 percent of transitions, 0 to 89) and some seams are made of the film's own matter in 14 of 15 films; a film made entirely of such seams is a house choice, not a rule. Crossfades are allowed as "this continues" in art films, never as the default seam (the `ice-motion` skill, `references/transition-policy.md` section 3).
 
 ## Camera policy during holds
 
-The picture stays alive (hero action plus motif loops); animate on twos where the style wants it, but keep camera and light smooth every frame (a stepped camera reads as lag). At least four different camera moves and real changes of framing across the film.
+The picture stays alive (hero action plus motif loops); animate on twos where the style wants it, but keep camera and light smooth every frame (a stepped camera reads as lag). At least three different camera moves (measured 3, 0 to 5; four or more in 5 of 15, `../genres/art-film.md`) and real changes of framing across the film.
 
 ## Sound policy
 
-Every visible action has a sound matched to its material; three layers (ambience, foley, music); at least two real silences before the turn or peak; sound used as a transition at least twice; score in the style's own instruments, not generic piano and strings (ice-audio).
+Every key action has a sound matched to its material; three layers (ambience, foley, music); a designed quiet before the turn or peak (real silence is an option: measured 0 of 15 films with two, 2 of 15 with one); sound used as a transition at least twice; score in the style's own instruments, not generic piano and strings (ice-audio). Measured (`../genres/art-film.md`): music without a voice carries 12 of 15 films and the picture's energy follows it (9 of 15); a sound on every move is not the genre's grammar (3 of 15).
 
 ## Text density
 
@@ -69,7 +70,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 | `empty_half` | 1.5 s in total, only inside declared rests |
 | `depth_layers` | 3 (2 for a flat print or paper style that carries its material texture) |
 | `in_shot_motion` | 85 percent (the painting stays alive) |
-| `longest_still` | 1 s outside declared rests |
+| `longest_still` | 3 s outside declared rests (measured: 3 s or less in 13 of 15 films, 1 s or less in 8 of 15, `../genres/art-film.md`); holds drift or breathe |
 | `surface_detail` | yes in every shot: the medium's own material |
 | `light_events` | 2 |
 | `real_material` | n/a unless a real brand or work appears (then 100 percent, with rights) |
@@ -79,6 +80,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 - Style authenticity: an expert names the style in one second; every signature technique is present and correct.
 - Not the demo again: the six axes and the 4-of-6 distance rule against the nearest bundled demo: the `ice-direction` skill, `references/anti-sameness.md` sections 1 and 4.
 - Critic scale for honest scoring: 5 student, 6 template, 7 professional, 8 agency, 9 award shortlist; first renders usually deserve 5-7 (ice-qa).
+- Genre fingerprint of `../genres/art-film.md` (ice-qa `scripts/genre_check.py check --genre art-film`, gate D) for a film of 30 s or more. Flash safety stays absolute: 3 of 15 measured films exceed 3 flashes per second, Ice never copies them.
 
 ## Deliverables
 
@@ -86,6 +88,6 @@ Master, poster, credits file for every asset, treatment. See `../delivery.md`.
 
 ## Pointers
 
-Style catalogs and art styles: ice-styles. Engines for painted or 3D routes: ice-engines.
+Measured genre playbook: `../genres/art-film.md` (the four variants and two pace families, the motif, palette and holds, the opening and the close, rejected rules, the fingerprint; read at 02, 04 and 08). Style catalogs and art styles: ice-styles. Engines for painted or 3D routes: ice-engines.
 
 Sources: Vincentwei1021/mg-styles-15, huashu-art-motion, lemomo-ai/lemo-opuscar, video-production-studio (Omar-Tnzxo), edenfunf/reelmimic.
