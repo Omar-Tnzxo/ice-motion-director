@@ -2,6 +2,21 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.14 - 2026-10-31
+
+Two more genres are measured from professional work instead of collected rules: data stories (15 chart-led films from FT, Vox, Bloomberg, WSJ, BBC, Al Jazeera and others, 4 in Arabic) and music videos made with motion graphics (14 official lyric videos, animated music videos and visualizers, 4 from the Arabic market). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft.
+
+### Added
+
+- **Data story playbook (L67).** `ice-film/references/genres/data-story.md`: a voice walking through a few charts, or a silent figure stream led by music; the first chart or figure at 6.8 s at the median, data on screen 58 percent of the runtime, a chart's data drawn in about 1 s and the finished chart held about 3 s, a hero number readable about 4.6 s, at most 8 figures at once. The fingerprint gates these through the new `data_` keys. A narrated film led by charts stays on the `ice-explainer` route and runs `--genre data-story`.
+- **Music video playbook (L68).** `ice-film/references/genres/music-video.md`: a built picture (a new event every 0.33 s, the frame changing about every second) or a held picture (lyrics over one photo or a loop, no cuts); lyric lines of 2 to 4 words, one or two at a time, each held at least one beat; the chorus keeps its treatment; no waveform display; the close held about 2 s. The fingerprint gates these through the new `mv_` keys; a film with no lyric lines reads "no lines" and passes the lyric keys.
+
+### Changed
+
+- **Music videos follow the sung words, not the beat grid (L68):** the measured genre cuts on the beat and on the downbeat at chance (8 of 8 films). "Cut on the beat" and "cut on downbeats" stay house rules for kinetic type and the other music-led films; in a music video a beat-locked cut is a house choice, never a fail. The flash safe mode stays absolute: 6 of the 14 measured videos exceed it, and Ice never copies them.
+- **End holds by measure (L67, L68):** gate G3's data story row holds its end card for the reading time (measured 5.85 s at the median) instead of 1.5 s, and the music video row moves from 1.4 to 3.0 s (measured close 2.05 s).
+- **Collected numbers scoped, not deleted (L67, L68):** count-ups of 1.2 to 1.6 s, staged builds of 0.5 to 1.3 s, one lyric line per scene, three type voices at most and -14 LUFS for a music video stay house defaults where the corpus did not hold them; each playbook lists them as measured and rejected for its genre, and a music video keeps the user's master as it is (true peak fixed).
+
 ## 0.2.13 - 2026-10-31
 
 Two more genres are measured from professional work instead of collected rules: news reels (14 reels from 9 newsrooms, 7 in Arabic) and logo stings (15 stings and idents of 15 brands). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft.
