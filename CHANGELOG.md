@@ -2,6 +2,20 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.10 - 2026-10-31
+
+The genre fingerprint was run on a film Ice made for the first time (a remake of an app ad). It found three faults in the check and one real fault in the film; all four are fixed (L48).
+
+### Added
+
+- **Reference mode for the genre check.** `genre_check.py check --reference-measures <json> --reference-coding <json>` holds a film that follows a reference to the reference's own values (within 30 percent, as the pacing gate) and prints the genre line's light beside each key.
+- **A shown pointer presses (`pointer_presses`).** In the UI and app motion genre every film that shows a cursor or finger presses with it at least once (9 of 9 in the corpus); a pointer that only rides along while UI parts change by themselves is red, and no allowed miss lifts it.
+
+### Fixed
+
+- **The held end card is no longer read as a gap.** With a coding sheet the event gaps stop at `end_card.start_s`.
+- **Two coders now count the same text lines.** The UI coding sheet counts headline and body copy only (not UI labels, bracketed captions or end card lines), so the dominant reveal no longer depends on the coder.
+
 ## 0.2.9 - 2026-10-31
 
 Two more film genres are measured, not collected: explainers and brand films each get a playbook from a corpus of professional films and a fingerprint the render is checked against at gate D (`ice-qa/scripts/genre_check.py`).
