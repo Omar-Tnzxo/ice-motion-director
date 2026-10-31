@@ -2,6 +2,35 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.12 - 2026-10-31
+
+Thirteen lessons from two maintainer test runs (a 3D news reel from a plain prompt and a frame-locked remake of a feature concept) become rules, checks and tests. The checks now measure what they used to guess: a one-colour logo is found from its own file, the speaker is compared with his source frame, pacing stops at the end card, and a value on its threshold is yellow instead of flipping between red and pass.
+
+### Added
+
+- **A brand test that cannot pass is said at stage 01 (L54).** When no brand-owned element survives the masking (the identity is only the logo, the name or a presenter, or the brand is the interface the film shows), the brief says so in one line and the user gets one `brand_test` question; with a waiver the test runs once at 04-05 and once at 09 with no redraw rounds, and the run holds before delivery. A blanket "decide everything" is a waiver of questions, never the acceptance of a failed test.
+- **A `held` stage status (L62).** `ice-state.mjs` records a stage that is built while a hard test waits for the user's words: later stages run and are recorded, delivery is not approved while one is held, and only `--by user` approves it.
+- **Storyboard check 22, pointer presses (L58).** With a pointer on screen, a storyboard row where a UI part changes names the press or "no press: <why>". It reads every table of the file, so a remake board without Object and Action columns is checked too.
+- **Audio audit: a dead stop after the last word (A13, L55) and air-only effects under speech (A15, L56).** Digital silence inside 0.25 s of the last word blocks a news reel and goes to the ear list elsewhere; an effect with almost all its energy above 4 kHz and none under 1 kHz goes to the ear list as possibly made by code.
+- **Turn's tone in the clarity gate (L63).** A voice-led reference remade without a voice reads the feeling at the turn from the first cold read, and the `Q-voice` question says what going without a voice costs.
+
+### Changed
+
+- **A news reel keeps its music under the last line (L55):** dipped 3 to 6 dB and resolving as the last word ends, voice alone only on a take with its own room tone, never a cut inside 0.25 s of the last word.
+- **Effects under speech are recorded in their band (L56),** never a full whoosh high-passed to the air band.
+- **End card and sign-off lockups are fixed marks (L52)** with their official file, never the name retyped in a font.
+- **Groups of moving objects move like the real thing (L57):** a formation, a lane or a flock with a leader, never a random scatter (`depth-and-3d.md` section 6, frame check B10).
+- **The coding sheet says what a logo is (L64):** a centred line of plain text is coded `none`, its words go in `tagline`.
+- **Maintainers: the release steps are written out in `AGENTS.md`,** ending with this version's What's new published on the landing page right after the GitHub release (the founder's standing decision, 2026-10-31).
+
+### Fixed
+
+- **A one-colour logo is found from its own file (L52).** Inside its alpha a one-colour mark is flat, so the masked match had nothing to correlate and reported a logo in its slot as missing (1 of 120 samples); it is matched by its silhouette in either polarity now (120 of 120, position and size measured).
+- **The speaker is compared with his own source frame through the EDL (L53),** so a turned head in the take is no longer called dimming.
+- **Pacing stops at the end card's start and a fade is a measured change (L59),** as the genre check does since 0.2.10.
+- **A value within 3 percent of a depth bound, and a push-through grown 1.26 to 1.30 times, is yellow (L60),** not a flip between red and pass across drafts.
+- **Beats are compared on one tempo (L61):** a reference tempo read at 2, 3, 1/2 or 1/3 of the bed's (a voice over the music shifts the beat tracker) is counted at the bed's tempo, with a note.
+
 ## 0.2.11 - 2026-10-31
 
 Two more film genres are measured, not collected: hype promos and social shorts each get a playbook from a corpus of professional films and a fingerprint the render is checked against at gate D (`ice-qa/scripts/genre_check.py`). The check also finds hard cuts at the video's own frame rate now.
