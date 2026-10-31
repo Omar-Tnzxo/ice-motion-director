@@ -1,39 +1,54 @@
 <p align="center">
-  <img src="brand/mascot-seated.webp" alt="Ice, the Ice Motion Director mascot: a voxel ice cube in a navy beret, sitting in a wooden director's chair with a clapperboard" width="260">
+  <img src="brand/mascot-seated.webp" alt="Ice, the Ice Motion Director mascot: a voxel ice cube in a navy beret, sitting in a wooden director's chair with a clapperboard" width="180">
 </p>
 
 <h1 align="center">Ice Motion Director</h1>
 
 <p align="center">
-  <b>A motion design and video editing director for your coding agent.</b><br>
-  Describe a film, hand it your footage, or show it a reference. It plans, decides, writes the film as code, renders it and checks it before you see it.
+  <b>Turn your coding agent into a motion design and video editing studio.</b><br>
+  Describe a video, hand it your footage, or show it a reference. It researches, asks, plans, writes every frame as code, renders an MP4 on your computer and checks it before you see it.
 </p>
 
 <p align="center">
-  <a href="https://ice-motion-director.omarhassan.workers.dev/"><img alt="Website" src="https://img.shields.io/badge/website-ice--motion--director-FF6F5E"></a>
-  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-1E2A5A"></a>
-  <a href="#install"><img alt="Agent Skills compatible" src="https://img.shields.io/badge/Agent%20Skills-compatible-7FD8FF"></a>
-  <a href="#install"><img alt="Works with 40+ agents" src="https://img.shields.io/badge/agents-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20Gemini%20%C2%B7%2040%2B-FF6F5E"></a>
-  <a href="skills/ice-arabic"><img alt="Arabic and RTL ready" src="https://img.shields.io/badge/Arabic%20%26%20RTL-ready-FFB38A"></a>
+  <a href="https://github.com/Omar-Tnzxo/ice-motion-director/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Omar-Tnzxo/ice-motion-director?color=FF6F5E&label=release"></a>
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/Omar-Tnzxo/ice-motion-director?color=1E2A5A"></a>
+  <a href="https://ice-motion-director.omarhassan.workers.dev/"><img alt="Website" src="https://img.shields.io/badge/website-ice--motion--director-7FD8FF"></a>
 </p>
 
 <p align="center">
-  <a href="https://ice-motion-director.omarhassan.workers.dev/">Website</a> ·
+  <a href="#quick-start">Quick start</a> ·
   <a href="#install">Install</a> ·
   <a href="#try-it">Try it</a> ·
-  <a href="#workflow-step-by-step">Step by step</a> ·
-  <a href="#how-it-works">How it works</a> ·
-  <a href="#skills">Skills</a> ·
+  <a href="#the-ten-stages-at-a-glance">Ten stages</a> ·
+  <a href="#why-it-is-different">Why it is different</a> ·
   <a href="#gallery">Gallery</a> ·
-  <a href="#privacy-and-network">Privacy</a> ·
-  <a href="CREDITS.md">Credits</a>
+  <a href="#faq">FAQ</a> ·
+  <a href="https://ice-motion-director.omarhassan.workers.dev/">Website</a>
 </p>
+
+<!-- Each preview is a short loop of the real delivered film; click it to open the case study with the full video and every stage. -->
+<table>
+  <tr>
+    <td colspan="2" width="50%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/"><img src="assets/readme/gallery/spotify-concept-ad.webp" width="100%" alt="Spotify concept ad: a drawn night street in a traffic jam; after play is pressed, the honks, the drill and the motorbike become the beat and the windows light up"></a><br><sub><b>Spotify</b> concept ad, made from scratch</sub></td>
+    <td colspan="2" width="50%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/aj360-raw-edit/"><img src="assets/readme/gallery/aj360-raw-edit.webp" width="100%" alt="AJ360 style edit: a seated presenter with Arabic kinetic words, NASA mission-control footage and an app end card"></a><br><sub><b>AJ360 style edit</b>, raw take recut in a reference style</sub></td>
+  </tr>
+  <tr>
+    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/mohawalat-fahm-france-reel/"><img src="assets/readme/gallery/mohawalat-fahm-france-reel.webp" width="100%" alt="Mohawalat Fahm reel: a vertical Arabic reel cut from a TV talk-show episode, with lower thirds, big Arabic keywords and protest footage"></a><br><sub><b>Mohawalat Fahm</b> reel</sub></td>
+    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/carney-alberta-aj-reel/"><img src="assets/readme/gallery/carney-alberta-aj-reel.webp" width="100%" alt="Carney on Alberta: a vertical news reel of a government video message with a red disc, a name strap, bullet cards and a result card"></a><br><sub><b>Carney on Alberta</b></sub></td>
+    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/obama-iran-aj-reel/"><img src="assets/readme/gallery/obama-iran-aj-reel.webp" width="100%" alt="Obama on Iran: a vertical news reel of a weekly address over a map wall, with flags, a figure card and big keywords"></a><br><sub><b>Obama on Iran</b></sub></td>
+    <td width="25%" valign="top"><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/aj-greenscreen-lawyers-ad/"><img src="assets/readme/gallery/aj-greenscreen-lawyers-ad.webp" width="100%" alt="Green screen ad: a keyed presenter over a map wall with big numbers, the Capitol, real footage and the advertiser's end card"></a><br><sub><b>Green screen ad</b></sub></td>
+  </tr>
+</table>
+
+<p align="center"><sub>Real deliveries, shown as short silent loops. Click any one for the full video, the prompt and every stage. Unofficial tests and concepts, not affiliated with the brands shown (<a href="#gallery">details</a>).</sub></p>
 
 ---
 
 ## What it does
 
 Ice Motion Director is an open-source set of agent skills for motion graphics, motion design and video editing in Claude Code, Codex, Cursor, Gemini CLI and 40+ other coding agents. You describe the video in one prompt (or hand it your footage, or a reference), and your agent takes it from the brief and the script to a rendered MP4, writing every frame as code and checking it before you see it. It is free under Apache-2.0 and needs no After Effects and no paid video model.
+
+**Who it is for:** founders and marketers who need an ad, a launch film or social cuts without a studio; editors and newsrooms who want reels, shorts and talking-head edits cut from long footage; designers and developers who want Lottie and UI motion with a handoff; and anyone who writes in Arabic or mixes Arabic and English.
 
 One router skill reads your request and sends it to the right workflow:
 
@@ -48,6 +63,25 @@ One router skill reads your request and sends it to the right workflow:
 
 Every film is code (HTML, CSS, GSAP, Remotion, Lottie or FFmpeg) and renders the same way every time. Nothing is generated as stock footage: text, numbers and logos are always set in code, exactly as you approved them.
 
+## Quick start
+
+About a minute of your time; the film itself takes longer (see the note below). This uses Claude Code; every other agent is in [Install](#install).
+
+**1. Install** (needs Node, FFmpeg, Chrome and Python 3 on your computer: [prerequisites](#prerequisites)):
+
+```bash
+claude plugin marketplace add Omar-Tnzxo/ice-motion-director
+claude plugin install ice-motion-director@ice-motion-director
+```
+
+**2. Open Claude Code in an empty folder and send one message:**
+
+```text
+/ice-motion-director:ice Make a 20-second launch film for my note-taking app. Here is the site: <your URL>
+```
+
+**3. Answer its questions, then let it run.** It researches your business first, then asks about every decision your message leaves open, four options each with the recommended one first (say "decide yourself" to skip them). If you are there, it shows you one preview and lets you pick the music from real tracks laid on the film. Then it runs to the end: the film lands in `ice/renders/final/` and the delivery note, with every decision and its measured checks, in `ice/review/NOTE.md`.
+
 ## Two ways to use it
 
 1. **One prompt, for everyone.** In Claude Code, start your first message with `/ice-motion-director:ice`, then describe the film in your own words, short or long. The command makes Claude Code load the director's instructions itself, so the run starts the right way even when other video skills are installed. A prompt without the command usually works too, but then the agent picks the skill on its own, which is not guaranteed. Other agents: see [how to type the commands](#how-to-type-the-commands). The director researches your business first, then asks about every decision your prompt leaves open: four options per question with the recommended one first, at most four questions per message, and more than one message when many decisions are open (including which official brand files it may use). It asks nothing when your prompt already covers everything, or when you say "don't ask" or "decide yourself". Then, only if you are there to answer, one preview: the style frames or the animatic. After that it runs to the final file with no more questions. Everything it decided is logged and explained in the delivery note.
@@ -60,11 +94,14 @@ You can switch at any time: type a stage command in the middle of a one-prompt r
 ## Why it is different
 
 - **The same professional floor for every prompt.** A one-line prompt gets the full process. A detailed brief or a design file gets the same quality and every spec you gave is obeyed. Prompt length only changes who makes each decision.
-- **No two films look alike.** Each film starts with research dated today and built only from your brief, a pitch round with unexpected directions, and a check against your previous films and every bundled template. A film that drifts to the stock AI look (blue and purple everywhere, with no reason in the brief) fails its own gate.
-- **Asks before it works.** Every open decision gets a question with four options, the recommended one first, at most four questions per message (none when your prompt already settles it, or you say "don't ask"). Everything else is decided and logged with its reason.
-- **Finds real material on its own.** For a real event, person or place it looks for the most recent real, official footage and photos and downloads them, and its music and sound effects are real recordings from libraries, matched to your reference or your kind of film. You never have to ask for any of this in your prompt: your prompt is the idea and your files.
-- **The builder never grades itself.** Separate critic roles review storyboards, frames, motion, sound and the exported file. Every claim in the delivery report comes with measured numbers.
+- **A reason for every element.** Every card, keyword, disc or overlay names the line that triggers it, what it means and when it leaves; an element with no reason is cut. With a reference, nothing is copied blindly. ([`notes-files.md`](skills/ice-remake/references/notes-files.md) section 6, checked by [`storyboard_lint.py`](skills/ice-qa/scripts/storyboard_lint.py))
+- **The speaker stays lit.** In news, explainer and talk-show edits, dimming, silhouettes and discs are for the people being talked about, never for the person speaking; the speaker may only recede inside a planned window and is measured on the render. ([`layers-and-isolation.md`](skills/ice-edit/references/layers-and-isolation.md) section 5)
+- **Real music and real sound.** Music and sound effects are real recordings from libraries, matched to your film, with two or three tracks laid on the film for you to pick by ear; Ice also publishes its own pack of 128 CC0 effects, fetched once on first use. Sound made by code is used only when you ask for it by name. ([`ice-audio`](skills/ice-audio))
+- **Checked before you see it.** The builder never grades itself: separate critic roles and a fresh viewer who never saw the brief judge the work, and scripted gates measure the render itself (pace, faces under text, flashes, the speaker's light, every sound effect in the mix, loudness). Any failed hard gate blocks delivery, and the delivery report carries the measured numbers. ([`ice-qa`](skills/ice-qa))
+- **Finds real material on its own.** For a real event, person or place it looks for the most recent real, official footage and photos and downloads them, each recorded with its source and license status. You never have to ask for any of this in your prompt: your prompt is the idea and your files.
+- **No two films look alike.** Each film starts with research dated today and built only from your brief, a pitch round with unexpected directions, and a check against your previous films and every bundled template. A film that drifts to the stock AI look (blue and purple everywhere, with no reason in the brief) fails its own gate. A look you chose yourself is always kept.
 - **Arabic and right-to-left are first class.** Letterforms and dots in motion, kashida, bidi, numerals, Arabic captions and dialect as a setting.
+- **Lessons become rules.** Every note from the founder and every trial run becomes a rule with a test that stops it coming back: 41 so far, listed in [`lessons.md`](docs/maintainers/lessons.md).
 
 ## Install
 
@@ -233,9 +270,26 @@ Explain how our refund process works in a 60-second narrated video for new custo
 Give me five ad concepts and a script for a real-estate open day, then build the one I pick.
 ```
 
+## The ten stages at a glance
+
+Every film runs through the same ten stages, like a production company. Short pieces such as a loader or a logo sting skip the stages they do not need, and anything you already have (your script, your storyboard, your music) is checked, not redone.
+
+| Stage | Command | What it makes | You review |
+|---|---|---|---|
+| 01 Brief | `/ice-01-brief` | Research on your business, brand and the advertising rules of your industry, then the brief | The questions on every open decision, then the brief |
+| 02 Concept | `/ice-02-concept` | Several ideas, at least two unexpected, a critic's pick, and the craft plan | The ideas side by side |
+| 03 Script | `/ice-03-script` | On-screen words and voiceover, timed to the beats, plus the versions you will get | The script |
+| 04 Storyboard | `/ice-04-storyboard` | Every shot as a sketch, with framing, length and transition | The storyboard |
+| 05 Look | `/ice-05-look` | Mood board, colors, fonts and style frames with your brand's real material | The style frames |
+| 06 Animatic | `/ice-06-animatic` | A rough, timed version of the film | The animatic, and the music from two or three real tracks |
+| 07 Build | `/ice-07-build` | The full film, animated in code | Key frames and a draft |
+| 08 Sound | `/ice-08-sound` | Music, sound effects, voice, then the mix | Each part, and the measured loudness |
+| 09 Review | `/ice-09-review` | Scripted gates and fresh critics, then fixes | Each check with its measured result |
+| 10 Deliver | `/ice-10-deliver` | Final files in every language, size and length asked for, captions and the delivery report | The delivered files |
+
 ## Workflow, step by step
 
-Every film runs through the same ten stages, like a production company. With the commands you run them one at a time. Each stage ends with a review card: what was made (with previews), the options considered and why this one won, the critic's notes, and the choices still open. Nothing moves on until you say it is approved. Type anything after a command to steer that stage, for example a tone, a length or a detail to keep.
+With the commands you run the stages one at a time. Each stage ends with a review card: what was made (with previews), the options considered and why this one won, the critic's notes, and the choices still open. Nothing moves on until you say it is approved. Type anything after a command to steer that stage, for example a tone, a length or a detail to keep.
 
 1. `/ice-01-brief`: research on your business, brand and the advertising rules of your industry first, then who the film is for, the message, platform and length, plus anything you already have. **You review:** the brief, after the questions on every open decision (four options each, at most four per message).
 2. `/ice-02-concept`: several ideas, at least two of them unexpected, and the one the critic picked. **You review:** the ideas side by side.
@@ -322,24 +376,26 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 
 ## Gallery
 
-Films made with Ice Motion Director from one prompt each, across different industries. Each card links to the full video and the prompt that made it.
+Every video below is a real delivery made with Ice Motion Director, published with its full case study: the prompt in its original language, the questions, every stage with its media, the critic rounds and the checks on the delivered file. One was made from scratch from a one-line prompt; five are edits of raw footage in the style of a reference, the trials whose notes became the rules in [`lessons.md`](docs/maintainers/lessons.md).
 
 <!-- gallery:start -->
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <a href="https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/"><img src="assets/readme/gallery/spotify-concept-ad.webp" width="100%" alt="A drawn night street in a traffic jam: once play is pressed, the honking cars, the drill and the motorbike play the beat and the building windows light up in colour"></a>
-      <br><b>Spotify</b>, brand film, English, 16:9, 35 s
-      <br><sub>Prompt: <span dir="rtl">اعمل إعلان لسبوتيفاي، مدته من 35 ثانية لدقيقة، ونسخة عربي ونسخة إنجليزي.</span> The owner later narrowed it to one English version and gave five feedback rounds.</sub>
-      <br><sub>Unofficial concept, not affiliated with Spotify.</sub>
-      <br><a href="https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/"><img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E"></a>
-    </td>
-    <td width="50%" valign="top">
-      More films are being made, one brand at a time.
-    </td>
-  </tr>
-</table>
+| Video | What it is | Route | Language, aspect, length | Case study |
+|---|---|---|---|---|
+| **Spotify concept ad** | A brand film made from scratch from a one-line Arabic prompt, then five feedback rounds from the owner; a drawn street in a traffic jam turns into the beat. Unofficial concept, not affiliated with Spotify. | `ice-film` | English, 16:9, 35 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/spotify-concept-ad/) |
+| **Mohawalat Fahm reel** | A vertical reel cut from a full TV talk-show episode on the protests in France, in the programme's own reel style. Unofficial edit, not an Al Jazeera production. | `ice-edit` | Arabic, 9:16, 66 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/mohawalat-fahm-france-reel/) |
+| **Carney on Alberta** | An official government video message recut as a news reel, with real agency footage and the result card. Unofficial test, not an Al Jazeera or Government of Canada production. | `ice-edit` | English, 9:16, 96 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/carney-alberta-aj-reel/) |
+| **Obama on Iran** | A presidential weekly address recut as a long news reel with a map wall, figure cards and keywords. Unofficial test, not an Al Jazeera production. | `ice-edit` | English, 9:16, 3 min 22 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/obama-iran-aj-reel/) |
+| **AJ360 style edit** | A seated presenter take recut with Arabic kinetic words, NASA inserts and an app end card. Unofficial test, not an Al Jazeera or Al Jazeera 360 production. | `ice-edit` | Arabic, 16:9, 13.5 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/aj360-raw-edit/) |
+| **Green screen ad** | A 70-second green screen ad keyed into a studio wall, with real footage and the advertiser's own identity. Unofficial concept, not an ad by or for ConsultasAbogado.com. | `ice-edit` | English, 9:16, 73 s | [<img alt="View workflow" src="https://img.shields.io/badge/View_workflow-FF6F5E">](https://ice-motion-director.omarhassan.workers.dev/showcase/aj-greenscreen-lawyers-ad/) |
 <!-- gallery:end -->
+
+All of them, with before-and-after players for the edits: [showcase](https://ice-motion-director.omarhassan.workers.dev/showcase/). The footage and marks in each video belong to their owners; each case study lists the sources and their licenses.
+
+## On the website
+
+The [website](https://ice-motion-director.omarhassan.workers.dev/) explains Ice for people who do not read GitHub: [how it works](https://ice-motion-director.omarhassan.workers.dev/how-it-works/), [install per agent](https://ice-motion-director.omarhassan.workers.dev/install/), [showcase](https://ice-motion-director.omarhassan.workers.dev/showcase/), [compare](https://ice-motion-director.omarhassan.workers.dev/compare/) and [FAQ](https://ice-motion-director.omarhassan.workers.dev/faq/).
+
+It is available in 31 languages: [العربية](https://ice-motion-director.omarhassan.workers.dev/ar/) · [Español](https://ice-motion-director.omarhassan.workers.dev/es/) · [Français](https://ice-motion-director.omarhassan.workers.dev/fr/) · [Deutsch](https://ice-motion-director.omarhassan.workers.dev/de/) · [Português (Brasil)](https://ice-motion-director.omarhassan.workers.dev/pt-br/) · [Русский](https://ice-motion-director.omarhassan.workers.dev/ru/) · [Türkçe](https://ice-motion-director.omarhassan.workers.dev/tr/) · [हिन्दी](https://ice-motion-director.omarhassan.workers.dev/hi/) · [日本語](https://ice-motion-director.omarhassan.workers.dev/ja/) · [한국어](https://ice-motion-director.omarhassan.workers.dev/ko/) · [简体中文](https://ice-motion-director.omarhassan.workers.dev/zh-hans/) · [Bahasa Indonesia](https://ice-motion-director.omarhassan.workers.dev/id/), and more from the language menu on the site.
 
 ## What it does not do
 
@@ -373,9 +429,15 @@ No. Films are written as code (HTML, CSS, GSAP, Remotion, Lottie or FFmpeg) and 
 </details>
 
 <details>
+<summary><b>How long does a film take, and what does it cost?</b></summary>
+
+The software is free. A film runs all ten stages with several helper agents, research, renders and reviews, so even a short ad runs for a while and uses far more of your agent's plan than a chat answer. If a usage limit stops it in the middle, type `/ice` later and it resumes from `ice/state.json`. Paid services (AI generation, hosted voices or transcription) are used only when you ask for them.
+</details>
+
+<details>
 <summary><b>Can it edit my own footage?</b></summary>
 
-Yes, that is the `ice-edit` workflow: long-form and course videos, podcast episodes and clips, talking-head ads, shorts and reels, B-roll and motion overlays timed to words, and showreels cut to the beat. It transcribes your footage word by word with a local Whisper-class model (downloaded only after you say yes), edits on that transcript, then cuts, captions and renders the MP4 with EDLs and caption files. It does not shoot anything, so the footage has to come from you.
+Yes, that is the `ice-edit` workflow: long-form and course videos, podcast episodes and clips, talking-head ads, shorts and reels, B-roll and motion overlays timed to words, and showreels cut to the beat. It transcribes your footage word by word with a local Whisper-class model (downloaded only after you say yes), edits on that transcript, then cuts, captions and renders the MP4 with EDLs and caption files. It does not shoot anything, so the footage has to come from you. Five of the [gallery](#gallery) videos are edits of this kind.
 </details>
 
 <details>
