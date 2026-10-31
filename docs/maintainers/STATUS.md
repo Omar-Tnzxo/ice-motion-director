@@ -1,11 +1,11 @@
 # Build status and resume guide
 
-## Current state (2026-10-30)
+## Current state (2026-10-31)
 
-- Released: 0.2.7 (2026-10-30): every gap of the completeness audit of 0.2.6 closed (lessons L27 to L41).
+- Released: 0.2.8 (2026-10-31): measured genre playbooks with fingerprints for UI and app motion, product launch without screens and kinetic type (lessons L42, L44, L45), and the analyze.py crash fix (L43).
 - Public repository since 2026-10-26, Apache-2.0, no hosted CI: `node scripts/gates.mjs` runs every check and the pre-push hook runs it.
-- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 41 lessons in `docs/maintainers/lessons.md`, each with its test.
-- File budget: about 570 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
+- 29 skills: 13 commands (`ice`, `ice-status`, `ice-style`, `ice-01-brief` to `ice-10-deliver`), the router `ice-motion-director` and 15 internal skills. 45 lessons in `docs/maintainers/lessons.md`, each with its test.
+- File budget: about 580 files against the 600 cap of `tests/repo.test.mjs`; merge small files before adding new ones.
 - Release check: a manual one-prompt run on a clean Claude before every major release (`AGENTS.md`, Behaviour check before a release).
 
 Everything below is the build history from 2026-10-19, kept as written; numbers in it (skills, tests, files, CI) are from that day.

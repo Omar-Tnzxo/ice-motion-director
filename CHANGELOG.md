@@ -2,6 +2,27 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.8 - 2026-10-31
+
+Three film genres are now measured, not collected: each playbook comes from a corpus of professional films measured with the plugin's own tools, and each carries a fingerprint that the render is checked against at gate D (`ice-qa/scripts/genre_check.py`).
+
+### Added
+
+- **Genre playbooks with a checkable fingerprint.** `ice-film/references/genres/` holds one playbook per genre: conventions with their median, range and how many films hold them, the variants, the hypotheses that were measured and rejected, a coding sheet for what pixels cannot read, and a `Genre fingerprint:` line. `genre_check.py measure|check|genres` measures a render the way the corpus was measured.
+- **UI and app motion ads (L42),** from 15 films: the app ad, the product launch with screens and the UI walkthrough point to it.
+- **Product launch without screens (L44),** from 15 official launch films: object film and in-use film variants, hard cuts carrying the film (3.5 per 10 s), counted scenes of 1.6 s, the product by second 4, macro, turntable and light sweep shots, a closing packshot and dense effects. The product launch type and a hype cut of a physical product point to it.
+- **Kinetic type (L45),** from 11 films: words on screen most of the runtime, lines of about 2 words, mixed emphasis in one accent hue, one sans family at several weights, a 1.0 s line hold and a centred end card on a plain ground.
+- **Support the project:** a README section and a Sponsor button.
+
+### Changed
+
+- **General rules a genre contradicts are scoped, never deleted (AGENTS.md rule 6):** dissolves and light sweeps in product launches, the SFX ceiling of about 15 per minute, centred end cards, the hype hard cut limit, one highlight form per film, serif plus sans, the kinetic type end hold and dead air rule, and music-led kinetic type at any length without a voice. Each stays the house default and names its genre as the exception.
+- **README** opens with the six real showcase films.
+
+### Fixed
+
+- **`analyze.py` no longer dies silently (L43)** when librosa's beat tracker crashes the interpreter on some Windows CPUs: the audio runs in a child process, a crash is retried once for a plain CPU target, and a second crash is reported in `report.json` with a non-zero exit.
+
 ## 0.2.7 - 2026-10-30
 
 Every gap the completeness audit of 0.2.6 found between the founder's decisions, the research and the skills is closed, each as a lesson (L27 to L41) with its rule and its test.

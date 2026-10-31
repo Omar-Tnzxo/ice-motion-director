@@ -193,7 +193,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 LOCAL_CODES = ("camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx", "music",
                "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity")
 try:   # the shared reader (storyboard_lint.py, standard library only); fall back to the internal one when absent

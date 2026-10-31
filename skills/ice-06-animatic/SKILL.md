@@ -6,7 +6,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.7
+  version: 0.2.8
   opencode/slash: "true"
 ---
 
