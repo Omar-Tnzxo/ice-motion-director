@@ -2,6 +2,19 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.15 - 2026-11-01
+
+Sound effects land where the ear hears them, and you pick hero sounds by ear without knowing which file is which; Ice remembers what you liked and what you never want again. Both ideas come from Clipwing's Real SFX (MIT), rewritten for Ice. The website moved to https://icemotion.dev.
+
+### Added
+
+- **Blind sound pick with a taste memory (L69).** `preview_options.py sfx` lays 2 or 3 recorded candidate sounds on the same moment of the picture, each on its measured sync point and at the same level, shuffled as A, B, C with no file names on the page. `preview_options.py serve` opens the page on your computer: one click saves your pick, and "Never use this sound" bans one. `taste pick` saves a choice you say in the chat. Your choices live in `~/.ice-motion-director/sfx-taste.json`, and later videos read them: banned sounds are left out of the pack list and rejected in the ranking, loved ones come first. Recorded sounds only, never sound made by code.
+
+### Changed
+
+- **Sharp hits sync on their arrival (L69).** A shutter, impact, hit or click (sync kind `peak`) is placed by the first 60 ms within 6 dB of its loudest point when it climbs in under 0.45 s and that arrival is at least 0.10 s earlier, instead of by its loudest 10 ms. In Ice's sound pack this moves 4 of 128 files (camera_shutter 03, 04 and 06, impact_cinematic 05), whose first click landed 4.5 to 6.3 frames before the picture. `match_music.py pack list` measures the pack's `peak` files at run time, so the pack `assets-sfx-v1` stays as it is. Whooshes and risers are unchanged until they are compared by ear.
+- **Website links.** The README, `llms.txt` and the issue template point to https://icemotion.dev (the old address redirects).
+
 ## 0.2.14 - 2026-10-31
 
 Two more genres are measured from professional work instead of collected rules: data stories (15 chart-led films from FT, Vox, Bloomberg, WSJ, BBC, Al Jazeera and others, 4 in Arabic) and music videos made with motion graphics (14 official lyric videos, animated music videos and visualizers, 4 from the Arabic market). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft.
