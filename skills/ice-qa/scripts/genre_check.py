@@ -13,6 +13,10 @@
 # social_ keys: the first spoken word or readable line and the words per caption cue (gated), the caption height, face
 # and voice shares, the ending and the CTA (reported). Hard cuts are found at the video's own frame rate: the 12 fps
 # histogram test missed most cuts of short shots graded alike (0.81 per 10 s for 17.2 in a 720p hype promo).
+# 0.2.13: the news reel playbook adds the news_ keys: the first concrete fact and the words on screen (gated), the variant,
+# presenter and footage shares, caption cue length and position, on-screen attribution and the ending (reported).
+# The logo sting playbook adds the sting_ keys: the final hold (gated) and the build, exit, first readable
+# moment, lock, depth and sonic logo (reported); its event gaps stop at the lock, coded as end_card.start_s.
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -254,6 +258,34 @@ def coding_value(coding, key):
         return (so.get("cta") or {}).get("present")
     if key == "social_voice_share":
         return (so.get("voice") or {}).get("share_of_runtime")
+    nw = coding.get("news") or {}
+    nc = nw.get("captions") or {}
+    ns = nw.get("material_share") or {}
+    if key == "news_first_fact_s":
+        return nw.get("first_fact_s")
+    if key == "news_words_on_screen":
+        return None if not nc else str(nc.get("kind") or "none").lower() != "none"
+    if key == "news_variant":
+        return nw.get("variant")
+    if key == "news_presenter_share":
+        return ns.get("presenter")
+    if key == "news_footage_share":
+        return round((ns.get("footage") or 0) + (ns.get("archive_or_ugc") or 0), 2) if ns else None
+    if key == "news_caption_words":
+        return nc.get("words_per_cue_median") if str(nc.get("kind") or "none").lower() != "none" else 0
+    if key == "news_caption_y":
+        return nc.get("y_center_share") if str(nc.get("kind") or "none").lower() != "none" else None
+    if key == "news_attribution":
+        lt, sl = nw.get("lower_thirds") or {}, nw.get("source_labels") or {}
+        return (lt.get("count") or 0) + (sl.get("count") or 0) if (lt or sl) else None
+    if key == "news_ending":
+        return (nw.get("ending") or {}).get("kind")
+    st = coding.get("sting") or {}
+    sting_fields = {"sting_hold_s": "final_hold_s", "sting_build": "build_mode", "sting_exit": "exit",
+                    "sting_readable_s": "first_readable_s", "sting_lock_s": "lock_s", "sting_dimension": "dimension",
+                    "sting_sonic": "sonic_logo"}
+    if key in sting_fields:
+        return st.get(sting_fields[key])
     return coding.get(key)
 
 

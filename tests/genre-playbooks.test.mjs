@@ -23,7 +23,10 @@ const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "har
   "expl_sentence_change", "expl_words_per_scene", "expl_scene_median_s", "expl_wpm", "expl_text_share",
   "expl_diagram_share", "expl_real_share", "expl_builds",
   "social_hook_word_s", "social_cue_words", "social_caption_y", "social_face_share", "social_ending", "social_cta",
-  "social_voice_share"];
+  "social_voice_share",
+  "news_first_fact_s", "news_words_on_screen", "news_variant", "news_presenter_share", "news_footage_share",
+  "news_caption_words", "news_caption_y", "news_attribution", "news_ending",
+  "sting_hold_s", "sting_build", "sting_exit", "sting_readable_s", "sting_lock_s", "sting_dimension", "sting_sonic"];
 
 function has(relPath, phrases) {
   const text = readText(relPath);
@@ -454,3 +457,109 @@ test("genre playbooks: every coding sheet that codes logo_position says a centre
   has(CHECK, ["end_logo reads end_card.logo_position: a logo only", "a centred line of plain text is coded none"]);
   has(`${GENRES}/ui-motion.md`, ["`storyboard_lint.py` check (22)"]);
 });
+
+test("genre playbooks: the news reel edit type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-edit/references/edit-types/news-reel.md", ["`references/genres/news-reel.md`", "--genre news-reel",
+    "A news reel with no presenter take also runs this type"]);
+  has(`${GENRES}/news-reel.md`, ["`news-reel`", "`family-broadcast-news.md`", "14 news reels", "news_first_fact_s <=15"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/news-reel.md` for news reels"]);
+  has("skills/ice-motion-director/references/classify.md", ["variant B or C of `ice-film/references/genres/news-reel.md`",
+    "When the reference shows a presenter or anchor on screen"]);
+});
+
+test("genre playbooks: the general rules the news reel corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-edit/references/edit-types/news-reel.md", ["75-87 percent of the programme time (end card excluded) in the measured Arabic programme packages",
+    "40 percent or more in 9 of 14"]);
+  has("skills/ice-styles/references/family-broadcast-news.md", ["9. The reel ends on a designed end card with a still hold and no fade to black (6 of 6 programme reels;"]);
+  has("skills/ice-type/SKILL.md", ["news reel genre: a caption cap height of 1.5 to 4.2%"]);
+  has("skills/ice-arabic/references/arabic-captions.md", ["about 5 to 7 words per caption on reels (Arabic news reels measured",
+    "On-screen text complements the voiceover; it does not repeat it word for word.", "this item does not apply there"]);
+  const rejected = readText(`${GENRES}/news-reel.md`).split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["75 to 87 percent", "3 s or less", "A designed end card closes every news reel", "4.5 percent",
+    "5 to 7 words", "never word for word", "81.5 percent"]) {
+    assert.ok(rejected.includes(idea), `the news reel rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the news coding keys read the coding sheet's news block",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-news-"));
+    try {
+      const meas = { median_event_gap_s: 0.33, max_event_gap_s: 3.0, events_per_s: 2.2, hook_events_3s: 6,
+        scene_median_s: 1.5, cuts_per_10s: 1.8, sfx_per_min: 200, move_onset_lift: 1.0 };
+      const coding = { news: { variant: "presenter-led", first_fact_s: 2.4,
+        captions: { kind: "full-sentence", words_per_cue_median: 5, y_center_share: 0.69 },
+        material_share: { presenter: 0.5, footage: 0.2, archive_or_ugc: 0.05 },
+        lower_thirds: { count: 2 }, source_labels: { count: 1 }, ending: { kind: "content" } } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      const run = () => {
+        writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+        return spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "news-reel", "--measures", join(dir, "m.json"),
+          "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      };
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.news_first_fact_s.value, 2.4);
+      assert.equal(rows.news_words_on_screen.value, true);
+      assert.equal(rows.news_footage_share.value, 0.25);
+      assert.equal(rows.news_attribution.value, 3);
+      coding.news.first_fact_s = 28.8;
+      coding.news.captions = { kind: "none" };
+      assert.equal(run().status, 2, "a late first fact and no words on screen are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the logo sting film type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/logo-sting.md", ["`../genres/logo-sting.md`"]);
+  has(`${GENRES}/logo-sting.md`, ["`logo-sting`", "15 stings", "A. Mark sting", "B. Ident or studio fanfare"]);
+  has("skills/ice-film/references/logo-sting-pipeline.md", ["`genres/logo-sting.md`"]);
+});
+
+test("genre playbooks: the general rules the logo sting corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-qa/references/motion-density.md", ["| logo sting | 6.1 | 6.1 | 0 |", "`references/genres/logo-sting.md`",
+    "| product launch | 1.4 | reading | 8 |"]);
+  has("skills/ice-motion/references/holds-and-stillness.md", ["logo stings hold the landed logo 1.0 to 3.5 s",
+    "Resolved end-card hold (lockup landed to last frame): 0.6-1.4 s"]);
+  has("skills/ice-film/references/openers-and-endings.md", ["`genres/logo-sting.md`"]);
+  has("skills/ice-film/references/film-types/logo-sting.md", ["1200-2000 ms of main motion for an app or web splash",
+    "peaks on the lock or up to 0.5 s before it", "Final Frame Contract"]);
+  has("skills/ice-film/references/logo-sting-pipeline.md", ["Capture the static logo and the last frame with the same tool"]);
+});
+
+test("genre playbooks: logo sting ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/logo-sting.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["2 to 8 s", "1.2 to 2.0 s", "at most 1.4 s", "final hit lands on the mark's settle", "light event in every sting"]) {
+    assert.ok(rejected.includes(idea), `the rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the sting coding keys read the sting block, and the hold is gated",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-sting-"));
+    try {
+      const meas = { median_event_gap_s: 0.33, max_event_gap_s: 0.9, events_per_s: 1.3, hook_events_3s: 4,
+        cuts_per_10s: 0, sfx_per_min: 70, move_onset_lift: 1.3 };
+      const coding = { end_card: { logo_position: "center", start_s: 2.9, length_s: 1.7 },
+        sting: { build_mode: "morph", exit: "none", first_readable_s: 0.6, lock_s: 2.9, final_hold_s: 1.7,
+          dimension: "mixed", sonic_logo: "notes" } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      const run = () => spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "logo-sting", "--measures", join(dir, "m.json"),
+        "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.sting_hold_s.value, 1.7);
+      assert.equal(rows.sting_build.value, "morph");
+      coding.sting.final_hold_s = 0.4;
+      coding.end_card.logo_position = "left";
+      writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+      assert.equal(run().status, 2, "a hold under 1 s and an off-centre logo are two misses: red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });

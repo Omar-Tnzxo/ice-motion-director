@@ -22,10 +22,10 @@ General caption design (styles, base sizes, grouping theory) is owned by `ice-ty
 
 ## 3. Lines and length
 
-- At most 2 lines; about 5 to 7 words per caption on reels; maximum line width about 730 px on a 1080-wide frame for card captions, 820 px for captions without a card (940 px entered the Instagram button column).
+- At most 2 lines; about 5 to 7 words per caption on reels (Arabic news reels measured 3 to 4 words per running caption cue and 2.5 to 4 per keyword super: the `ice-film` skill, `references/genres/news-reel.md`); maximum line width about 730 px on a 1080-wide frame for card captions, 820 px for captions without a card (940 px entered the Instagram button column).
 - Number and unit on one line; a long sentence shrinks to fit two lines instead of paging.
 - Sizes: start from the `ice-type` caption scale and scale Arabic about 1.2 times.
-- On-screen text complements the voiceover; it does not repeat it word for word. The frame shows the key words; the voice carries the sentence.
+- On-screen text complements the voiceover; it does not repeat it word for word. The frame shows the key words; the voice carries the sentence. News reel (edit type `news-reel`): the spoken words on screen are verbatim, as running captions or as keyword supers (5 of 5 measured voiced Arabic news reels; the truth rule of that edit type); this item does not apply there.
 
 ## 4. Timing
 

@@ -7,7 +7,7 @@ Leads with: the look, run as the three micro passes of the spine: 01, 02 and 05 
 
 ## Fit
 
-- A 2-8 s logo reveal, ident, bumper, channel intro or outro, app-open splash rendered as video.
+- A 2-12 s logo reveal, ident, bumper, channel intro or outro, app-open splash rendered as video (measured: mark stings 2.3-7 s, idents and studio fanfares 8.6-24 s; the measured genre playbook `../genres/logo-sting.md`).
 - Output is Lottie, an app or web loader, or a hover or idle loop: ice-lottie owns it. A logo sting rendered as video stays here.
 - The step-by-step pipeline (raster to vector, choreography, final frame): `../logo-sting-pipeline.md`.
 
@@ -34,9 +34,9 @@ The mark comes to exist in a way that expresses the brand's personality, then ho
 
 | Measure | Range |
 |---|---|
-| Splash or intro reveal | 1200-2000 ms of main motion; 6-10 key poses (a 300 ms header reveal wants 2-3) |
+| Splash or intro reveal | 1200-2000 ms of main motion for an app or web splash; 6-10 key poses (a 300 ms header reveal wants 2-3). A sting rendered as video: about 2 s from the first visible part of the mark to the lock in a mark sting (0.4-4.1 s measured), about 6 s in an ident or studio fanfare (`../genres/logo-sting.md`) |
 | Anticipation, action, follow-through and stagger of parts | the `ice-motion` skill, `references/physics-and-morphing.md` section 2 |
-| Hold | a mark registers in about 0.5 s and a name in about 1 s; see the end-hold scope below |
+| Hold | a mark registers in about 0.5 s and a name in about 1 s; the landed logo holds 1.0-3.5 s (measured median 1.7 s, 15 of 15 stings at 1.0 s or more, up to 6 s on a boot ident; `../genres/logo-sting.md`); see the end-hold scope below |
 
 Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s -; holds excuse.
 
@@ -44,7 +44,7 @@ Where the row's numbers come from: No field is gated: a sting is one continuous 
 
 ## Timing master
 
-The sting's own choreography; with music, the final hit lands on the mark's settle. Sound starts on or just before the visual contact (ice-audio).
+The sting's own choreography. The sonic logo peaks on the lock or up to 0.5 s before it (measured: 0.34 s before at the median, at or before the lock in 11 of 15 stings; a hit exactly on the settle in 2 of 15), starts with the picture (in the first 0.6 s, 13 of 15), rings on through the hold and leaves a short silent tail (about 0.7 s); in an ident or studio fanfare the music swells to its peak earlier and resolves on the lock (`../genres/logo-sting.md`; ice-audio).
 
 ## Transition policy
 
@@ -54,7 +54,7 @@ No internal scene changes. Parts transform into the mark; nothing fades in from 
 
 | Scope | Policy |
 |---|---|
-| Standalone sting or ident file | The last 10-20 frames are the exact static approved logo (Final Frame Contract); nothing moves |
+| Standalone sting or ident file | The held logo (1.0-3.5 s, at least 10-20 frames) is the exact static approved logo (Final Frame Contract); nothing moves but a glint or a slow light over it. It ends on the held logo, or exits after the hold when the sting leads into a programme (a fade or cut to black, an animated exit, a reduction to a monogram: 8 of 15 measured stings, `../genres/logo-sting.md`); the contract is then checked on the hold's last frame |
 | Lockup at the end of a longer film | Something small may stay alive during the hold (a micro drift or settle); the resolved hold lasts 0.6-1.4 s for a sign-off |
 
 ## Sound policy
@@ -82,8 +82,8 @@ Minimums the render must meet; measures and exemptions: the `ice-motion` skill, 
 | `depth_layers` | 2 (the mark and a ground with its own light or plane) |
 | `in_shot_motion` | 90 percent before the Final Frame Contract frames |
 | `longest_still` | only the final 10-20 frames of a standalone file; 1.4 s for a lockup at the end of a longer film |
-| `surface_detail` | yes, or the brand guide's flat ground plus one light event |
-| `light_events` | 1 |
+| `surface_detail` | yes, or the brand guide's flat ground |
+| `light_events` | 0 (an option: 5 of 15 measured stings show one, `../genres/logo-sting.md`; the build move is the event) |
 | `real_material` | 100 percent: the official logo file, untouched |
 
 ## QA thresholds
@@ -92,6 +92,7 @@ Minimums the render must meet; measures and exemptions: the `ice-motion` skill, 
 - No part clips the viewbox mid-flight; parts never detach; the logo is still the logo at 50% of the timeline.
 - Reduced-motion variant shows the final logo immediately (web or app use).
 - Competitor test: if another brand could ship the same animation, the choreography is generic.
+- The genre fingerprint of `../genres/logo-sting.md` (ice-qa `scripts/genre_check.py check --genre logo-sting`, gate D): the event gaps before the lock and the final hold.
 
 ## Deliverables
 
@@ -99,6 +100,6 @@ MP4 on the brand ground; transparent version (ProRes 4444 `.mov` or VP9 WebM) fo
 
 ## Pointers
 
-Pipeline: `../logo-sting-pipeline.md`. Vectorization, motion personality presets, reveal patterns, twelve principles for logos: ice-lottie. Gate measurement: ice-qa.
+Measured genre playbook: `../genres/logo-sting.md` (the two variants, build, hold, sound against the lock, rejected rules, the fingerprint; read at 02, 07 and 08). Pipeline: `../logo-sting-pipeline.md`. Vectorization, motion personality presets, reveal patterns, twelve principles for logos: ice-lottie. Gate measurement: ice-qa.
 
 Sources: haidrrrry/claude-remotion-skill, video-production-studio (Omar-Tnzxo), nolangz/pixel2motion, howseen-ai/claude-motion-design, nateherkai/herk-edit-kit, Tejashmakwana/motionmaxxing, diffusionstudio/lottie.

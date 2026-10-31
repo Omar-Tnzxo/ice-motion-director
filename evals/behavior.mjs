@@ -89,6 +89,8 @@ const NOT_GRADED = {
   L62: "a held stage needs a hard test failed at 04 or later, after the cases stop",
   L63: "a voice-led reference with no voice needs a supplied reference video; the cases supply none",
   L64: "the coding sheet is filled from a render at gate D, after the cases stop",
+  L65: "the news reel fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
+  L66: "the logo sting fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
 };
 const GRADERS = [
   {

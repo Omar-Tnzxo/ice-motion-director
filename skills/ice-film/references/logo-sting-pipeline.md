@@ -20,7 +20,7 @@ A logo sting is a micro job: these steps run inside the three micro passes of th
 | 02 and 05 | Motion brief | `ice/plan/motion_spec.md` (section 2) | every later parameter traces to it |
 | 05 | Vector | a clean minimal SVG, motion-ready: one element per semantic part with stable ids, paths split along animation seams, draw-on strokes normalized, letters separate when they stagger; raster to vector by the lowest-complexity ladder, smoothness as a hard gate (ice-lottie) | the static vector is approved before choreography: by the user in step mode; in auto mode it is the run's one preview approval when the session is interactive and the user did not say not to ask, otherwise the approver role checks it by overlay against the official file and the delivery note says so; it is the approved logo |
 | 07 | Choreograph | the timeline (anticipation, action, follow-through, settle) on one clock | stills at every key pose and every risk window (each handoff, crossing, occlusion) |
-| 08a beside 07, 08b after it | Sound | 08a: one sting or the music's resolving hit planned on the settle; 08b: mixed on the draft (ice-audio) | the hit lands on the visual contact |
+| 08a beside 07, 08b after it | Sound | 08a: one sting or the music's resolving hit, planned to peak on the settle or up to 0.5 s before it and to ring through the hold (measured: `genres/logo-sting.md`); 08b: mixed on the draft (ice-audio) | the peak lands on or just before the lock, never after it |
 | 07 draft, 10 final | Render | MP4 plus transparent version as needed (ice-engines); Lottie through ice-lottie | Final Frame Contract passes |
 
 ## 2. Motion brief
@@ -49,7 +49,7 @@ Rules for every close: the logo arrives by cause; enter large or from a primitiv
 
 ## 4. Final Frame Contract
 
-The animation lands exactly on the approved static vector. Capture the static logo and the last frame with the same tool, viewport and pixel ratio: they differ by zero pixels. A sting that ends anywhere else fails, however good it looks. Keep the last 10-20 frames stable for a clean lockup; preserve mark and wordmark proportions, spacing, rotation and alignment. ice-qa runs the capture and the comparison.
+The animation lands exactly on the approved static vector. Capture the static logo and the last frame with the same tool, viewport and pixel ratio: they differ by zero pixels. A sting whose held logo is anywhere else fails, however good it looks. Keep the held logo stable for 1.0-3.5 s (at least 10-20 frames; measured in `genres/logo-sting.md`); a sting that exits after its hold (a fade or cut to black, an animated exit, a reduction to a monogram) is compared on the hold's last frame instead of the file's last frame; preserve mark and wordmark proportions, spacing, rotation and alignment. ice-qa runs the capture and the comparison.
 
 ## 5. Sting checks
 

@@ -1,6 +1,6 @@
 # Family: broadcast news (presenter news reel and programme packages)
 
-The presenter-led news or explainer reel: one locked studio take reframed digitally, graphics that fire on the speaker's words, archive in the pauses, a designed end card. Read `style-method.md` first. Section 1 is the genre style every news reel uses; section 2 records three programme packages measured on real reels; section 3 the patterns of smaller sub-brands; section 4 the glass studio reel.
+The presenter-led news or explainer reel: one locked studio take reframed digitally, graphics that fire on the speaker's words, archive in the pauses, a designed end card. Read `style-method.md` first. Section 1 is the style every presenter-led news reel uses (the genre measured across 14 newsroom reels, presenter-led and footage-led, with its fingerprint: the `ice-film` skill, `references/genres/news-reel.md`); section 2 records three programme packages measured on real reels; section 3 the patterns of smaller sub-brands; section 4 the glass studio reel.
 
 How to read the numbers:
 - Every value comes from a measurement study of six published reels (2026-10-29): frames at 25 fps (frame n starts at n/25 s), sizes in px at 1080 px wide unless a line says otherwise. Scale sizes by frame width / 1080. Frames are written "6 f (0.24 s)".
@@ -57,7 +57,7 @@ Contents
 6. Clean digital picture: no grain, dust, leaks or scanlines on studio footage; display text glows.
 7. Graphics arrive and leave by flicker or blink in 3-8 f (0.12-0.32 s), not by slow fades or bounces.
 8. Transitions and exits sit in breaths or on phrase boundaries, never mid-phrase.
-9. The reel ends on a designed end card with a still hold and no fade to black (6 of 6).
+9. The reel ends on a designed end card with a still hold and no fade to black (6 of 6 programme reels; across 14 newsroom reels a branded close ends 9 and the last shot 5, so outside these packages the card is an option: `ice-film/references/genres/news-reel.md`).
 10. Western digits only, in every language (6 of 6).
 
 What varies per programme (the skin, section 2): accent hues, the text entry device (typed pointer, pill, colouring title, flicker headline), the caption mode, the end-card world, the archive treatment, the fixed-mark positions.
