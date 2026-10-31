@@ -2,6 +2,22 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.16 - 2026-11-01
+
+The last two genres of the plan are measured from professional work instead of collected rules: art films (15 festival title films, title sequences, festival intros and abstract or generative films from studio, artist, festival and network channels, 3 from the Arabic market) and industry spots (15 industrial, B2B and corporate spots from energy, logistics, construction, automation and real estate companies, 8 from the Arabic and Gulf market). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft. Every film type of the plan now has a measured genre.
+
+### Added
+
+- **Art film playbook (L70).** `ice-film/references/genres/art-film.md`: one motif that keeps changing state (8 states at the median) and comes back at the end; one material to the last frame while the palette shifts by section; hard cuts as the common seam, with some seams made of the film's own matter; holds that drift or breathe, so the picture never fully stops; an image at once, then a calm start. Two pace families: kinetic (drawn, stop-motion, painted and generative pieces, a new event about every 0.4 s) and held (CG title sequences and slow festival films, long camera drifts). The fingerprint gates the motif, credit cards and the opening through the new `art_` keys; a film with no credits reads "no type" and passes the card keys.
+- **Industry spot playbook (L71).** `ice-film/references/genres/industry-spot.md`: the measured B2B and corporate spot runs 45 s to 3 min, a new event every 0.42 s, a voice in 13 of 15, real footage about 80 percent with 3D inserts for what the camera cannot see, capability shown as the proof, and the logo centred with its tagline and no call to action. The fingerprint gates the pace, the end card and the footage share through the new `ind_` keys.
+- **Three honesty rules the corpus does not always keep, kept by Ice (L71).** A render of anything not yet built carries "Render" or "Artist impression" on screen; every claim and figure stays on screen long enough to read; every person in a hazard shot wears the site's protective gear.
+
+### Changed
+
+- **The industry spot type has two shapes (L71):** the 15 to 40 s commercial for a local business keeps every rule it had (compositions per 30 s, beats, carried objects, the CTA block, the map with travel times); the B2B and corporate variant follows the genre file. The Rhythm row's longest event gap moves from 3.5 to 9 s, the most lenient value over both shapes.
+- **Art film rules by measure (L70):** a long art film runs 30 s to 5 min (the 10 to 60 s style film stays its short form), three camera moves instead of four, a longest still of 3 s with drifting holds instead of 1 s, a designed quiet instead of two real silences, a slow drift shot of 5 to 12 s as a named reason past the 5 s scene ceiling, and a title sequence may open on a short black lead-in.
+- **Collected numbers scoped, not deleted (L70, L71):** each playbook lists the house rules its corpus did not hold as measured and rejected for its genre; the general rules stay the default everywhere else. The flash safe mode stays absolute: 3 of the 15 measured art films exceed it, and Ice never copies them.
+
 ## 0.2.15 - 2026-11-01
 
 Sound effects land where the ear hears them, and you pick hero sounds by ear without knowing which file is which; Ice remembers what you liked and what you never want again. Both ideas come from Clipwing's Real SFX (MIT), rewritten for Ice. The website moved to https://icemotion.dev.
