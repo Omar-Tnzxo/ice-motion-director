@@ -73,6 +73,9 @@ const NOT_GRADED = {
   L46: "the explainer fingerprint runs on a render at stage 09 (genre_check.py), after the cases stop",
   L47: "the brand film fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L48: "the pointer press, body gap and reference checks run on a render and its coding sheet at gate D, after the cases stop",
+  L49: "the hype promo fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
+  L50: "the social short fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
+  L51: "the cut count is a measure inside genre_check.py with its own test on a synthetic video, not an agent behaviour",
 };
 const GRADERS = [
   {

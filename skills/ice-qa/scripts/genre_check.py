@@ -9,6 +9,10 @@
 # 0.2.10, after the first Ice film was checked against the UI corpus: the event gaps stop at the coded end card start,
 # a followed reference is checked by its own values (--reference-measures), and pointer_presses gates a shown pointer
 # that never presses (a house rule every corpus film holds, so no allowed miss lifts it).
+# 0.2.11: the hype promo playbook adds no key (hard_cut_share covers its cuts); the social short playbook adds the
+# social_ keys: the first spoken word or readable line and the words per caption cue (gated), the caption height, face
+# and voice shares, the ending and the CTA (reported). Hard cuts are found at the video's own frame rate: the 12 fps
+# histogram test missed most cuts of short shots graded alike (0.81 per 10 s for 17.2 in a 720p hype promo).
 """genre_check.py: the genre fingerprint. Measures a video the way the genre corpus was measured and checks it against
 the "Genre fingerprint:" line of the genre playbook (ice-film skill, references/genres/<genre>.md).
 
@@ -23,7 +27,12 @@ measure (numpy; ffmpeg and ffprobe on PATH): pixel and audio measures, written a
                      10 (of 255) of the mean colour difference between the 0.3 s before and the 0.3 s after a point,
                      on a blurred 32x18 colour signature at 12 fps, peaks at least 0.6 s apart: hard cuts and fast
                      morphs count alike, a slow drift does not.
-  cuts_per_10s       hard cuts (grey histogram correlation under 0.55 and mean grey change over 18) per 10 s.
+  cuts_per_10s       hard cuts per 10 s, found at the video's own frame rate (60 at most) on a 64 px wide grey frame:
+                     a one-frame mean grey change of 22 or more and 3 times the median change of the 8 frames on each
+                     side, at least 3 frames after the last cut, that does not come back two frames later and is not
+                     the return from a one-frame hit (a flash comes back). Read on the 12 fps grid of the other
+                     measures with a histogram test, cuts were mostly missed in short shots graded alike (0.81 per
+                     10 s for 17.2 real ones in a 720p hype promo).
   events_per_s       visual event onsets per second: the changed share of the frame (grey change over 6 at 12 fps,
                      160 px wide) rises from under 0.2 percent to 0.5 percent or more, or jumps by 2 points; onsets
                      at least 0.25 s apart.
@@ -78,6 +87,7 @@ GENRES_DIR = Path(__file__).resolve().parents[2] / "ice-film" / "references" / "
 LINE = re.compile(r"^\s*(?:[-*]\s+)?(?:\*\*)?Genre fingerprint:(?:\*\*)?\s*(.*)$")
 FPS = 12
 W = 160
+CUT_W = 64
 SHIFTS = (0.37, 0.61, 0.83, 1.13, 1.41, 1.79)
 PIXEL_KEYS = ("move_onset_lift", "scene_median_s", "cuts_per_10s", "events_per_s", "median_event_gap_s", "max_event_gap_s",
               "hook_events_3s", "sfx_per_min", "move_with_onset", "end_center_dx", "end_center_dy", "end_area",
@@ -225,6 +235,24 @@ def coding_value(coding, key):
         return ex.get("real_material_share")
     if key == "expl_builds":
         return (ex.get("builds") or {}).get("count")
+    so = coding.get("social") or {}
+    cp = so.get("captions") or {}
+    if key == "social_hook_word_s":
+        hk = so.get("hook_1s") or {}
+        ts = [t for t in (hk.get("first_word_s"), hk.get("first_text_s")) if t is not None]
+        return min(ts) if ts else None
+    if key == "social_cue_words":
+        return cp.get("words_per_cue_median") if cp.get("kind") in ("word-captions", "phrase-captions") else 0
+    if key == "social_caption_y":
+        return cp.get("y_center_share") if cp.get("kind") in ("word-captions", "phrase-captions") else None
+    if key == "social_face_share":
+        return (so.get("face") or {}).get("share_of_runtime")
+    if key == "social_ending":
+        return (so.get("loop") or {}).get("ending")
+    if key == "social_cta":
+        return (so.get("cta") or {}).get("present")
+    if key == "social_voice_share":
+        return (so.get("voice") or {}).get("share_of_runtime")
     return coding.get(key)
 
 
@@ -267,13 +295,39 @@ def _frames(np, p):
     return np.frombuffer(raw[: n * W * h * 3], np.uint8).reshape(n, h, W, 3).astype(np.float32), [w0, h0]
 
 
-def _hist_corr(np, a, b):
-    ha, _ = np.histogram(a, 32, (0, 255))
-    hb, _ = np.histogram(b, 32, (0, 255))
-    ha = ha - ha.mean()
-    hb = hb - hb.mean()
-    d = np.sqrt((ha * ha).sum() * (hb * hb).sum())
-    return float((ha * hb).sum() / d) if d else 1.0
+def _frame_rate(p):
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate",
+                          "-of", "csv=p=0", str(p)], capture_output=True, text=True, encoding="utf-8").stdout.strip()
+    try:
+        n, d = out.split("/")[:2] if "/" in out else (out, "1")
+        rate = float(n) / float(d)
+    except (ValueError, ZeroDivisionError):
+        rate = 0.0
+    return rate if 0 < rate <= 60 else 30.0
+
+
+def _cuts(np, p, size):
+    """Hard cuts in seconds, at the video's own frame rate (the same test as the genre research's frame-level cuts)."""
+    rate = _frame_rate(p)
+    h = max(2, int(round(size[1] * CUT_W / size[0] / 2)) * 2)
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-vf", f"fps={rate:.6g},scale={CUT_W}:{h}:flags=area",
+                          "-pix_fmt", "rgb24", "-f", "rawvideo", "-"], capture_output=True).stdout
+    n = len(raw) // (CUT_W * h * 3)
+    fr = np.frombuffer(raw[: n * CUT_W * h * 3], np.uint8).reshape(n, h, CUT_W, 3).astype(np.float32).mean(3)
+    d = np.zeros(n)
+    if n > 1:
+        d[1:] = np.abs(fr[1:] - fr[:-1]).mean((1, 2))
+    cuts, last = [], -9
+    for k in range(1, n - 2):
+        loc = np.median(d[max(1, k - 8):k + 9])
+        if d[k] >= 22 and d[k] >= 3 * loc and k - last >= 3:
+            if float(np.abs(fr[k + 2] - fr[k - 1]).mean()) < 0.4 * d[k]:
+                continue  # the frame came back: a flash or a one-frame hit, not a cut
+            if k > 1 and float(np.abs(fr[k] - fr[k - 2]).mean()) < 0.4 * d[k]:
+                continue  # back to the frame before a one-frame hit: its second edge, not a cut
+            cuts.append(round(k / rate, 3))
+            last = k
+    return cuts
 
 
 def _signature(f):
@@ -316,11 +370,7 @@ def measure(video):
         sys.exit("genre_check.py: the video is shorter than 1 s or could not be read")
     grey = frames.mean(3)
     dur = n / FPS
-    cuts = []
-    for i in range(1, n):
-        if _hist_corr(np, grey[i - 1], grey[i]) < 0.55 and np.abs(grey[i] - grey[i - 1]).mean() > 18:
-            if not cuts or i - cuts[-1] > 2:
-                cuts.append(i)
+    cuts = _cuts(np, video, size)
     sig = np.stack([_signature(f) for f in frames])
     k = max(2, int(0.3 * FPS))
     score = np.zeros(n)
@@ -360,7 +410,7 @@ def measure(video):
     chance = (sum(hits([(e + sh) % dur for e in ev_s]) for sh in SHIFTS) / len(SHIFTS) / len(ev_s)) if on and ev_s else None
     return {
         "file": str(video), "duration_s": round(dur, 2), "size": size,
-        "scene_changes_s": [round(i / FPS, 2) for i in sc], "hard_cuts_s": [round(i / FPS, 2) for i in cuts],
+        "scene_changes_s": [round(i / FPS, 2) for i in sc], "hard_cuts_s": [round(c, 2) for c in cuts],
         "events_s": [round(t, 2) for t in ev_s], "audio_onsets_s": on,
         "scene_median_s": round(float(np.median(lens)), 2), "scene_min_s": round(float(lens.min()), 2),
         "scene_max_s": round(float(lens.max()), 2), "scenes": int(len(lens)),

@@ -96,13 +96,15 @@ Ending rules:
 - Product launch without screens genre (`genres/product-launch.md`): the two items above are scoped there; the measured close is a packshot of the product with or just before the brand mark (11 of 15 films), the mark centred in 10 of 15 (on a plain ground in 9), the closing beat 1.2 to 5.5 s (median 3.9). The end hold rows below still apply to the landed lockup.
 - Brand film genre (`genres/brand-film.md`): the items above on centred cards are scoped there too; the measured close is the brand's logo centred (13 of 14 films), on a plain solid ground in 11 of 14, its card 2 to 8 s (median 4.8 s), a tagline, hashtag or URL in 8 of 14 and no call to action in 10 of 14. The film still echoes its opening in the last line before the logo; the end hold rows below still apply.
 - Kinetic type genre (`genres/kinetic-type.md`): the items above on centred cards are scoped there too; the measured close is the logo centred on a plain solid ground (10 of 11 films), its card 2 to 7 s in all (median 3.7 s), a tagline or URL in 7 of 11. The end hold rows below still apply, with the kinetic type row of the `ice-qa` skill, `references/motion-density.md`.
+- Social short genre (`genres/social-short.md`): the item above on a stacked logo and CTA is scoped there; a logo or CTA card closes 8 of 14 measured shorts (2 to 6 s in 6 of 8, median 4.3 s) and ending on the punchline or the last line closes 6 of 14 (4 of 8 shorts with people on camera). A brand account that needs its name last takes the card; a creator or trend post ends on content. The end hold rows below still apply to a card.
 - News reel (edit type `news-reel`, style family `ice-styles/references/family-broadcast-news.md`): the branded end card is the genre's close (6 of 6 measured reels), not an extra CTA: a hard cut, a short dissolve or a mask from the presenter into a designed card (programme or brand mark, title, when and where to watch or follow), built in reading order and held still with no fade. Package values: that file, section 2; the end-hold limit: the `ice-qa` skill, `references/motion-density.md`.
 
 End holds, scoped by film type (owner: the `ice-motion` skill, `references/holds-and-stillness.md` section 3):
 
 | Scope | Hold |
 |---|---|
-| Resolved lockup (product launch, app ad, hype promo, social short) | 0.6-1.4 s from landed to last frame; the whole CTA beat at most 25 percent of the film |
+| Resolved lockup (product launch, app ad, social short) | 0.6-1.4 s from landed to last frame; the whole CTA beat at most 25 percent of the film |
+| Hype promo close (measured genre, `genres/hype-promo.md`) | 1.5-6 s from landed to last frame (median 3.05 s); the whole CTA beat at most 25 percent of the film |
 | CTA with a URL, offer, date or address | Readable at phone size at least about 1.5 s (3 s in launch recipes, or the reading time of the CTA block in industry spots and event invites) |
 | Calm brand and art films | May end calmly or fade |
 | Standalone logo sting file | Ends on 10-20 frames of exactly the static logo (`film-types/logo-sting.md`) |

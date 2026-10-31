@@ -49,7 +49,7 @@ Read `ice/BRIEF.md` slots: film or edit type, platform, aspect ratio, language, 
 2. Never invent speech, numbers, names or lyrics. Lyrics come only from the user.
 3. Visible display text is not the transcript: 1 to 5 key words, never the narration sentence twice on screen.
 4. Every text holds long enough to read (section 4); count from the frame it is whole.
-5. No text under the phone floor for feed deliveries (no text below 30 px on a 1080-wide vertical, body at least 44 px; captions at least 4.5% of frame height).
+5. No text under the phone floor for feed deliveries (no text below 30 px on a 1080-wide vertical, body at least 44 px; captions at least 4.5% of the frame height in font size, the rail size of `sizes-and-scale.md` section 7, which is a cap height of about 3% of the full frame; social short genre: a caption cap height of at least 2% of the full frame height, measured 2 to 4.5%, median 3%, in 9 of 9 captioned shorts, `sizes-and-scale.md` section 5).
 6. No text inside platform UI zones; never over the mouth, eyes or the detail the shot is about.
 7. Measure contrast from the real pixels behind the text; never white on light.
 8. Fonts ship as files, load before frame 0, and are asserted; no fallback font or missing glyph in any frame.
@@ -66,7 +66,7 @@ Read `ice/BRIEF.md` slots: film or edit type, platform, aspect ratio, language, 
 | Caption reading speed | at most 17 characters per second | `reading-time.md` |
 | Caption cue | up to 6 words or 2.5 s; at most 2 lines of 32 to 42 characters | `captions-system.md` |
 | Caption sync | within 2 frames of the word onset; group in 0.08 s early | `caption-timing-and-truth.md` |
-| Caption size | cap height 3.5 to 5% of frame height | `sizes-and-scale.md` |
+| Caption size | cap height 3.5 to 5% of frame height (social short genre: 2 to 4.5%, median 3%, measured) | `sizes-and-scale.md` |
 | Readable floor | 4% of frame height; below 2% is texture | `sizes-and-scale.md` |
 | Title-safe | Platform safe zones and title-safe areas: the `ice-engines` skill, `references/platform-specs.md` section 3 | `caption-placement-safe-zones.md` (caption placement inside them) |
 

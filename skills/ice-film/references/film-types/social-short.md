@@ -17,11 +17,13 @@ Earn the watch in the first 3 seconds, then pay it off inside the film. Virality
 
 | Option | Skeleton and numbers |
 |---|---|
-| 30 s reel architecture | 0-1.5 s hook (movement in the first 15 frames), 1.5-3 s context, 3-22 s body of 3-4 beats, 22-27 s payoff (the biggest animation), 27-30 s calm CTA |
+| 30 s reel architecture | 0-1.5 s hook (movement in the first 15 frames), 1.5-3 s context, 3-22 s body of 3-4 beats, 22-27 s payoff (the biggest animation), 27-30 s calm CTA; the payoff slot and the closing CTA are one option, not a rule (measured payoff from 4 to 95 percent of the runtime, a CTA in 6 of 14 shorts, `../genres/social-short.md`) |
 | Open loop | hook, open loop, escalation, evidence, payoff, CTA; one main loop and at most one secondary loop open at once; the promised answer closes before the CTA (see `../openers-and-endings.md`) |
 | Short skeletons by length | 10 s: hook 3.0, proof 4.5, CTA 2.5. 15 s: hook 4.0, proof 4.5, proof 3.5, CTA 3.0. 16-18 s: hook 3.0, proof A 4.5-5.0, proof B 4.5-5.0, CTA 2.5-3.5 |
-| Promo for a piece of content | 15 s: 0-3 s hook (a question works better than a statement), 3-11 s three proof frames of about 2.5 s with 3-5 word labels and a slow push, 11-15 s name and where to read or watch, held still |
-| Scene count by length | social reel 10-15 s with 5-7 scenes |
+| Promo for a piece of content | 15 s: 0-3 s hook (a question or a curiosity gap; no measured short opened on a question, `../genres/social-short.md`), 3-11 s three proof frames of about 2.5 s with 3-5 word labels and a slow push, 11-15 s name and where to read or watch, held still |
+| Scene count by length | social reel 10-15 s with 5-7 scenes when it cuts fast; measured 5.0 counted shots per 10 s at the median (0.4 to 10.5): a long talking take carried by graphics is as common |
+| People on camera (measured) | A face most of the runtime, talking or acting: the first word in the first second, captions of 1 to 4 words in the lower half, counted shots of about 1.2 s or one long take with graphics, 15-60 s (`../genres/social-short.md` variant A, 8 of 14 shorts) |
+| Designed, no people (measured) | UI, product graphics, a mascot or a meme template: transitions turn one element into the next, shots of about 2.3 s, headlines instead of word captions, a logo or CTA card of 2-6 s at the end (variant B, 6 of 14 shorts) |
 | One change, looped | 5-9 s; one hero object fills 60-70% of the frame and shows one satisfying change, then resets (A becomes B) |
 | Listicle timed to the voice | 30-60 s, 9:16; the voice is rendered first and its timing drives the cut; facts from official sources |
 | Data-feel middle | for scenes 3-5 of a 15-20 s short, where attention drops hardest, use visuals that read as evidence (numbers, diagrams, real output), not typography plus an icon |
@@ -29,13 +31,13 @@ Earn the watch in the first 3 seconds, then pay it off inside the film. Virality
 ## Rhythm ranges
 
 - Something moves in the first second; on-screen text before 0.5 s; the first frame is readable and meaningful (it is also the cover).
-- The hook lands in about the first 0.5 s; pattern-interrupt (change exactly one thing) if a unit runs past about 2.5 s.
+- The hook lands in about the first 0.5 s: the first spoken word or the first readable line by 1.5 s at the latest (measured first word 0.01 s in voiced shorts, `../genres/social-short.md`). Pattern-interrupt (change exactly one thing) when a unit runs long; the measured longest gap without a visual event is 1.6 s at the median and 4.5 s or less in 11 of 14 shorts.
 - A 1-2 s event rhythm is a pacing diagnostic, not a cutting schedule; keep a longer hold when a developing action earns it and record why.
 - Vary rhythm by sequence: a short cluster of discoveries, a brief anticipation, a payoff.
 
-Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 2.5; holds excuse.
+Rhythm row: mean_shot_s -; max_shot_s -; first_cut_s -; max_event_gap_s 4.5; holds excuse.
 
-Where the row's numbers come from: max_event_gap_s: a unit running past about 2.5 s gets a pattern interrupt (above); holds excuse: a longer hold that a developing action or a payoff earns is declared with its reason (above, and Camera policy during holds); the shot fields stay open because the hook is about motion, not a cut. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
+Where the row's numbers come from: max_event_gap_s: the measured longest gap of the genre, 4.5 s or less in 11 of 14 shorts (`../genres/social-short.md`; its fingerprint allows 7.5); holds excuse: a longer hold that a developing action or a payoff earns is declared with its reason (above, and Camera policy during holds); the shot fields stay open because the hook is about motion, not a cut. The row is read by the `ice-qa` skill's `scripts/film_gate.py` on the render's detected cuts when no reference is followed (`references/motion-density.md` section 6.3); a `-` is not gated.
 
 ## Timing master
 
@@ -51,11 +53,12 @@ Holds are allowed when an action or a payoff earns them (a payoff hold of at lea
 
 ## Sound policy
 
-Muted-first: the film must work with sound off. With sound, the opening impact aligns with the visual landing within two frames and never buries the first spoken word. Ice-audio owns the mix.
+Muted-first: the film must work with sound off. With sound, the opening impact aligns with the visual landing within two frames and never buries the first spoken word. Voiced shorts speak from the first frame (the first word by 0.9 s in 12 of 12 measured shorts) over a music bed that runs under the whole short (14 of 14), mastered to the social -14 LUFS profile (`../genres/social-short.md`). Ice-audio owns the mix.
 
 ## Text density
 
 - Claim on screen as type in the first seconds. Caption grouping and words per cue by caption style: the `ice-type` skill, `references/captions-system.md` section 5.
+- Measured captions (`../genres/social-short.md`): voiced shorts carry their words on screen (8 of 12); word or phrase cues of 1 to 4 words (median 2.5); the caption centre at about 68 percent of the frame height (lower half, clear of the bottom 20 percent); cap height about 3 percent of the frame height, bold, sentence case, with a shadow, box or plate; an accent colour on nearly every cue or on none, not on a share in between.
 - Narration and captions carry the words; graphics show the example, relationship or consequence, not a third restatement.
 - Platform safe zones per network: ice-engines.
 
@@ -85,6 +88,7 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 - First-3-seconds gate: "In the first 3 seconds, is someone convinced to watch until the end?" Record the viewer benefit, the unresolved question, the visible evidence by second 3 and the exact payoff scene.
 - Muted comprehension test; a fresh viewer can state the one idea.
 - Each aspect ratio is composed, not cropped, and verified on its own, opening and CTA included.
+- Genre fingerprint: `../genres/social-short.md` (visual events, the longest gap, whole-frame changes, a busy first 3 s, the first word or line by 1.5 s, short caption cues), checked by the `ice-qa` skill's `scripts/genre_check.py` at 07 and 09.
 
 ## Deliverables
 
@@ -92,6 +96,6 @@ Minimums the render must meet; measures, exempt shots and how to fix a thin fram
 
 ## Pointers
 
-Openers, three provisional openings, open loops: `../openers-and-endings.md`. Captions: ice-type. Safe zones and encodes: ice-engines.
+Measured genre playbook (conventions, the two variants, the fingerprint the render is checked against): `../genres/social-short.md`. Openers, three provisional openings, open loops: `../openers-and-endings.md`. Captions: ice-type. Safe zones and encodes: ice-engines.
 
 Sources: haidrrrry/claude-remotion-skill, nateherkai/herk-edit-kit, Tejashmakwana/motionmaxxing, charlie947/motion-graphics-skills, heygen-com/hyperframes, howseen-ai/claude-motion-design, video-production-studio (Omar-Tnzxo), digitalsamba/claude-code-video-toolkit.

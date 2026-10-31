@@ -5,11 +5,11 @@
 // measures (standard library only). Zero dependencies. Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { abs, findPython, readText } from "./helpers.mjs";
+import { abs, findPython, hasCommand, readText } from "./helpers.mjs";
 
 const GENRES = "skills/ice-film/references/genres";
 const CHECK = "skills/ice-qa/scripts/genre_check.py";
@@ -21,7 +21,9 @@ const CODING_KEYS = ["text_reveal", "emphasis_share", "ui_hero", "presses", "har
   "type_text_share", "type_words_per_line", "type_max_words", "type_only_share",
   "brand_carrier", "brand_shot_median_s", "brand_first_s", "brand_footage_share", "pointer_presses",
   "expl_sentence_change", "expl_words_per_scene", "expl_scene_median_s", "expl_wpm", "expl_text_share",
-  "expl_diagram_share", "expl_real_share", "expl_builds"];
+  "expl_diagram_share", "expl_real_share", "expl_builds",
+  "social_hook_word_s", "social_cue_words", "social_caption_y", "social_face_share", "social_ending", "social_cta",
+  "social_voice_share"];
 
 function has(relPath, phrases) {
   const text = readText(relPath);
@@ -334,6 +336,112 @@ test("genre_check.py: the gaps stop at the end card, a pointer that never presse
       const fewer = run("--measures", join(dir, "f.json"), "--coding", join(dir, "n.json"),
         "--reference-measures", join(dir, "ref.json"), "--reference-coding", join(dir, "c.json"));
       assert.ok(JSON.parse(fewer.stdout).misses.includes("presses"), "a remake with no press where its reference presses 3 times misses");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+test("genre playbooks: the hype promo type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/hype-promo.md", ["`../genres/hype-promo.md`", "Beat-cut montage (measured variant A"]);
+  has(`${GENRES}/hype-promo.md`, ["`hype-promo`", "14 films", "events_per_s >=1.8", "## Flashes and safety"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/hype-promo.md` for hype promos"]);
+});
+
+test("genre playbooks: the general rules the hype promo corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-film/references/film-types/hype-promo.md", ["A hard cut between scenes only on a downbeat, at most twice",
+    "Footage or game-render hype (the measured genre", "Every cut, flash and invert within 2 frames of a grid line"]);
+  has("skills/ice-audio/references/sfx.md", ["Hype promo genre (`ice-film` skill, `references/genres/hype-promo.md`)",
+    "Default ceiling: about 15 events per minute", "One signature riser and one signature impact per film"]);
+  has("skills/ice-motion/references/holds-and-stillness.md", ["0.6-1.4 s, and the whole CTA beat at most 25 percent",
+    "hype promo: the measured genre holds its close 1.5 to 6 s"]);
+  has("skills/ice-qa/references/motion-density.md", ["| hype promo | 6.1 | reading | 8 |", "| product launch | 1.4 |"]);
+  // the flash safety limit is never lifted by the genre
+  has(`${GENRES}/hype-promo.md`, ["strobe safe mode stays absolute"]);
+});
+
+test("genre playbooks: hype promo ideas the corpus did not confirm are recorded as rejected, never as rules", () => {
+  const text = has(`${GENRES}/hype-promo.md`, ["## Measured and rejected"]);
+  const rejected = text.split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["Runtime 10 to 20 s", "Every cut within 2 frames of a beat", "Scenes of 1.5 to 3 s",
+    "hard cuts at most twice", "About 15 sound effects per minute", "An end hold of 0.6 to 1.4 s"]) {
+    assert.ok(rejected.includes(idea), `the hype promo rejected list names "${idea}"`);
+  }
+});
+
+test("genre playbooks: the social short type points to its playbook, and the playbook names it", () => {
+  has("skills/ice-film/references/film-types/social-short.md", ["`../genres/social-short.md`", "max_event_gap_s 4.5"]);
+  has(`${GENRES}/social-short.md`, ["`social-short`", "`shorts-reels`", "14 shorts", "social_hook_word_s <=1.5"]);
+  has("skills/ice-film/references/film-setup.md", ["`genres/social-short.md` for social shorts"]);
+  has("skills/ice-edit/references/edit-types/shorts-reels.md", ["`references/genres/social-short.md` variant A"]);
+});
+
+test("genre playbooks: the general rules the social short corpus contradicts stay house defaults, scoped by genre", () => {
+  has("skills/ice-type/references/captions-system.md", ["Color on 25 to 45% of chunks in color-coded social styles",
+    "Social short genre (the `ice-film` skill, `references/genres/social-short.md`)"]);
+  has("skills/ice-film/references/openers-and-endings.md", ["Logo plus CTA stacked in the centre only when the brief asks for an explicit CTA.",
+    "Social short genre (`genres/social-short.md`)"]);
+  has("skills/ice-type/references/sizes-and-scale.md", ["| Vertical 1080 x 1920 | 65 to 95 (caption cap height 3.5 to 5%) | 130 to 170 |",
+    "Vertical social short genre, measured"]);
+  has("skills/ice-type/SKILL.md", ["captions at least 4.5% of the frame height in font size",
+    "social short genre: a caption cap height of at least 2% of the full frame height"]);
+  const rejected = readText(`${GENRES}/social-short.md`).split("## Measured and rejected")[1].split("\n## ")[0];
+  for (const idea of ["A question works better than a statement", "Colour on 25 to 45 percent", "The payoff in the 22 to 27 s",
+    "No gap between visual events over 2.5 s", "Seamless replay loop"]) {
+    assert.ok(rejected.includes(idea), `the social short rejected list names "${idea}"`);
+  }
+});
+
+test("genre_check.py: the social coding keys read the coding sheet's social block",
+  { skip: !PY && "no Python 3.10+" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-social-"));
+    try {
+      const meas = { median_event_gap_s: 0.42, max_event_gap_s: 1.6, events_per_s: 1.7, hook_events_3s: 6,
+        scene_median_s: 1.5, cuts_per_10s: 1.1, move_onset_lift: 1.0 };
+      const coding = { social: { hook_1s: { first_word_s: 0.4, first_text_s: 1.2 },
+        captions: { kind: "word-captions", words_per_cue_median: 2, y_center_share: 0.68 }, face: { share_of_runtime: 0.8 },
+        voice: { share_of_runtime: 0.6 }, loop: { ending: "hard-stop" }, cta: { present: false } } };
+      writeFileSync(join(dir, "m.json"), JSON.stringify(meas));
+      const run = () => {
+        writeFileSync(join(dir, "c.json"), JSON.stringify(coding));
+        return spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "check", "--genre", "social-short", "--measures", join(dir, "m.json"),
+          "--coding", join(dir, "c.json"), "--json"], { encoding: "utf8" });
+      };
+      const ok = run();
+      assert.equal(ok.status, 0, ok.stderr);
+      const rows = JSON.parse(ok.stdout).rows;
+      assert.equal(rows.social_hook_word_s.value, 0.4);
+      assert.equal(rows.social_cue_words.value, 2);
+      assert.equal(rows.social_caption_y.value, 0.68);
+      coding.social.captions = { kind: "none" };
+      assert.equal(JSON.parse(run().stdout).rows.social_cue_words.value, 0, "a short without captions passes the cue key");
+      coding.social.hook_1s = { first_word_s: null, first_text_s: 3.0 };
+      coding.social.captions = { kind: "word-captions", words_per_cue_median: 6 };
+      assert.equal(run().status, 2, "a late first line and long caption cues are red");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+// The cut detector reads hard cuts at the video's own frame rate. The 12 fps histogram test it replaced read 0.81 cuts
+// per 10 s on a 720p hype promo with 17.2: shots graded alike keep the same histogram across a cut.
+const HAS_NUMPY = Boolean(PY) && spawnSync(PY[0], [...PY.slice(1), "-c", "import numpy"], { encoding: "utf8" }).status === 0;
+test("genre_check.py measure: hard cuts between shots graded alike are found at the frame rate, a flash is not a cut",
+  { skip: !(HAS_NUMPY && hasCommand("ffmpeg") && hasCommand("ffprobe")) && "numpy, ffmpeg or ffprobe missing" }, () => {
+    const dir = mkdtempSync(join(tmpdir(), "genre-cuts-"));
+    try {
+      // 720p at 24 fps: 14 shots of 10 frames, a ramp and its mirror (the same histogram), a white flash at frame 25
+      const video = join(dir, "cuts.mp4");
+      const ff = spawnSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i",
+        "color=c=black:s=1280x720:r=24,format=gray,geq=lum='if(eq(N,25),255,if(lt(mod(floor(N/10),2),1),X*255/W,255-X*255/W))'",
+        "-frames:v", "140", "-c:v", "libx264", "-pix_fmt", "yuv420p", video], { encoding: "utf8" });
+      assert.equal(ff.status, 0, ff.stderr);
+      const out = join(dir, "m.json");
+      const r = spawnSync(PY[0], [...PY.slice(1), abs(CHECK), "measure", video, "--out", out], { encoding: "utf8" });
+      assert.equal(r.status, 0, r.stderr);
+      const m = JSON.parse(readFileSync(out, "utf8"));
+      assert.equal(m.hard_cuts_s.length, 13, `13 cuts expected, found ${JSON.stringify(m.hard_cuts_s)}`);
+      assert.ok(!m.hard_cuts_s.some((t) => t > 0.9 && t < 1.2), "the one-frame flash at 1.04 s is not a cut");
+      assert.ok(m.cuts_per_10s > 20, `cuts_per_10s ${m.cuts_per_10s}`);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

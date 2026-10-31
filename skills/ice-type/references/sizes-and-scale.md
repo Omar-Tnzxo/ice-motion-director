@@ -89,6 +89,7 @@ Safe-scale wrappers (scene scaled by 0.78 for platform UI) multiply every minimu
 | Canvas | Body | Emphasis / hook |
 |---|---|---|
 | Vertical 1080 x 1920 | 65 to 95 (caption cap height 3.5 to 5%) | 130 to 170 |
+| Vertical social short genre, measured (the `ice-film` skill, `references/genres/social-short.md`) | caption cap height 2 to 4.5% of the frame height, median 3% (1 of 9 measured shorts at 3.5% or more); the row above stays the house default for every other vertical film | |
 | Landscape 1920 x 1080 | 40 to 55 | 70 to 100 |
 | Rail | `0.045 * frame height` | inline pop at most 1.1x |
 | Big karaoke block | proportional face at least 96 (monospace 64 to 72); fit base 128 min 48 | |

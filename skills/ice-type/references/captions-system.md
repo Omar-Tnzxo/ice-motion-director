@@ -120,7 +120,7 @@ Minimum cue: 2 words and 0.5 s on screen (single-word styles excepted: those sti
 
 - Emphasis is independent of grouping: a stable phrase, a current-word color, or a trail. Step mode activates whole units; wipe mode sweeps inside glyphs; both follow real speech timing including uneven delivery.
 - Appearance (all at once, on word start, typewriter) and color change are separate choices.
-- Distribution: about 70% plain body, 20% slight lift, 8% full emphasis, 2% climax (biggest, held 1.5 s, a breath before and after). Do not put the emphasis preset on more than about 30% of groups. Color on 25 to 45% of chunks in color-coded social styles, whole chunk only.
+- Distribution: about 70% plain body, 20% slight lift, 8% full emphasis, 2% climax (biggest, held 1.5 s, a breath before and after). Do not put the emphasis preset on more than about 30% of groups. Color on 25 to 45% of chunks in color-coded social styles, whole chunk only. Social short genre (the `ice-film` skill, `references/genres/social-short.md`): the measured accent sits on nearly every cue (a yellow word in each Arabic cue, a karaoke box) or on none; 0 of 6 measured shorts used the 25 to 45% band, so there it is not a target.
 - Break the rhythm once per 30 s. Alternate emphasis treatments every 2 groups (high energy) to 4 to 5 groups (low energy). Emphasis words always break the pattern.
 - Per-word styling candidates: brand names (larger or unique color), numbers (bold accent), emotional keywords (overshoot), the call to action. Group a compound or name as one unit when highlighting it; do not annotate every word.
 - Speaker-colored captions clarify who speaks, even over full-frame B-roll; coordinate the colors with the scene palette.

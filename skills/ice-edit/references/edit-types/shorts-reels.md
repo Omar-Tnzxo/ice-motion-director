@@ -21,6 +21,7 @@ A 15 to 90 s vertical video (1080x1920 by default) that convinces in the first t
 - Raw reel: no B-roll and no music. Cut retakes, stutters and dead air only, keeping the last clean take; one word on screen at a time, small, lower middle, synced to the exact word; when the speaker points while naming a tool, the tool's verified logo pops where they point with a quiet tap.
 - Long to short: screen recording on top, face below, word captions on the seam; the value or claim in the first 3 s, proofs in the long video's order, a complete takeaway at the end. Every number on screen must be explainable from what the short showed; name things before using them; never assemble a call to action the speaker did not say. One topic per short.
 - Highlight from an episode: see `podcast.md`.
+- Measured people-on-camera shorts: the `ice-film` skill, `references/genres/social-short.md` variant A (the first word in the first second, caption cues of 1 to 4 words in the lower half, counted shots of about 1.2 s); the Rhythm row below still gates this edit type.
 
 ## Rhythm ranges (house measurements; starting points, not law)
 | Measure | Value |
