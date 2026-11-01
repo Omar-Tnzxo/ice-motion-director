@@ -2,6 +2,29 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.19 - 2026-11-01
+
+Two hard bans from the founder. Ice never makes music or sound effects by code or by AI, on any machine and not even on request: real recordings and licensed library tracks only, with a gate that fails delivery when a sound has no real source. And a film's imagery is no longer drawn as SVG or canvas code and slid around like pictures: it comes from real files, photos, footage, designer Lottie, AI imagery by parts or lit 3D, and moves by its parts, light and camera, with a render check that measures it.
+
+### Added
+
+- **Audio source gate (L74).** `ice-assets/scripts/validate-assets.mjs` checks 10 to 12, alone with `--audio-only`: every audio file and every mix input has a real source row (the user's file, a found track with its URL and owner, a file of the SFX pack, a licensed track) with a matching sha256; code-built audio fails; AI music and AI effects fail; a narration voice from a voice provider passes with its full record (provider, model, voice id, licence terms, date); project code that makes sound (FFmpeg `sine`, `aevalsrc` or `anoisesrc`, oscillators, Tone.js, SoX `synth`, generated buffers written as audio) fails with file and line. Processing real recordings (reverb, echo, stereo width, EQ, filters, compression, loudness, fades, pitch and time) and silence never count. It runs at 08b and at the final gate.
+- `master_audio.py` writes the files it mixed, with their hashes, into `master.json` (`inputs`).
+- **Fresh machine sound route:** the SFX pack is fetched first, then Openverse with retries, Mixkit, Wikimedia Commons, the Internet Archive and the user's files; a cue with no real sound is left silent and listed in the delivery note as `no sound: <cue> (searched: <routes>)`.
+- **Picture methods (L75).** `ice-motion/references/picture-methods.md`: the banned look, the method of the remake the founder rated 9/10, the imagery ladder, the motion toolbox per element and the motion bar. The craft plan names its `imagery` source; hand-coded drawing as the main imagery needs a reason from the user, the reference or a chosen style.
+- **Moving pictures check.** `craft_gate.py measure` and `build` measure the share of element motion that is a flat drawn picture moved whole (tracked 1 s windows): red at 0.58, yellow from 0.52, never lifted. Calibrated on the Spotify demo (0.701, red) against the 9/10 remake (0.475) and six other films (0.092 to 0.448). `art-check.mjs` gains the `parts` measure: a hero group that moves while its parts stay fixed fails.
+
+### Changed
+
+- Every style card has an `Imagery:` line; 19 cards that invited code-drawn imagery were rebuilt on a professional method, 65 drawn-process cards take their input from a real or AI source or a 3D render, and 61 Sound lines name a real track and recorded effects instead of synthesis.
+- The style selection no longer offers flat vector first for software launches, app ads, consumers and e-commerce; real UI, photo-led and 3D come first.
+- Noncommercial onetake and talkcraft files carry an Ice override: their sound synthesis is not used.
+- Python pins no script imports any more (soundfile, pedalboard, pyloudnorm, matplotlib) are removed.
+
+### Removed
+
+- The `mgaudio` music-by-code toolkit (28 files), `ice-audio/references/music-by-code.md` and the onetake synthesis palette. The by-name exception for sound made by code is gone.
+
 ## 0.2.18 - 2026-11-01
 
 A film the founder rated 9/10 is now a frame template any user can fill with their own brand and idea: the same frames, cuts, camera paths, presses and sound timing, with the user's brand, words, media and licensed sound inside the slots. The first template is Feature Wish, an unofficial "what if <brand> had <feature>?" concept for a famous app.

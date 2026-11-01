@@ -11,7 +11,7 @@ description: >-
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.18
+  version: 0.2.19
 ---
 
 # ice-styles
