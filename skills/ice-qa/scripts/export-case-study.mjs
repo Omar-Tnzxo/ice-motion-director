@@ -9,8 +9,10 @@
 // animatic becomes a short, small MP4, and full-resolution masters are never copied (only stills taken from them).
 // Run log: ice/log/conversation.jsonl (written by the router's `ice-state.mjs log`) becomes the "conversation" list
 // and ice/case-study/run-log.html, one small self-contained share file (run-log.mjs). Keys, tokens, email
-// addresses, phone numbers and absolute paths are masked in both; the local log stays verbatim. It never reads an
-// agent transcript.
+// addresses, phone numbers and absolute paths are masked in both; the local log stays verbatim. It never imports an
+// agent transcript: run-usage.mjs reads only the numbers of Claude Code's session logs (token usage, model, times)
+// into the "production" block (time per stage and in total, tokens, their cost at the API list prices of
+// ../references/api-prices.json), or records "not measured" with the reason when no log is on this machine.
 // Recipe-only runs (route ice-remake, run_mode recipe-only, order 01 10; ice-remake references/style-recipe.md
 // section 8) make no film: the export carries the recipe instead (STYLE-RECIPE.md, its sections, the prompt block,
 // the unknowns, the sound map picture and the contact sheets the agent watched), the run log shows the recipe where
@@ -19,7 +21,8 @@
 //
 // Usage:
 //   node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N]
-//                              [--site [--film <master>]]
+//                              [--site [--film <master>]] [--transcripts <folder or .jsonl>]...
+// --transcripts adds session logs kept outside this project's own Claude Code folder (a side session elsewhere).
 // --site also writes the gallery package <out>/site/<slug>/ (listing.json with films, source, selection, prompt,
 // story, disclaimer and credits; web encodes of the delivered film and of the raw cut by the EDL; lesson L38).
 // Default --out: <project>/ice/case-study. Exit codes: 0 written, 1 no ice/ folder, 2 usage error.
@@ -28,8 +31,9 @@ import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 import { LIMITS, createEmbedder, createMasker, renderRunLog } from "./run-log.mjs";
+import { measureProject, productionLine, siteFigures } from "./run-usage.mjs";
 
-const USAGE = "usage: node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N] [--site [--film <master>]]";
+const USAGE = "usage: node export-case-study.mjs --project <folder that holds ice/> [--out <folder>] [--no-media] [--max-stills N] [--site [--film <master>]] [--transcripts <folder or .jsonl>]...";
 const argv = process.argv.slice(2);
 if (argv.includes("-h") || argv.includes("--help")) { console.log(USAGE); process.exit(0); }
 const opt = (name, dflt) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt; };
@@ -277,7 +281,23 @@ for (const h of history) {
   const ids = [...new Set(HISTORY_MAP.filter(([re]) => re.test(key)).map(([, id]) => id))];
   for (const id of ids) if (!stateStages?.[id]?.notes) stages[id].summary = [stages[id].summary, String(h.note || "")].filter(Boolean).join(" ");
 }
-if (STAGES.some(([id]) => !notUsed(id) && stages[id].minutes === null)) note("stages[].minutes", "minutes per stage not recorded in ice/state.json stages");
+// Production time, tokens and API cost from the agent's own session logs (run-usage.mjs: numbers only, never text).
+// A stage without recorded minutes takes its measured active minutes.
+const transcripts = argv.flatMap((a, k) => (a === "--transcripts" && argv[k + 1] ? [argv[k + 1]] : []));
+let logStart = "";
+try { logStart = String(JSON.parse(read(join(ICE, "log", "conversation.jsonl")).split(/\r?\n/).find((l) => l.trim()) || "{}").at || ""); } catch { /* noted with the run log below */ }
+let production;
+try { production = measureProject({ project: PROJECT, state, logStart, transcripts }); }
+catch (e) { production = { measured: false, reason: `the session logs could not be read (${masker.mask(String(e?.message || e))}). Nothing is estimated.` }; }
+for (const [id] of STAGES) {
+  const u = production.measured ? production.by_stage[id] : null;
+  stages[id].usage = u ? { wall_clock_min: u.wall_clock_min, active_min: u.active_min, tokens_total: u.tokens_total, usd: u.usd } : null;
+  if (u && stages[id].minutes === null && u.wall_clock_min > 0) stages[id].minutes = u.active_min;
+}
+if (!production.measured) note("production", `not measured: ${production.reason}`);
+else if (production.unpriced_models.length) note("production.usd", `models not in skills/ice-qa/references/api-prices.json, left out of the dollar totals: ${production.unpriced_models.join(", ")}`);
+const untimed = STAGES.filter(([id]) => !notUsed(id) && stages[id].minutes === null).map(([id]) => id);
+if (untimed.length) note("stages[].minutes", `minutes not recorded in ice/state.json stages${production.measured ? " and not measurable from the session logs (no time between their entries in the state history)" : ""}: ${untimed.join(", ")}`);
 
 // Decisions from DIRECTION.md: "### D-NN <title>" blocks; "- D-NNx ..." bullets inside a block are separate decisions.
 const DECISION_STAGE = [[/intake|brief/, "01"], [/concept|idea/, "02"], [/engine|render|build/, "07"], [/script|copy|structure|hook|opening|words|voice/, "03"], [/storyboard|shot|camera|transition/, "04"], [/direction|palette|colou?r|type|font|style|look|motion language/, "05"], [/animatic|cue|tempo|rhythm|sync|beat/, "06"], [/music|sound|sfx|mix|score/, "08"], [/intake|brief|platform|aspect|audience|goal/, "01"]];
@@ -517,7 +537,8 @@ const header = {
   title, brand, unofficial, prompt: sharePrompt, language,
   facts: [["Brand", brand], ["Route and film type", [route, filmType].filter(Boolean).join(", ")], ["Mode", mode], ["Size", size],
     ["Started", isoDate(state.created || logEntries[0]?.at)], [delivered ? "Delivered" : "Last updated", isoDate(delivered || state.updated)],
-    [recipe ? "Recipe" : "Final file", recipe ? recipe.file : finalFilm ? basename(finalFilm) : ""], ["Final length", versions[0]?.seconds ? `${versions[0].seconds} s` : ""], ["Language", language]],
+    [recipe ? "Recipe" : "Final file", recipe ? recipe.file : finalFilm ? basename(finalFilm) : ""], ["Final length", versions[0]?.seconds ? `${versions[0].seconds} s` : ""], ["Language", language],
+    ["Production", production.measured ? productionLine(production) : "not measured"]],
   poster: "", video: "", finalName: finalFilm ? basename(finalFilm) : "",
   recipe: recipe ? { file: recipe.file, sections: recipe.sections, prompt: recipe.prompt, unknowns: recipe.unknowns } : null,
 };
@@ -590,6 +611,7 @@ const out = {
   supplied, questions,
   stages: STAGES.map(([id]) => stages[id]),
   research, gates, versions, metrics, credits, tools,
+  production: production.measured ? production : { measured: false, reason: production.reason },
   conversation: conversation.map((c) => ({ at: c.at, stage: c.stage, from: c.from, text: c.text, note: c.note, attachments: c.attachments.map((a) => ({ path: a.path, kind: a.kind, direction: a.direction, ...(a.excluded ? { note: a.excluded } : {}) })) })),
   notes,
   exported: { media: WITH_MEDIA, ffmpeg: FFMPEG, at: new Date().toISOString() },
@@ -751,7 +773,16 @@ function buildSite() {
   const disclaimer = needs ? { en: dj.en || `An unofficial test made with Ice Motion Director${owner ? `; not a production of ${owner}` : ""}. Footage and marks belong to their owners.`, ...dj } : null;
   if (needs && language && language !== "en" && !disclaimer[language]) sNote(`disclaimer.${language}`, `no ${language} line in ice/case-study/disclaimer.json`);
 
-  const listing = { title, published: new Date().toISOString().slice(0, 10), films: [film], source, selection, prompt: promptOut, story, disclaimer, credits };
+  // made_with: what the session logs measured (the landing's made_with block; effort is not in the logs).
+  const figures = siteFigures(production);
+  const made_with = production.measured ? {
+    agent: production.agent, agent_version: production.agent_version || null, model: production.model || null, effort: null,
+    subagents: production.sessions.subagents, started: production.window.from.slice(0, 10), date: production.window.to.slice(0, 10),
+    ...(figures ? { production: figures } : {}),
+  } : null;
+  if (!made_with) sNote("made_with", `not measured: ${production.reason}`);
+  else if (!figures) sNote("made_with.production", "left out: some models are not in the price table, so the dollar total is incomplete");
+  const listing = { title, published: new Date().toISOString().slice(0, 10), films: [film], source, selection, prompt: promptOut, story, disclaimer, credits, ...(made_with ? { made_with } : {}) };
   writeFileSync(join(SITE, "listing.json"), JSON.stringify(listing, null, 2) + "\n", "utf8");
   writeFileSync(join(SITE, "case-study.json"), JSON.stringify({ ...out, notes: [...out.notes, ...siteNotes] }, null, 2) + "\n", "utf8");
   copyFileSync(join(OUT, "run-log.html"), join(SITE, "run-log.html"));

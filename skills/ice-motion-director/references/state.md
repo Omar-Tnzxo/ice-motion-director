@@ -56,7 +56,7 @@ Codex users see commands as `$name`: add `--prefix '$'` so the printed command n
 - `questions` is the stage 01 question message and its answers, read by the case study export.
 - The `stages` example shows two entries; the real file always has all ten keys, `"01"` to `"10"`.
 
-Each stage entry: `status`, `artifact` (path relative to the project folder, empty while `missing`), `updated` (ISO 8601), `notes` (one line, plain words), and optionally `minutes` (a number, when the agent can measure it), `roles` (the plain role names that worked on it) and `parts` (only for a stage the order splits, see "Stage order"). No other keys.
+Each stage entry: `status`, `artifact` (path relative to the project folder, empty while `missing`), `updated` (ISO 8601), `notes` (one line, plain words), and optionally `minutes` (a number, when the agent can measure it; when it is missing, the case study export fills it from the measured session logs, `ice-qa` `scripts/run-usage.mjs`), `roles` (the plain role names that worked on it) and `parts` (only for a stage the order splits, see "Stage order"). No other keys.
 
 ## Stage statuses
 
