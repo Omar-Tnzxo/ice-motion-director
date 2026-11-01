@@ -2,6 +2,20 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.17 - 2026-11-01
+
+Every case study now says how long the video took, how many tokens it spent and what those tokens would cost on the Claude API, measured by Ice itself instead of by hand. The numbers come from the usage counters of Claude Code's own session logs on your machine; no text from them is copied, and a run made by another agent says "not measured" with the reason instead of a guess.
+
+### Added
+
+- **Production time, tokens and API cost in every case study (L72).** `ice-qa/scripts/run-usage.mjs` measures the run from the prompt that opened it to delivery: wall clock and active time (waits for your answers and usage-limit pauses left out, parallel subagents counted once), tokens by type (input, 5 minute and 1 hour cache writes, cache reads, output, web searches) and by model, and their cost in US dollars, per stage and in total. Each API response counts once, however many lines it was written on. The export writes it as `production` in `case-study.json`, as `usage` and measured `minutes` on each stage, as a Production line in `run-log.html`, and as `made_with` (agent, version, model, subagents, dates and the four landing figures) in the `--site` package. Alone: `node run-usage.mjs --project <folder>`.
+- **One dated price table.** `ice-qa/references/api-prices.json` holds the Claude API list prices with their source page and the date they were read (2026-10-31); fast mode, Haiku 5.5 over 100,000 prompt tokens and US-only inference have their own rates. A model missing from the table is named and left out of the dollars, never guessed. Each release re-reads the page.
+
+### Changed
+
+- **The run log rule (AGENTS.md rule 12) gains one numbers-only exception:** the usage meter may read Claude Code's session logs for token counts, models and times; it never copies their text, and the run log itself is still never built from a transcript.
+- **Checked on a real run:** on the YouTube remake trial (`tests/remake/run-01`) the exporter and the hand method agree exactly: 977 responses, 325,375,310 tokens, 253 min from prompt to delivery, 223 min active, $105.75 at the list prices of 2026-10-31.
+
 ## 0.2.16 - 2026-11-01
 
 The last two genres of the plan are measured from professional work instead of collected rules: art films (15 festival title films, title sequences, festival intros and abstract or generative films from studio, artist, festival and network channels, 3 from the Arabic market) and industry spots (15 industrial, B2B and corporate spots from energy, logistics, construction, automation and real estate companies, 8 from the Arabic and Gulf market). Each gets a playbook with its variants, conventions, rejected ideas, a coding sheet and a fingerprint that `genre_check.py` checks on every draft. Every film type of the plan now has a measured genre.
