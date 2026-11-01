@@ -77,7 +77,7 @@ Type names follow the film types of the `ice-film` skill (`references/film-types
 |---|---|
 | Intake (language slot) | This file, section 1; `references/asr-timing.md` (section "Dialect as a setting") |
 | Script and copy | `references/asr-timing.md` (section "Dialect as a setting"); `references/bidi-numerals-line-breaks.md` |
-| Voiceover | `references/asr-timing.md` (section "Arabic voiceover and TTS") |
+| Voiceover | `references/asr-timing.md` (section "Arabic voiceover and TTS"); `references/voice-arabic.md` (founder defaults, numbers as words, tashkeel by variety, failure modes); `scripts/spoken_numbers.py` |
 | Transcribing footage or VO | `references/asr-timing.md` |
 | Type and font choice | `references/fonts-and-shaping.md` |
 | Building motion with Arabic text | `references/letterforms-in-motion.md`; `references/kashida.md` when a stretch effect is planned |
@@ -121,6 +121,7 @@ When called, return to the workflow:
 | `references/arabic-qa-checks.md` (section "Covers and thumbnails with Arabic text") | Reel covers, profile grid legibility, YouTube thumbnails with Arabic text |
 | `references/asr-timing.md` (section "Dialect as a setting") | Filling the dialect setting, dialect review, spelling, dialect hooks, narrator patterns |
 | `references/asr-timing.md` (section "Arabic voiceover and TTS") | Choosing an Arabic voice, preparing text for TTS, pace by dialect |
+| `references/voice-arabic.md`, `scripts/spoken_numbers.py` | The Egyptian default voice (founder's pick), numbers and dates as words in the film's variety, tashkeel for MSA and for dialects, brand names, failure modes; convert numbers and check a lines file for digits |
 | `references/asr-timing.md` | Transcribing Arabic speech for timing, correcting transcripts, aligning to the script, sync checks |
 | `references/arabic-qa-checks.md` (section "Sacred text, seasons and culture") | Quran or other sacred text, religious seasons, regional culture in motion and imagery |
 | `references/arabic-qa-checks.md` (section "Arabic failure lessons") | A defect appeared; check whether it is a known Arabic failure before debugging |

@@ -1062,3 +1062,14 @@ test("lessons: imagery moves by its parts, light and camera; picture-methods.md 
   assert.doesNotMatch(readText("skills/ice-engines/references/engine-choice.md"), /Everything drawn by code: no image files you did not generate/);
   assert.doesNotMatch(readText("skills/ice-direction/references/questions.md"), /everything else is drawn by code/);
 });
+
+test("lessons: a complete narrator by the user's recording or provider, never a generated effect (L76)", () => {
+  const vd = readText("skills/ice-audio/references/voice-director.md");
+  assert.match(vd, /A voice is generated only when the user chose route 2/);
+  assert.match(vd, /Music and sound effects are never generated, by any provider or by code, on either route/);
+  assert.match(readText("AGENTS.md"), /voice stage: `skills\/ice-audio\/references\/voice-director\.md`/);
+  for (const f of ["skills/ice-audio/SKILL.md", "skills/ice-direction/references/questions.md", "skills/ice-08-sound/SKILL.md",
+                   "skills/ice-assets/references/ai-media-policy.md", "skills/ice-remake/references/frame-templates.md"]) {
+    assert.match(readText(f), /voice-director\.md/, `${f} does not point to the voice stage`);
+  }
+});

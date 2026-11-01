@@ -6,6 +6,8 @@ Arabic and dialect narration (dialect words per second, vocalized spelling, dial
 
 ## 1. Voice is optional and disclosed
 
+The voice stage (the two routes, providers and models, access without credentials, the lines file, direction, takes, fit to the slot and the source record) is `voice-director.md`; this section keeps the consent and disclosure rules it builds on.
+
 1. Default voice: a voiceover the whole way for ads and explainers; the person's own voice for talking heads. Default input is a finished recording plus a script that matches it; synthesis never replaces an existing recording.
 2. Ask before using any TTS or transcription API, inside the router's stops (`ice-motion-director/SKILL.md` section 5, "Stops"), in the voice source question of the stage 01 message: state the provider, what data is sent, the credential needed and possible cost. Never ask the user to paste keys into chat; never write keys into a per-repo `.env`. No credential is not a green light to silently switch to another voice: in auto mode, when the film can run music-led with every word on screen, switch to that, log it and say so in the delivery note; otherwise stop the run as blocked and say plainly which voice or credential is missing. In step mode put it on the review card.
 3. AI voices are disclosed in the delivery report. Never play an AI narrator over footage of a real person talking (viewers think that person speaks in the AI voice).

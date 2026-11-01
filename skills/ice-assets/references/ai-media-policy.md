@@ -12,7 +12,7 @@ Ice Motion Director is a motion design and editing director that writes code and
 - **User-initiated**: never generate on your own initiative. When an asset is missing, you may offer generation once as one option beside capture, licensed stock and code; the user decides. Record the answer in `ice/BRIEF.md` (slot: AI media allowed, and for which element types).
 - **Disclosed**: every generated item is recorded and named in the delivery notes, and labeled on screen where section 7 requires it.
 
-Faces and voices of real people follow section 9 of this file (the owner of that rule for every skill). Audio: AI generation covers narration voice only (a voice provider, recorded with provider, model, voice id, licence terms and date); music and sound effects are never generated, by AI or by code, not even on request (the ice-audio skill, `SKILL.md` core rule 7). AI voice details live in the ice-audio skill.
+Faces and voices of real people follow section 9 of this file (the owner of that rule for every skill). Audio: AI generation covers narration voice only (a voice provider, recorded with provider, model, voice id, licence terms and date); how the voice is chosen, directed, taken, fitted and recorded: `ice-audio/references/voice-director.md`; music and sound effects are never generated, by AI or by code, not even on request (the ice-audio skill, `SKILL.md` core rule 7). AI voice details live in the ice-audio skill.
 
 ## 2. What may be generated
 

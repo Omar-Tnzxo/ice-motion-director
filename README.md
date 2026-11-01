@@ -368,7 +368,7 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Domain | [`ice-motion`](skills/ice-motion) | Timing, easing, springs, cuts, camera, composition |
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
-| Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness, a mix audit and a short list for your ears |
+| Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; a narrator from your own recording or your voice provider (ElevenLabs and others), directed line by line and fitted to each shot; mixing, loudness, a mix audit and a short list for your ears |
 | Domain | [`ice-styles`](skills/ice-styles) | 157 film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
 | Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, real-first sourcing with each item's license status, brand assets |

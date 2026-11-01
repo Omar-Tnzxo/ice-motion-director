@@ -774,7 +774,8 @@ test("frame template: every narrator slot carries measured processing, a verify 
   assert.match(TPL.voice.line_slots[5].fx.processing, /stereo reverb/);
   assert.equal(TPL.voice.line_slots[5].fx.from_frame, 512);
   assert.equal(TPL.voice.line_slots[6].fx.status, "needs a listen");
-  assert.match(TPL.voice.fx_rule, /no voice is ever generated/);
+  assert.match(TPL.voice.fx_rule, /provider voice the user chose, with its source record/);
+  assert.match(TPL.voice.fx_rule, /music and effects are never generated/);
   assert.ok(TPL.voice.recording_guide.length >= 4 && TPL.voice.alignment.length >= 4);
-  assert.match(readText("skills/ice-remake/references/frame-templates.md"), /a voice is never generated/);
+  assert.match(readText("skills/ice-remake/references/frame-templates.md"), /a narrator voice is generated only when the user chose their provider at `Q-voice`/);
 });

@@ -69,7 +69,7 @@ Cloning a real person's voice follows the `ice-assets` skill, `references/ai-med
 
 ### 2. Preparing Arabic text for TTS
 
-- Write numbers as words in the chosen dialect in the voiceover text; the screen keeps digits.
+- Write numbers as words in the chosen dialect in the voiceover text; the screen keeps digits. Founder defaults, numbers, tashkeel by variety and the measured failure modes: `voice-arabic.md`; convert and check with `scripts/spoken_numbers.py`.
 - Write brand names and loanwords the way they sound in the target dialect. If a voice mispronounces a name, try it with full vowel marks in Arabic letters (slot: `<brand name with full diacritics>`), and test the Latin spelling too; keep whichever the engine reads right. Screen copy still follows the truth sheet spelling.
 - For fully diacritized MSA reads: diacritize every word; write a final ta marbuta as ha in the spoken text when the engine pronounces it wrongly; avoid the dagger alef.
 - Punctuation costs time: TTS pauses at colons, ellipses and every comma. A tight line loses extra commas before it loses words.
