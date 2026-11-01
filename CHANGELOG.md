@@ -2,6 +2,22 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.18 - 2026-11-01
+
+A film the founder rated 9/10 is now a frame template any user can fill with their own brand and idea: the same frames, cuts, camera paths, presses and sound timing, with the user's brand, words, media and licensed sound inside the slots. The first template is Feature Wish, an unofficial "what if <brand> had <feature>?" concept for a famous app.
+
+### Added
+
+- **Frame templates (L73).** `ice-remake/templates/<id>/template.json` holds a film's frame lock: size, fps and frame count, cut frames, shots with their story beats, per-frame camera matrices measured on the original, letterbox bars per frame, text slots (position, size, timing, word range, emphasis), icon keys per frame, press frames, colour moments, the music spec, an SFX map by frame and pack type, narrator line slots, media slots with measured targets and the loudness contour. Never the original's audio, images or words. `ice-remake/references/frame-templates.md` says how a run starts from one, how the slots are adapted to a new brand, and how sound, voice and media are filled.
+- **`ice-remake/scripts/template.py`:** `list`, `show`, `init` (writes the camera tracks, bars, engine, a TIMELINE and REASONS that stand in for a measured reference, the lock and a press list into the project) and `check` (frame count, each locked cut on its frame, loudness, the warm turn's saturation, every press built, and with `--camera` each camera path re-tracked on the render).
+- **Feature Wish (`feature-wish`):** idea "What if <Brand> had <Feature>?", story "The Wish Demo" (habit, loss, wish, demo, proof, warm turn, sign-off), style Interface Ride, genre `ui-motion`; 1080 x 810, 30 fps, 1166 frames, cuts f135, f197 and f240, 15 camera tracks, 22 text slots, 7 pointer presses (the gap of the trial it came from, L58), music at 96 to 108 BPM with breaks on fixed frames, -14.2 LUFS, a recorded voice or none asked at stage 01 (L63), and a warm turn photo measured to a centre saturation of 165 or more. Inspired by an unofficial Instagram concept by @mosycreate (measurements only).
+- **New style Interface Ride (`interface-ride`)** in the screen, tech and 3D family, and a **Templates** table in the style library: `/ice-style templates` lists them, `/ice-style feature-wish <brand and idea>` or any request that names one starts a film from it.
+
+### Changed
+
+- The router recognises a template by name (`classify.md`, "Frame templates"), `ice-state` records `template`, and a template the user named counts as a look the user chose (`anti-sameness.md` section 4a).
+- The API price table was re-read on 2026-11-01 (no change in rates).
+
 ## 0.2.17 - 2026-11-01
 
 Every case study now says how long the video took, how many tokens it spent and what those tokens would cost on the Claude API, measured by Ice itself instead of by hand. The numbers come from the usage counters of Claude Code's own session logs on your machine; no text from them is copied, and a run made by another agent says "not measured" with the reason instead of a guess.

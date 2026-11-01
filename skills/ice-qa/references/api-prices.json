@@ -1,6 +1,6 @@
 {
   "source": "https://platform.claude.com/docs/en/about-claude/pricing",
-  "read_on": "2026-10-31",
+  "read_on": "2026-11-01",
   "unit": "USD per million tokens",
   "note": "Claude API list prices, first party, standard tier, global inference. Re-read the source page and update read_on at every release. A model missing here is never guessed: run-usage.mjs leaves it unpriced and names it.",
   "models": {
