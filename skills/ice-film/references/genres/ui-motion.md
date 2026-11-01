@@ -101,6 +101,10 @@ with:
   none; a logo is the brand's mark or its wordmark in the brand's own logotype; a line of plain text set in the film's type (a tagline, a credit, a product name), even centred, is not a logo: code `none` and put the line in `tagline`), `background` (plain-solid, plain-gradient, ui, footage, none), `length_s`, `tagline`.
 - `scenes`: one row per scene a viewer would count (`start`, `end`, `hero`).
 
+## Frame template
+
+The frame template `feature-wish` ("Feature Wish", `ice-remake/references/frame-templates.md`) is a measured film of this genre saved frame for frame: an unofficial feature concept for a famous app, 1166 frames at 4:3 with 7 pointer presses. A request that names it runs `ice-remake` with the template; this playbook's fingerprint is reported for it, and the template's own lock is the gate.
+
 ## Fingerprint
 
 `genre_check.py check --genre ui-motion --video <render> --coding ice/review/genre-coding.json` (the `ice-qa` skill)

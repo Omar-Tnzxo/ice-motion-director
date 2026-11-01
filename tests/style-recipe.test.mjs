@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
-import { abs, findPython, hasCommand, readText } from "./helpers.mjs";
+import { abs, findPython, hasCommand, readJson, readText } from "./helpers.mjs";
 
 const PYTHON = findPython();
 const SCRIPT = abs("skills/ice-remake/scripts/recipe.py");
@@ -663,4 +663,105 @@ test("compare.py: a reference tempo read at twice the bed's counts both sides on
   assert.equal(same.reference, 16.4, "the same tempo on both sides keeps the reference's count");
   assert.equal(same.note, undefined);
   assert.equal(other.reference, 16.4, "a tempo that is no simple multiple is not folded");
+});
+
+// Frame templates (ice-remake templates/<id>/template.json, scripts/template.py, references/frame-templates.md):
+// a film the founder approved, saved frame for frame so a new brand lands on the same frames (lesson L73).
+const TPL = readJson("skills/ice-remake/templates/feature-wish/template.json");
+const TPL_SCRIPT = abs("skills/ice-remake/scripts/template.py");
+
+test("frame template: the Feature Wish lock is complete and consistent", () => {
+  const f = TPL.format;
+  assert.deepEqual([f.width, f.height, f.fps, f.frames], [1080, 810, 30, 1166]);
+  let next = 0;
+  for (const s of TPL.shots) { assert.equal(s.frames[0], next, `${s.id} starts where the last shot ended`); next = s.frames[1] + 1; }
+  assert.equal(next, f.frames, "the shots tile every frame");
+  assert.deepEqual(TPL.cuts.hard_cuts, [135, 197, 240]);
+  for (const c of TPL.cuts.hard_cuts) assert.ok(TPL.shots.some((s) => s.frames[0] === c), `cut f${c} is a shot start`);
+  assert.equal(Object.keys(TPL.camera.tracks).length, 15);
+  for (const [k, t] of Object.entries(TPL.camera.tracks)) {
+    assert.equal(t.m.length, t.b - t.a + 1, `${k} has one matrix per frame`);
+    assert.ok(t.m.every((m) => m.length === 6), `${k} matrices have 6 numbers`);
+    assert.ok(TPL.shots.some((s) => s.camera.tracks.includes(k) && t.a >= s.frames[0] && t.a <= s.frames[1] && t.b < f.frames), `${k} starts in its shot`);
+  }
+  assert.equal(TPL.bars.per_frame_t_b_l_r.length, f.frames);
+  assert.equal(Object.keys(TPL.icon.hero_keys_per_frame).length, 29);
+  const ev = TPL.presses.events;
+  assert.ok(ev.length >= TPL.checks.presses_min && TPL.checks.presses_min >= 7);
+  for (const p of ev) {
+    const s = TPL.shots.find((x) => p.f >= x.frames[0] && p.f <= x.frames[1]);
+    assert.ok(["habit", "loss", "demo", "proof"].includes(s.story_beat), `press f${p.f} sits in an interface beat`);
+  }
+  assert.equal(TPL.colour.brand_moments.length, 4);
+  assert.match(TPL.sound.rule, /never the reference's own bed/);
+  assert.match(TPL.sound.rule, /never code-made audio/);
+  assert.ok(!/\.(wav|mp3|m4a|aac|flac)\b/i.test(JSON.stringify(TPL.sound)), "the sound block names no audio file");
+  assert.match(TPL.voice.rule, /Q-voice/);
+  assert.ok(TPL.assets.media_slots.find((m) => m.id === "A06").targets.centre_saturation[0] >= 165);
+  assert.match(TPL.credit, /@mosycreate/);
+  assert.match(TPL.credit, /no audio, image or word of the reference/);
+  for (const n of ["idea", "story", "style", "video_type"]) assert.ok(TPL.names[n], n);
+});
+
+test("frame template: no em or en dash in the template folder or its reference", () => {
+  for (const f of ["skills/ice-remake/templates/feature-wish/template.json", "skills/ice-remake/templates/feature-wish/engine.js",
+    "skills/ice-remake/references/frame-templates.md", "skills/ice-remake/scripts/template.py"]) assert.ok(!/[\u2013\u2014]/.test(readText(f)), f);
+});
+
+test("frame template: template.py lists, shows and installs the lock into a project", (t) => {
+  if (skip(t)) return;
+  const py = (...a) => spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", TPL_SCRIPT, ...a], { encoding: "utf8" });
+  const l = py("list"); assert.equal(l.status, 0, l.stderr); assert.match(l.stdout, /feature-wish: Feature Wish/);
+  const s = py("show", "feature-wish"); assert.equal(s.status, 0, s.stderr); assert.match(s.stdout, /1166 frames/); assert.match(s.stdout, /hard cuts: f135, f197, f240/);
+  const proj = join(work, "tpl-proj");
+  const i = py("init", "feature-wish", proj); assert.equal(i.status, 0, i.stderr);
+  for (const k of Object.keys(TPL.camera.tracks)) assert.ok(existsSync(join(proj, "film", "measure", `trk_${k}.json`)), k);
+  const trk = JSON.parse(readFileSync(join(proj, "film", "measure", "trk_s01.json"), "utf8"));
+  assert.equal(trk.frames[0].f, trk.a); assert.equal(trk.frames.length, trk.b - trk.a + 1);
+  assert.equal(JSON.parse(readFileSync(join(proj, "film", "measure", "bars2.json"), "utf8")).length, 1166);
+  assert.ok(existsSync(join(proj, "film", "engine.js")));
+  const tl = readFileSync(join(proj, "ice", "reference", "feature-wish", "TIMELINE.md"), "utf8");
+  assert.equal((tl.match(/^\| S\d\d \|/gm) || []).length, 17);
+  assert.ok(existsSync(join(proj, "ice", "plan", "template-lock.json")));
+  assert.equal(JSON.parse(readFileSync(join(proj, "ice", "plan", "presses.json"), "utf8")).filter((p) => p.built === false).length, 7);
+});
+
+test("frame template: check finds each locked cut on its frame and a cut two frames late", (t) => {
+  const py = visionPython();
+  if (!py || !hasCommand("ffmpeg")) { t.skip("needs ffmpeg and a Python with numpy and opencv"); return; }
+  const dir = join(work, "tpl-check"); mkdirSync(dir, { recursive: true });
+  const make = (name, cuts, n) => {
+    // colour segments switching on the given frames, 1080x810 at 30 fps, a tone near -14 LUFS
+    const cols = ["0x202020", "0xE0E0E0", "0x101010", "0xF0F0F0"];
+    const bounds = [0, ...cuts, n];
+    const parts = bounds.slice(0, -1).map((b, k) => ["-f", "lavfi", "-i", `color=c=${cols[k % 4]}:s=1080x810:r=30:d=${(bounds[k + 1] - b) / 30}`]).flat();
+    const k = bounds.length - 1;
+    const r = spawnSync("ffmpeg", ["-v", "error", "-y", ...parts, "-f", "lavfi", "-i", `sine=frequency=440:sample_rate=48000:duration=${n / 30}`,
+      "-filter_complex", `${Array.from({ length: k }, (_, j) => `[${j}:v]`).join("")}concat=n=${k}:v=1:a=0[v];[${k}:a]volume=-3dB[a]`,
+      "-map", "[v]", "-map", "[a]", "-frames:v", String(n), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", join(dir, name)], { encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+  };
+  make("good.mp4", [135, 197, 240], 1166);
+  make("late.mp4", [137, 197, 240], 1166);
+  const check = (name) => spawnSync(py[0], [...py.slice(1), "-I", TPL_SCRIPT, "check", "feature-wish", "--render", join(dir, name)], { encoding: "utf8", timeout: 300000 });
+  const g = check("good.mp4");
+  for (const c of [135, 197, 240]) assert.match(g.stdout, new RegExp(`PASS  cut f${c}`), g.stdout);
+  assert.match(g.stdout, /PASS  frames: 1166/);
+  const l = check("late.mp4");
+  assert.equal(l.status, 1);
+  assert.match(l.stdout, /FAIL  cut f135: .*largest near f137/, l.stdout);
+  assert.match(l.stdout, /PASS  cut f197/);
+});
+
+test("frame template: the router, ice-style, the library and ice-remake name it", () => {
+  const has = (f, list) => { const s = readText(f); for (const x of list) assert.ok(s.includes(x), `${f}: ${x}`); };
+  has("skills/ice-motion-director/references/classify.md", ["## Frame templates", "set template <id>", "frame-templates.md"]);
+  has("skills/ice-style/SKILL.md", ["## 3a. Frame templates", "/ice-style templates"]);
+  has("skills/ice-styles/references/catalog-index.md", ["## Templates", "`feature-wish`", "`interface-ride`"]);
+  has("skills/ice-styles/references/family-screen-tech-3d.md", ["### Interface Ride (`interface-ride`)"]);
+  has("skills/ice-remake/SKILL.md", ["`template` in state", "references/frame-templates.md", "template.py"]);
+  has("skills/ice-direction/references/anti-sameness.md", ["a frame template the user named"]);
+  has("skills/ice-film/references/genres/ui-motion.md", ["## Frame template"]);
+  has("skills/ice-remake/references/frame-templates.md", ["never inside the film", "Never the original film's own bed", "never code-made audio", "Q-voice"]);
+  assert.match(readText("skills/ice-motion-director/scripts/ice-state.mjs"), /STRING_KEYS = \[[^\]]*"template"/);
 });

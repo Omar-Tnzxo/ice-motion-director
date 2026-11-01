@@ -36,6 +36,16 @@ A style recipe is a `STYLE-RECIPE.md` (with its twin `style-recipe.json`) that a
 
 Rights to use the reference behind a recipe are the user's responsibility (`ice-remake/references/rights-and-modes.md` section 1).
 
+## Frame templates
+
+A frame template is a film saved frame for frame inside Ice (`ice-remake/references/frame-templates.md`; the list: `python ice-remake/scripts/template.py list`, or the "Templates" table of `ice-styles/references/catalog-index.md`). Recognise one by its name or id in the user's words (case, spaces and hyphens ignored) or by `/ice-style <template id>`.
+
+| The request | Route | Run |
+|---|---|---|
+| A template named, with or without a brand or idea | `ice-remake` | `set run_mode frame-locked`, `set template <id>`; stage 01 asks the template's open slots (`frame-templates.md` section 1) |
+| A template named plus the user's own footage to cut | `ice-remake` | the same; the footage fills the template's media slots it fits, and the rest of its slots are asked at 01 |
+| A request that only resembles a template's idea, with no template named | route by the deliverable | the template is one option of the `look` question at 01, never a default (AGENTS.md rule 2) |
+
 ## When it is still ambiguous
 
 Ask the routing choice as the `kind` question of the stage 01 questions (`ice-direction/references/questions.md` section 8, Q-kind): 4 options, the recommended route first, one line on what each delivers. Do not ask about routing when either route would deliver what the user described; pick the one that matches the deliverable they named.

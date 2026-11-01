@@ -103,6 +103,7 @@ Read `references/production-crew.md` (section 7) when time-stamped notes arrive 
 
 Stage 10, and the recipe-only route (`run_mode recipe-only`, order `01 10`: no concept, build or render). `scripts/recipe.py` writes a portable recipe (grammar, look, sound, slots, a paste-ready prompt) that rebuilds this style later on new content. A run that receives a recipe follows `references/style-recipe.md` sections 4 and 7.
 
+
 ## Files
 
 | Need | Open | When |
@@ -121,11 +122,12 @@ Stage 10, and the recipe-only route (`run_mode recipe-only`, order `01 10`: no c
 | Frame-by-frame remake with parallel agents | `references/rights-and-modes.md` | Frame-locked mode (its Phase 0 in stage 01, Phases 1 to 3 in stage 07) |
 | Variant sets | `references/shot-mapping.md` | Section 9 (planned at 03, rendered at 10) |
 | Style recipe: export, recipe-only route, receiving one | `references/style-recipe.md` | Section 11 (stage 10, or a recipe arrives) |
+| Frame template (`template` in state): `init` replaces section 3, `check` at 07, 09 | `references/frame-templates.md` | 01 to 09 |
 | Hypit's original docs (reading, transformation, review, timing) | `vendor/hypit/README.md` | Deeper reading; license differs (not for resale) |
 
 ## Scripts
 
-`scripts/frames.py`, `analyze.py`, `clip_strip.py`, `compare.py`, `runtime.py`, `recipe.py`: local files only, no network. Read `references/measuring.md` (section 7) before installing packages or running a script: what each does, what it needs, installs without a question, disk clean-up, the no-install path.
+`scripts/frames.py`, `analyze.py`, `clip_strip.py`, `compare.py`, `runtime.py`, `recipe.py`, `template.py`: local files only, no network. Read `references/measuring.md` (section 7) before installing packages or running a script: what each does, what it needs, installs without a question, disk clean-up, the no-install path.
 
 ## Done means
 

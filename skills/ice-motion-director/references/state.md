@@ -29,6 +29,7 @@ Codex users see commands as `$name`: add `--prefix '$'` so the printed command n
   "route": "film | explainer | remake | edit | lottie | ideas",
   "subtype": "<film type, edit type or deliverable named by the workflow>",
   "run_mode": "<optional: the workflow's own run mode, when it has one>",
+  "template": "<optional: the frame template id a remake is built from>",
   "mode": "auto | step",
   "size": "micro | standard | long",
   "order": ["01", "02", "03", ["04", "05"], "06", ["07", "08a"], "08b", "09", "10"],
@@ -52,6 +53,7 @@ Codex users see commands as `$name`: add `--prefix '$'` so the printed command n
 
 - `subtype` is what the `ice-qa` scripts read as the film type: the film type (`ice-film`), the edit type (`ice-edit`), `explainer` (`ice-explainer`), the type of the new film (`ice-remake`), or the deliverable (`ice-lottie`, `ice-ideas`). It is the same value as the `film_type` slot of `ice/BRIEF.md`. A run mode never goes here.
 - `run_mode` is the workflow's own run mode, when it has one: `fast`, `standard` or `long-form` (`ice-explainer` section 3), or the remake mode (`ice-remake` section 1). Optional on other routes.
+- `template` is the frame template a remake is built from (`ice-remake/references/frame-templates.md`), set at 01 with `set template <id>`. Optional.
 - `crew` and `crew_flags` are the workflow's crew row and its complexity flags (`ice-film` section 7, `ice-explainer` section 8). Optional on routes without a crew table.
 - `questions` is the stage 01 question message and its answers, read by the case study export.
 - The `stages` example shows two entries; the real file always has all ten keys, `"01"` to `"10"`.

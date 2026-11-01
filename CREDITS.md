@@ -58,6 +58,7 @@ These sources have no open license or a proprietary one. Nothing was copied from
 | YouTube tutorial [5Npr0d75050](https://www.youtube.com/watch?v=5Npr0d75050) | Soni Designer (Hossam Abdelrahman) | Standard YouTube licence | Ideas only: typed title frames and drop exits |
 | YouTube tutorial [XjREwYRUEGg](https://www.youtube.com/watch?v=XjREwYRUEGg) | Channel name not recorded | Standard YouTube licence | Ideas only: one-word reels and a broadcast voice EQ |
 | YouTube tutorial [2ePEfR_FBb8](https://www.youtube.com/watch?v=2ePEfR_FBb8) | Victor Grubbe | Standard YouTube licence | Ideas only: clean talking-head reel pacing |
+| An unofficial Instagram "Save Reminders" feature concept | @mosycreate (the handle on the film's own end card; the file's metadata names no maker) | Standard platform licence | Measurements only (frame count, cut frames, camera paths, bars, slot positions and timing, press frames, the loudness profile) behind the frame template Feature Wish (`skills/ice-remake/templates/feature-wish/`); no audio, image or word of the film is in this repository, and its handle appears only as this credit |
 | Six public Al Jazeera reels (Al Jazeera Arabic, Al Jazeera 360, Al Jazeera English) | Al Jazeera Media Network | Standard YouTube licence | Measurements only (colours, type, timings, camera, depth, finishing, sound levels) behind the broadcast news style; no footage, logo, programme mark, text or sound was copied into this repository |
 
 ## 3. Noncommercial folders (PolyForm Noncommercial 1.0.0)

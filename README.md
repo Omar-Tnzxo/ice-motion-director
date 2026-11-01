@@ -369,11 +369,11 @@ You type only the 13 commands at the bottom of this table (`/ice`, `/ice-status`
 | Domain | [`ice-type`](skills/ice-type) | Typography in motion, captions, readability, safe zones |
 | Domain | [`ice-arabic`](skills/ice-arabic) | Arabic and right-to-left |
 | Domain | [`ice-audio`](skills/ice-audio) | Music and SFX from real libraries, picked by ear; voiceover, mixing, loudness, a mix audit and a short list for your ears |
-| Domain | [`ice-styles`](skills/ice-styles) | 156 film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
+| Domain | [`ice-styles`](skills/ice-styles) | 157 film, art, drawing and motion styles, each with the crafts it needs, and a measured broadcast news family |
 | Domain | [`ice-engines`](skills/ice-engines) | Engine choice, determinism, render, export, platform specs |
 | Domain | [`ice-assets`](skills/ice-assets) | Truth sheet, real-first sourcing with each item's license status, brand assets |
 | Domain | [`ice-qa`](skills/ice-qa) | Quality gates (the craft gate: faces, flashes, camera, finishing), critics, delivery report |
-| Command | [`ice-style`](skills/ice-style) | The style library as presets: browse 156 styles or start a film in one |
+| Command | [`ice-style`](skills/ice-style) | The style library as presets: browse 157 styles or start a film in one |
 | Commands | [`ice`](skills/ice), [`ice-status`](skills/ice-status), [`ice-01-brief`](skills/ice-01-brief) to [`ice-10-deliver`](skills/ice-10-deliver) | Step mode: run, resume or check the production spine one stage at a time |
 
 ## Gallery
@@ -457,7 +457,7 @@ Remotion and HyperFrames are render engines, and Ice uses them (plus Three.js, L
 <details>
 <summary><b>Can it make a video in the style of one I like?</b></summary>
 
-Yes, with `ice-remake`: give it a reference video, a saved site or a set of images and it measures the style (pacing, palette, type, motion, sound) and rebuilds it with your content. It can also save that style as a portable recipe (`STYLE-RECIPE.md` and `style-recipe.json`) to reuse later. You choose whether the reference's own footage, music, logo and end card go into your film as they are, or the same style carries your identity, or a mix. Rights are yours: Ice records where every outside item came from and lists what needs a license before you publish.
+Yes, with `ice-remake`: give it a reference video, a saved site or a set of images and it measures the style (pacing, palette, type, motion, sound) and rebuilds it with your content. It can also save that style as a portable recipe (`STYLE-RECIPE.md` and `style-recipe.json`) to reuse later. Frame templates go further: a film saved frame for frame (the first is Feature Wish, "what if <brand> had <feature>?") that you fill with your own brand and idea; list them with `/ice-style templates`. You choose whether the reference's own footage, music, logo and end card go into your film as they are, or the same style carries your identity, or a mix. Rights are yours: Ice records where every outside item came from and lists what needs a license before you publish.
 </details>
 
 <details>

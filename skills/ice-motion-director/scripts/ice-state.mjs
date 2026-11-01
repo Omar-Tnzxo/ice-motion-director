@@ -43,9 +43,9 @@ const ENUMS = {
   commercial_use: ["yes", "no", "unknown"],
   crew: ["lean", "standard", "full"],
 };
-const STRING_KEYS = ["project", "subtype", "run_mode", "current", "step", "language"];
+const STRING_KEYS = ["project", "subtype", "run_mode", "current", "step", "language", "template"];
 const TOP_KEYS = new Set(["project", "route", "subtype", "run_mode", "mode", "size", "order", "current", "step", "stages", "commercial_use",
-  "language", "crew", "crew_flags", "questions", "created", "updated", "history", "approvals"]);
+  "language", "template", "crew", "crew_flags", "questions", "created", "updated", "history", "approvals"]);
 const STAGE_KEYS = new Set(["status", "artifact", "updated", "notes", "minutes", "roles", "parts"]);
 const DEFAULT_ORDER = "01 02 03 [04 05] 06 [07 08a] 08b 09 10";
 const DRAFT_ROUTES = new Set(["film", "explainer", "remake", "edit"]);

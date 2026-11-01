@@ -97,6 +97,7 @@ const NOT_GRADED = {
   L70: "the art film fingerprint runs on a render and its coding sheet at gate D (genre_check.py), after the cases stop",
   L71: "the industry spot fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L72: "production time, tokens and API cost are measured by run-usage.mjs at the stage 10 export, after the cases stop",
+  L73: "a frame template is installed and checked by template.py on a project and a render (stages 01, 07 and 09), after the cases stop",
 };
 const GRADERS = [
   {

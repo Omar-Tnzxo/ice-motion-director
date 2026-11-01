@@ -106,6 +106,7 @@ Every style in this skill, by family file, with a one-line look and its best use
 |---|---|---|---|---|
 | Dark Tech Keynote | `dark-keynote` | A keynote-grade launch film for software where the interface is the star | software, SaaS, developer tools, apps, AI features, platform... | L |
 | Living Screencast | `living-screencast` | A product walkthrough | real software walkthroughs, feature tours, onboarding videos, release... | L |
+| Interface Ride | `interface-ride` | One continuous measured camera riding a brand's own light interface floating in black space, with word-by-word captions and hand notes | unofficial feature concepts, app feature stories, "what if" social films for a famous app | T |
 | Sci-fi Hologram HUD | `hologram-hud` | A scene style for any object with parts | spec walkthroughs | L |
 | Cyberpunk HUD / FUI (Fictional UI) | `22-hud` | Sci-fi heads-up display packaging | tech reviews, game edits, aerospace or defense explainers, AI and... | M |
 | ASCII / CRT Terminal | `ascii-crt` | One monochrome terminal screen where everything | logs, launch days, rescues and migrations told as timestamps, chat or... | L |
@@ -217,6 +218,14 @@ Sub-brand patterns (question card, topic wheel, documentary title frame, flat id
 | Feature 3D animation family: shape, material, performance | `53_feature_3d_animation` | Inspired by Pixar feature films | object-led product stories with causal acting, family entertainment... | H (research) |
 | Dunhuang mural, Northern Dynasties | `55_dunhuang` | dry, old, cracked mineral colour on mud plaster | Silk Road and Buddhist heritage, Jataka-style storytelling... | H (research) |
 
-Total entries: 156.
+Total entries: 157.
 
-Sources: lemomo-ai/lemo-opuscar (MIT), Vincentwei1021/mg-styles-15 (MIT), alexgreensh/anidoodle (Apache-2.0), alchaincyf/huashu-art-motion (MIT); a measurement study of published broadcast reels and editors' tutorials (numbers and ideas only, no material copied).
+Sources: lemomo-ai/lemo-opuscar (MIT), Vincentwei1021/mg-styles-15 (MIT), alexgreensh/anidoodle (Apache-2.0), alchaincyf/huashu-art-motion (MIT); a measurement study of published broadcast reels and editors' tutorials (numbers and ideas only, no material copied); T = measured from a frame template's proof film (`ice-remake/references/frame-templates.md`).
+
+## Templates
+
+Whole films saved frame for frame (`ice-remake/references/frame-templates.md`): the idea, story, style, camera paths, cuts, presses and sound timing stay; the user's brand, idea, words, media and licensed sound go into the slots. Start one with `/ice-style <id> <your brand and idea>` or by naming it in any request.
+
+| Template | id | Idea | Story | Style | Genre | Length and aspect |
+|---|---|---|---|---|---|---|
+| Feature Wish | `feature-wish` | What if <Brand> had <Feature>? | The Wish Demo: habit, loss, wish, demo, proof, warm turn, sign-off | Interface Ride (`interface-ride`) | `ui-motion` | 38.9 s (1166 frames at 30 fps), 4:3, 1080 x 810 |

@@ -1,7 +1,7 @@
 ---
 name: ice-style
 description: >-
-  Command: browses the 156 Ice Motion Director motion styles, or starts a film in one. Use it only when
+  Command: browses the 157 Ice Motion Director motion styles, or starts a film in one. Use it only when
   the user types /ice-style or $ice-style.
 license: Apache-2.0
 metadata:
@@ -20,6 +20,7 @@ Take the text the user typed after the command (in Claude Code it is also given 
 |---|---|
 | Empty, or "list", "all", "library" | Browse the families (section 2) |
 | A family name or part of one (for example "paper", "data", "cartoon", "art history") | List that family (section 2) |
+| "templates", or a frame template's name or id, with or without a brief after it | List the templates, or run one (section 3a) |
 | A style name, alias or id, with or without a brief after it | Run the style (section 3) |
 | A description of a look ("hand-drawn and warm", "retro game") | Suggest the 3 closest styles from the library and ask which one |
 
@@ -27,7 +28,7 @@ Take the text the user typed after the command (in Claude Code it is also given 
 
 Open the `ice-styles` skill's `references/catalog-index.md`. It holds every style with its id, a one-line look and its best use, grouped by family.
 
-- **Browse the families:** show one short table: family, number of styles, three example style names, what the family is good for (take it from the family's styles). End with two lines: `/ice-style <family>` to see a family, `/ice-style <style> <what your film is about>` to start a film.
+- **Browse the families:** show one short table: family, number of styles, three example style names, what the family is good for (take it from the family's styles). Add one last row, "Templates": the number of frame templates and their names (the "Templates" table of the index). End with three lines: `/ice-style <family>` to see a family, `/ice-style <style> <what your film is about>` to start a film, `/ice-style templates` to see the films saved frame for frame.
 - **List a family:** show that family's table as it is in the index (style, id, looks like, best for). End with the same run line.
 - Keep it scannable: no extra commentary, plain words, no internal file names in the message.
 
@@ -42,6 +43,12 @@ Open the `ice-styles` skill's `references/catalog-index.md`. It holds every styl
    - The style is user-supplied and locked for stage 05 (look). Record it in `ice/BRIEF.md` with `source: user (ice-style preset <id>)`.
    - Everything else (concept, palette within the style, structure, sound) is still decided by the normal process, so the film is not a copy of the style's demo (the anti-sameness rules of `ice-direction` still apply to every axis except the style itself).
    - If the style needs real material (the evidence and data family does), the brief must say where it comes from; when it does not, that question goes into the router's stage 01 question rounds, never a separate stop.
+
+## 3a. Frame templates
+
+A frame template is a whole film saved frame for frame (`ice-remake` skill, `references/frame-templates.md`): its idea, story, style, camera, cuts, presses and sound timing stay, and the user's brand and idea go into its slots.
+- **List:** show the "Templates" table of `catalog-index.md` (template, idea, story, style, length and aspect), then `/ice-style <template> <your brand and idea>`.
+- **Run:** show a short card (what the film is, its story beats, what stays fixed, what the user brings: the brand, the idea or let Ice find it, a voice or none, a music license), then open the `ice-motion-director` skill and follow it from its first section with the template named in the request; the router routes it (`references/classify.md`, "Frame templates").
 
 ## 4. Rules
 

@@ -84,6 +84,7 @@ On failure: the director changes the axes that match, starting with structure an
 The anti-sameness rules guard Ice's own choices, never the user's. When the user chose the look themselves, the film follows that choice and these rules step aside for the axes it fixes. A user's choice is any of:
 - a reference the user supplied or named for its look;
 - a style the user picked by name (a catalog card, a family, a named look);
+- a frame template the user named (`ice-remake/references/frame-templates.md`): its style, structure, motion language and sound timing are fixed by the choice;
 - the brand identity the user's own brand already has (its palette, type, marks, house motion);
 - a series look: an earlier film of the same series, channel or programme with the same identity (an episode format, a recurring package).
 
