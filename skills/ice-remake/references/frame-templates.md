@@ -35,6 +35,10 @@ Templates live in `../templates/<id>/` (`template.json`, the lock; `engine.js`, 
 
 `voice.line_slots` gives every narrator line its frames and word range. Stage 01 asks `Q-voice` with the template's own options: the user records the lines (recommended when the template's turn depends on tone, lesson L63), a licensed voice the user starts (`ice-assets/references/ai-media-policy.md`), or no narrator, with every line then carried on screen and clarity read 1 asking the turn's tone.
 
+- **Processing per slot:** each slot's `fx` says what to do to the user's recording (dry and centred, a wide stereo reverb from a given frame, a band filter) with the original's measures (stereo width as side minus mid, reverb tail, band, centroid) and a `verify` line to measure on the processed take. A slot marked `needs a listen` offers the user both versions. Processing a real recording is allowed; a voice is never generated.
+- **Recording guide:** `voice.recording_guide` goes to the user in the stage 01 message when they choose to record: a quiet soft room, the phone a hand's width from the mouth, three takes per line, each line timed to its slot.
+- **Alignment:** `voice.alignment`: word timings for every take, the take closest to the slot, its first word on the slot's first frame, a time-stretch of at most 8 percent, then the slot's fx and its verify line. The picture never moves to the voice.
+
 ## 5. Media and interface
 
 - The brand's interface is rebuilt from its official sources at 90 percent fidelity or better (AGENTS.md rule 8); official icons untouched.

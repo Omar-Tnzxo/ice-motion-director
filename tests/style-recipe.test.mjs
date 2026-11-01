@@ -765,3 +765,16 @@ test("frame template: the router, ice-style, the library and ice-remake name it"
   has("skills/ice-remake/references/frame-templates.md", ["never inside the film", "Never the original film's own bed", "never code-made audio", "Q-voice"]);
   assert.match(readText("skills/ice-motion-director/scripts/ice-state.mjs"), /STRING_KEYS = \[[^\]]*"template"/);
 });
+
+test("frame template: every narrator slot carries measured processing, a verify line, the recording guide and alignment", () => {
+  for (const s of TPL.voice.line_slots) {
+    assert.ok(s.fx && s.fx.processing && s.fx.verify, `slot ${s.frames} has fx and verify`);
+    assert.ok(typeof s.measured.side_minus_mid_db === "number", `slot ${s.frames} is measured`);
+  }
+  assert.match(TPL.voice.line_slots[5].fx.processing, /stereo reverb/);
+  assert.equal(TPL.voice.line_slots[5].fx.from_frame, 512);
+  assert.equal(TPL.voice.line_slots[6].fx.status, "needs a listen");
+  assert.match(TPL.voice.fx_rule, /no voice is ever generated/);
+  assert.ok(TPL.voice.recording_guide.length >= 4 && TPL.voice.alignment.length >= 4);
+  assert.match(readText("skills/ice-remake/references/frame-templates.md"), /a voice is never generated/);
+});
