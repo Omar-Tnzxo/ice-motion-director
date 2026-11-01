@@ -2,6 +2,22 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.20 - 2026-11-01
+
+A film can now have a complete, professional narrator: your own recording, or a voice the agent generates with your own voice provider (ElevenLabs and others), directed line by line with emotion, taken more than once, fitted to each shot and recorded at its source. Music and sound effects stay real recordings only.
+
+### Added
+
+- **Voice stage (L76).** `ice-audio/references/voice-director.md`: the two routes (your recording, your voice provider), the 2026 providers and models (ElevenLabs `eleven_v4` by default, Gemini 3.8 Flash TTS second, Azure as a steady fallback; Hume, PlayHT and OpenAI speech models never, as they are ending), access on any agent without touching credentials (a connected MCP, a key already in your environment, or your own sign-in in the agent's browser), the voice lines file, direction and audio tags, takes and selection, the recording guide, performance transfer from a guide read, fit to the frame slot, the source record and per-line processing with a reason.
+- **`ice-audio/scripts/voice_fit.py`.** Provider timings to words (ElevenLabs character timings, forced alignment, whisper-style transcripts); every chosen take measured against its slot (ok, stretch 0.92 to 1.08 with pitch-kept tempo, a one-line exception to 0.85 or 1.10, otherwise rewrite the line, never more speed); a provider take without its record or an Arabic spoken side with digits fails; manifest rows the audio source gate accepts.
+- **Arabic voice rules.** `ice-arabic/references/voice-arabic.md` and `scripts/spoken_numbers.py`: numbers and dates as words in the film's variety (Egyptian "مية ألف", MSA "مئة ألف"), Egyptian thousands dots read correctly, tashkeel full for MSA and on ambiguous words and loanwords for dialects, brand names, failure modes, and the founder's Egyptian default voice picked by ear from five test clips.
+
+### Changed
+
+- `Q-voice` offers your recording or your voice provider (naming the route, the default voice and the cost), no voice, or music only; a waived or skipped question never generates a voice.
+- Stage 03 writes the voice lines file for a narrated film and checks Arabic numbers; stage 08 takes, fits and records the voice before the audio gate.
+- The Feature Wish template accepts a provider voice on its narrator slots, with the same per-slot processing and verify lines.
+
 ## 0.2.19 - 2026-11-01
 
 Two hard bans from the founder. Ice never makes music or sound effects by code or by AI, on any machine and not even on request: real recordings and licensed library tracks only, with a gate that fails delivery when a sound has no real source. And a film's imagery is no longer drawn as SVG or canvas code and slid around like pictures: it comes from real files, photos, footage, designer Lottie, AI imagery by parts or lit 3D, and moves by its parts, light and camera, with a render check that measures it.
