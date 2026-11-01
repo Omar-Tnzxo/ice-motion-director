@@ -61,7 +61,7 @@ Minimums the edit plan and the render must meet; the measures, the reference rul
 B-roll shots move (real motion or a slow push-in); speaker shots hold a locked zoom per segment. News reel (edit type `news-reel`, style family `family-broadcast-news.md`): the continuous digital camera of `ice-motion/references/camera.md`, "Digital camera on one take (news reel)", replaces the locked zoom.
 
 ## Sound policy
-Music bed under the voice, ducked, chosen from the ice-audio skill's ladder (sound made by code only when the user names it); first 1 to 2 s often quieter with the beat landing on the second line; SFX selection, banned sounds and density: the `ice-audio` skill, `references/sfx.md` sections 1 and 4; levels and loudness: the `ice-audio` skill, `references/mix-and-master.md` section 5. Never fade the last spoken word.
+Music bed under the voice, ducked, chosen from the ice-audio skill's ladder (never made by code); first 1 to 2 s often quieter with the beat landing on the second line; SFX selection, banned sounds and density: the `ice-audio` skill, `references/sfx.md` sections 1 and 4; levels and loudness: the `ice-audio` skill, `references/mix-and-master.md` section 5. Never fade the last spoken word.
 
 ## Text density
 Captions carry the words; graphics show the example, relation or evidence. Every overlay, keyword, lower third, mark and insert sits on the word or sentence that triggers it, with its reason (`broll-and-motion-broll.md` section 1). Speaker look and marks: the speaker stays lit and unmarked; dimming, silhouettes, rings and target marks go only on the people talked about (`layers-and-isolation.md` section 5). Safe zones and working regions: `vertical-conversion.md` section 4.

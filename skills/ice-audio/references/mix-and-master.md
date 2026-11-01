@@ -75,6 +75,17 @@ A full-band sidechain duck for export only: `sidechaincompress=threshold=0.03:ra
 1. The music sits under the speech: the bed level and ducking of this section (10 to 14 dB under the voice while it speaks, duck 8 to 12 dB, carve preferred), measured by `scripts/qc.py --audit` (check A3, voice over bed from the stems, section 7).
 2. No repeated pulse: no music bed or SFX layer whose energy repeats as a steady throb the ear tires of. No script in this repo measures listening fatigue, so it is a named item of the human listening check (section 8); `qc.py --audit` only points the item at the stretch where one pattern repeats with the least change (check A17, section 7). What to listen for: one low thump, kick, hit or drone that repeats unchanged for more than about 8 bars or 15 s with nothing in the arrangement moving; a bed that swells and drops on every beat (pumping from a fast duck release or a sidechain on the music bus); the same effect firing at a regular interval (sfx.md section 4 already caps repeats); a loop seam heard on every pass. A steady groove is not this fault when chords, melody or layers move over it (music-choice-and-licensing.md section 3 item 5 asks for one). The fix is a different track or section, a gentler release (section 3 timing), or fewer effects, never a lower master.
 
+**Score guards (any track in the bed, real or licensed).** Run on the trimmed track and on the final mix; a guard is trusted only if every loved reference piece passes it and every disliked one fails it.
+
+| Guard | Fails when |
+|---|---|
+| Masking | Under a voice the track's 1 to 4 kHz band is not thinned (carve above) and a key word is covered. |
+| Sub energy | The sub band (under 100 Hz) is more than 3 dB over the reference or the film type's usual balance; check the band, not only LUFS (a whole-track LUFS once hid a sub 7 to 10 dB too hot). |
+| Harsh band | The 2 to 5 kHz band stands more than 3 dB over a commercial balance of about -5 dB per octave from 100 Hz to 4 kHz. |
+| Repeated pulse | The comfortable-mix item 2 above: one pattern repeats unchanged with nothing moving. |
+| Arc | No loudest moment at least 2 LU over the usual level; a loud moment in the last fifth; a loop seam step over 3 LU. |
+| Dead air | The edit is shorter than the film, or more than 1.2 s sits under -45 dBFS without a declared silence (section 4). |
+
 ## 4. Silence, room tone, edges
 
 - Never digital silence inside a film: room tone or ambience about 22 dB under the cues, nearly mono. Sound by 0.5 s; no hole over 0.25 s unless declared in the cue sheet's `quiet` list; at least two real, designed silences in narrative films, before the turn or the peak.
@@ -147,7 +158,6 @@ ffmpeg -hide_banner -i film_premaster.mp4 -c:v copy -af "loudnorm=I=-14:TP=-1.5:
 - Traps: AAC encoding adds about 0.5 to 1.4 dB of true peak over the PCM it was given (measured on pilot films at 192 kbps), so a limiter set exactly at the target misses it on the exported file; `linear=true` does not back off new transients (one master peaked at +1.1 dBFS); `alimiter` adds makeup gain unless `level=disabled` (one master landed at -13.0 LUFS and 0.0 dBFS); quote the whole `-af` chain; loudnorm is unreliable on clips under 3 s (measure the whole film, not short scenes).
 - If a master stalls at -15 or -16: a light compressor (about -20 dB threshold, 3:1) before normalization, or a chain of gain, compressor, ceiling, second compressor, gain and final ceiling (one HyperFrames chain reached -13.8 LUFS and -1.3 dBTP where a single compressor plus limiter stopped near -20).
 - Quieter after an edit: find the spike with a 4x oversampled peak scan and dip that hit about 4 dB for about 60 ms instead of lowering the whole master.
-- Opt-in code scores (`ice-audio/SKILL.md` core rule 7): mgaudio exports already mastered (`m.export(lufs=..., tp=...)`); the final film mix (voice plus score plus SFX) is still measured and normalized once.
 - Keep the user's own studio edits and levels; re-place audio on new frame times. Export music-only and voice-only stems with every delivery; keep previous versions.
 
 **News reel build chain (recorded SFX only).** The sound of a news reel (section 5, row "News reel, speech-led") built with ffmpeg when `master_audio.py` cannot express it (no duck, section moves of the bed, one input per event). Values are the measured starting points; slots in `<...>` come from the plan. Every effect is a recorded library sound from the SFX ladder (`ice-audio/SKILL.md` section 5), never a sound made by code unless the user asked for it in their own words (core rule 7).
@@ -192,7 +202,7 @@ The agent cannot hear. It never says a mix "sounds good".
 ```
 Audio report
 - Mode and clock: <voice-led | music-led | hybrid | free>
-- Music: <source, track or recipe, BPM, key/mode>, license: <name, checked YYYY-MM-DD | NOT CONFIRMED>, use case: <slot>
+- Music: <source, track, BPM, key/mode>, license: <name, checked YYYY-MM-DD | NOT CONFIRMED>, use case: <slot>
 - Voice: <recording | TTS provider and voice, disclosed>
 - Beat grid: phase shift <ms>, cut-to-beat errors <list ms>, share of cuts on onsets <pct>
 - SFX: <count> events, <kinds> kinds, sources and licenses in `ice/assets/CREDITS.md`

@@ -89,6 +89,8 @@ Rows are listed in the order they run; the stages this route does not use come l
 
 Read `references/workflow-and-checks.md` (section Defaults that always apply) at every used stage: premium subtraction, focal subject, purpose gate, easing, stagger, Final Frame Contract, background policy, loops, reduced motion, direction, literal keyframe easing, no sameness.
 
+Imagery is supplied, designer-made, or vectorized from AI or licensed art by parts; a Lottie that only moves whole layers fails the motion bar (`ice-motion` `references/picture-methods.md` items 3 and 5).
+
 ## 4. Conflicts scoped (both rules hold, each in its scope)
 
 Read `references/workflow-and-checks.md` (section Conflicts scoped) when setting timing, overshoot, frame rate, the verification renderer, a default palette, raster tracing or chaptering (Required at 05 and 07).

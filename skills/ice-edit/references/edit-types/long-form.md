@@ -59,7 +59,7 @@ Minimums the edit plan and the render must meet; the measures, the reference rul
 Talking-head shots: static locked zoom per segment (calm cycle in `house-style-numbers.md`). Graphics-led holds: follow the ice-motion skill; vary move duration with distance travelled.
 
 ## Sound policy
-Room-tone air, never digital silence. A quiet music bed under speech when used, chosen from the ice-audio skill's ladder (real library music; music made by code only when the user names it), levels in the same skill. Sound effects follow visible actions only.
+Room-tone air, never digital silence. A quiet music bed under speech when used, chosen from the ice-audio skill's ladder (real library music, never made by code), levels in the same skill. Sound effects follow visible actions only.
 
 ## Text density
 Glance comprehension: a card reads in under one second. No repetition of the whole voiceover, no long sentences, few highlighted words.

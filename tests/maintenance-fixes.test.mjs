@@ -74,12 +74,14 @@ test("openers-and-endings.md renders the opening studies at 07, not 03", () => {
 
 // ---------------------------------------------------------------- 2b. SIGILL fix and the step mode clarity card
 test("pedalboard is past the AVX-512 wheels and the local gate imports every pin in its own process", () => {
-  const v = JSON.parse(readText("skills/ice-engines/references/versions.json")).pip.pedalboard.version.split(".").map(Number);
+  // pedalboard left the pins in 0.2.19 with the music-by-code toolkit; if it comes back, it must be past 0.9.25.
+  const pb = JSON.parse(readText("skills/ice-engines/references/versions.json")).pip.pedalboard;
+  const v = (pb?.version ?? "0.9.26").split(".").map(Number);
   assert.ok(v[0] > 0 || v[1] > 9 || v[2] >= 26, "pedalboard 0.9.25 Linux wheels die with SIGILL without AVX-512");
   const gates = readText("scripts/gates.mjs");
   const list = gates.match(/const PYTHON_IMPORTS = \[([^\]]+)\]/);
   assert.ok(list, "scripts/gates.mjs lists the Python import names");
-  for (const m of ["numpy", "pedalboard", "librosa", "cv2", "PIL"]) assert.match(list[1], new RegExp(`"${m}"`), `${m} is imported by the gate`);
+  for (const m of ["numpy", "librosa", "cv2", "PIL"]) assert.match(list[1], new RegExp(`"${m}"`), `${m} is imported by the gate`);
   assert.match(gates, /PYTHON_IMPORTS\.filter\(\(m\) => quiet\(vpy, \["-c", `import \$\{m\}`\]\)/, "each package imports in its own process");
 });
 

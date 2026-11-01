@@ -18,5 +18,6 @@ This is a command. It runs stage 08 (sound) of the production spine and nothing 
 2. Open the [`ice-motion-director`](../ice-motion-director/SKILL.md) skill's [`references/step-mode.md`](../ice-motion-director/references/step-mode.md) and run its dispatcher (section 2) for stage 08.
 3. The dispatcher starts with the state check, run from the user's project folder: `node <ice-motion-director folder>/scripts/ice-state.mjs check 08` ([the script](../ice-motion-director/scripts/ice-state.mjs)). It names the part to run (`08a` or `08b`). Exit 1: say the printed sentence to the user and stop, changing nothing. Exit 3: say this film does not need the stage and name the next command it printed.
 4. Otherwise follow the dispatcher exactly for that part: it runs it from the active workflow's `## Spine stages` row and ends with the review card.
-5. Stop after the review card. Do not start another stage in this turn unless the user approves and asks to go on.
-6. Talk to the user in plain words and in their language.
+5. In part 08b, on the draft mix and before the review card: `node <ice-assets folder>/scripts/validate-assets.mjs --project . --audio-only` ([the script](../ice-assets/scripts/validate-assets.mjs)). Exit 1 blocks: every sound needs a real source on record and no project code may make sound (the `ice-audio` skill, core rule 7); fix the mix, never the record.
+6. Stop after the review card. Do not start another stage in this turn unless the user approves and asks to go on.
+7. Talk to the user in plain words and in their language.

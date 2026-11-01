@@ -881,8 +881,8 @@ def audit_dc(np, tracks: dict) -> dict:
         worst = max(abs(m) for m in means)
         if worst > DC_LIMIT:
             findings.append(f"{name}: DC offset {worst:.4f} (limit {DC_LIMIT})")
-    return _check("DC offset", out, {"abs_mean_max": DC_LIMIT}, "absolute mean over 0.001 fails (the opt-in mgaudio qc warns "
-                  "at 0.002); a high-pass at the input removes it", not findings, True, findings)
+    return _check("DC offset", out, {"abs_mean_max": DC_LIMIT}, "absolute mean over 0.001 fails "
+                  "(a high-pass at the input removes it)", not findings, True, findings)
 
 
 def audit_stereo(np, x, render: Path, loud: dict | None) -> tuple[dict, list]:

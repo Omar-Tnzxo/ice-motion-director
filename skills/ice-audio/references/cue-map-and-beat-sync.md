@@ -19,7 +19,7 @@ Write it before animating. The picture locks to it, the score and SFX read it, c
 
 Required fields:
 - `fps`, `duration`, `mode` (voice-led, music-led, hybrid, free).
-- `music`: source (file path or generator recipe), license status, `bpm`, `beats_per_bar`, `first_downbeat` (seconds in the film), `offset_in_track` (seconds), `drop`, `outro`, sections.
+- `music`: source (file path of a real or licensed track), license status, `bpm`, `beats_per_bar`, `first_downbeat` (seconds in the film), `offset_in_track` (seconds), `drop`, `outro`, sections.
 - `voice`: one entry per line with text, file, start, end and word timings (from voiceover.md).
 - `events`: one row per moment with `t` (film seconds, from the picture's own export when the engine can export it), `frame` = round(t x fps), `kind`, `what` (the visible cause), `word` (the word it lands on, voice-led films), `sound` (SFX name or none and why), `gain`, `pan` (screen x mapped to about +/-0.6), `phase` (anticipation, travel, contact, recovery).
 - Declared silences (`quiet`: start, end, reason).
@@ -40,7 +40,7 @@ Put a short beat sheet as a comment at the top of the composition script too: on
 Illustration only (adapt paths; verify with the plot):
 
 ```python
-# beat grid with kick-band phase correction (librosa and scipy, pinned in scripts/requirements.txt)
+# beat grid with kick-band phase correction (librosa as pinned in the ice-remake skill's scripts/requirements.txt; scipy)
 import sys, numpy as np, librosa, scipy.signal as ss
 y, sr = librosa.load(sys.argv[1], sr=22050, mono=True)
 tempo, beats = librosa.beat.beat_track(y=y, sr=sr, units='time')
@@ -56,7 +56,7 @@ print({'bpm': float(np.atleast_1d(tempo)[0]), 'first_beat': float(beats[0] + shi
 
 - Beat length = 60 / BPM seconds; a bar = beats_per_bar x 60 / BPM; at 30 fps a beat is 1800 / BPM frames.
 - Prefer a tempo whose beat is whole frames: at 30 fps 90 BPM = 20 f, 100 = 18 f, 120 = 15 f, 150 = 12 f, 180 = 10 f; at 24 fps 120 BPM = 12 f, 180 = 8 f. At 120 BPM, cuts fall on x.0 and x.5 s; a sixteenth is 125 ms.
-- When the picture comes first: make each segment an integer number of beats or eighths and tweak the tempo per segment (one film used 86 to 104 BPM) so every boundary hits a downbeat; listeners do not notice tempo differences of about +/-8 % but do notice instrument changes off the downbeat. With opt-in music made by code, `sync.fit_bpm` picks the tempo whose 8th-note grid best fits the hits.
+- When the picture comes first: make each segment an integer number of beats or eighths and tweak the tempo per segment (one film used 86 to 104 BPM) so every boundary hits a downbeat; listeners do not notice tempo differences of about +/-8 % but do notice instrument changes off the downbeat.
 - Montage shot lengths are integer frame counts so nothing drifts.
 
 ## 5. Sync tolerances and lead times
@@ -104,7 +104,7 @@ The flashes per 1 s window are counted on the render by `craft_gate.py build` (t
 4. For a drop on the product's big moment with a fixed song start: start = drop_in_song minus drop_in_film, starting about 3 ms before a bar's kick onset. If both the drop and the ending must land, prefer moving picture; otherwise use one bar-line splice (music-choice-and-licensing.md section 4).
 5. If you cannot retime the animation, move where the music starts: search offsets and pick the one with the smallest cut-to-beat error. Report the error per cut in ms.
 6. The final chord or tail rings to the last frame; the last voice line ends before the end card's final second.
-7. With a library track, back-time it so its own ending lands on the end card (music-choice-and-licensing.md section 4; `scripts/preview_options.py --align end` lays the options that way). Only with an opt-in code score (`ice-audio/SKILL.md` core rule 7), pass `outro` (the end-card time) to the recipe so the button lands there.
+7. With a library track, back-time it so its own ending lands on the end card (music-choice-and-licensing.md section 4; `scripts/preview_options.py --align end` lays the options that way).
 
 ## 8. Audio-reactive picture
 

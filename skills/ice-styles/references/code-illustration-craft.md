@@ -2,7 +2,7 @@
 
 Read this before any object, character, vehicle, machine, building or scene is drawn in code (SVG, HTML and CSS, Canvas, Three.js). It is the floor under every catalog style that draws in code. Founder decision, 2026-10-22: code-drawn art in early runs was primitive (flat single-colour geometric objects with no shading, texture or detail), and nothing raised the art itself. A style entry decides HOW each rule below is rendered (flat shapes, hatching, palette ramps, paint); it never removes the rule.
 
-Before drawing anything in code, check the ladder of art sources (the ice-assets skill, `references/sourcing-and-licenses.md` section 1b): hand-coded art is the last rung, used only when the higher rungs do not fit, and then held to every rule here.
+Before drawing anything in code, check the ladder of art sources (the ice-assets skill, `references/sourcing-and-licenses.md` section 1b): hand-coded art is the last rung, used only when the higher rungs do not fit and the craft plan's `imagery` entry states the reason (`ice-motion/references/picture-methods.md` item 6), and then held to every rule here.
 
 ## Contents
 
@@ -12,6 +12,7 @@ Before drawing anything in code, check the ladder of art sources (the ice-assets
 4. Line
 5. Depth
 6. Animation-ready structure
+6b. Motion bar
 7. Production method
 8. How each rule reads per style family
 9. The art check (gate)
@@ -61,6 +62,15 @@ Before drawing anything in code, check the ladder of art sources (the ice-assets
 - **Separate layers for parts that move.** Parts that move, light or deform independently are drawn as separate shapes, never merged into the body's path. Shadow and highlight shapes live inside the part they belong to, so they move with it; the cast shadow lives on the ground layer and is moved by the same driver as the object.
 - **Mark the hero for the gate:** `data-art-hero="<role name>"` on each hero object's group (section 9).
 
+## 6b. Motion bar
+
+Structure is not motion: a drawing with named parts can still slide across the frame as one picture, the look `ice-motion/references/picture-methods.md` item 1 bans. Every moving hero clears the motion bar of that file (item 5) by its parts:
+
+- **Parts move against their group.** While the group travels, its parts change relative to it: secondary motion (a tail, a strap, hair or a cable lags the driver and settles after it), overlap (parts start and stop at different frames, never all on one key), follow-through (loose parts carry on past the stop and come back).
+- **Shape change.** Squash and stretch where the material allows, path morphs, mask growth, pose swaps on the beat; a turn changes the drawing (a new view or a swapped part), never a flat mirror of the same shape.
+- **Light and camera.** Highlights and shadows travel with the part they belong to; the cast shadow changes with height; a camera move gives parallax between planes and directional motion blur from its speed.
+- **The gate.** A hero (`data-art-hero`) whose group moves while none of its named parts moves relative to it fails the art check's `parts` measure ("moves as one picture"), at 05 on the style frames and at 07 on the build (section 9).
+
 ## 7. Production method
 
 1. **Build hero objects as reusable components** (a function, a symbol, a component) with parameters for the things shots change (pose, state, colour variant, lighting side). One source per object: a fix lands everywhere.
@@ -87,7 +97,7 @@ A style that declares no texture or no cast shadow writes the reason in the styl
 
 ## 9. The art check (gate)
 
-`node <ice-qa>/scripts/art-check.mjs <page.html | drawing.svg>` (the ice-qa skill; rule and thresholds in its `references/pre-render-lint.md` section 4b). It runs at 05 on the style frames (the earliest stage) and again at 07 on the build. Per hero object it measures distinct fill tones (fewer than 3 fails), shading, the shape count, a texture or grain layer and a shadow. A pass is a floor, not taste: the studio benchmark at 05 (the ice-qa skill, `references/studio-benchmark.md`) judges the craft against real studio work, and the art check numbers feed its character design, lighting and texture axes.
+`node <ice-qa>/scripts/art-check.mjs <page.html | drawing.svg>` (the ice-qa skill; rule and thresholds in its `references/pre-render-lint.md` section 4b). It runs at 05 on the style frames (the earliest stage) and again at 07 on the build. Per hero object it measures distinct fill tones (fewer than 3 fails), shading, the shape count, a texture or grain layer, a shadow and, between the given times, whether the named parts move against their group (`parts`, section 6b). A pass is a floor, not taste: the studio benchmark at 05 (the ice-qa skill, `references/studio-benchmark.md`) judges the craft against real studio work, and the art check numbers feed its character design, lighting and texture axes.
 
 ## 10. Writing these rules into a film
 

@@ -42,7 +42,7 @@ const NEVER_WORDS = new Set(['truth', 'claim', 'claims', 'rights', 'license', 'l
   'likeness', 'accessibility', 'a11y', 'contrast', 'wcag', 'photosensitive', 'photosensitivity', 'strobe', 'arabic', 'shaping',
   'bidi', 'legibility', 'legible', 'l5']);
 const NEVER_PAIRS = new Set(['flash safe', 'safe mode', 'required label', 'required labels', 'real people', 'speaker lit']);
-const NEVER_IDS = new Set(['story:9', 'story:18', 'story:20', 'frame:p1']);
+const NEVER_IDS = new Set(['story:9', 'story:18', 'story:20', 'frame:p1', 'film:moving_pictures']);
 const SOURCE_KINDS = new Set(['user', 'reference', 'style', 'content']);   // a row without a source of these kinds is ignored
 // Source kinds allowed per rule id (the table of treatment.md 11.7), the same map as RULE_KINDS in storyboard_lint.py.
 // Lookup: the exact id, else the longest pattern ending in "*" whose prefix matches, else "*". A row written at stage 07

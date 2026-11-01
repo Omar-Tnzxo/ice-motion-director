@@ -180,7 +180,7 @@ Ask when: `real_brand` is not `none` and the user's words do not say whether the
 Ask when: `real_brand` is not `none` and the brand material plan (step 5) lists files to download. The download list goes in option 1's description in plain words: each file, what it shows, where it appears in the video, its size in KB or MB, and the brand's own site it comes from.
 1. (Recommended) Download only the listed files from the brand's own official site, each recorded with its address, size and hash (`brand-authenticity.md` section 10 step 6).
 2. You send the brand kit or the files yourself.
-3. Only the official logo; everything else is drawn by code from the brand sheet.
+3. Only the official logo; everything else from real photos, footage or lit 3D in the brand's palette.
 4. No downloads: the name is set as text and only live screen captures are used.
 
 ### Q-platform: where it will play
@@ -235,7 +235,7 @@ When a supplied reference is voice-led (its sound map shows a voice over most of
 Never generate a voice and never route to a voice-led workflow without answer 2 or 3.
 
 ### Q-music: the music
-Ask when: a music-led film (hype promo, music video, kinetic type cut to a track, showreel) has no supplied or named track. Every other film gets no music question at stage 01: its options are heard laid on the film with stop B (auto mode) or on the 06 review card (step mode). Both follow `ice-audio/SKILL.md` section 5, "The options flow" (owner decision, 2026-10-29): the options are 2 to 3 real library tracks ranked by measurement against the reference, or against the film type when there is none, in genre, feel and tempo, each heard laid on the reference picture or the film (audio only when there is no picture yet). Each option names the track, its library and what makes it fit (tempo, energy, instruments) in plain words. Music made by code is never an option unless the user asked for it in their own words.
+Ask when: a music-led film (hype promo, music video, kinetic type cut to a track, showreel) has no supplied or named track. Every other film gets no music question at stage 01: its options are heard laid on the film with stop B (auto mode) or on the 06 review card (step mode). Both follow `ice-audio/SKILL.md` section 5, "The options flow" (owner decision, 2026-10-29): the options are 2 to 3 real library tracks ranked by measurement against the reference, or against the film type when there is none, in genre, feel and tempo, each heard laid on the reference picture or the film (audio only when there is no picture yet). Each option names the track, its library and what makes it fit (tempo, energy, instruments) in plain words. Music made by code or by AI is never an option, not even on request (`ice-audio/SKILL.md` core rule 7).
 1. (Recommended) The closest real track by measurement.
 2. The second closest real track.
 3. The third closest real track; when only two fit, the closest from the next rung of the music ladder (`ice-audio/SKILL.md` section 5).

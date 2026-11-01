@@ -91,31 +91,14 @@
       "version": "1.16.3",
       "skills": ["ice-audio"]
     },
-    "soundfile": {
-      "version": "0.14.0",
-      "skills": ["ice-audio"]
-    },
     "numba": {
       "version": "0.66.0",
-      "skills": ["ice-audio"]
-    },
-    "pedalboard": {
-      "version": "0.9.26",
-      "skills": ["ice-audio"],
-      "note": "0.9.25 Linux x86_64 wheels use AVX-512 and die with SIGILL on CPUs without it; 0.9.26 targets the AVX baseline (spotify/pedalboard PR 511). the local gate imports every pin, one process per package (node scripts/gates.mjs --python)"
-    },
-    "pyloudnorm": {
-      "version": "0.2.0",
-      "skills": ["ice-audio"]
-    },
-    "matplotlib": {
-      "version": "3.10.9",
-      "skills": ["ice-audio"],
-      "note": "3.9.1 (the source pin) has no Windows wheels"
+      "skills": ["ice-remake"],
+      "note": "librosa's compiled dependency, pinned with it (lesson L43)"
     },
     "librosa": {
       "version": "0.11.0",
-      "skills": ["ice-audio", "ice-remake"]
+      "skills": ["ice-remake"]
     },
     "opencv-python-headless": {
       "version": "4.10.0.84",

@@ -182,7 +182,7 @@ test("lessons: the README prompts stay the idea and the files", () => {
     assert.match(readText(`${EDIT}/references/ingest-and-ledger.md`), /a 1080 output fetches 1080p/);
   });
 
-  test("edit: music and SFX follow the ice-audio ladder, code sound only when named", () => {
+  test("edit: music and SFX follow the ice-audio ladder, never code sound", () => {
     for (const f of ["SKILL.md", "references/edit-types/long-form.md", "references/edit-types/shorts-reels.md",
                      "references/edit-types/podcast.md", "references/edit-types/talking-head-ad.md"]) {
       assert.match(readText(`${EDIT}/${f}`), /ice-audio skill's ladder/, f);
@@ -652,10 +652,10 @@ test("lessons: sound by code is never a style's or a remake's default; loudness 
       if (!f.includes("broadcast-news")) assert.doesNotMatch(line, /-1\d LUFS/, `${f}: a Sound line fixes its own loudness`);
     }
   }
-  assert.match(readText("skills/ice-styles/SKILL.md"), /it never makes sound by code a default \(`ice-audio\/SKILL\.md` core rule 7\)/);
+  assert.match(readText("skills/ice-styles/SKILL.md"), /Sound is never made by code \(`ice-audio\/SKILL\.md` core rule 7\)/);
   const remake = readText("skills/ice-remake/references/rights-and-modes.md");
   assert.doesNotMatch(remake, /effects synthesized on the reference hits|a licensed or generated track/);
-  assert.match(remake, /a generated or code-made track or effect only when the user asked for it in their own words/);
+  assert.match(remake, /never a track or effect made by code or by AI, not even on request/);
 });
 
 test("lessons: ice-state check refuses stage 03 and later without the craft plan (L29)", () => {
@@ -1033,4 +1033,32 @@ test("3D: groups of moving objects follow a real formation, lane or flock, never
   assert.match(section("skills/ice-motion/references/depth-and-3d.md", "## 6. Real 3D look rules"),
     /Several moving objects of one kind .* move the way the real thing moves: a formation, a lane or a flock with a leader.*Random positions, random headings and random speeds read as generated/);
   assert.match(readText("skills/ice-qa/references/frame-checks.md"), /^\| B10 \| Groups of moving objects \| .*Random positions, headings or speeds fail/m);
+});
+
+test("lessons: sound is never made by code, on any machine; the toolkit is gone (L74)", () => {
+  assert.equal(existsSync(abs("skills/ice-audio/scripts/mgaudio")), false, "the mgaudio toolkit still ships");
+  assert.equal(existsSync(abs("skills/ice-audio/references/music-by-code.md")), false);
+  const agents = readText("AGENTS.md");
+  assert.match(agents, /21\. \*\*No code-made audio \(founder decision, 2026-11-01\)\.\*\*/);
+  assert.match(agents, /Ice never makes music or sound effects by code, not even on request/);
+  assert.doesNotMatch(agents, /used only when the user asks for them by name/);
+  for (const f of ["README.md", "llms.txt", "docs/maintainers/architecture.md", "docs/maintainers/STATUS.md", "CREDITS.md"]) {
+    assert.doesNotMatch(readText(f), /by code[^.\n]*(only when|by name|on request)|opt-in music by code/i, f);
+  }
+});
+
+test("lessons: imagery moves by its parts, light and camera; picture-methods.md is the one toolbox (L75)", () => {
+  const canon = "skills/ice-motion/references/picture-methods.md";
+  const text = readText(canon);
+  for (const h of ["## 1. The banned look", "## 2. The model", "## 3. The imagery ladder", "## 4. The motion toolbox", "## 5. The motion bar", "## 6. Hand-coded drawing"]) {
+    assert.ok(text.includes(h), `${canon}: ${h}`);
+  }
+  for (const f of ["skills/ice-motion/SKILL.md", "skills/ice-direction/SKILL.md", "skills/ice-engines/references/engine-choice.md",
+                   "skills/ice-assets/references/sourcing-and-licenses.md", "skills/ice-lottie/SKILL.md", "skills/ice-styles/SKILL.md",
+                   "skills/ice-07-build/SKILL.md", "AGENTS.md"]) {
+    assert.match(readText(f), /picture-methods\.md/, `${f} does not point to the toolbox`);
+  }
+  assert.match(readText("skills/ice-motion/SKILL.md"), /13\. No moving pictures/);
+  assert.doesNotMatch(readText("skills/ice-engines/references/engine-choice.md"), /Everything drawn by code: no image files you did not generate/);
+  assert.doesNotMatch(readText("skills/ice-direction/references/questions.md"), /everything else is drawn by code/);
 });

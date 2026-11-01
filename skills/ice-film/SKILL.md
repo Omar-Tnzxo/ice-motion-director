@@ -88,7 +88,7 @@ Crews are Lean, Standard and Full, by film length and complexity. Read `referenc
 
 ## 8. Noncommercial folder
 
-`noncommercial/onetake/` holds PolyForm Noncommercial files. Open them only when `commercial_use` in `ice/state.json` is `no`, confirmed by the user in words. When it is `yes` or `unknown`, do not open, copy or adapt them and do not ask only to unlock them: this skill's references cover the same ground with permissive sources.
+`noncommercial/onetake/` holds PolyForm Noncommercial files; its sound parts are overridden by ice-audio core rule 7. Open them only when `commercial_use` in `ice/state.json` is `no`, confirmed by the user. When `yes` or `unknown`, do not open, copy or adapt them and do not ask only to unlock them: this skill's references cover the same ground.
 
 ## 9. Owned elsewhere
 

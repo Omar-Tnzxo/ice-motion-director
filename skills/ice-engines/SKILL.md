@@ -108,7 +108,7 @@ Full quality gates, critics and the delivery report belong to the ice-qa skill.
 | HTML page contract, bundled renderer, subframe blur, chunks | `references/html-canvas-capture.md` | HTML canvas route, painted styles, single-file deliverables |
 | Three.js contract and traps | `references/engine-choice.md` (section "Three.js guide") | Any 3D hero |
 | Lottie playback inside a render | `references/engine-choice.md` (section "Lottie as an engine (playback and capture)") | Lottie inside a film (authoring: the ice-lottie skill) |
-| Canvas 2D and p5 | `references/engine-choice.md` (section "Canvas 2D and p5") | Procedural or painted art |
+| Canvas 2D and p5 | `references/engine-choice.md` (section "Canvas 2D and p5") | Painted or drawn processes over real or AI source imagery |
 | FFmpeg-only jobs | `references/engine-choice.md` (section "FFmpeg-only engine") | Cuts, reframes, speed, conversions |
 | Maps and Cesium | `references/maps-geo.md` | Any map shot |
 | Codecs, quality, alpha, GIF, posters, HDR, delivery hygiene, heavy intermediates cleanup | `references/render-export.md` | Every render |

@@ -4,9 +4,12 @@
 // files point to.
 // Run: node --test tests/
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
-import { test } from "node:test";
-import { abs, readText, repoFiles } from "./helpers.mjs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, test } from "node:test";
+import { abs, findPython, hasCommand, readText, repoFiles } from "./helpers.mjs";
 
 const ARCH = "docs/maintainers/architecture.md";
 const HEADER = "| Check | Late run (confirmation) | Earliest stage | Where it runs early | Term |";
@@ -298,4 +301,157 @@ test("architecture.md maps the craft plan to its earliest stage and lists its ru
   assert.match(arch, /\| Craft plan \(every craft the content, the reference and the style call for, rule 20\) \| 09: `craft_gate\.py build` \| 02 draft; 04 `craft_gate\.py plan`/);
   assert.match(arch, /^\| `ice\/plan\/craft-plan\.json` \| `ice-direction` /m);
   assert.match(arch, /The per-type craft defaults .* are summarized in `skills\/ice-direction\/references\/treatment\.md` section "Craft plan"/);
+});
+
+// ---------------------------------------------------------------- moving pictures (0.2.19, AGENTS.md rule 22)
+// The render check: craft_gate.py measure writes "pictures" and build turns red at 0.58, yellow from 0.52 and when
+// fewer than 5 windows show element motion; never lifted. The plan check: the craft plan's "imagery" entry. Clips are
+// drawn in the test with numpy and cv2.VideoWriter into a temp folder (4 s at 640x360: a 2 s clip has only 3 windows,
+// which is "not measured"). Calibration: the release 0.2.19 plan, section 5.
+const PY = findPython();
+const CRAFT_GATE = abs("skills/ice-qa/scripts/craft_gate.py");
+const py = (...args) => spawnSync(PY[0], [...PY.slice(1), ...args], { encoding: "utf8", timeout: 300000 });
+const HAS_CV2 = Boolean(PY) && py("-c", "import numpy, cv2").status === 0;
+const PIC_SKIP = !PY ? "Python 3 not found" : !HAS_CV2 ? "numpy or opencv missing"
+  : !(hasCommand("ffmpeg") && hasCommand("ffprobe")) ? "ffmpeg missing" : false;
+const picWork = mkdtempSync(join(tmpdir(), "ice pictures "));
+after(() => rmSync(picWork, { recursive: true, force: true }));
+const SYN = String.raw`
+import sys, numpy as np, cv2
+out, kind, dur = sys.argv[1], sys.argv[2], float(sys.argv[3])
+W, H, FPS = 640, 360, 25
+vw = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"), FPS, (W, H))
+rng = np.random.default_rng(7)
+if kind == "flat":   # flat drawn shapes slid whole over a flat ground
+    shapes = [((70, 150, 220), "rect", 60, 60, 120, 90, 3.0, 0.8), ((60, 200, 120), "circle", 420, 120, 55, 0, -2.5, 1.2),
+              ((230, 210, 80), "rect", 250, 230, 140, 70, 2.0, -1.0), ((200, 90, 170), "circle", 520, 270, 45, 0, -3.0, -0.6)]
+    for i in range(int(dur * FPS)):
+        f = np.full((H, W, 3), (235, 228, 214), np.uint8)
+        for col, kd, x, y, a, b, vx, vy in shapes:
+            cx, cy = int(x + vx * i), int(y + vy * i)
+            if kd == "rect":
+                cv2.rectangle(f, (cx, cy), (cx + a, cy + b), col, -1)
+                cv2.rectangle(f, (cx + 15, cy + 15), (cx + a // 2, cy + b // 2), (40, 40, 40), -1)
+            else:
+                cv2.circle(f, (cx, cy), a, col, -1, cv2.LINE_AA)
+                cv2.circle(f, (cx + a // 3, cy - a // 3), a // 4, (250, 250, 250), -1, cv2.LINE_AA)
+        vw.write(f)
+else:                # textured imagery under a panning camera, with a textured region that deforms
+    def tex(h, w):
+        coarse = cv2.GaussianBlur(rng.normal(0, 1, (h, w, 3)).astype(np.float32), (0, 0), 6)
+        fine = cv2.GaussianBlur(rng.normal(0, 1, (h, w, 3)).astype(np.float32), (0, 0), 0.8)
+        return np.clip(128 + coarse / coarse.std() * 45 + fine / fine.std() * 14, 0, 255).astype(np.uint8)
+    big, blob = tex(H + 200, W + 400), tex(160, 220)
+    yy, xx = np.mgrid[0:160, 0:220].astype(np.float32)
+    for i in range(int(dur * FPS)):
+        t = i / FPS
+        f = big[60:60 + H, int(40 + 60 * t):int(40 + 60 * t) + W].copy()
+        mx = (xx + 12 * np.sin(yy / 18 + 4 * t)).astype(np.float32)
+        my = (yy + 10 * np.sin(xx / 22 + 3 * t)).astype(np.float32)
+        x0, y0 = int(200 + 20 * np.sin(t * 2)), int(100 + 15 * np.cos(t * 2))
+        f[y0:y0 + 160, x0:x0 + 220] = cv2.remap(blob, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        vw.write(f)
+vw.release()
+`;
+const synClip = (name, kind, dur) => {
+  const file = join(picWork, name + ".mp4");
+  const r = py("-c", SYN, file, kind, String(dur));
+  assert.equal(r.status, 0, r.stderr);
+  return file;
+};
+const picturesBuild = (name, film) => {
+  const dir = join(picWork, name);
+  mkdirSync(join(dir, "ice"), { recursive: true });
+  const r = py(CRAFT_GATE, "build", dir, "--render", film, "--json");
+  assert.ok(r.status === 0 || r.status === 2, r.stdout + r.stderr);
+  return JSON.parse(r.stdout);
+};
+
+test("moving pictures: measure writes pictures {share, rigid, flat, windows, per_shot}; flat shapes sliding are red, textured imagery under a moving camera with a deforming region is green, a 2 s clip is not measured (yellow)", { skip: PIC_SKIP }, () => {
+  const flat = synClip("flat shapes", "flat", 4);
+  let r = py(CRAFT_GATE, "measure", flat, "--out", join(picWork, "flat measure.json"));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /moving pictures: share /);
+  const m = JSON.parse(readFileSync(join(picWork, "flat measure.json"), "utf8"));
+  for (const k of ["share", "rigid", "flat", "windows", "per_shot"]) assert.ok(k in m.pictures, `pictures.${k}`);
+  assert.ok(Array.isArray(m.pictures.per_shot) && m.pictures.per_shot.length >= 1 && "share" in m.pictures.per_shot[0]);
+  assert.ok(m.pictures.windows >= 5 && m.pictures.share >= 0.58, JSON.stringify(m.pictures));
+
+  let b = picturesBuild("flat build", flat);
+  assert.equal(b.checks.pictures.light, "red", JSON.stringify(b.pictures));
+  assert.ok(b.reds.some((x) => x.startsWith("pictures: ")), b.reds.join("\n"));
+  assert.equal(b.verdict, "red");
+
+  b = picturesBuild("textured build", synClip("textured camera", "textured", 4));
+  assert.ok(b.pictures.measured && b.pictures.share < 0.52, JSON.stringify(b.pictures));
+  assert.equal(b.checks.pictures.light, "green");
+  assert.ok(!b.reds.some((x) => x.startsWith("pictures: ")), b.reds.join("\n"));
+
+  b = picturesBuild("short build", synClip("short flat", "flat", 2));
+  assert.equal(b.pictures.measured, false);
+  assert.equal(b.checks.pictures.light, "yellow");
+  assert.ok(b.yellows.some((x) => /pictures: not measured/.test(x)), b.yellows.join("\n"));
+  assert.ok(!b.reds.some((x) => x.startsWith("pictures: ")), "not measured is never red");
+});
+
+const PLAN_CODES = ["camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx", "music",
+  "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity"];
+function imageryProject(name, { stage = "05", imagery, exemptions = [] } = {}) {
+  const dir = join(picWork, name);
+  mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+  writeFileSync(join(dir, "ice", "plan", "storyboard.md"), "| Time | Object | Action |\n|---|---|---|\n| 0-3 | cup | steam rises |\n");
+  const rows = PLAN_CODES.map((dimension) => ({ dimension, decision: "use", devices: ["type default device"], where: ["film"],
+    amount: "type floor", trigger: "type default", reason: "serves the film", source: "type: treatment.md craft plan defaults",
+    check: "craft_gate.py build", evidence: "" }));
+  const plan = { type: "industry spot", route: "film", style: "none", reference: "none", stage, locked: false, style_needs: [],
+    style_never: [], rows, exemptions };
+  if (imagery !== undefined) plan.imagery = imagery;
+  writeFileSync(join(dir, "ice", "plan", "craft-plan.json"), JSON.stringify(plan, null, 1));
+  return dir;
+}
+
+test("moving pictures: the craft plan's imagery entry (missing: yellow at 05, red at 07; code-drawn or mixed needs a reason and a user, reference or style source from 05) and film:moving_pictures is never lifted", (t) => {
+  if (!PY) { t.skip("Python 3 not found"); return; }
+  const plan = (dir) => py(CRAFT_GATE, "plan", dir);
+  const real = { source: "real", reason: "the brand's own photos and screens", source_kind: "content", source_ref: "assets manifest" };
+  let r = plan(imageryProject("img real", { imagery: real }));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.doesNotMatch(r.stdout, /imagery: .*(no "imagery"|needs)/);
+
+  r = plan(imageryProject("img missing 05"));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /Yellows:\r?\n {2}- imagery: no "imagery" entry yet/);
+  r = plan(imageryProject("img missing 07", { stage: "07" }));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+  assert.match(r.stdout, /imagery: no "imagery" entry/);
+
+  r = plan(imageryProject("img code bare", { imagery: { source: "code-drawn" } }));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+  assert.match(r.stdout, /imagery: code-drawn imagery needs a reason, a source_kind of user, reference or style/);
+  r = plan(imageryProject("img mixed content", { imagery: { source: "mixed", reason: "icons drawn to fill gaps", source_kind: "content", source_ref: "script line 3" } }));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+  assert.match(r.stdout, /imagery: mixed imagery needs a source_kind of user, reference or style/);
+  r = plan(imageryProject("img code style", { imagery: { source: "code-drawn", reason: "the user chose a hand-drawn line style by name", source_kind: "style", source_ref: "ice-styles family-drawing line-art entry" } }));
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  r = plan(imageryProject("img code early", { stage: "04", imagery: { source: "code-drawn" } }));
+  assert.equal(r.status, 0, "before 05 a bare code-drawn entry is a yellow");
+  assert.match(r.stdout, /Yellows:[\s\S]*imagery: code-drawn imagery needs .*\(red from stage 05\)/);
+  r = plan(imageryProject("img odd source", { imagery: { source: "clipart" } }));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+
+  r = plan(imageryProject("img lift", { imagery: real, exemptions: [{ id: "X-01", lifts: ["film:moving_pictures"], element: "the icons",
+    source: { kind: "user", ref: "\"keep the icons simple\"" }, shots: "all", reason: "the user asked", stage: "05" }] }));
+  assert.equal(r.status, 2, r.stdout + r.stderr);
+  assert.match(r.stdout, /lifts film:moving_pictures, which is never lifted/);
+});
+
+test("moving pictures: frame-checks.md has the moving pictures row pointing to picture-methods.md items 4 and 5", () => {
+  const fc = readText("skills/ice-qa/references/frame-checks.md");
+  const row = fc.split("\n").find((l) => /^\| B\d+ \| Moving pictures \|/.test(l));
+  assert.ok(row, "frame-checks.md has a Moving pictures row");
+  assert.match(row, /`craft_gate\.py build`/);
+  assert.match(row, /picture-methods\.md`? items 4 and 5/);
+  const t = readText("skills/ice-direction/references/treatment.md");
+  assert.match(t, /"imagery": \{"source": "real \| footage \| lottie \| ai \| 3d \| code-drawn \| mixed"/);
+  assert.match(t, /\*\*Never lifted\.\*\*[^\n]*`film:moving_pictures`/);
 });

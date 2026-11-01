@@ -12,7 +12,7 @@ Ice Motion Director is a motion design and editing director that writes code and
 - **User-initiated**: never generate on your own initiative. When an asset is missing, you may offer generation once as one option beside capture, licensed stock and code; the user decides. Record the answer in `ice/BRIEF.md` (slot: AI media allowed, and for which element types).
 - **Disclosed**: every generated item is recorded and named in the delivery notes, and labeled on screen where section 7 requires it.
 
-Faces and voices of real people follow section 9 of this file (the owner of that rule for every skill). AI voice details live in the ice-audio skill.
+Faces and voices of real people follow section 9 of this file (the owner of that rule for every skill). Audio: AI generation covers narration voice only (a voice provider, recorded with provider, model, voice id, licence terms and date); music and sound effects are never generated, by AI or by code, not even on request (the ice-audio skill, `SKILL.md` core rule 7). AI voice details live in the ice-audio skill.
 
 ## 2. What may be generated
 
@@ -25,8 +25,9 @@ Faces and voices of real people follow section 9 of this file (the owner of that
 | Never | Screens, UI, app or website states, the product working | Capture it (`screen-capture.md`) |
 | Never | Testimonials or "customer" faces presented as real, fake evidence, a fictional person presented as a named real person | Real people's faces and voices: section 9 |
 | Never | Photographic or live-action content presented as a real event, a real job, a real customer or a real result | n/a |
+| Never | Music, sound effects, ambience | Real recordings or licensed library tracks only (the ice-audio skill, `SKILL.md` core rule 7) |
 
-A generated plate must perform in the film (revealed, travelled through, lit, masked, cut out, given parallax or focus change), not sit flat behind a centered headline. Question any image that is decorative only. Illustration-led hero art from image models tends to look like clipart: for organic illustration, steer toward geometric shape language built in code, or accept generation as a draft only.
+A generated plate must perform in the film (revealed, travelled through, lit, masked, cut out, given parallax or focus change), not sit flat behind a centered headline. Question any image that is decorative only. Illustration-led hero art from image models tends to look like clipart: for organic illustration, prefer designer-made or licensed layered illustration, or vectorize the generated draft into rigged parts (the ice-motion skill, `references/picture-methods.md` items 3 and 5).
 
 ## 3. Before generating
 

@@ -10,6 +10,7 @@ python <ice-type skill>/scripts/align_script_to_asr.py --stem <voice stem> --mix
 node scripts/quick-checks.mjs loudness final.mp4 --profile <id>  # integrated I, LRA, true peak, short-term loudness per second; exit 1 outside the profile
 python scripts/look.py final.mp4 --out ice/review/look --expect-audio   # AUDIO block: LUFS, LRA, TP, audible span, silent tail, dropouts, onsets vs cuts
 ffmpeg -i final.mp4 -af ebur128=peak=true -f null -    # raw measurement
+node <ice-assets skill>/scripts/validate-assets.mjs --project . --audio-only   # A0 real source: every sound on record, no sound made by code (section 2b)
 ```
 
 `<id>` is the profile logged in `ice/DIRECTION.md`, one id of the gate column of the `ice-audio` skill, `references/mix-and-master.md` section 5. Run the audit at 08b on the draft and at 10 on the delivered file; run the speech check first, so the audit reads its result and its doubtful words lead the ear list.
@@ -44,6 +45,7 @@ Before applying an audio fix, state what you would expect to measure if you are 
 
 | Item | Blocks | Else |
 |---|---|---|
+| A0 real source | `validate-assets.mjs --audio-only` (the `ice-assets` skill) exits 1: an audio file or mix input with no row of a real source (user-provided, web-found, pack or licensed; a narration voice from a provider with its full record), a code-built or AI-generated music or effect row, a hash that changed, a mix with no `inputs` record, or project code that makes sound from nothing (made from nothing: banned; a real recording processed: allowed). Rule: the `ice-audio` skill, core rule 7. Runs at 08b on the draft mix and at gate G on the final file; a cue with no real sound is skipped and listed, never filled | never |
 | A1 loudness | I outside the profile's tolerance, true peak over its ceiling, LRA outside a hard range (gate column of `mix-and-master.md` section 5); also `quick-checks.mjs loudness --profile` | an LRA floor that warns: ear list |
 | A3 voice over bed | in voiced 100 ms windows, the 5th percentile of voice minus bed in 1 to 4 kHz under 0 dB; "unmeasured" (no stems, no separation, and speech not declared absent) | 5th percentile under 6 dB, voiced runs under 0 dB, a median under the type's bed band: ear list |
 | A5 masked words | `align_script_to_asr.py --stem` exits 1: a word right in the clean stem and lost or changed in the mix; a scene under 0.8 or the film under 0.85 in the mix while the stem meets the floor | misheard (wrong in both), low confidence (probability under 0.5), both under the floor: ear list |

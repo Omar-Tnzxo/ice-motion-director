@@ -150,6 +150,179 @@ describe("validate-assets: code-built rebuilds of several captures", () => {
   });
 });
 
+// ---------------------------------------------------------------- audio provenance (validate-assets checks 10 to 12)
+// Owner decision, 2026-11-01: music and sound effects are never made by code nor by AI; real recordings or licensed
+// library tracks only. Narration voice is the user's recording or a provider voice with its full record. Processing a
+// real recording is allowed; making sound from nothing is not. The fixtures hold a few zero samples, never a sound.
+
+/** A tiny valid 16-bit mono WAV of n zero samples; seed changes one header-free trailing byte pattern for a new hash. */
+function wav(n = 8, seed = 0) {
+  const data = Buffer.alloc(n * 2);
+  if (seed) data.writeInt16LE(seed, 0);
+  const h = Buffer.alloc(44);
+  h.write("RIFF", 0); h.writeUInt32LE(36 + data.length, 4); h.write("WAVE", 8); h.write("fmt ", 12);
+  h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(48000, 24);
+  h.writeUInt32LE(96000, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write("data", 36); h.writeUInt32LE(data.length, 40);
+  return Buffer.concat([h, data]);
+}
+const hashOf = (buf) => createHash("sha256").update(buf).digest("hex");
+const runAudio = (dir) => val.validate({ project: dir, manifestPath: join(dir, "ice", "assets", "manifest.json"), statePath: join(dir, "ice", "state.json"),
+  creditsPath: join(dir, "ice", "assets", "CREDITS.md"), scanDirs: [join(dir, "assets"), join(dir, "ice", "assets")], audioOnly: true });
+const cliAudio = (dir) => spawnSync(process.execPath, [VALIDATE, "--project", dir, "--audio-only"], { encoding: "utf8" });
+const mixRecord = (inputs) => JSON.stringify({ status: "pass", inputs: { vo: null, music: null, sfx: [], video_audio: false, ...inputs } });
+const CC0 = { license: "CC0-1.0", license_url: "https://creativecommons.org/publicdomain/zero/1.0/" };
+const POP = wav(8, 1), BED = wav(8, 2), VOICE = wav(8, 3), VOICE_FX = wav(8, 4);
+const packRow = { id: "pop", role: "sfx", path: "ice/audio/pop.wav", sha256: hashOf(POP),
+  source: { type: "pack", pack: "assets-sfx-v1", file: "pop_01.wav" }, rights: CC0 };
+const foundRow = { id: "bed", role: "music", path: "audio/bed.wav", sha256: hashOf(BED),
+  source: { type: "web-found", url: "https://openverse.org/audio/fixture" }, rights: { owner: "<artist>", license_status: "licensed", ...CC0 } };
+const voiceRow = { id: "voice", role: "voice", path: "ice/audio/voice.wav", sha256: hashOf(VOICE),
+  source: { type: "user-provided", url: "user-provided://voice.wav" }, rights: { owner: "<user>" } };
+const aiVoice = (extra = {}) => ({ id: "ai-voice", role: "voice", path: "ice/audio/voice.wav", sha256: hashOf(VOICE),
+  source: { type: "generated", provider: "<provider>", model: "<model>", voice_id: "<voice id>", date: "2026-11-01", ...extra },
+  rights: { license_terms: "https://provider.test/terms" } });
+
+describe("validate-assets: audio has a real source (checks 10 to 12, ice-audio core rule 7)", () => {
+  test("a synthesized tone fails: code-built audio, an unrecorded mix input and two synthesis lines with file:line", () => {
+    const dir = project("audio-synth", [{ id: "beep", role: "sfx", path: "ice/audio/beep.wav", sha256: hashOf(POP),
+      source: { type: "code-built", script: "scripts/make_tone.py" }, rights: { owner: "<user>" } }], {
+      "ice/audio/beep.wav": POP,
+      "scripts/make_tone.py": "import numpy as np, wave\nx = np.sin(2 * np.pi * 440 * t)\nw = wave.open('ice/audio/beep.wav', 'wb')\n",
+      "render.mjs": "const args = \"-f lavfi -i sine=frequency=440:duration=1 out.wav\";\n",
+      "ice/audio/master.json": mixRecord({ sfx: [{ path: "ice/audio/whoosh.wav", sha256: "0".repeat(64), at: 1 }] }),
+    });
+    const r = cliAudio(dir);
+    assert.equal(r.status, 1, r.stdout);
+    const out = r.stdout;
+    assert.match(out, /FAIL {2}audio 'beep' is audio made by code is not allowed \(ice-audio core rule 7\)/);
+    assert.match(out, /FAIL {2}mix input 'ice\/audio\/whoosh\.wav' \(sfx, in ice\/audio\/master\.json\) has no audio row with a real source/);
+    assert.match(out, /FAIL {2}audio made by code is not allowed \(ice-audio core rule 7\): scripts\/make_tone\.py:2 "np\.sin/);
+    assert.match(out, /FAIL {2}audio made by code is not allowed \(ice-audio core rule 7\): render\.mjs:1 "sine=frequency=440/);
+    assert.match(out, /AUDIO: FAIL/);
+  });
+
+  test("real sound passes: a pack row, a found row, matching master inputs and anullsrc silence", () => {
+    const files = {
+      "ice/audio/pop.wav": POP, "audio/bed.wav": BED,
+      "ice/audio/master.json": mixRecord({ music: { path: "audio/bed.wav", sha256: hashOf(BED) }, sfx: [{ path: "ice/audio/pop.wav", sha256: hashOf(POP), at: 1.2 }] }),
+      "ice/audio/sfx.json": JSON.stringify([{ file: "pop.wav", at: 1.2, gain_db: -3 }]),
+      "scripts/pad.sh": "ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo -t 2 -af apad silence.wav\n",
+    };
+    const dir = project("audio-real", [packRow, foundRow], files);
+    const r = cliAudio(dir);
+    assert.equal(r.status, 0, r.stdout);
+    assert.match(r.stdout, /AUDIO: PASS {3}2 audio row\(s\) checked/);
+    const full = run(dir);
+    assert.equal(full.status, "PASS", full.problems.join("\n"));
+  });
+
+  test("a processed real recording passes: ffmpeg echo, width and filters, a WebAudio convolver on a decoded file, a derived row", () => {
+    const dir = project("audio-processed", [voiceRow, { id: "voice-fx", role: "voice", path: "ice/audio/voice_fx.wav", sha256: hashOf(VOICE_FX),
+      derived_from: "voice", source: { type: "code-built", script: "scripts/fx.sh" }, changes: "echo, stereo width, telephone band" }], {
+      "ice/audio/voice.wav": VOICE, "ice/audio/voice_fx.wav": VOICE_FX,
+      "scripts/fx.sh": "ffmpeg -i ice/audio/voice.wav -af \"aecho=0.8:0.7:40:0.3,extrastereo=2.5,highpass=f=300,lowpass=f=3400\" ice/audio/voice_fx.wav\n",
+      "film/js/room.js": [
+        "const ctx = new AudioContext();",
+        "const voice = await ctx.decodeAudioData(await (await fetch('voice.wav')).arrayBuffer());",
+        "const room = await ctx.decodeAudioData(await (await fetch('room-ir.wav')).arrayBuffer());",
+        "const src = ctx.createBufferSource(); src.buffer = voice;",
+        "const conv = new ConvolverNode(ctx, { buffer: room });",
+        "const band = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: 1500 });",
+        "src.connect(conv).connect(band).connect(ctx.destination);",
+      ].join("\n"),
+      "ice/notes.md": "A sine sweep or aevalsrc would make sound from nothing; we only process the recorded line.\n",
+      "ice/audio/master.json": mixRecord({ vo: { path: "ice/audio/voice_fx.wav", sha256: hashOf(VOICE_FX) } }),
+    });
+    const r = runAudio(dir);
+    assert.equal(r.status, "PASS", r.problems.join("\n"));
+  });
+
+  test("a provider voice with its full record passes; no voice id, AI music and AI effects fail", () => {
+    const mix = { "ice/audio/voice.wav": VOICE, "ice/audio/master.json": mixRecord({ vo: { path: "ice/audio/voice.wav", sha256: hashOf(VOICE) } }) };
+    let r = runAudio(project("audio-ai-voice", [aiVoice()], mix));
+    assert.equal(r.status, "PASS", r.problems.join("\n"));
+    r = runAudio(project("audio-ai-voice-bare", [aiVoice({ voice_id: "" })], mix));
+    assert.equal(r.status, "FAIL");
+    assert.match(r.problems.join("\n"), /AI narration voice without its full record; missing source\.voice_id/);
+    for (const role of ["music", "sfx"]) {
+      r = runAudio(project(`audio-ai-${role}`, [{ id: `ai-${role}`, role, path: "ice/audio/voice.wav", sha256: hashOf(VOICE),
+        source: { type: "generated", tool: "<provider>", prompt: "<prompt>" }, rights: {} }], mix));
+      assert.equal(r.status, "FAIL", role);
+      assert.match(r.problems.join("\n"), /music and effects are real recordings or licensed library tracks only, never AI-generated/, role);
+    }
+  });
+
+  test("a pack file whose bytes changed after its row fails with hash changed", () => {
+    const dir = project("audio-changed", [packRow], { "ice/audio/pop.wav": POP,
+      "ice/audio/master.json": mixRecord({ sfx: [{ path: "ice/audio/pop.wav", sha256: hashOf(POP), at: 0 }] }) });
+    writeFileSync(join(dir, "ice", "audio", "pop.wav"), wav(8, 9));
+    const r = cliAudio(dir);
+    assert.equal(r.status, 1, r.stdout);
+    assert.match(r.stdout, /audio 'pop' hash changed/);
+  });
+
+  test("a mix with no inputs record, an audio file with no row and a project with audio but no mix fail", () => {
+    let r = runAudio(project("audio-old-master", [packRow], { "ice/audio/pop.wav": POP, "ice/audio/master.json": JSON.stringify({ status: "pass" }) }));
+    assert.match(r.problems.join("\n"), /mix inputs unknown: re-run master_audio\.py/);
+    r = runAudio(project("audio-no-mix", [packRow], { "ice/audio/pop.wav": POP, "ice/audio/stray.mp3": PNG }));
+    assert.match(r.problems.join("\n"), /audio file 'ice\/audio\/stray\.mp3' has no manifest row/);
+    assert.match(r.problems.join("\n"), /no master\.json with inputs and no ice\/audio\/mix-inputs\.json/);
+    r = runAudio(project("audio-mix-inputs", [packRow], { "ice/audio/pop.wav": POP,
+      "ice/audio/mix-inputs.json": JSON.stringify({ vo: null, music: null, sfx: [{ path: "ice/audio/pop.wav", sha256: hashOf(POP), at: 0 }], video_audio: false }) }));
+    assert.equal(r.status, "PASS", r.problems.join("\n"));
+  });
+
+  test("the scan finds sound sources and leaves silence, processing and prose alone", () => {
+    const hit = (name, body) => val.synthesisHits(name, body).map((h) => h.match);
+    for (const line of ["ffmpeg -f lavfi -i \"aevalsrc=sin(440*2*PI*t)\" a.wav", "ffmpeg -f lavfi -i anoisesrc=d=1 n.wav",
+      "osc = ctx.createOscillator();", "const o = new OscillatorNode(ctx);", "const s = new Tone.Synth().toDestination();",
+      "from pydub.generators import Sine", "sox -n beep.wav synth 1 sine 440", "import mgaudio"]) {
+      assert.equal(hit("x.js", line).length, 1, line);
+    }
+    for (const line of ["ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo -t 1 s.wav", "ffmpeg -i a.wav -af apad,afade=t=out:d=1 b.wav",
+      "ffmpeg -i v.wav -i ir.wav -filter_complex \"[0][1]afir,stereowiden,equalizer=f=3000:t=q:w=1:g=3,acompressor,loudnorm\" o.wav",
+      "ffmpeg -i v.wav -af \"asetrate=52800,atempo=0.9,afftdn,bandpass=f=1000\" o.wav", "const cos = Math.cos(cosine=1);"]) {
+      assert.deepEqual(hit("x.sh", line), [], line);
+    }
+    assert.deepEqual(hit("notes.md", "Never use aevalsrc or createOscillator in prose.\n"), []);
+    assert.equal(hit("notes.md", "```\nffmpeg -f lavfi -i sine=frequency=880 x.wav\n```\n").length, 1);
+    assert.equal(hit("notes.md", "$ sox -n x.wav synth 0.2 noise\n").length, 1);
+    const writes = "import numpy as np\nimport soundfile as sf\nfrom scipy.signal import chirp\ny = chirp(t, 100, 1, 8000)\nsf.write('w.wav', y, 48000)\n";
+    assert.deepEqual(hit("w.py", writes), ["chirp("]);
+    const loads = "import numpy as np\nimport soundfile as sf\ny, sr = sf.read('voice.wav')\ny = y * np.sin(np.linspace(0, np.pi / 2, len(y)))\nsf.write('o.wav', y, sr)\n";
+    assert.deepEqual(hit("fade.py", loads), [], "a fade curve on a loaded recording is processing");
+    const ir = "const b = ctx.createBuffer(2, n, sr);\nfor (let c = 0; c < 2; c++) {\n  const d = b.getChannelData(c);\n  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / n);\n}\n";
+    assert.equal(hit("ir.js", ir).length, 1, "an impulse response made of code noise is a hit");
+  });
+});
+
+describe("master_audio.py records the files it mixes", { skip: pySkipEarly() }, () => {
+  test("master.json carries inputs with vo, music, sfx and video_audio, each file with its sha256", () => {
+    const src = readText("skills/ice-audio/scripts/master_audio.py");
+    assert.match(src, /"inputs": describe_inputs\(/);
+    for (const k of ["\"vo\"", "\"music\"", "\"sfx\"", "\"video_audio\""]) assert.ok(src.includes(k), k);
+    const dir = join(work, "master-inputs");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "vo.wav"), VOICE);
+    writeFileSync(join(dir, "pop.wav"), POP);
+    const code = [
+      "import importlib.util, json, pathlib, sys",
+      "spec = importlib.util.spec_from_file_location('m', sys.argv[1]); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)",
+      "d = pathlib.Path(sys.argv[2])",
+      "print(json.dumps(m.describe_inputs(d / 'vo.wav', None, [{'file': d / 'pop.wav', 'at': 1.5, 'gain_db': 0.0}], False, True)))",
+    ].join("\n");
+    const PYTHON = findPython();
+    const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", "-c", code, abs("skills/ice-audio/scripts/master_audio.py"), dir], { encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    const inputs = JSON.parse(r.stdout);
+    assert.equal(inputs.vo.sha256, hashOf(VOICE));
+    assert.equal(inputs.music, null);
+    assert.deepEqual(inputs.sfx.map((s) => [s.sha256, s.at]), [[hashOf(POP), 1.5]]);
+    assert.equal(inputs.video_audio, false, "a mix with a voice and no --keep-video-audio does not use the video's own sound");
+  });
+});
+function pySkipEarly() { return findPython() ? false : "Python 3 not found"; }
+
 // ---------------------------------------------------------------- sources: real first, standing consent (lessons 2 and 8)
 // Owner decision, 2026-10-29: sourcing-and-licenses.md is the one home of the per-need ladder, the standing consent for
 // free downloads, sources.json, the footage order, the download resolution and the site-terms line.
@@ -186,7 +359,7 @@ describe("sources: real first, code last (sourcing-and-licenses.md)", () => {
     assert.match(overlays, /Code dust, smoke or fire: never as a hero element/);
     const sound = rowOf(s1, "Music and SFX").join(" | ");
     assert.match(sound, /ice-audio skill, `SKILL\.md`/, "music and SFX point to the ladders in ice-audio");
-    assert.match(sound, /sound made by code only when the user asks for it in their own words/);
+    assert.match(sound, /never made by code or by AI, core rule 7/);
     assert.match(rowOf(s1, "Text, numbers, charts, UI")[1], /^Built in code/);
     assert.match(rowOf(s1, "Glitch and grain")[1], /^Code, generated at render time/);
     assert.match(s1, /\*\*Ice does this search by itself\.\*\* For every scene that shows a real event, statement, place, person or object/);

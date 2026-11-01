@@ -23,7 +23,8 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 - Never apply a style because it is listed first, because it is the nearest match to a keyword, or because a demo exists. Shortlist at least three candidates from at least two families and hand them to ice-direction for the pitch round.
 - An entry locks the medium (look, palette logic, motion quality, camera vocabulary, sound palette). The brief decides everything else: subject, structure, opening, ending, copy, exact colours. Never take a demo's story, shots, props, composition or timeline.
 - A film made in a catalog style Ice picked must still differ from that style's demo and from any bundled template on at least 4 of 6 axes. A style the user named is exempt on the axes it fixes (`ice-direction/references/anti-sameness.md` section 4a); it still never takes the demo's story, shots or timeline. That gate, its six axes, the per-project fingerprint and the default-look gate are owned by the ice-direction skill, `references/anti-sameness.md` (decision), and the ice-qa skill (check); run them there. Because a style fixes the medium, a style film wins its difference on the axes the style leaves open (structure and layout above all), never by recolouring.
-- Every example, palette value and scene inside an entry is illustration only. A Sound line names the genre and instruments as the target for real library tracks and recorded SFX; it never makes sound by code a default (`ice-audio/SKILL.md` core rule 7), and loudness comes from the `ice-audio` profile table.
+- Drawn styles follow `ice-motion/references/picture-methods.md`: imagery from its ladder (item 3, each entry's `Imagery:` line), every moving element by its parts, light and camera (item 5); hand-coded drawing only with the craft plan's `imagery` reason (item 6).
+- Every example, palette value and scene inside an entry is illustration only. A Sound line names the genre and instruments as the target for real library tracks and recorded SFX; Sound is never made by code (`ice-audio/SKILL.md` core rule 7), and loudness comes from the `ice-audio` profile table.
 
 ## Procedure
 
@@ -39,8 +40,8 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 | Film type | Candidates (family file) |
 |---|---|
 | Product launch (physical) | glass product render, exploded teardown, 3D render CGI (screen-tech-3d, evidence-data); isometric (graphic-design); risograph (print-paper-craft) |
-| Product launch (software) or UI walkthrough | dark tech keynote, living screencast (screen-tech-3d); flat vector, morph (graphic-design); t2 keynote UI grammar (narration-grammars-2); editorial light or flat pop with photos (directions) |
-| App ad | flat vector, morph (graphic-design); variety-show captions (cartoon-film); marker comic (cartoon-film); flat pop with photos, poster color-block (directions) |
+| Product launch (software) or UI walkthrough | dark tech keynote, living screencast (screen-tech-3d); editorial light or flat pop with photos (directions); morph, flat vector (designer Lottie or vectorized art, by parts) (graphic-design); t2 keynote UI grammar (narration-grammars-2) |
+| App ad | the real app UI with flat pop with photos, poster color-block (directions); living screencast (screen-tech-3d); variety-show captions, marker comic (cartoon-film); morph, flat vector (designer Lottie or vectorized art, by parts) (graphic-design) |
 | Brand film | one-line drawing, line art (drawing-line); watercolour, ink wash (paint-wash); cut paper, silkscreen poster (print-paper-craft); art deco (graphic-design); dream glaze (paint-wash) |
 | Logo sting | line art, one-line (drawing-line); liquid, morph, Bauhaus (graphic-design); 3D render CGI (screen-tech-3d); see ice-lottie when the output is Lottie |
 | Kinetic type | Swiss motion, Bauhaus, pictogram motion, spy titles (graphic-design); y5 kinetic type grammar (narration-grammars-2); poster color-block (directions) |
@@ -75,7 +76,7 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 | Audience | Candidates |
 |---|---|
 | Children and families | crayon (drawing-line); storybook, folk tale (paint-wash); paper pop-up, toy theatre (print-paper-craft); brick toy (games-toys); rubber hose (cartoon-film) |
-| General consumers | flat vector (graphic-design); cut paper (print-paper-craft); watercolour (paint-wash); flat pop with photos (directions) |
+| General consumers | flat pop with photos (directions); 3D render CGI (screen-tech-3d); cut paper (print-paper-craft); watercolour (paint-wash); flat vector (designer Lottie or vectorized art, by parts) (graphic-design) |
 | Youth and social-first | variety-show captions, sci-fi sitcom toon (cartoon-film); risograph (print-paper-craft); pixel art, microgame (games-toys); poster color-block (directions) |
 | Professionals and B2B | dark tech keynote, living screencast (screen-tech-3d); briefing board, iso infographic (evidence-data); editorial light (directions) |
 | Developers | ASCII CRT, living screencast (screen-tech-3d); blueprint (drawing-line); t1 continuous derivation (narration-grammars-1); brutalist mono (directions) |
@@ -88,10 +89,10 @@ Holds the style catalogs. A workflow (ice-film, ice-explainer, ice-remake, ice-e
 
 | Industry | Candidates |
 |---|---|
-| SaaS, developer tools | dark tech keynote, living screencast, ASCII CRT (screen-tech-3d); flat vector (graphic-design); blueprint (drawing-line) |
+| SaaS, developer tools | dark tech keynote, living screencast, ASCII CRT (screen-tech-3d); blueprint (drawing-line); flat vector (designer Lottie or vectorized art, by parts) (graphic-design) |
 | AI products | living screencast (screen-tech-3d); t1 derivation (narration-grammars-1); one-line drawing (drawing-line); grainy gradient (directions, only with brand colours) |
 | Fintech and finance | data physicalization, data storytelling (evidence-data); Swiss motion (graphic-design); engraving (print-paper-craft); flat pop with photos (directions) |
-| E-commerce and delivery | flat vector, isometric (graphic-design); cut paper (print-paper-craft); continuous action explainer look (directions); tilt-shift miniature (games-toys) |
+| E-commerce and delivery | continuous action explainer look, flat pop with photos (directions); tilt-shift miniature (games-toys); 3D render CGI (screen-tech-3d); cut paper (print-paper-craft); isometric in lit 3D, flat vector (designer Lottie or vectorized art, by parts) (graphic-design) |
 | Food and drink | watercolour (paint-wash); rubber hose (cartoon-film); collage (print-paper-craft); impasto oil (paint-wash); paper and print (directions) |
 | Health and medical | microscope (evidence-data); stipple (drawing-line); y1 flat science world (narration-grammars-1); pencil and watercolour (paint-wash) |
 | Education | whiteboard, chalkboard (drawing-line); y3 whiteboard, y1 (narration-grammars-1); iso infographic (evidence-data); crayon (drawing-line) |

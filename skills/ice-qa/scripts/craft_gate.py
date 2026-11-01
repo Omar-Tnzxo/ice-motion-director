@@ -11,7 +11,9 @@
 # validates the exemption rows. 2026-10-29 (0.2.6, package G2): measure reads depth from pixels (dense optical flow,
 # planes, parallax ratio, push-throughs) and writes <video>.depth.json in the depth gate's format, and measures the glow
 # radius around light text; build adds finishing per shot against the finish row, the grade per source class, the
-# fixed marks and the speaker (recede windows, voice activity from the audio). See NOTICE.md.
+# fixed marks and the speaker (recede windows, voice activity from the audio). See NOTICE.md. 2026-11-01 (0.2.19):
+# measure adds "pictures" (moving pictures: flat drawn imagery moved whole), build turns it red or yellow, never
+# lifted, and plan checks the craft plan's "imagery" entry (the ice-motion skill, references/picture-methods.md).
 """craft_gate.py: the craft gate. Checks that the craft plan (ice/plan/craft-plan.json) is complete and honest,
 measures craft on the pixels of any video, and checks that every planned craft reached the render.
 
@@ -52,7 +54,12 @@ ice/state.json (route, subtype, current stage). Red when:
     tolerance; a stage other than 04, 05 or 07; or a row the gates would ignore: a lift of a never-lifted class, no
     source (kind user, reference, style or content, and a ref), a content row written at 07, or a source kind its
     rule id does not take (user, reference or style for the richness and coverage floors, the art counts, look G2
-    and G3 and every story check; only user for frame:flash).
+    and G3 and every story check; only user for frame:flash); a row that lifts film:moving_pictures (never lifted);
+  - the top-level "imagery" entry ({"source": real, footage, lottie, ai, 3d, code-drawn or mixed, "reason",
+    "source_kind", "source_ref"}; the ice-motion skill, references/picture-methods.md items 3 and 6): missing, yellow at
+    05 and 06 and red from 07; from 05, a source outside the list, or code-drawn or mixed imagery without a reason, a
+    source_kind of user, reference or style and a source_ref. Before 05 these are yellow (go and look); a plan
+    with yellows only still passes.
 
 measure (numpy and opencv): pixel measures of any video, a reference or a render, written as JSON.
   camera   A similarity transform between consecutive samples (every 0.1 s, 320 px wide grey; tracked corners,
@@ -95,6 +102,18 @@ measure (numpy and opencv): pixel measures of any video, a reference or a render
            of the ice-qa skill, references/motion-density.md section 8 (read by motion_check.py): the measured keys
            camera_moving_share, layers, parallax_ratio, push_through and push_through_near are rewritten from pixels; elements_3d, dof and
            triggers are kept from the file when it exists (written from the plan or by hand), else written empty.
+  pictures Moving pictures: imagery drawn as flat fills and moved whole like sliding stills (the ice-motion skill,
+           references/picture-methods.md items 4 and 5). A second pass at 12 fps, 480 px wide grey (ffmpeg's grey plane),
+           split into shots where the mean change passes 40 levels or the luma correlation falls under 0.5; 1 s windows
+           (12 samples, a new one every 0.5 s) inside a shot. Per window: corners tracked with pyramidal LK, kept when
+           the forward-backward error is under 1 px; the camera is one similarity first to last sample, taken when its
+           inliers are half the tracks and span half the frame both ways; element tracks move more than 2 px against
+           it. Rigid: sequential RANSAC affine layers on the element tracks, a member counts when it sits within 1 px of
+           its layer's least-squares affine in every sample. Flat: the track's 15 px patch, leaving out edges (Sobel 40
+           or more), has a mean |I - median3(I)| under 1.0 grey level (drawn fills, not photo, footage, render, grain
+           or paint). share = rigid and flat over element tracks, rigid and flat alone, each weighted by element
+           tracks over the windows with element motion (10 tracks or more); per_shot the same per measured shot.
+           Under 5 such windows: not measured.
 
 build (numpy and opencv; stages 07 and 09). Runs measure on the render, then red when:
   faces    a text or card box touches the mouth and chin band (the lower 35 percent of the face box) or the eye band
@@ -170,6 +189,9 @@ build (numpy and opencv; stages 07 and 09). Runs measure on the render, then red
            while silent, dimmed over 15 percent; a silhouette (luma at most 35 percent of the median) anywhere, except
            the news reel cold open before the first word (the ice-edit skill, references/layers-and-isolation.md
            section 5, the one home of the rule).
+  pictures the moving-pictures share of measure: red at 0.58 or more, yellow from 0.52 and when not measured (a yellow
+           is printed, never a red). Never lifted: no exemption row is read for film:moving_pictures (treatment.md
+           11.7), and a row that names it is printed as ignored.
   Writes ice/review/craft-gate.json and <render>.depth.json beside the render (the depth section of measure).
 
 Exit codes: 0 pass; 2 red; 1 unreadable input (no project, a bad JSON file, an unreadable video, ffmpeg or a pinned
@@ -695,7 +717,8 @@ def check_plan(project):
         raise Unreadable(f"project not found: {project}")
     ice = find_ice(project)
     res = {"tool": "craft_gate.py plan", "version": VERSION, "project": str(project), "plan": None, "route": None,
-           "subtype": None, "stage": None, "rows": [], "exemptions": [], "reds": [], "notes": [], "verdict": "red"}
+           "subtype": None, "stage": None, "rows": [], "exemptions": [], "imagery": None, "reds": [], "yellows": [],
+           "notes": [], "verdict": "red"}
     if ice is None:
         res["reds"].append(f"no ice/ folder found from {project}, so no ice/plan/craft-plan.json: write the craft plan "
                            "(the ice-direction skill, references/treatment.md section \"Craft plan\")")
@@ -806,6 +829,9 @@ def check_plan(project):
             _row_entry(res, "camera")["problems"].append(
                 f"idle_max_s is {json.dumps(v)}: write the longest idle run allowed in a take as a positive number of "
                 "seconds, or leave the key out")
+    res["imagery"] = check_imagery(plan.get("imagery"), "imagery" in plan, stage)
+    reds += [f"imagery: {p}" for p in res["imagery"]["reds"]]
+    res["yellows"] += [f"imagery: {p}" for p in res["imagery"]["yellows"]]
     for entry in res["rows"]:
         reds += [f"{entry['dimension']}: {p}" for p in entry["problems"]]
     res["exemptions"] = check_exemptions(plan)
@@ -813,6 +839,49 @@ def check_plan(project):
         reds += [f"{x['label']}: {p}" for p in x["problems"]]
     res["verdict"] = "red" if reds else "pass"
     return res
+
+
+IMAGERY_SOURCES = ("real", "footage", "lottie", "ai", "3d", "code-drawn", "mixed")
+IMAGERY_KINDS = ("user", "reference", "style")
+
+
+def check_imagery(entry, present, stage):
+    """The craft plan's top-level "imagery" entry (treatment.md 11.2; the ice-motion skill, references/picture-methods.md
+    items 3 and 6). Missing: yellow at 05 and 06, red from 07. From 05 a malformed entry is red, and code-drawn or mixed
+    imagery is red without a reason and a source_kind of user, reference or style with its source_ref. Before 05 the
+    same problems are notes. -> {"source", "reds", "yellows"}."""
+    out = {"source": None, "reds": [], "yellows": []}
+    gate = stage is not None and stage >= 5
+    def problem(text):
+        (out["reds"] if gate else out["yellows"]).append(text if gate else f"{text} (red from stage 05)")
+    if not present or entry is None:
+        if stage is not None and stage >= 7:
+            out["reds"].append("no \"imagery\" entry: name where the imagery comes from (real, footage, lottie, ai, 3d, "
+                               "code-drawn or mixed) with its reason (picture-methods.md item 3)")
+        elif gate:
+            out["yellows"].append("no \"imagery\" entry yet: write it at 05 (it is red from 07)")
+        return out
+    if not isinstance(entry, dict):
+        problem("\"imagery\" is not an object {source, reason, source_kind, source_ref}")
+        return out
+    source = str(entry.get("source", "")).strip().lower()
+    out["source"] = source or None
+    if source not in IMAGERY_SOURCES:
+        problem(f"source {json.dumps(entry.get('source'))} is not one of {', '.join(IMAGERY_SOURCES)}")
+        return out
+    if source in ("code-drawn", "mixed"):
+        kind = str(entry.get("source_kind", "")).strip().lower()
+        missing = []
+        if not text_of(entry.get("reason")).strip():
+            missing.append("a reason")
+        if kind not in IMAGERY_KINDS:
+            missing.append(f"a source_kind of user, reference or style (got {json.dumps(entry.get('source_kind'))})")
+        if not text_of(entry.get("source_ref")).strip():
+            missing.append("a source_ref (the user's quoted words, the reference file or the style's catalog line)")
+        if missing:
+            problem(f"{source} imagery needs {', '.join(missing)}: hand-coded drawing as the main imagery is allowed only "
+                    "when the user, the reference or a style the user chose asks for it (picture-methods.md item 6)")
+    return out
 
 
 RULE_GATES = ("lint", "story", "film", "art", "look", "seam", "plan", "contract", "slop", "frame")
@@ -871,6 +940,8 @@ def check_exemptions(plan):
                 bad("\"amount.tolerance\" is not a number of 0 or more")
         if stage_number(row.get("stage")) not in (4, 5, 7):
             bad(f"stage {json.dumps(row.get('stage'))} is not 04, 05 or 07")
+        if lifts_pictures(row):
+            bad(f"lifts {PIC_RULE}, which is never lifted (moving pictures, treatment.md 11.7); the gates ignore it")
         if exemption_issues is None:
             bad("cannot be checked against the source rules: storyboard_lint.py next to this script cannot be imported")
             continue
@@ -899,9 +970,15 @@ def plan_report(res):
     if res.get("exemptions"):
         L.append("  exemption rows: " + ", ".join(f"{x['id'] or x['label']} {'RED' if x['problems'] else 'ok'}"
                                                   for x in res["exemptions"]))
+    if res.get("imagery"):
+        L.append(f"  imagery: {res['imagery']['source'] or 'none'} "
+                 + ("RED" if res["imagery"]["reds"] else "YELLOW" if res["imagery"]["yellows"] else "ok"))
     if res["reds"]:
         L.append("Reds:")
         L += [f"  - {r}" for r in res["reds"]]
+    if res.get("yellows"):
+        L.append("Yellows:")
+        L += [f"  - {r}" for r in res["yellows"]]
     if res["notes"]:
         L.append("Notes:")
         L += [f"  - {n}" for n in res["notes"]]
@@ -932,11 +1009,11 @@ def even(v):
     return max(2, int(round(v / 2)) * 2)
 
 
-def stream_frames(path, fps, width, height):
-    """Yield RGB frames decoded by ffmpeg at fps, scaled to width x height, one at a time."""
-    size = width * height * 3
-    cmd = ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps={fps:.6g},scale={width}:{height}:flags=area",
-           "-pix_fmt", "rgb24", "-f", "rawvideo", "-"]
+def stream_frames(path, fps, width, height, grey=False):
+    """Yield RGB frames (grey=True: ffmpeg's grey plane) decoded by ffmpeg at fps, scaled to width x height, one at a time."""
+    size = width * height * (1 if grey else 3)
+    cmd = ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps={fps:.6g},scale={width}:{height}:flags=area"
+           + (",format=gray" if grey else ""), "-pix_fmt", "gray" if grey else "rgb24", "-f", "rawvideo", "-"]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     count = 0
     try:
@@ -945,7 +1022,7 @@ def stream_frames(path, fps, width, height):
             if len(buf) < size:
                 break
             count += 1
-            yield np.frombuffer(buf, np.uint8).reshape(height, width, 3)
+            yield np.frombuffer(buf, np.uint8).reshape((height, width) if grey else (height, width, 3))
     finally:
         proc.stdout.close()
         err = proc.stderr.read().decode("utf-8", "replace")
@@ -1612,6 +1689,161 @@ def write_depth_file(m, path):
 
 
 # ---------------------------------------------------------------- measure
+# ---------------------------------------------------------------- moving pictures
+# Imagery drawn as flat fills and moved whole like sliding stills (the ice-motion skill, references/picture-methods.md
+# items 4 and 5). Calibrated 2026-11-01 on eight films and five synthetic clips: every expected fail measured 0.66 or
+# more, every expected pass 0.475 or less (release 0.2.19 plan, section 5). Never lifted (treatment.md 11.7).
+PIC_FPS, PIC_WIDTH = 12, 480     # samples per second and analysis width (ffmpeg grey plane, area scaling)
+PIC_WIN, PIC_STEP = 12, 6        # a window is 1 s (12 samples), windows start every 0.5 s, all inside one shot
+PIC_FB_PX = 1.0                  # forward-backward error of a kept track
+PIC_ELEMENT_PX = 2.0             # an element track moves more than this relative to the camera over the window
+PIC_RIGID_PX = 1.0               # a rigid member fits its layer's affine within this in every sample
+PIC_FLAT = 1.0                   # flat: mean |I - median3(I)| of the 15 px patch away from edges under this grey level
+PIC_EDGE = 40.0                  # Sobel magnitude at or over this is an edge, left out of the patch
+PIC_RED, PIC_YELLOW = 0.58, 0.52
+PIC_MIN_WINDOWS = 5              # fewer windows with element motion: not measured (yellow)
+PIC_RULE = "film:moving_pictures"
+PIC_LK = None
+
+
+def pictures_cut(a, b):
+    """The window splitter's cut test: a mean change over 40 grey levels or a luma correlation under 0.5."""
+    a = a.astype(np.float32)
+    b = b.astype(np.float32)
+    if np.abs(a - b).mean() > 40:
+        return True
+    c = np.corrcoef(a.ravel()[::7], b.ravel()[::7])[0, 1]
+    return (not np.isfinite(c)) or c < 0.5
+
+
+def pictures_window(fr):
+    """One 1 s window of grey samples -> {"elements", "rigid", "flat", "picture"}, {"elements": 0}, or None (too few
+    tracks)."""
+    global PIC_LK
+    if PIC_LK is None:
+        PIC_LK = dict(winSize=(21, 21), maxLevel=3, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01))
+    f0 = fr[0]
+    h, w = f0.shape
+    pts = cv2.goodFeaturesToTrack(f0, 800, 0.005, 5)
+    if pts is None or len(pts) < 20:
+        return None
+    P = [pts.reshape(-1, 2)]
+    alive = np.ones(len(pts), bool)
+    cur = pts
+    for k in range(1, len(fr)):
+        nxt, st, _ = cv2.calcOpticalFlowPyrLK(fr[k - 1], fr[k], cur, None, **PIC_LK)
+        alive &= st.ravel() == 1
+        P.append(nxt.reshape(-1, 2))
+        cur = nxt
+    back = P[-1].reshape(-1, 1, 2).astype(np.float32)
+    for k in range(len(fr) - 1, 0, -1):
+        back, st, _ = cv2.calcOpticalFlowPyrLK(fr[k], fr[k - 1], back, None, **PIC_LK)
+        alive &= st.ravel() == 1
+    alive &= np.linalg.norm(back.reshape(-1, 2) - P[0], axis=1) < PIC_FB_PX
+    P = np.stack(P, 0)[:, alive]                     # (samples, tracks, 2)
+    if P.shape[1] < 20:
+        return None
+    P = np.ascontiguousarray(P, np.float32)
+    p0, pn = np.ascontiguousarray(P[0]), np.ascontiguousarray(P[-1])
+    cam = None                                       # the camera: one similarity over half the tracks and half the frame
+    M, inl = cv2.estimateAffinePartial2D(p0, pn, method=cv2.RANSAC, ransacReprojThreshold=1.0)
+    if M is not None:
+        inl = inl.ravel().astype(bool)
+        q = p0[inl]
+        if inl.mean() >= 0.5 and np.ptp(q[:, 0]) >= 0.5 * w and np.ptp(q[:, 1]) >= 0.5 * h:
+            cam = M
+    if cam is None:
+        cam = np.array([[1, 0, 0], [0, 1, 0]], np.float64)
+    pred = p0 @ cam[:, :2].T + cam[:, 2]
+    el = np.nonzero(np.linalg.norm(pn - pred, axis=1) > PIC_ELEMENT_PX)[0]
+    if len(el) < 10:
+        return {"elements": 0}
+    rigid = np.zeros(len(el), bool)                  # sequential RANSAC affine layers, each member checked per sample
+    rem = np.ones(len(el), bool)
+    for _ in range(10):
+        idx = np.nonzero(rem)[0]
+        if len(idx) < 4:
+            break
+        M, inl = cv2.estimateAffine2D(np.ascontiguousarray(P[0, el[idx]]), np.ascontiguousarray(P[-1, el[idx]]),
+                                      method=cv2.RANSAC, ransacReprojThreshold=1.0)
+        if M is None:
+            break
+        inl = inl.ravel().astype(bool)
+        if inl.sum() < 4:
+            break
+        mem = idx[inl]
+        ok = np.ones(len(mem), bool)
+        A = np.c_[P[0, el[mem]], np.ones(len(mem))]
+        for k in range(1, P.shape[0]):
+            sol, *_ = np.linalg.lstsq(A, P[k, el[mem]], rcond=None)
+            ok &= np.linalg.norm(A @ sol - P[k, el[mem]], axis=1) < PIC_RIGID_PX
+        rigid[mem[ok]] = True
+        rem[mem] = False
+    hf = np.abs(f0.astype(np.float32) - cv2.medianBlur(f0, 3).astype(np.float32))   # fine texture, away from edges
+    g = np.hypot(cv2.Sobel(f0, cv2.CV_32F, 1, 0), cv2.Sobel(f0, cv2.CV_32F, 0, 1))
+    hf = np.where(g < PIC_EDGE, hf, np.nan).astype(np.float32)
+    flat = np.zeros(len(el), bool)
+    for i, j in enumerate(el):
+        x, y = int(round(P[0, j, 0])), int(round(P[0, j, 1]))
+        patch = hf[max(0, y - 7):y + 8, max(0, x - 7):x + 8]
+        fin = np.isfinite(patch)
+        flat[i] = (float(patch[fin].mean()) if fin.any() else 0.0) < PIC_FLAT
+    return {"elements": int(len(el)), "rigid": float(rigid.mean()), "flat": float(flat.mean()),
+            "picture": float((rigid & flat).mean())}
+
+
+def measure_pictures(path, W, H, shots=()):
+    """The moving-pictures measure: 1 s windows inside shots, weighted by element tracks. -> the "pictures" dict.
+    Samples are kept only while a window still needs them, so memory stays at about one window."""
+    ph = even(PIC_WIDTH * H / W)
+    rows = []                                        # (window start in s, window result)
+    state = {"buf": [], "base": 0, "start": 0, "t0": 0.0}
+
+    def run():
+        """Run every window that fits in the shot's samples, then drop the samples no later window needs."""
+        buf, base = state["buf"], state["base"]
+        while state["start"] + PIC_WIN <= base + len(buf):
+            s = state["start"] - base
+            try:
+                r = pictures_window(buf[s:s + PIC_WIN])
+            except cv2.error:                       # a degenerate point set: the window is skipped
+                r = None
+            if r and r["elements"]:
+                rows.append((state["t0"] + state["start"] / PIC_FPS, r))
+            state["start"] += PIC_STEP
+        if state["start"] > base:
+            state["buf"], state["base"] = buf[state["start"] - base:], state["start"]
+
+    prev, n = None, 0
+    for n, f in enumerate(stream_frames(path, PIC_FPS, PIC_WIDTH, ph, grey=True), 1):
+        if prev is not None and pictures_cut(prev, f):
+            state.update(buf=[], base=0, start=0, t0=(n - 1) / PIC_FPS)
+        state["buf"].append(f)
+        prev = f
+        run()
+    E = np.array([r["elements"] for _, r in rows], float)
+
+    def wm(key, keep=None):
+        k = [j for j in range(len(rows)) if keep is None or keep(j)]
+        if not k:
+            return None
+        return round(float((np.array([rows[j][1][key] for j in k]) * E[k]).sum() / E[k].sum()), 3)
+
+    per_shot = []
+    for s in shots:
+        inside = lambda j, s=s: s["start"] <= rows[j][0] + (PIC_WIN - 1) / (2 * PIC_FPS) < s["end"]
+        per_shot.append({"id": s["id"], "start": s["start"], "end": s["end"],
+                         "windows": sum(1 for j in range(len(rows)) if inside(j)),
+                         "share": wm("picture", inside), "rigid": wm("rigid", inside), "flat": wm("flat", inside)})
+    measured = len(rows) >= PIC_MIN_WINDOWS
+    return {"share": wm("picture"), "rigid": wm("rigid"), "flat": wm("flat"), "windows": len(rows),
+            "element_tracks": int(E.sum()), "samples": n, "measured": measured,
+            "not_measured": None if measured else f"{len(rows)} window(s) with element motion, under {PIC_MIN_WINDOWS}",
+            "per_shot": per_shot,
+            "settings": {"fps": PIC_FPS, "width": PIC_WIDTH, "window_s": PIC_WIN / PIC_FPS, "step_s": PIC_STEP / PIC_FPS,
+                         "flat_below": PIC_FLAT, "red_from": PIC_RED, "yellow_from": PIC_YELLOW}}
+
+
 def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, declared_cuts=(), text_lookup=None,
             probe_hook=None):
     """Pixel measures of one video. face_lookup(t) -> boxes replaces face detection (build --faces); declared_cuts are
@@ -1705,6 +1937,7 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
     cuts_s = [round((int(k) + 1) * every, 3) for k in np.where(first_cut)[0]]
     camera_share = round(float(covered[not_cut].mean()), 3) if not_cut.any() else 0.0
     depth = depth_summary(pairs, shots, cuts_s, camera_share, every)
+    pictures = measure_pictures(path, W, H, shots)
     return {
         "tool": "craft_gate.py measure", "version": VERSION, "file": str(path),
         "video": {"width": W, "height": H, "duration_s": round(dur, 3), "fps": round(fps, 3)},
@@ -1720,6 +1953,7 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
         },
         "flashes": flashes,
         "depth": depth,
+        "pictures": pictures,
         "shots": shots,
         "detail": detail,
         "summary": {
@@ -1740,6 +1974,7 @@ def measure(path, every=0.1, width=320, want_text=False, face_lookup=None, decla
             "halftone_ratio": median_or_none([f["halftone_ratio"] for f in all_fin], 1),
             "halftone_period_px": median_or_none([f["halftone_period_px"] for f in all_fin], 2),
             "ca_px": median_or_none([f["ca_px"] for f in all_fin], 2),
+            "pictures": pictures["share"] if pictures["measured"] else None,
         },
     }
 
@@ -1754,7 +1989,21 @@ def measure_lines(m):
             f"  flashes: max {s['max_flashes_per_s']} in any 1 s; faces on {s['face_sample_share']} of samples, focus ratio "
             f"{s['focus_ratio']}",
             f"  finish: grain {s['grain']}, vignette {s['vignette']}, black {s['black_point']}, white {s['white_point']}, "
-            f"saturation {s['saturation']}, glow {s['glow_px']} px"]
+            f"saturation {s['saturation']}, glow {s['glow_px']} px",
+            "  " + pictures_line(m["pictures"])]
+
+
+def pictures_light(p):
+    """green, yellow or red for the moving-pictures share (not measured is yellow)."""
+    if not p["measured"]:
+        return "yellow"
+    return "red" if p["share"] >= PIC_RED else "yellow" if p["share"] >= PIC_YELLOW else "green"
+
+
+def pictures_line(p):
+    head = (f"moving pictures: share {p['share']} (rigid {p['rigid']}, flat {p['flat']}) over {p['windows']} window(s); "
+            f"red from {PIC_RED}, yellow from {PIC_YELLOW}")
+    return head + (f"; not measured: {p['not_measured']}" if not p["measured"] else "")
 
 
 # ---------------------------------------------------------------- build check
@@ -2907,6 +3156,35 @@ def check_speaker(probe, m, plan, files, route, subtype, voice, voice_from, edl=
     return res
 
 
+def lifts_pictures(row):
+    """True when an exemption row names film:moving_pictures (never lifted)."""
+    lifts = row.get("lifts") if isinstance(row, dict) else None
+    return isinstance(lifts, list) and any(re.sub(r"\s+", "", str(x)).lower() == PIC_RULE for x in lifts)
+
+
+def check_pictures(p, plan):
+    """The moving-pictures check: red at PIC_RED or more, yellow from PIC_YELLOW and when not measured. Never lifted:
+    no exemption row is read for it (treatment.md 11.7)."""
+    light = pictures_light(p)
+    items, yellows, notes = [], [], []
+    if light == "red":
+        items.append(f"{p['share']} of the element motion is flat drawn imagery moved whole like a sliding picture "
+                     f"(red from {PIC_RED}): move imagery by its parts, light and camera, and take it from the imagery "
+                     "ladder (the ice-motion skill, references/picture-methods.md items 3 to 5)")
+        worst = sorted((s for s in p["per_shot"] if s["share"] is not None and s["share"] >= PIC_YELLOW),
+                       key=lambda s: -s["share"])[:6]
+        if worst:
+            items.append("shots: " + ", ".join(f"{s['id']} {s['start']:g}-{s['end']:g} s ({s['share']})" for s in worst))
+    elif light == "yellow":
+        yellows.append(f"not measured ({p['not_measured']}): judge by eye whether imagery slides as whole pictures "
+                       "(picture-methods.md item 5)" if not p["measured"] else
+                       f"{p['share']} of the element motion is flat imagery moved whole (yellow from {PIC_YELLOW}, red "
+                       f"from {PIC_RED}): look at it against picture-methods.md item 5")
+    if any(lifts_pictures(x) for x in (plan or {}).get("exemptions") or []):
+        notes.append(f"an exemption row lifts {PIC_RULE}: ignored, it is never lifted (treatment.md 11.7)")
+    return {"ok": light != "red", "light": light, "items": items, "yellows": yellows, "notes": notes}
+
+
 def run_build(args):
     load_cv()
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -2965,14 +3243,16 @@ def run_build(args):
               "marks": check_marks(marks, mark_problems, m["settings"]["face_every_s"]),
               "speaker": check_speaker(face_probe, m, plan, files, route, subtype, voice,
                                        f"--voice {args.voice}" if args.voice else "the render's audio", edl, edl_from)}
+    checks["pictures"] = check_pictures(m["pictures"], plan)
     evidence = check_evidence(plan, m, files, lint, boxes is not None and any(s["boxes"] for s in boxes))
     depth_path, depth_why = write_depth_file(m, render.with_suffix(".depth.json"))
     reds = []
     if plan is None:
         reds.append("craft plan: ice/plan/craft-plan.json is missing or unreadable, so no use row can be checked "
                     "(run craft_gate.py plan first)")
-    for name in ("faces", "flashes", "camera", "finishing", "grade", "marks", "speaker"):
+    for name in ("faces", "flashes", "camera", "finishing", "grade", "marks", "speaker", "pictures"):
         reds += [f"{name}: {x}" for x in checks[name]["items"]]
+    yellows = [f"pictures: {x}" for x in checks["pictures"]["yellows"]]
     reds += [f"evidence {e['dimension']}: {e['evidence']}" for e in evidence if not e["ok"]]
     depth = {k: m["depth"][k] for k in DEPTH_KEYS + ("moving_pairs", "pairs", "screen_share", "shots")}
     report = {"tool": "craft_gate.py build", "version": VERSION, "render": str(render), "plan": str(plan_path) if plan_path else None,
@@ -2981,7 +3261,8 @@ def run_build(args):
               "shots": [{k: s[k] for k in ("id", "start", "end", "moving_share", "longest_idle_s", "finish", "focus_ratio",
                                            "layers", "parallax_ratio", "push_through")}
                         for s in m["shots"]],
-              "moves": m["camera"]["moves"], "reds": reds, "verdict": "red" if reds else "pass"}
+              "pictures": m["pictures"], "moves": m["camera"]["moves"], "reds": reds, "yellows": yellows,
+              "verdict": "red" if reds else "pass"}
     out_dir = (ice if ice else project / "ice") / "review"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "craft-gate.json").write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -3034,6 +3315,9 @@ def build_lines(r):
                                                     "changes)" if sp.get("baseline_source") else "")
                                                  if sp["ran"] else "not checked"))
     L += [f"         - {x}" for x in sp["items"]] + [f"         note: {x}" for x in sp["notes"]]
+    pc = c["pictures"]
+    L.append(f"  {dict(green='[PASS]', yellow='[YELLOW]', red='[RED] ')[pc['light']]} " + pictures_line(r["pictures"]))
+    L += [f"         - {x}" for x in pc["items"] + pc["yellows"]] + [f"         note: {x}" for x in pc["notes"]]
     d = r["depth"]
     L.append(f"  depth from pixels: layers {d['layers']}, parallax ratio {d['parallax_ratio']}, push-throughs "
              f"{d['push_through']}, camera moving share {d['camera_moving_share']}; "
@@ -3043,6 +3327,9 @@ def build_lines(r):
         L.append("  Evidence of every use row:")
         L += [f"  {light(e['ok'])} {e['dimension']}: {e['evidence']}" for e in r["evidence"]]
     L.append(f"  Written: {r['written']}")
+    if r.get("yellows"):
+        L.append("Yellows (go and look; not a red):")
+        L += [f"  - {x}" for x in r["yellows"]]
     L.append("Verdict: RED. Fix what is listed, render again and rerun this check." if r["verdict"] == "red"
              else "Verdict: PASS. The 09 critic still reads every use row against the frames.")
     return L

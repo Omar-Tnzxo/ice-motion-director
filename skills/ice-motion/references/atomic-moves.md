@@ -33,7 +33,7 @@ Small, reusable moves with their measured ranges. Glue 2-4 of them into one time
 | Gradient text sweep | span 200-400 percent; sweep 1.2-3 s linear; word lag 0.25-0.5 s; settle by crossfade | tweening gradient stops; keyframe shimmer loops |
 | Marker patterns | highlight, circle, burst (about 12 lines at 30 degrees), scribble, strike; cycle modes every 2-3 caption groups at high energy, 3-4 medium, 4-5 low | |
 | Ambient glow bloom | see `physics-and-morphing.md` section 6 and `composition-and-staging.md` section 6 | |
-| SVG icon enrichment | rotate parts about their own centre via the transform attribute; pulse 2-4 cycles per 3-5 s; dash flow offset an integer multiple of the dash period; phase-offset parts | wall-clock animation loops |
+| SVG icon enrichment (supplied, official or designer icons, animated by parts; `picture-methods.md`) | rotate parts about their own centre via the transform attribute; pulse 2-4 cycles per 3-5 s; dash flow offset an integer multiple of the dash period; phase-offset parts | wall-clock animation loops |
 | SVG path draw | see `physics-and-morphing.md` section 5 | |
 | AI tracking box | detection box recomputed per frame from the target, L-brackets not a full border, confidence flicker inside 95-99, size jitter 5-10 percent at a non-integer frequency multiple, rate under about 0.6 Hz, entry back.out 1.2-2.5 | tweening the box separately from its target |
 | Avatar cloud network | 8-12 avatars on an ellipse (ratio 1.5-3), 80-120 px; hub 0.4-0.6 s; avatar stagger 0.06-0.10 s; lines draw outward 0.4-0.7 s; climax dwell at least 1 s | a centre that does not match the hub's real centre |

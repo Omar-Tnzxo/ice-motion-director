@@ -31,6 +31,12 @@
 //     shadow   a drop shadow (CSS filter or box-shadow, feDropShadow, an offset blur), a shape named      none FAIL
 //              shadow, or a dark translucent shape under the object's base; data-art-shadow="none:
 //              <reason>" turns the fail into a printed lead
+//     parts    between the sample times (two or more --times on a seekable page), the share of the group's  group
+//              parts whose transform or shape relative to the group changes. Parts: [data-art-part]   moves, no
+//              descendants, else the group's direct children. Group moved: its box shifts over 1 px  part moves
+//              or resizes over 1 %, or its SVG matrix turns or scales. N/A when the group stays put     FAIL
+//              or with one sample. Never lifted: no exemption row or "none:" applies (2026-11-01,
+//              0.2.19; the ice-motion skill, references/picture-methods.md item 5)
 //   data-art-tones, data-art-shading and data-art-shapes="none: <reason>" on the object turn those fails (and the shapes
 //   lead) into printed leads the same way (a flat-fill or few-shape style that declares it).
 //   Exemption rows: with ice/plan/craft-plan.json (found by walking up from the page, then the working folder), a measure
@@ -85,6 +91,30 @@ const PAGE_LIB = String.raw`(() => {
     for (const a of document.getAnimations ? document.getAnimations() : []) { try { a.pause(); a.currentTime = t * 1000; } catch (e) {} }
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     return 1;
+  };
+  // parts: each data-art-hero group's place on screen and each named part's transform relative to the group
+  window.__artParts = () => {
+    const SKIP = /^(defs|title|desc|style|metadata|script)$/i;
+    const hiddenEl = (e) => { for (let n = e; n && n.nodeType === 1; n = n.parentElement) { const s = getComputedStyle(n); if (s.display === 'none') return true; } return false; };
+    const isSvg = (e) => typeof SVGGraphicsElement !== 'undefined' && e instanceof SVGGraphicsElement;
+    const mat = (m) => (m ? [m.a, m.b, m.c, m.d, m.e, m.f] : null);
+    const rel = (p, g) => {
+      if (isSvg(p) && isSvg(g)) {
+        const gm = g.getScreenCTM(), pm = p.getScreenCTM();
+        if (gm && pm) { let bb = { x: 0, y: 0, width: 0, height: 0 }; try { bb = p.getBBox(); } catch (e) {}
+          return { kind: 'svg', m: mat(gm.inverse().multiply(pm)), bb: [bb.x, bb.y, bb.width, bb.height] }; }
+      }
+      const gr = g.getBoundingClientRect(), pr = p.getBoundingClientRect(), gw = gr.width || 1, gh = gr.height || 1;
+      return { kind: 'box', bb: [(pr.left - gr.left) / gw * 100, (pr.top - gr.top) / gh * 100, pr.width / gw * 100, pr.height / gh * 100] };
+    };
+    return [...document.querySelectorAll('[data-art-hero]')].filter((g) => !hiddenEl(g)).map((g) => {
+      const named = [...g.querySelectorAll('[data-art-part]')].filter((p) => p.closest('[data-art-hero]') === g);
+      const parts = named.length ? named : [...g.children].filter((c) => !SKIP.test(c.tagName));
+      const r = g.getBoundingClientRect();
+      return { name: g.getAttribute('data-art-hero') || g.id || 'hero', named: named.length > 0,
+        group: { box: [r.left, r.top, r.width, r.height], m: isSvg(g) && g.getScreenCTM() ? mat(g.getScreenCTM()) : null },
+        parts: parts.map((p, i) => ({ name: p.getAttribute('data-art-part') || p.id || p.tagName.toLowerCase() + '#' + (i + 1), ...rel(p, g) })) };
+    });
   };
   window.__artScan = () => {
     const W = innerWidth, H = innerHeight, cs = (e) => getComputedStyle(e);
@@ -233,16 +263,43 @@ function verdict(o) {
   const opt = (key, found, none, what) => found.length ? [key, 'PASS', found.join(', '), none, null] : [key, 'FAIL', `none: no ${what}`, none, null];
   m.push(opt('texture', o.texture, o.textureNone, 'pattern, noise filter or texture layer over the object'));
   m.push(opt('shadow', o.shadow, o.shadowNone, 'cast, contact or drop shadow'));
+  if (o.parts) m.push(['parts', o.parts.status, o.parts.note, '', null]);
   // a fail or lead: an exemption row art:<measure> covering the object's sample time (counts as floors) passes it as
-  // EXEMPT; else a declared "none: <reason>" on the object turns it into a printed lead
+  // EXEMPT; else a declared "none: <reason>" on the object turns it into a printed lead. parts is never lifted (the
+  // motion bar holds with no exemption: the ice-motion skill, references/picture-methods.md items 5 and 6)
   for (const x of m) {
-    if (x[1] === 'PASS') continue;
+    if (x[1] === 'PASS' || x[1] === 'N/A' || x[0] === 'parts') continue;
     const row = exemptionFor(PLAN.plan, 'art:' + x[0], { t: o.t ?? null, value: x[4] });
     if (row) { x[2] += '; ' + exemptLine('art:' + x[0], row); x[1] = 'EXEMPT'; }
     else if (NONE.test(x[3] || '')) { x[2] = (x[1] === 'FAIL' && (x[0] === 'texture' || x[0] === 'shadow') ? '' : x[2] + '; ') + `declared ${x[3]} (printed lead)`; x[1] = 'WARN'; }
   }
   const status = m.some((x) => x[1] === 'FAIL') ? 'FAIL' : m.some((x) => x[1] === 'WARN') ? 'WARN' : 'PASS';
   return { ...o, status, measures: Object.fromEntries(m.map(([k, s, note]) => [k, { status: s, note }])) };
+}
+
+// parts: between the sample times, the share of a hero group's parts whose transform (or shape) relative to the group
+// changes; the group moving on screen while no part moves is a still picture slid whole (pre-render-lint.md 4b)
+const P = { groupPx: 1, groupScale: 0.01, linear: 0.005, shift: 0.5, boxPct: 0.5 };
+const differs = (a, b, lim) => a.some((v, i) => Math.abs(v - b[i]) > lim);
+function partsMeasure(samples) {
+  const s = (samples || []).filter((x) => x.t !== null);
+  if (s.length < 2) return { status: 'N/A', note: 'one sample: give two or more --times on a seekable page to see parts move', share: null };
+  const g0 = s[0].group;
+  const groupMoves = s.some(({ group: g }) => Math.hypot(g.box[0] + g.box[2] / 2 - g0.box[0] - g0.box[2] / 2, g.box[1] + g.box[3] / 2 - g0.box[1] - g0.box[3] / 2) > P.groupPx
+    || Math.abs(g.box[2] - g0.box[2]) > P.groupScale * Math.max(1, g0.box[2]) || Math.abs(g.box[3] - g0.box[3]) > P.groupScale * Math.max(1, g0.box[3])
+    || (g.m && g0.m && differs(g.m.slice(0, 4), g0.m.slice(0, 4), P.linear)));
+  const names = s[0].parts.map((p) => p.name);
+  const moved = names.filter((n, i) => s.slice(1).some((x) => {
+    const a = s[0].parts[i], b = x.parts.find((p) => p.name === n) || x.parts[i];
+    if (!b || a.kind !== b.kind) return true;
+    if (a.kind === 'svg') return differs(a.m.slice(0, 4), b.m.slice(0, 4), P.linear) || differs(a.m.slice(4), b.m.slice(4), P.shift) || differs(a.bb, b.bb, P.shift);
+    return differs(a.bb, b.bb, P.boxPct);
+  }));
+  const share = names.length ? +(moved.length / names.length).toFixed(3) : 0;
+  const what = `${moved.length} of ${names.length} ${s[0].named ? 'named ' : ''}part(s) move against the group between t=${s.map((x) => x.t).join(', ')}`;
+  if (!groupMoves) return { status: 'N/A', note: `the group does not move on screen; ${what}`, share };
+  if (!moved.length) return { status: 'FAIL', note: `moves as one picture: the group moves while ${what}` + (s[0].named ? '' : ' (mark parts with data-art-part)') + '; give parts secondary motion, overlap, shape change or light (ice-motion picture-methods.md item 5)', share };
+  return { status: 'PASS', note: `share ${share}: ${what} (${moved.slice(0, 6).join(', ')})`, share };
 }
 
 let br, exitCode = 0;
@@ -257,15 +314,19 @@ let br, exitCode = 0;
   W = W || Math.round(info.width) || 1920; H = H || Math.round(info.height) || 1080;
   await page.setViewport(W, H, 1);
   const times = info.seek === 'none' ? [null] : userTimes || (info.duration > 0 ? [0.25, 0.5, 0.75].map((f) => +(f * info.duration).toFixed(2)) : [0]);
-  const best = new Map(); let drawn = 0, declared = ''; const skipped = new Set();
+  const best = new Map(); let drawn = 0, declared = ''; const skipped = new Set(); const partSamples = new Map();
   for (const t of times) {
     if (t !== null) await page.eval(`window.__artSeek(${t})`, { timeout: 40000 });
+    for (const h of JSON.parse(await page.eval('JSON.stringify(window.__artParts())', { timeout: 30000 }))) {
+      if (!partSamples.has(h.name)) partSamples.set(h.name, []);
+      partSamples.get(h.name).push({ t, ...h });
+    }
     const A = JSON.parse(await page.eval('JSON.stringify(window.__artScan())', { timeout: 30000 }));
     drawn = Math.max(drawn, A.drawn); declared = declared || A.declared; A.skipped.forEach((n) => skipped.add(n));
     for (const o of A.objects) { const prev = best.get(o.name); if (!prev || o.area > prev.area) best.set(o.name, { ...o, t }); }
   }
   await page.close();
-  const objects = [...best.values()].map(verdict);
+  const objects = [...best.values()].map((o) => verdict({ ...o, parts: partsMeasure(partSamples.get(o.name)) }));
   const none = /^none\s*:\s*\S/i.test(declared);
   const gate = !objects.length ? (drawn >= 12 && !none ? 'FAIL' : 'N/A') : objects.some((o) => o.status === 'FAIL') ? 'FAIL' : objects.some((o) => o.status === 'WARN') ? 'WARN' : 'PASS';
   const out = { file: path.resolve(src.replace(/^file:\/\//, '')), width: W, height: H, seek: info.seek, samples: times, thresholds: T, objects, skipped: [...skipped], gate };

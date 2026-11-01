@@ -1,6 +1,6 @@
 # Music choice, sourcing and licensing
 
-Read when the film needs music: before any cue sheet is final, before searching for a track, and before any AI-generated or opt-in code score. Sources: Barty-Bart/motion-graphics (sound-effects, MIT), echris6/motion-video-kit (MIT), alexgreensh/anidoodle (MIT), heygen-com/hyperframes (media-use, product-launch-video, Apache-2.0), claude-code-video-toolkit (MIT), video-production-studio and brand-identity-studio (founder), herk-edit-kit (MIT), browser-use/video-use (MIT), reelmimic (MIT), lemo-opuscar (MIT), plus ideas restated from hypit and noncommercial sources.
+Read when the film needs music: before any cue sheet is final, before searching for a track, and before any track is used. Music is never made by code or by AI (`ice-audio/SKILL.md` core rule 7). Sources: Barty-Bart/motion-graphics (sound-effects, MIT), echris6/motion-video-kit (MIT), alexgreensh/anidoodle (MIT), heygen-com/hyperframes (media-use, product-launch-video, Apache-2.0), claude-code-video-toolkit (MIT), video-production-studio and brand-identity-studio (founder), herk-edit-kit (MIT), browser-use/video-use (MIT), reelmimic (MIT), lemo-opuscar (MIT), plus ideas restated from hypit and noncommercial sources.
 
 ## 1. First decide whether the film has music at all
 
@@ -17,7 +17,7 @@ Listen to what the material already carries before adding sound (existing footag
 
 ## 2. Pick the source (owner decision, 2026-10-29: real tracks by default)
 
-Rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses.md` section 0): a reference's own track, the user's track or any available commercial track is a valid choice when the user wants it; its license status is recorded and listed in the delivery note, and a track that platform matching may mute or claim gets one information line there. The rows below are defaults for when the user did not name the music. Every default is a real track found down the music ladder (`ice-audio/SKILL.md` section 5), ranked by measurement and picked by ear through the options flow there. Music made by code is opt-in only (`ice-audio/SKILL.md` core rule 7): code scores were rejected as noise (pulses, banging, drones), and library catalogs cover synthetic styles too.
+Rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses.md` section 0): a reference's own track, the user's track or any available commercial track is a valid choice when the user wants it; its license status is recorded and listed in the delivery note, and a track that platform matching may mute or claim gets one information line there. The rows below are defaults for when the user did not name the music. Every default is a real track found down the music ladder (`ice-audio/SKILL.md` section 5), ranked by measurement and picked by ear through the options flow there. Music is never made by code, not even on request (`ice-audio/SKILL.md` core rule 7): code scores were rejected as noise (pulses, banging, drones), and library catalogs cover synthetic styles too.
 
 | Scope (film or edit type) | Default source | Why |
 |---|---|---|
@@ -28,7 +28,7 @@ Rights are the user's (the `ice-assets` skill, `references/sourcing-and-licenses
 | The user wants zero third-party assets | The user's own music; without it, no bed and the delivery note says "music needed" | Zero third-party assets is not a request for music made by code. |
 | A music brand: the brand's product is music (a streaming service, a label, an artist, a radio station, a music app) | Default: a real library track, with the catalog inside captured screens shown as the brand's published demo content or neutral placeholders (the `ice-assets` skill, third-party content inside a brand's screens). A catalog track when the user asks for one, recorded `needs purchase` (composition and recording) | A catalog track implies an artist's endorsement, so it is the user's call, not a default. |
 | No track fits, or none can be had (offline, downloads turned off, nothing found) | No bed. The delivery note says "music needed" and names 3 real tracks that fit the measured target (the last rung of the music ladder, `ice-audio/SKILL.md` section 5); never a code score | The film never waits on a download, and a stand-in made by code was rejected as noise. |
-| User asks for AI music generation (a generator service) | Optional, user-initiated, disclosed (section 6) | Never the primary service of this plugin. |
+| User asks for AI music generation or music made by code | Say plainly that Ice uses real recordings and licensed library music only, and offer the music ladder (`ice-audio/SKILL.md` section 5) or the user's own file; the ladder ends at no bed, "music needed" | Owner decision, 2026-11-01 (core rule 7): music is never generated, not even on request. |
 
 ## 3. Choose by brief, never by adjective
 
@@ -71,7 +71,7 @@ Tempo and mode are the strongest emotional cues: filter candidates by both (item
 
 ## 4b. News reel music
 
-Scope: the news reel (edit type `news-reel`, style family `family-broadcast-news.md`). Measured on six broadcast reels; the bed levels and ducking live in `mix-and-master.md` section 5, row "News reel, speech-led". The bed is a real library track found down the music ladder and picked by ear through the options flow (`ice-audio/SKILL.md` section 5), never a code score unless the user asks for one in their own words (core rule 7).
+Scope: the news reel (edit type `news-reel`, style family `family-broadcast-news.md`). Measured on six broadcast reels; the bed levels and ducking live in `mix-and-master.md` section 5, row "News reel, speech-led". The bed is a real library track found down the music ladder and picked by ear through the options flow (`ice-audio/SKILL.md` section 5), never a code score (core rule 7).
 
 | Package (`ice-styles/references/family-broadcast-news.md` section 2) | Genre and character | Tempo and pulse | Level under the voice | Structure |
 |---|---|---|---|---|
@@ -91,7 +91,7 @@ Rules:
 
 ## 5. Sync license check and license record (a status, never a block)
 
-Run this check when a track is picked, before it enters the cue sheet: 01 for music-led films (hype promo, music video, kinetic type cut to a track, showreel), 08a for the others. Its result is the track's license status (`licensed` when every row passes, otherwise `unknown` or `needs purchase` with the failing rows named); it never drops a track the user chose. Opt-in music made by code (`ice-audio/SKILL.md` core rule 7) skips the table (it is license-clean) but still gets its credits row.
+Run this check when a track is picked, before it enters the cue sheet: 01 for music-led films (hype promo, music video, kinetic type cut to a track, showreel), 08a for the others. Its result is the track's license status (`licensed` when every row passes, otherwise `unknown` or `needs purchase` with the failing rows named); it never drops a track the user chose.
 
 1. The general record for every music file, supplied or found (rights are the user's, the record and the "Needs a license before publishing" list, use case, dated license page check, license classes, CC BY scope by film type, recorded library terms): the `ice-assets` skill, `references/sourcing-and-licenses.md` sections 0, 2 and 3.
 2. The sync table. A row that does not pass, or is unknown, is written into the status.
@@ -113,14 +113,5 @@ Run this check when a track is picked, before it enters the cue sheet: 01 for mu
 4. Every row passes: one row in `ice/assets/CREDITS.md` with the license, its terms (use, platforms, territory, term) and the proof file; the delivery note repeats the terms the owner must respect.
 5. When the user named no music and no track fits, section 2 decides (no bed, and the delivery note says "music needed" with 3 named real tracks).
 6. Download location: the `ice-assets` skill, `references/project-folders.md` section 1. Never into the skill folder, never committed to the plugin. Which downloads need a question: the `ice-assets` skill, `references/sourcing-and-licenses.md`.
-7. Credits: one row per music file in `ice/assets/CREDITS.md`: the `ice-assets` skill, `references/project-folders.md` section 4. CC0 files and opt-in code scores get a row too.
+7. Credits: one row per music file in `ice/assets/CREDITS.md`: the `ice-assets` skill, `references/project-folders.md` section 4. CC0 files get a row too.
 8. Supplied reference audio: measure L, R and L+R separately (phase-inverted stereo cancels in mono; if mono is more than 10 dB under the louder channel, use one channel). A level under -45 dB counts as silent: do not use it; say in the delivery note (or on the review card in step mode) that a proper file is needed. A noise floor above -45 dB is usable; state the quality ceiling the same way.
-
-## 6. AI music generators (optional)
-
-Use only when the user asks for one, and say which service, what is sent, what it costs and that the result is AI-generated. When used:
-- Describe the measured grammar (tempo, kick pattern, claps on 2 and 4, density, a button ending), never brands or artists (requests naming them are refused and the habit copies others' identity).
-- Prompt in layers: genre, emotion, instruments, timbre, era, production; avoid contradictions; put BPM and key in the tool's parameters, not in the caption; sparse captions leave room; repetition marks priority. For beds, request instrumental only.
-- For one bed across scenes generate one long track. To fight samey output, vary seeds, BPM and key, and generate several variations; a fixed seed keeps a brand's sonic family consistent.
-- Respect service concurrency limits and back off on rate-limit errors (one source measured 2 parallel requests, retry after 30 to 40 s).
-- A generated track still passes the guards table in music-by-code.md section 4, the comfortable mix in mix-and-master.md section 3 and the human listen in mix-and-master.md section 8.

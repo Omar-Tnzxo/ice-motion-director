@@ -33,7 +33,7 @@ Workflows call domain skills by name. They never restate a domain rule; they poi
 | `ice-motion` | Motion grammar, measured timing and easing curves, spring formulas, the cut and transition catalog, camera, composition, continuity (carry), holds; each rule scoped to film types |
 | `ice-type` | Typography in motion, kinetic type, captions and subtitles, readability gates |
 | `ice-arabic` | Arabic and RTL: letterforms and dots in motion, kashida, bidi, captions, numerals, dialect voiceover, ASR timing |
-| `ice-audio` | Music and SFX from real libraries, ranked by measurement and picked by ear from 2 to 3 options laid on the film (music by code only when asked for by name), voiceover and TTS pacing, beat grid, mixing, the comfortable mix and loudness gates |
+| `ice-audio` | Music and SFX from real libraries, ranked by measurement and picked by ear from 2 to 3 options laid on the film (never made by code or by AI; a provider narration voice with its record is allowed), voiceover and TTS pacing, beat grid, mixing, the comfortable mix and loudness gates |
 | `ice-styles` | Catalogs of film styles, art styles, drawing styles, motion design styles and narration grammars, each as one reference file |
 | `ice-engines` | Engine choice and per-engine guides (HyperFrames, Remotion, HTML canvas with Playwright and FFmpeg, Three.js, Lottie, FFmpeg only, p5), determinism, render and export, platform specs and safe zones |
 | `ice-assets` | Asset sourcing (real first: the most recent real, official footage and photos found and downloaded without being asked) and license records, fonts, footage, icons, the truth sheet (names, numbers and claims rendered exactly), brand asset authenticity |
@@ -290,7 +290,7 @@ Implemented in `ice-direction` and enforced in `ice-qa`:
 | product-launch-motion, charlie947, Barty-Bart explainers, commercial-motion-design, product-launch-video | `ice-film` film types |
 | pixel2motion, diffusionstudio lottie, vibe-motion ideas | `ice-lottie` and the logo sting type |
 | video-ad-editor, Mamdouh ideas, video-production-studio | `ice-arabic` |
-| Barty-Bart sound-effects, mg-styles mgaudio, anidoodle music method, lemo audio chain | `ice-audio` |
+| Barty-Bart sound-effects, anidoodle music method, lemo audio chain | `ice-audio` |
 | Remotion ideas, haidrrrry, claude-code-video-toolkit Remotion parts | `ice-engines` Remotion guide |
 | video-production-studio truth sheet, vibe-motion authenticity gate, anidoodle facts.json | `ice-assets` |
 | onetake, video-talkcraft, anything2explainer verbatim files | `skills/<owner skill>/noncommercial/<source>/` with their license; the owner skill marks them noncommercial-only |

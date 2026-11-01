@@ -72,7 +72,7 @@ def artifact_path(value, where, errors):
 NOTES = []
 CRAFT = None  # the project's craft plan (ice/plan/craft-plan.json), read in main()
 NEVER_LIFTED = re.compile(r"^(truth|claims?|rights|privacy|safety|people|real-people|accessibility|contrast|flash|photosensitivity|arabic|bidi|legibility|labels?|l5)$", re.I)
-NEVER_IDS = {"story:9", "story:18", "story:20", "frame:p1"}
+NEVER_IDS = {"story:9", "story:18", "story:20", "frame:p1", "film:moving_pictures"}
 WARNED = set()
 # Source kinds per rule id (treatment.md 11.7): the exact id, else the longest "<prefix>*" pattern, else all four kinds.
 KINDS = ("user", "reference", "style", "content")

@@ -10,13 +10,6 @@
 # it and write the versions used in the delivery note; otherwise do not use it (run the pinned install, or use
 # the script's documented fallback). A script that fails under an installed version runs only with the pins.
 # sound_map.py and match_music.py need numpy and scipy (match_music.py sfx: numpy only).
-# mgaudio (opt-in music and SFX by code, SKILL.md core rule 7) needs only numpy; the rest is its fast path (references/music-by-code.md section 1).
 # master_audio.py, pacing.py and preview_options.py need only the standard library and ffmpeg; qc.py too, except --audit and --diagnose (numpy).
 numpy==2.4.6
 scipy==1.16.3
-soundfile==0.14.0
-numba==0.66.0
-pedalboard==0.9.26
-pyloudnorm==0.2.0
-matplotlib==3.10.9                  # optional: mgaudio.qc spectrogram and waveform plots
-librosa==0.11.0                     # optional: mgaudio.qc onset checks and fx time stretch

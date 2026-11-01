@@ -53,7 +53,7 @@ const NOT_GRADED = {
   L23: "pace measured on the render: stage 07 and 09, after the cases stop",
   L25: "every sound effect heard in the mix: stage 08b and 09, after the cases stop",
   L26: "depth, finishing, grade, marks and speaker measured on the render: stage 07 and 09, after the cases stop",
-  L28: "sound by code never a default: judged by the L1 graders",
+  L28: "sound by code never made (replaced by L74): judged by the L1 graders",
   L29: "the craft plan before 03: judged by l13-craft-plan-written (the run cannot pass 03 without it)",
   L30: "a look the user chose: judged by l22-user-choice-honoured",
   L31: "the speaker never dimmed in a package: judged by l19-speaker-recedes-not-darkens",
@@ -98,6 +98,8 @@ const NOT_GRADED = {
   L71: "the industry spot fingerprint runs on a render at stages 07 and 09 (genre_check.py), after the cases stop",
   L72: "production time, tokens and API cost are measured by run-usage.mjs at the stage 10 export, after the cases stop",
   L73: "a frame template is installed and checked by template.py on a project and a render (stages 01, 07 and 09), after the cases stop",
+  L74: "judged by the L1 graders (no code or AI sound in the trace or the decision log); the source gate is validate-assets.mjs --audio-only, tested on fixtures",
+  L75: "the moving-pictures share and the parts measure need a rendered film and pages, tested on fixtures by craft_gate.py and art-check.mjs",
 };
 const GRADERS = [
   {
@@ -113,7 +115,7 @@ const GRADERS = [
   },
   {
     lesson: "L1", name: "l1-no-code-sound-run", when: () => true,
-    spec: { type: "regex", target: "trace", match: "not_contains", pattern: String.raw`"name":"(?:Bash|PowerShell)"[^\n]*?(?:mgaudio|aevalsrc|anoisesrc|\bsine=)` },
+    spec: { type: "regex", target: "trace", match: "not_contains", pattern: String.raw`"name":"(?:Bash|PowerShell)"[^\n]*?(?:mgaudio|aevalsrc|anoisesrc|\bsine=|createOscillator|\bTone\.|\bsox\b[^\n]*?\bsynth\b|pydub\.generators)` },
   },
   {
     lesson: "L1", name: "l1-real-music-and-sfx", when: () => true,

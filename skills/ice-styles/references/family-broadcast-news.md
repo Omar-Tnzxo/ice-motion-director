@@ -2,6 +2,8 @@
 
 The presenter-led news or explainer reel: one locked studio take reframed digitally, graphics that fire on the speaker's words, archive in the pauses, a designed end card. Read `style-method.md` first. Section 1 is the style every presenter-led news reel uses (the genre measured across 14 newsroom reels, presenter-led and footage-led, with its fingerprint: the `ice-film` skill, `references/genres/news-reel.md`); section 2 records three programme packages measured on real reels; section 3 the patterns of smaller sub-brands; section 4 the glass studio reel.
 
+**Imagery and motion (all entries).** An entry locks a medium, never where its pictures come from. Each entry's `Imagery:` line names its source from the imagery ladder of `ice-motion/references/picture-methods.md` item 3 (the user's material and official files; real photos and footage; designer Lottie or licensed layered illustration; AI imagery vectorized into rigged parts; lit 3D; hand-coded drawing last, only with the craft plan's `imagery` reason, item 6), and every moving element clears the motion bar of item 5: it moves by its parts, light and camera, never as a drawn still sliding. A procedural process in an entry (strokes, plates, tone, cells, cels) transforms a real or AI source image or a 3D render, and its characters are rigged parts.
+
 How to read the numbers:
 - Every value comes from a measurement study of six published reels (2026-10-29): frames at 25 fps (frame n starts at n/25 s), sizes in px at 1080 px wide unless a line says otherwise. Scale sizes by frame width / 1080. Frames are written "6 f (0.24 s)".
 - Lead and lag: element first frame minus the onset frame of the word it cites; negative = before the word. It is the `lead_frames` field of `plan/shots.json`.
@@ -20,6 +22,7 @@ Contents
 
 ### Presenter News Reel (`presenter-news-reel`)
 - **Look:** One presenter in a real lit studio (dark set with a diagonal beam, or a map wall), shot once on a locked camera and reframed digitally all reel long. Graphics sit around and behind the presenter on a person matte: the words being said, the places and people being discussed, archive in the pauses. Clean digital picture with crushed blacks, warm or cool highlights from the set, real background defocus and glow on display text. Ends on a designed end card held still. Not visual journalism (black with grain and reading beats, `directions-openers-explainers.md` section 4), not a talking-head ad (one fixed zoom per segment), not a cartoon presenter (y6, `narration-grammars-2.md`).
+- **Imagery:** the presenter's own lit studio take, real archive footage and official photos from news agencies and official channels, and official marks per the identity slot; graphics carry the words, never a drawn picture.
 - **Framing:** wide source plate, presenter centred with room on every side; digital framings from wide to a tight face crop (a range of 1.64-2.6x inside one take); the face anchor stays the median face point (no per-frame follow). Camera numbers: the `ice-motion` skill, `references/camera.md`, section "Digital camera on one take (news reel)". Room graphics ride the camera transform (`layer: rig`); captions, logo bug and progress bar stay fixed (`layer: screen`).
 - **Colour roles:** the colour-role contract below (1.2): one job per hue, white for spoken words, the brand accent only on brand marks.
 - **Type roles:** one sans for all running text (in Arabic a geometric, low-contrast sans with Western tabular digits; digits of a time or date pill in a condensed DIN-like face); weight carries hierarchy (heaviest for 1 to 3 word keywords, bold inside any box, medium for secondary lines, light for footers); emphasis by container, size and colour role, never by mixing weights in one line or colouring single words; no stroke on any text; glow on display text only. Type pairing and font choice: the `ice-direction` skill, `references/type-pairing.md`; Arabic rules: the `ice-arabic` skill.
@@ -172,6 +175,8 @@ Arabic in every package: tracking 0 (spacing by kashida only), no tashkeel in ru
 
 Package id `aj-arabic-talkshow-promo`. Reels measured: three promos of a weekly talk show (Scenarios), 36.1-46.6 s, 1080x1920, 25 fps. Dark warm studio, one seated host; verbatim keywords typed by a yellow square pointer; the brand orange-red only as light, glow and end card; warm frosted plates; a black end card.
 
+- **Imagery:** the host's real studio take, real archive footage and official photos in the cut-aways, and the programme's or the film's own official marks per the identity slot; no drawn imagery.
+
 **Colours**
 
 | Hex | Job |
@@ -301,6 +306,8 @@ Never in this package: zoom overshoot; motion blur on text or zooms; subtitles (
 
 Package id `aj-english-explainer-reel`. Reel measured: one English explainer, 193.1 s, 1080x1920, delivered at 30 fps but cut at 25 fps (author at the delivery frame rate; values here are at 25 fps). Standing presenter keyed against a teal map wall with a deep red set; sentence captions on every line coloured by voice; uppercase scanline headlines; crimson lower thirds; flash transitions; a progress bar; a red-to-violet end card.
 
+- **Imagery:** the presenter's real take keyed on the map wall, real maps from official or licensed sources, real archive footage and official photos, and official marks per the identity slot.
+
 **Colours**
 
 | Hex | Job |
@@ -416,6 +423,8 @@ This layout ignores the Shorts interface (captions at y 1518-1620 and the bar at
 ### 2.3 Mohawalat Fahm on Al Jazeera 360 (explainer promo package)
 
 Package id `mohawalat-fahm-promo`. Reels measured: two promos of one explainer programme: vertical 78.22 s at 1080x1920, horizontal 59.84 s at 1276x718, both 25 fps. Wood or curtained room, a host reading from papers; a coral or crimson disc behind the lit host; red pills; pinned quote cards; red light flashes into desaturated archive; a navy end card.
+
+- **Imagery:** the host's real take in a real room, real archive footage and official photos under the red light flashes, and quote cards set from real, cited sources.
 
 **Colours**
 
@@ -568,6 +577,7 @@ Smaller programmes of the same network share the house grammar (a near-black or 
 
 ### Glass Studio Reel (`glass-studio-reel`)
 - **What it is:** a presenter reel whose value is decided at the shoot: the presenter shot wide in a white cyc studio painted by coloured lights, with a projected circle of light behind the head; a few large frosted glass capsules that magnify and refract the shot and carry the text; glowing gradient titles with kashida; props placed in depth between the subject and the wall; slow light sweeps and tapered glowing lines. Aliases: "glass shape", "liquid glass reel", "glassmorphism reel", "glass shape style". The market name of its visual part follows the 2025 liquid-glass interface language; no established name exists for the whole reel.
+- **Imagery:** the presenter shot wide in a real lit cyc studio with real props in depth; the glass capsules are lit 3D or composited glass over that take, with real archive footage where a line cites it.
 - **How it differs from a news reel:** the edit is simple and the shoot carries it (the tutors put it at about 90 % shooting, location and light); the screen holds a few large designed glass objects instead of many cuts and word captions; motion is slow reveals and sweeps, not punch-ins and shakes; elements live in depth around the subject.
 - **Numbers (from editors' rebuilds, ideas only):**
   - Glass: a shape that blurs and brightens what is behind it (blur 50 and brightness 50 in After Effects units) and magnifies it 110-130 %, optional 3 % noise; a rim of 2-3 px white at 30-50 % (or a soft-light copy of the stroke at 50 %); edge refraction from an inner glow (size 30-35, range 50 %) used as a displacement map; a light sweep inside at -30 degrees, red or white, additive. A glass plugin preset reads: strength 20, index of refraction 1.5, blur 11, white tint 10 %, specular 300, softness 14, edge 8, angle -45.

@@ -5,7 +5,7 @@
 // Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -87,6 +87,43 @@ test("the art check: a declared style exemption is a lead, unmarked drawn art fa
   const unmarked = check(page("unmarked", shapes));
   assert.equal(unmarked.gate, "FAIL", "drawn objects with no hero object measured fail (unmeasured is never n/a)");
   assert.equal(check(page("empty", "")).gate, "N/A");
+});
+
+// parts (0.2.19, AGENTS.md rule 22): a hero group that slides while its parts stay fixed moves as one picture
+const seekPage = (name, partMoves) => {
+  const f = join(dir, name + ".html");
+  writeFileSync(f, `<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#e9e4d8}</style></head><body>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080">${CRAFTED.replace('<g id="car" data-art-hero="car">', '<g id="car" data-art-hero="car" transform="translate(0 0)">')
+    .replace('<g id="wheel-front">', '<g id="wheel-front" data-art-part="wheel-front">').replace('<g id="wheel-rear">', '<g id="wheel-rear" data-art-part="wheel-rear">')
+    .replace('<g id="body">', '<g id="body" data-art-part="body">')}</svg>
+<script>window.DEMO = { duration: 2, width: 1920, height: 1080 };
+window.__seek = (t) => { document.getElementById("car").setAttribute("transform", "translate(" + (t * 200) + " 0)");
+  ${partMoves ? 'for (const id of ["wheel-front", "wheel-rear"]) { const c = id === "wheel-front" ? 750 : 1150; document.getElementById(id).setAttribute("transform", "rotate(" + (t * 360) + " " + c + " 720)"); }' : ""} };</script>
+</body></html>`);
+  return f;
+};
+const checkAt = (file, times) => {
+  const r = spawnSync(process.execPath, [ART, file, "--json", "--times", times], { encoding: "utf8", timeout: 120000 });
+  assert.ok(r.status === 0 || r.status === 1, `art-check.mjs exit ${r.status}: ${r.stderr}`);
+  return { ...JSON.parse(r.stdout), exit: r.status };
+};
+
+test("art check parts: a hero group that moves while its parts stay fixed fails as one picture; turning wheels pass", { skip: NO_CHROME }, () => {
+  let out = checkAt(seekPage("slide", false), "0.2,1,1.8");
+  let car = out.objects.find((o) => o.name === "car");
+  assert.equal(car.measures.parts.status, "FAIL", car.measures.parts.note);
+  assert.match(car.measures.parts.note, /moves as one picture/);
+  assert.equal(out.gate, "FAIL");
+  assert.equal(out.exit, 1);
+
+  out = checkAt(seekPage("wheels", true), "0.2,1,1.8");
+  car = out.objects.find((o) => o.name === "car");
+  assert.equal(car.measures.parts.status, "PASS", car.measures.parts.note);
+  assert.ok(car.parts.share > 0 && car.parts.share < 1, `share ${car.parts.share}`);
+
+  out = check(page("static parts", CRAFTED));
+  assert.equal(out.objects[0].measures.parts.status, "N/A", "a page with no seek cannot show parts moving");
 });
 
 test("the ladder of art sources and the auto-trace limit are documented", () => {
@@ -364,4 +401,84 @@ test("styles: style-method.md requires the craft profile field and locks it with
   assert.match(s10, /Craft profile \(family default\):\*\* needs: <code>/);
   for (const c of CRAFT_CODES) assert.ok(s10.includes("`" + c + "`"), `section 10 names the code ${c}`);
   assert.match(readText("skills/ice-styles/SKILL.md"), /craft profile[^\n]*ice\/plan\/craft-plan\.json/);
+});
+
+// 0.2.19 (owner decisions, 2026-11-01): no style card makes code-drawn imagery its default (the "moving pictures" look),
+// every card names its imagery source from the ladder of ice-motion/references/picture-methods.md, and no Sound line
+// orders sound made by code (ice-audio core rule 7).
+const CARD_FAMILIES = FAMILY_FILES.filter((f) => f.startsWith("family-"));
+const INVITES_PHRASES = ["SVG + GSAP", "SVG/Canvas + GSAP", "everything built from vector shapes", "limbs rigged by anchor-point rotation",
+  "sprites authored as pixel arrays in code", "draw everything on a 240x135 canvas", "or SVG with SSR matrix faces", "original code-drawn UI",
+  "Heads as r 82 circles", "simplified 100-200-line re-drawing", "vector only at 1920x1080", "rendered flat in orthographic view",
+  "figurines built from circles, trapezoids, rods", "pictogram figures of round-capped bars", "thick-outlined chunky characters",
+  "zero drawn lines: torn pieces", "flats slide in behind the theatre walls", "wireframe growth via SVG stroke-dasharray", "SVG/Canvas FUI layers",
+  "Neon sign glyphs drawn as polylines", "plastic shading per part: radial gradient", "built from flat three-tone blocks",
+  "motion is mostly film noise", "re-created in code as four layers", "Invented UI is original, drawn in code"];
+
+test("picture: no style card makes code-drawn imagery the default; every family points to picture-methods items 3 and 5", () => {
+  let riskLines = 0;
+  for (const f of CARD_FAMILIES) {
+    const text = styleText(f);
+    for (const p of INVITES_PHRASES) assert.ok(!text.includes(p), `${f} still says "${p}"`);
+    const intro = text.slice(0, text.indexOf("\n## "));
+    assert.match(intro, /\*\*Imagery and motion \(all entries\)\.\*\*[^\n]*`ice-motion\/references\/picture-methods\.md` item 3[^\n]*motion bar of item 5/,
+      `${f}: the shared paragraph above the first section points to picture-methods.md items 3 and 5`);
+    riskLines += (text.match(/Source and rig: /g) || []).length;
+  }
+  assert.ok(riskLines >= 65, `procedural cards that take their input from a real or AI source or a 3D render: ${riskLines}`);
+  assert.match(readText("skills/ice-styles/SKILL.md"), /Drawn styles follow `ice-motion\/references\/picture-methods\.md`/);
+  assert.match(readText("skills/ice-styles/references/code-illustration-craft.md"), /^## 6b\. Motion bar$[\s\S]*fails the art check's `parts` measure/m);
+});
+
+test("picture: every style card has one Imagery: line right after its Look (or What it is) line", () => {
+  let cards = 0;
+  for (const f of CARD_FAMILIES) {
+    const lines = styleText(f).split("\n");
+    let block = null;
+    const close = () => {
+      if (!block) return;
+      cards++;
+      assert.equal(block.imagery.length, 1, `${f} "${block.head}" has exactly one Imagery line`);
+      assert.ok(block.imagery[0].length > "- **Imagery:** ".length + 20, `${f} "${block.head}": the Imagery line names its source`);
+      assert.doesNotMatch(block.imagery[0], /\b(drawn|built) (in|by) code\b/i, `${f} "${block.head}": code-drawn imagery is never the source`);
+      if (block.after !== null) assert.equal(block.after, true, `${f} "${block.head}": the Imagery line follows the Look or What it is line`);
+      block = null;
+    };
+    let prev = "";
+    for (const l of lines) {
+      if (l.startsWith("## ") || l.startsWith("### ")) {
+        close();
+        // a card: a "### " heading with a backticked id, or a broadcast-news programme package (### 2.1, 2.2, 2.3)
+        if (/^### .*\(`/.test(l) || (f === "family-broadcast-news.md" && /^### 2\.\d /.test(l))) block = { head: l.slice(4, 60), imagery: [], after: null, hasLook: false };
+      } else if (block) {
+        if (/^- \*\*(Look\b|What it is:)/.test(l)) block.hasLook = true;
+        if (l.startsWith("- **Imagery:**")) {
+          block.imagery.push(l);
+          block.after = block.hasLook ? /^- \*\*(Look\b|What it is:)/.test(prev) : null;
+        }
+      }
+      if (l.trim()) prev = l;
+    }
+    close();
+  }
+  assert.ok(cards >= 113, `style cards checked: ${cards}`);
+});
+
+test("audio: style Sound lines name targets for real tracks and recorded effects, never synthesis (ice-audio core rule 7)", () => {
+  const synth = /\b(oscillators?|sine (sweep|pop|tone)|saw\/square|FM (pluck|glass)|noise burst)\b/i;
+  let sound = 0;
+  for (const f of CARD_FAMILIES) {
+    const text = styleText(f);
+    assert.ok(!text.includes("recipe `"), `${f} still names a code recipe`);
+    for (const line of text.split("\n").filter((l) => l.startsWith("- **Sound:**"))) {
+      sound++;
+      assert.doesNotMatch(line, synth, `${f}: a Sound line orders synthesis: ${line.slice(0, 100)}`);
+      assert.doesNotMatch(line, /\b(band-passed|brown|filtered) noise\b|\bdetuned.saw\b|\bpulse waves?\b|\bLFSR\b/i, `${f}: a Sound line builds sound from a waveform: ${line.slice(0, 100)}`);
+    }
+  }
+  assert.ok(sound >= 100, `Sound lines checked: ${sound}`);
+  for (const f of readdirSync(abs("skills/ice-styles/references")).filter((n) => n.endsWith(".md"))) {
+    assert.doesNotMatch(styleText(f), /recipe `|mgaudio/, `${f} names a code recipe or the removed toolkit`);
+  }
+  assert.match(readText("skills/ice-styles/SKILL.md"), /Sound is never made by code \(`ice-audio\/SKILL\.md` core rule 7\)/);
 });

@@ -1,6 +1,8 @@
 > Translated from Chinese into English from Vincentwei1021/video-talkcraft (PolyForm Noncommercial 1.0.0). Noncommercial use only.
 
-> Adapted from Vincentwei1021/video-talkcraft (PolyForm-Noncommercial-1.0.0). Changes: em dash and en dash characters replaced with colons, commas or hyphens. Noncommercial use only; see LICENSE and README.md in this folder.
+> Adapted from Vincentwei1021/video-talkcraft (PolyForm-Noncommercial-1.0.0). Changes: em dash and en dash characters replaced with colons, commas or hyphens; the sound synthesis lines (the WebAudio synthesized engine, the synthesis fallback and synthesis-only timbres) removed and the Ice override below added (2026-11-01). Noncommercial use only; see LICENSE and README.md in this folder.
+
+> Ice override (2026-11-01): the sound synthesis described here is not used; sound follows the ice-audio skill (real recordings only, core rule 7). Icons come from the icon ladder in the ice-assets skill, `references/sourcing-and-licenses.md`, not always inline SVG.
 
 # Demo and Recipe Card Authoring Spec
 
@@ -15,7 +17,7 @@ references/cards/<slug>.md     # recipe card (frontmatter `code:` points to the 
 template/cards/<slug>.tsx      # self-contained Remotion source (the skill's preferred reference, see the tsx hard requirements below)
 demos/<slug>/index.html        # self-contained HTML demo (may reference shared resources under ../_lib/)
 demos/_lib/                    # gsap.min.js / lottie.min.js / demo-shell.css / demo-shell.js
-                               # + sfx.js (WebAudio synthesized sound effect engine) / sfx-map.js (per-card cue table)
+                               # + sfx-map.js (per-card cue table)
 ```
 
 **Field-proven cards**: motion effects distilled from delivered projects; their production master lives in `template/motion-systems/` or
@@ -61,7 +63,7 @@ is still required (a standalone version with the same visuals as the demo).
    the 13 timbres in `_lib/sfx.js` (whoosh/swipe/pop/click/tick/slam/riser/ding/scratch/typekey/paper/ping/lowpad).
    10 of these timbres have **real samples** (since 2026-08-25, from video-shotcraft's Mixkit library,
    base64-embedded in `_lib/sfx-samples.js`; source and regeneration in `_lib/sfx/ATTRIBUTION.md`);
-   the engine prefers samples with synthesis as fallback; riser/ping/lowpad are still pure synthesis. The cue syntax is unchanged.
+   In Ice only the real samples are used (Ice override above). The cue syntax is unchanged.
    Samples are decoded asynchronously; the engine starts decoding as soon as `sfx-samples.js` is in place, and for `pk:` samples that are "declared but
    not yet decoded" it holds and retries (up to 1s) instead of dropping them: otherwise **all-sample cards** (with not a single synthesized
    sound) would be completely silent; fixed 2026-08-26.

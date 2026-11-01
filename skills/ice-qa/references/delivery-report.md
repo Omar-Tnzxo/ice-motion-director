@@ -61,6 +61,7 @@ Next version: <one alternative direction in one sentence>
 | Captions and sync | | ASR diff, beat slack range, cut-onset share | validators |
 | Speech check | | masked, misheard and low-confidence words; match per scene and overall, mix and stem | align_script_to_asr.py --stem (`ice/review/speech-check.json`) |
 | Loudness | | I LUFS, LRA, true peak, the profile id used | quick-checks.mjs loudness --profile |
+| Audio sources | | PASS or the FAIL lines; audio rows checked | validate-assets.mjs --audio-only (A0, `audio-gates.md` section 2b) |
 | Audio audit | | blocking items (none, or their ids), A3 median and 5th percentile, clipping runs, DC, mono loss, holes | qc.py --audit (`ice/review/audio-audit.json`, `audio-gates.md` section 2b) |
 | Craft gate | | plan check red or green; use rows with evidence / total, text over a face, flashes | craft_gate.py plan and build (`ice/review/craft-gate.json`) |
 | Spec | | resolution, fps, duration vs plan | quick-checks.mjs probe |
@@ -95,6 +96,8 @@ Status: not listened by a human (until answered; answers are logged with `ice-st
 
 ## Real and illustrative
 Real: <captured UI, copy, footage>. Illustrative or generated: <list>.
+Sound: real recordings only. <n> from Ice's SFX pack (<pack tag>), <n> from libraries (<each library and its count>), <n> of the user's own files, music: <track, library or source>; voice: <the user's recording, or the provider, model and voice id>. Nothing was made by code or by AI (the `ice-audio` skill, core rule 7; `validate-assets.mjs --audio-only` PASS).
+No sound found: <one line per skipped cue: the cue id and time, what was searched (routes), "left silent"; or "none">
 
 ## Needs a license before publishing
 Rights to use every outside item are the user's responsibility. (One line, no further warning: `ice-assets` skill, `references/sourcing-and-licenses.md` section 0.)

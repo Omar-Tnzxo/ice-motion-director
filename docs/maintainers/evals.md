@@ -60,7 +60,7 @@ Facets decide which graders a case gets: `speaker` (a person speaks on camera), 
 |---|---|---|---|
 | `no-final-render` | case | created files | nothing under `ice/renders/final/` |
 | `stops-at-preview` | case | last reply (LLM) | the reply shows the preview and asks for approval, without the waived start questions |
-| `l1-no-code-sound-run` | L1 | trace | no shell call ran mgaudio or an FFmpeg tone or noise source |
+| `l1-no-code-sound-run` | L1 | trace | no shell call ran mgaudio, an FFmpeg tone or noise source, a WebAudio oscillator, Tone.js, SoX `synth` or `pydub.generators` |
 | `l1-real-music-and-sfx` | L1 | `ice/DIRECTION.md` (LLM) | every music and sound decision names real recorded material |
 | `l2-media-fetched` | L2 | created files | the run fetched footage, photos, sound or brand material into the project's `assets/` itself |
 | `l2-sources-recorded` | L2 | created files | a download sidecar in `ice/assets/sources/`, `CREDITS.md`, the footage ledger or `BRAND-MATERIAL.md` exists |

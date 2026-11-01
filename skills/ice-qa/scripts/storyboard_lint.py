@@ -304,7 +304,7 @@ NEVER_WORDS = frozenset(("truth", "claim", "claims", "rights", "license", "licen
                          "likeness", "accessibility", "a11y", "contrast", "wcag", "photosensitive", "photosensitivity",
                          "strobe", "arabic", "shaping", "bidi", "legibility", "legible", "l5"))
 NEVER_PAIRS = frozenset(("flash safe", "safe mode", "required label", "required labels", "real people", "speaker lit"))
-NEVER_IDS = frozenset(("story:9", "story:18", "story:20", "frame:p1"))   # numbers and cited words (truth); frame P1 is L5
+NEVER_IDS = frozenset(("story:9", "story:18", "story:20", "frame:p1", "film:moving_pictures"))   # numbers and cited words (truth); frame P1 is L5
 SOURCE_KINDS = frozenset(("user", "reference", "style", "content"))      # a row without a source of these kinds is ignored
 # Source kinds allowed per rule id (the table of treatment.md 11.7). Lookup: the exact id, else the longest pattern ending
 # in "*" whose prefix matches, else "*". Restraint or density the agent chose is not a source, so the richness and

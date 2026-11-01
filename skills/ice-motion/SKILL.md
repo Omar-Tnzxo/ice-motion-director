@@ -65,6 +65,7 @@ Point to other skills by name; never restate their rules.
 10. Holds are decisions: the film's hold policy is chosen by type and applied everywhere; a scene that runs out of content is shortened or given story, never wobble.
 11. Every frame is a pure function of time: closed-form springs, seeded randomness, no wall clock, no stateful solvers.
 12. Effects never compensate for weak layout, weak poses or missing evidence.
+13. No moving pictures: imagery moves by its parts, light and camera, never as drawn stills sliding (`references/picture-methods.md`).
 
 ## 4. Conflicts resolved by scope (summary)
 
@@ -124,6 +125,7 @@ richness: hero_share <n> | hero_width <n or n/a> | frame_fill <n of 16> | empty_
 | 46-card move deck, refused names, mechanism catalogs | `references/move-deck.md` | Dealing the motion palette |
 | Time-coded blueprints, shot constructions, time skeletons | `references/shot-blueprints.md` | Planning a shot sequence |
 | Frame clocks, blur grammars, when to motion-blur, grain | `references/motion-blur-and-clock.md` | Setting the clock and blur |
+| Where imagery comes from, the motion toolbox per element, the motion bar | `references/picture-methods.md` | Before the first style frame and the first shot file |
 | One root protagonist, state chain, inheritance channels, hard-cut records, text that acts, closure (founder's original) | `references/continuous-journey.md` | Commercials and product journeys |
 | Physical decision contract, throw, attraction, rigid UI closure, sound by motion phase (founder's original) | `references/timing-and-easing.md` (section "Motion choreography recipes") | Physical or causal beats |
 | Frame and text focus-unit contracts, camera necessity test, camera verbs, 2D anchor formula (founder's original) | `references/camera.md` (section "Composition and semantic camera reference") | Every camera decision in commercials |

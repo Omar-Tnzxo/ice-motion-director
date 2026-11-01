@@ -1,6 +1,7 @@
 // ice-audio master_audio.py: the music has no fade-in unless asked for, and every music edge (fade-in, fade-out,
 // start offset, loop) is an explicit flag recorded in master.json. Real sound by default (owner decision,
-// 2026-10-29): no code score on a default path, the mgaudio opt-in sentence once, the options flow, and the scripts
+// 2026-10-29; total ban on code-made music and SFX, 2026-11-01): no code score on a default path, no synthesis toolkit,
+// no by-name exception, no AI music or SFX offers, processing of real recordings allowed, the options flow, and the scripts
 // match_music.py and preview_options.py (help, then a ranking and an equal-loudness run on generated tones).
 // audit (0.2.5, lesson L18): qc.py --audit blocks a bed over the voice and a DC offset and writes the ear list,
 // its profile table equals mix-and-master.md section 5 and quick-checks.mjs, loudness --profile exits 1 off the
@@ -14,7 +15,7 @@
 // Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -122,7 +123,6 @@ test("master_audio: a cold open hits at full level on the first frames (render)"
 // ---------------------------------------------------------------- real sound by default (owner decision, 2026-10-29)
 const SKILL = "skills/ice-audio/SKILL.md";
 const MUSIC_CHOICE = "skills/ice-audio/references/music-choice-and-licensing.md";
-const OPT_IN = "Music and sound effects made by code (mgaudio) are opt-in only: used when the user asks for music or sound made by code in their own words; never a default, a fallback or a stand-in (owner decision, 2026-10-29).";
 
 // The body of the "## <n>. " section of a Markdown file.
 function section(file, n) {
@@ -158,13 +158,52 @@ test("ice-audio: no code score on the default path (policy table, music-choice s
   assert.match(section("skills/ice-audio/references/sfx.md", 7), /Openverse needs no key/, "no Freesound key falls back to Openverse");
 });
 
-test("ice-audio: the mgaudio opt-in sentence lives once, in SKILL.md core rule 7, and music-by-code.md opens with it", () => {
-  assert.equal(readText(SKILL).split(OPT_IN).length - 1, 1, "the opt-in sentence must be in SKILL.md exactly once");
-  assert.match(section(SKILL, 1), /^7\. .*opt-in only: used when the user asks/m, "the sentence belongs to core rule 7");
-  const elsewhere = repoFiles().filter((f) => f.startsWith("skills/") && f.endsWith(".md") && f !== SKILL && readText(f).includes(OPT_IN));
-  assert.deepEqual(elsewhere, [], "other files point to core rule 7 instead of repeating the sentence");
-  const head = readText("skills/ice-audio/references/music-by-code.md").split(/\r?\n/).slice(0, 6).join("\n");
-  assert.match(head, /Opt-in only: open this file only when the user asked for music or SFX made by code in their own words/);
+// Total ban (owner decision, 2026-11-01): Ice never makes music or SFX from nothing, not even on request.
+const TEXT_EXT = /\.(md|txt|mjs|cjs|js|py|json|ya?ml|html|toml|sh|ps1)$/i;
+const skillTexts = () => repoFiles().filter((f) => f.startsWith("skills/") && TEXT_EXT.test(f));
+
+test("audio ban: no synthesis toolkit ships", () => {
+  assert.ok(!existsSync(abs("skills/ice-audio/scripts/mgaudio")), "the mgaudio toolkit folder is gone");
+  assert.ok(!existsSync(abs("skills/ice-audio/references/music-by-code.md")), "music-by-code.md is gone");
+  assert.ok(!existsSync(abs("skills/ice-film/noncommercial/onetake/sound.md")), "onetake's synthesised palette is gone");
+  // validate-assets.mjs names mgaudio only as a pattern its gate rejects.
+  const hits = skillTexts().filter((f) => f !== "skills/ice-assets/scripts/validate-assets.mjs" && /mgaudio|music-by-code/i.test(readText(f)));
+  assert.deepEqual(hits, [], "no file under skills/ names the toolkit or its how-to");
+});
+
+test("audio ban: no by-name exception, core rule 7 holds on request", () => {
+  const files = [...skillTexts().filter((f) => f.endsWith(".md")), "AGENTS.md", "README.md", "llms.txt"];
+  const hits = [];
+  for (const f of files) {
+    readText(f).split(/\r?\n/).forEach((line, i) => {
+      if (/made by code[^.]*(only when|opt-in|when the user (asks|names))/i.test(line) || /opt-in[^.]*by code/i.test(line)) hits.push(`${f}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(hits, [], "a line still lets sound be made by code on request");
+  assert.match(section(SKILL, 1), /^7\. .*not when the user asks for it/m, "core rule 7 refuses a request too");
+});
+
+test("audio rule: no AI music or SFX offered in words", () => {
+  const hits = [];
+  for (const f of skillTexts().filter((x) => x.endsWith(".md"))) {
+    for (const sentence of readText(f).split(/(?<=[.!?])\s+|\r?\n/)) {
+      if (/AI (music|SFX|sound effect)s? (generat|service)/i.test(sentence) && !/\b(never|not|no)\b/i.test(sentence)) hits.push(`${f}: ${sentence.slice(0, 120)}`);
+    }
+  }
+  assert.deepEqual(hits, [], "a file offers AI-generated music or effects");
+  assert.doesNotMatch(readText(MUSIC_CHOICE), /AI music generators \(optional\)/);
+  assert.doesNotMatch(readText("skills/ice-audio/references/sfx.md"), /AI SFX generators are optional/);
+});
+
+test("audio rule: processing a real recording is allowed in words", () => {
+  const rule7 = section(SKILL, 1).split(/\r?\n/).find((l) => /^7\. /.test(l)) ?? "";
+  assert.match(rule7, /Made from nothing: banned; a real recording processed: allowed/);
+  assert.match(rule7, /made from nothing|making sound from nothing/i);
+  for (const word of ["reverb", "echo", "stereo width", "telephone or radio filters", "pitch and time", "de-noise", "ducking"]) {
+    assert.ok(rule7.includes(word), `core rule 7 lists ${word} as allowed processing`);
+  }
+  assert.match(rule7, /voice provider \(its record: provider, model, voice id, licence terms, date\)/);
+  assert.match(readText("skills/ice-audio/references/sfx.md"), /8\. Fresh machine[^\n]*pack fetch[^\n]*Openverse[^\n]*3 tries[^\n]*Mixkit[^\n]*Wikimedia Commons[^\n]*Internet Archive[^\n]*no sound: <cue> \(searched: <routes>\)/);
 });
 
 test("ice-audio: the options flow names stage 01, stop B, the 06 card and the delivery-note fallback", () => {

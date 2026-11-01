@@ -109,7 +109,7 @@ for skill in map(pathlib.Path, sys.argv[1:]):
             mods = [a.name for a in n.names] if isinstance(n, ast.Import) else ([n.module] if isinstance(n, ast.ImportFrom) and n.level == 0 and n.module else [])
             for m in mods:
                 top = m.split(".")[0]
-                if top in sys.stdlib_module_names or top in local or top in ("mgaudio", "__future__"):
+                if top in sys.stdlib_module_names or top in local or top == "__future__":
                     continue
                 used.setdefault(MAP.get(top, top).lower(), f.name)
         for m in re.findall(r"require\(\s*['\"]([a-z_]+)['\"]", src):
@@ -182,7 +182,7 @@ test("Python scripts with subcommands print help and exit 0", (t) => {
 // package is missing, never crash with a traceback, even with stdout on a pipe (cp1252 on Windows).
 test("Python entry scripts: help or a clear missing-package message, never a traceback", (t) => {
   if (!PYTHON) { if (requirePython) assert.fail("Python 3 not found (set PYTHON)"); t.skip("Python 3 not found"); return; }
-  const entries = PY_FILES.filter((f) => /^skills\/[^/]+\/scripts\//.test(f) && !/\/mgaudio\//.test(f))
+  const entries = PY_FILES.filter((f) => /^skills\/[^/]+\/scripts\//.test(f))
     .filter((f) => /if __name__ == ["']__main__["']/.test(readText(f)) && /argparse/.test(readText(f)));
   const problems = [];
   const env = { ...process.env, PYTHONIOENCODING: "", PYTHONUTF8: "0" };

@@ -1,6 +1,8 @@
 > Translated from Chinese into English from feitangyuan/onetake (PolyForm Noncommercial 1.0.0). Noncommercial use only.
 
-> Adapted from feitangyuan/onetake (PolyForm Noncommercial 1.0.0; Required Notice: Copyright (c) 2026 Patrick. onetake is free for noncommercial use only.) Source path: cases/one-dot-15s/README.md. Changes: renamed; em and en dashes replaced with commas, colons or hyphens; one line prefixed with "Files:". The film and its source are not included. Noncommercial use only; see README.md and LICENSE.
+> Adapted from feitangyuan/onetake (PolyForm Noncommercial 1.0.0; Required Notice: Copyright (c) 2026 Patrick. onetake is free for noncommercial use only.) Source path: cases/one-dot-15s/README.md. Changes: renamed; em and en dashes replaced with commas, colons or hyphens; one line prefixed with "Files:"; the synthesis parts of the sound notes removed (Ice override below). The film and its source are not included. Noncommercial use only; see README.md and LICENSE.
+
+> Ice override (2026-11-01): the sound synthesis described here is not used; sound follows the ice-audio skill (real recordings only, core rule 7).
 
 # one-dot-15s, the concept film
 
@@ -26,7 +28,7 @@ Why it is a case, three firsts:
   carries by construction (continuity 1.00, no edit cuts).
 - **Camera.** The still-camera cut got "awesome" and then "now all it lacks is lively tracking camera work"; the operator
   camera was accepted with "no need to nitpick the details, the camera moves, the lens and the physics are all fine". `OM.rig` and `OM.lattice` are that camera.
-- **Sound.** Recorded CC0 / free sources layered with synthesis and mastered to a loudness target. The palette-only
+- **Sound.** Recorded CC0 / free sources mastered to a loudness target. The palette-only
   sound before it measured −21 LUFS with 58 % of its energy under 100 Hz.
 
 ## Beat sheet
@@ -121,8 +123,7 @@ the landing. `__meta.inFrame = { dot: [0.5, 15], mark: [12.2, 15, 'whole'] }`.
 
 ## Sound
 
-`score.py` → `mix.wav`, 48 kHz stereo, built in 2.8 s. Recorded sources carry the detail synthesis can't; synthesis
-carries what has to follow the picture exactly.
+`score.py` → `mix.wav`, 48 kHz stereo, built in 2.8 s, from recorded sources.
 
 - **Sources.** In the project's `sfx-src/`, downloaded with the user's permission; not in the skill.
 
@@ -132,11 +133,6 @@ carries what has to follow the picture exactly.
   | Mixkit | Mixkit Sound Effects Free License | whooshes |
   | University of Iowa MIS | free for any project | marimba, vibraphone, crotales in F major pentatonic |
   | Voxengo impulse responses | none | Nice Drum Room for the room, French 18th Century Salon for the hall |
-- **Synthesis.**
-  - a sub with harmonics under each landing, so it is heard on a phone speaker;
-  - a Shepard riser into the ring closing;
-  - an FM tone whose pitch follows `OM.spring`'s curve;
-  - pads.
 - **Mix.**
   - The dot's own sounds play alone until the music enters on the 6.00 downbeat.
   - The music is ducked 5 dB under the effects.

@@ -43,7 +43,7 @@ Where the row's numbers come from: No field is gated: the structure options disa
 
 ## Timing master
 
-Word-led by default: a voiceover, the lyrics of a song or the dialogue carries the meaning and sets the clock (11 of 14 measured films, `../genres/brand-film.md`); music-led when supers alone carry the film (identity reveals, corporate claim films, motion-led films); free for a calm film without a steady beat. When the music is a score composed by code, its tempo is chosen at 05 with the sound lead, written into the cue sheet at 06 and composed at 08a; a licensed track that leads the cut is taken at 01 like a track-led type (the `ice-audio` skill, `SKILL.md` section 4, steps 1, 3 and 5). Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting on the grid and the pre-drop gap: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.
+Word-led by default: a voiceover, the lyrics of a song or the dialogue carries the meaning and sets the clock (11 of 14 measured films, `../genres/brand-film.md`); music-led when supers alone carry the film (identity reveals, corporate claim films, motion-led films); free for a calm film without a steady beat. When the music is a real or licensed track chosen at 05, its tempo is set with the sound lead and written into the cue sheet at 06 (never a score composed by code, `ice-audio/SKILL.md` core rule 7); a licensed track that leads the cut is taken at 01 like a track-led type (the `ice-audio` skill, `SKILL.md` section 4, steps 1, 3 and 5). Clock modes: the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 1; cutting on the grid and the pre-drop gap: the same file, section 6. Film-side cue rules: `../cue-sheet.md`.
 
 ## Transition policy
 

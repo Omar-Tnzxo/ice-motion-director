@@ -139,7 +139,7 @@ Reference fidelity for remakes of a whole film (shot mapping, rhythm transfer) i
 Start from the nearest existing entry and change the MARK, never only the colours.
 
 1. Name the medium physically: what touches the surface, how wet, how it lifts, what the surface does back. Ask "how is this picture made in reality?" and code that process.
-2. Fill the entry fields used across this catalog: Look; Medium-specific moves (mark, edge, order of marks, stepping, motif loops, signature transition); Palette; Type and captions; Sound; Craft profile (below); Use when; Do not use when; Common mistakes (problem -> fix); Source or provenance.
+2. Fill the entry fields used across this catalog: Look; Imagery (its source from the ladder of the ice-motion skill's `references/picture-methods.md` item 3); Medium-specific moves (mark, edge, order of marks, stepping, motif loops, signature transition); Palette; Type and captions; Sound; Craft profile (below); Use when; Do not use when; Common mistakes (problem -> fix); Source or provenance. Sound names a real track and recorded effects to search for, never synthesis.
 3. Write signature features as testable numbers. Write a short creative seed with beats per second only to test the style, then delete it from the entry: entries never carry a story.
 4. Render one still of the hardest subject in the style and critique it before using the style for anything else.
 5. Run the validation in section 11. Until it passes, label the entry "research recipe".

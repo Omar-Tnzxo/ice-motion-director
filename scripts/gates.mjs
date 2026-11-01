@@ -38,7 +38,7 @@ const WANT_RENDER = ALL || args.includes("--render");
 const VALIDATE = !args.includes("--no-validate");
 
 // Import names of every pinned Python package (the pins live in skills/ice-engines/references/versions.json "pip").
-const PYTHON_IMPORTS = ["numpy", "scipy", "soundfile", "numba", "pedalboard", "pyloudnorm", "matplotlib",
+const PYTHON_IMPORTS = ["numpy", "scipy", "numba",
   "librosa", "cv2", "PIL", "playwright", "scenedetect", "vtracer"];
 
 const CACHE = join(tmpdir(), "ice-motion-director-gates");

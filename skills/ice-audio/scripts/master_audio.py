@@ -8,6 +8,8 @@
 # sample-exact pad of silence joined by concat (adelay feeding amix dropped its delay in about 1 run of 8 and played a
 # late cue at 0 s); the mix lasts the film (amix duration=first ended all audio at the last word when the voice was the
 # first input and ended before the picture; now duration=longest, padded and trimmed to the film).
+# 2026-11-01 (0.2.19): master.json records "inputs" (every file actually mixed, with its sha256, and whether the
+# video's own audio is in the mix) so validate-assets.mjs --audio-only can check each one against the asset manifest.
 """Master and normalize audio for video with multi-track mixing, loudness gain and a true-peak limiter.
 
 Method: mix, measure integrated loudness with ffmpeg ebur128, apply the linear gain to the target, limit
@@ -54,13 +56,16 @@ problem (status fail, exit 1): end the line earlier or lengthen the picture.
 Outputs:
   OUT.mp4: Mastered video file with copied video stream and AAC audio at 48 kHz
   master.json: Metrics file saved next to the output video ("status": "pass" or "fail", every render tried, "music_edges",
-      and "no_sfx_premix" with the premix path when --no-sfx-premix is given)
+      and "no_sfx_premix" with the premix path when --no-sfx-premix is given; "inputs": {"vo": {path, sha256} or null,
+      "music": {path, sha256} or null, "sfx": [{path, sha256, at}], "video_audio": bool}, the files actually mixed,
+      read by validate-assets.mjs --audio-only)
 
 Exit codes:
   0: Success, 2: Bad input or invalid arguments, 1: Execution failure or a missed target
 """
 
 import argparse
+import hashlib
 import json
 import pathlib
 import re
@@ -444,6 +449,29 @@ def render_no_sfx_premix(
             "sfx_cues_left_out": len(sfx_items)}
 
 
+def file_record(path: pathlib.Path) -> dict[str, str]:
+    """Path and sha256 of one mixed input, so the gate can match it to its manifest row."""
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            digest.update(block)
+    return {"path": str(path.resolve()), "sha256": digest.hexdigest()}
+
+
+def describe_inputs(
+    vo: pathlib.Path | None, music: pathlib.Path | None, sfx_items: list[dict[str, Any]],
+    keep_video_audio: bool, video_has_audio: bool,
+) -> dict[str, Any]:
+    """The files this mix really used (the same original-audio choice as build_filter_graph)."""
+    uses_video_audio = bool(video_has_audio and (keep_video_audio or (not vo and not music and not sfx_items)))
+    return {
+        "vo": file_record(vo) if vo else None,
+        "music": file_record(music) if music else None,
+        "sfx": [{**file_record(item["file"]), "at": item["at"]} for item in sfx_items],
+        "video_audio": uses_video_audio,
+    }
+
+
 def master_audio(
     video: pathlib.Path,
     out: pathlib.Path,
@@ -574,6 +602,7 @@ def master_audio(
         "renders": renders,
         "music_edges": music_edges,
         "cut_at_end": cut_at_end,
+        "inputs": describe_inputs(vo, music, sfx_items, keep_video_audio, vid_info["has_audio"]),
         **({"no_sfx_premix": premix} if premix else {}),
         "video_stream": {"codec_name": out_info["codec_name"], "nb_frames": out_info["nb_frames"], "duration": out_info["duration"]},
         "output_file": str(out.resolve()),

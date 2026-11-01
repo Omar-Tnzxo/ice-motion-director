@@ -23,7 +23,7 @@ For each reference write in `BRIEF.md`:
 |---|---|
 | Role | MOVES (a video: pace, scene changes, transitions, the one idea) or LOOK (a site, brand, moodboard, image set: colors, fonts, feel) or both |
 | Owner | the user's own material, or a third party |
-| Image layer | generated, stock, filmed, illustrated, code-drawn, mixed (agree the route with the user before build; "exactly like" is judged on imagery first) |
+| Image layer | generated, stock, filmed, illustrated, code-drawn, mixed (agree the route with the user before build; code-drawn needs the craft plan's `imagery` reason, the ice-motion skill's `references/picture-methods.md` item 6; "exactly like" is judged on imagery first) |
 | Mode | structural fidelity, translation, inspiration, mix (section 2) |
 | Not taken | one sentence naming what is deliberately not taken from it |
 

@@ -188,7 +188,7 @@ test("Q-music offers real library tracks heard on the film and no music made by 
   const music = bankEntry("music");
   assert.match(music, /`ice-audio\/SKILL\.md` section 5, "The options flow"/);
   assert.match(music, /2 to 3 real library tracks ranked by measurement against the reference, or against the film type/);
-  assert.match(music, /Music made by code is never an option unless the user asked for it in their own words/);
+  assert.match(music, /Music made by code or by AI is never an option, not even on request/);
   const options = music.split(/\r?\n/).filter((l) => /^\d\. /.test(l));
   assert.equal(options.length, 4);
   for (const o of options) assert.doesNotMatch(o, /\bcode\b|generated|synth/i, `an option offers made music: ${o}`);

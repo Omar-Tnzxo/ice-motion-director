@@ -80,7 +80,7 @@ Use when the brief asks for speed, the film is 45 to 120 s with one idea, or a d
 | Voice | A local TTS engine already installed, or the user's recording | If none is installed, a free local engine with an exact pin in `ice-engines/references/versions.json` is installed without a question and recorded (`ice-engines/references/engine-choice.md` section 7.6). With no pinned engine: build to estimated timing with the late-voice rule (`references/voice-first-timeline.md` section 9), log it, and say in the delivery note what a voice engine would add. Cloud TTS only with the consent in `references/voice-first-timeline.md` |
 | Word timing | Engine word boundaries, or a local speech recognizer with word timestamps plus forced alignment to the script | Never estimate from character counts |
 | Picture | The engine `ice-engines` picks for the platform (canvas with a headless browser, HyperFrames, Remotion) | Deterministic: every frame a pure function of time, seeded randomness only |
-| Music and SFX | The user's track, or real library music and recorded SFX from the `ice-audio` ladders (`ice-audio/SKILL.md` section 5); offline with nothing on disk, no bed and a "music needed" line in the delivery note | Optional in fast mode; music made by code only when the user asks for it (`ice-audio/SKILL.md` core rule 7) |
+| Music and SFX | The user's track, or real library music and recorded SFX from the `ice-audio` ladders (`ice-audio/SKILL.md` section 5); offline with nothing on disk, no bed and a "music needed" line in the delivery note | Optional in fast mode; music is never made by code (`ice-audio/SKILL.md` core rule 7) |
 
 Arabic or a language the local engine does not voice: call `ice-arabic` before choosing the voice.
 

@@ -1,6 +1,8 @@
 > Translated from Chinese into English from feitangyuan/onetake (PolyForm Noncommercial 1.0.0). Noncommercial use only.
 
-> Adapted from feitangyuan/onetake (PolyForm Noncommercial 1.0.0; Required Notice: Copyright (c) 2026 Patrick. onetake is free for noncommercial use only.) Changes: renamed from SKILL.md so it is not loaded as a skill; em and en dashes replaced with commas, colons or hyphens. Noncommercial use only; see README.md and LICENSE.
+> Adapted from feitangyuan/onetake (PolyForm Noncommercial 1.0.0; Required Notice: Copyright (c) 2026 Patrick. onetake is free for noncommercial use only.) Changes: renamed from SKILL.md so it is not loaded as a skill; em and en dashes replaced with commas, colons or hyphens; the sound synthesis commands, the synthesised palette and the `sfx_palette.py`, `sfx_score.example.py` and `references/sound.md` rows removed (Ice override below). Noncommercial use only; see README.md and LICENSE.
+
+> Ice override (2026-11-01): the sound synthesis described here is not used; sound follows the ice-audio skill (real recordings only, core rule 7).
 
 ---
 name: onetake
@@ -159,18 +161,12 @@ the user the estimate before starting a long render.
 
 ### 7 · Sound, a palette in a room, never one beep per event
 
-```bash
-python3 scripts/sfx_palette.py --demo demo.wav     # quick pass: the synthetic palette (see templates/sfx_score.example.py)
-python3 dump_events.py && python3 score.py         # the films since one-dot: the comp's __events() → recorded + synthesised mix
-```
-
-Two ways, one rule. The **palette** is five synthesised materials (air, wood, glass, sub, bubble) in one reverb, peaks
-at −8 dBFS so music can sit on top, enough for a draft. Every accepted film since one-dot uses a **score.py**: recorded
-sources (Kenney's CC0 packs, UIowa MIS, Voxengo IRs, not shipped here; download them yourself) layered with synthesis, timed and panned
+Every accepted film since one-dot uses a **score.py**: recorded
+sources (Kenney's CC0 packs, UIowa MIS, Voxengo IRs, not shipped here; download them yourself), timed and panned
 from `window.__events()`, convolution reverb, the music ducked under the hits, mastered to −16 LUFS with the ceiling
-low enough (−3.5 to −4 dBTP) that the AAC render stays under verify's −3 dBFS. Fewer events than beats either way: the
+low enough (−3.5 to −4 dBTP) that the AAC render stays under verify's −3 dBFS. Fewer events than beats: the
 first motion-web pass put a raw sine pop on every event and was rejected as "shoddy" within a minute. Before shipping any
-recorded source inside a product, check its licence (Mixkit's does not allow redistributing the files). `references/sound.md`.
+recorded source inside a product, check its licence (Mixkit's does not allow redistributing the files).
 
 **Music is royalty-free by default.** Look for a track licensed for reuse (NCS, Pixabay Music, the YouTube Audio
 Library, Free Music Archive under a CC licence that allows it) and keep its source and licence next to the score. A
@@ -242,21 +238,18 @@ behind a snap and nothing else noticed. With `--ref`, the reference's energy map
 | `scripts/stills.py` | comp → contact sheet of chosen times |
 | `scripts/vo_tools.py` | narration: `tts` (Kokoro, English and Japanese via a kana reading, auditions), `words` (faster-whisper), `plan` (line starts), `subs` (chunked, timed) |
 | `scripts/frame_diff.py` | two comps (or one with `?lang=`) at chosen times → identical or not, with diff images |
-| `scripts/sfx_palette.py` | the sound materials, the room, `Score` helper, `--demo` |
 | `scripts/verify_promo.py` | the acceptance oracle: rhythm legs, plus continuity, curves and framing with `--comp` |
 | `scripts/gallery.py` | gallery demos → sheets |
 | `scripts/test_motion.js` | `node scripts/test_motion.js`, the library's numbers |
 | `templates/comp.html` | composition skeleton (the motion-web film) on the library |
 | `templates/footage.example.json` | footage config used for the motion-web film |
-| `templates/sfx_score.example.py` | the motion-web sound score |
 | `references/reference-deconstruction.md` | how to read a reference in numbers |
 | `references/rhythm.md` | rhythm (motion-web's three cuts) and carry (Pocket Weather's three) |
 | `references/motion-library.md` | every move, applying it to DOM or canvas, the curve table, which carry for which boundary |
 | `references/composition.md` | the `f(t)` architecture, primitives, hand path, probe, render and shutter |
-| `references/sound.md` | palette, room, levels, what sounded cheap |
 | `references/product-demo.md` | feature demos without a recording: the replica, legibility, highlights from the DOM, narration, languages and the time warp, brand end clips, what bit |
 | `cases/motion-web-15s/README.md` | case 1: the rhythm film, beat sheet and numbers |
-| `cases/one-dot-15s/README.md` | case 3: one dot is the whole film, the concept step, an operator's camera, recorded + synthesised sound |
+| `cases/one-dot-15s/README.md` | case 3: one dot is the whole film, the concept step, an operator's camera, recorded sound |
 | `cases/knockon-15s/README.md` | case 4: the light chain-reaction film, causal carry, height from shadows, sound placed from the comp's `__events()` |
 | `cases/clearing-15s/README.md` | case 5: the one-take dive through scale, levels drawn in their own units, a screen-space camera for 1×-300×, sound driven by the zoom's speed |
 | `cases/pith-21s/README.md` | case 6: the reverse dive, 440× → 0.52× out of one phosphor pixel, the product's own dark→light theme flip as the film's one transition, a mascot close-up used as the rhythm break, and a claim built from seven objects already on screen |
