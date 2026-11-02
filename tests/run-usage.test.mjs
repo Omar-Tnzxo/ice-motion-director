@@ -6,9 +6,9 @@
 // skills/ice-qa/references/api-prices.json. Run: node --test tests/
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join, sep } from "node:path";
 import { after, test } from "node:test";
 import { abs, readJson } from "./helpers.mjs";
 
@@ -173,4 +173,50 @@ test("export without session logs: not measured, with the reason, nothing invent
   assert.ok(cs.stages.every((s) => s.usage === null && s.minutes === null));
   assert.ok(cs.notes.some((n) => n.field === "production" && /^not measured: /.test(n.note)));
   assert.match(readFileSync(join(elsewhere, "ice", "case-study", "run-log.html"), "utf8"), /<dt>Production<\/dt><dd dir="auto">not measured</);
+});
+
+test("findTranscripts: a log folder kept as a junction or symlink is found by default, its subagent logs too", () => {
+  const cfg = join(work, "linked config");
+  const real = join(work, "logs moved elsewhere");
+  writeLogs(real);
+  const proj = join(work, "linked film");
+  mkdirSync(join(cfg, "projects"), { recursive: true });
+  symlinkSync(real, join(cfg, "projects", encodeProject(proj)), process.platform === "win32" ? "junction" : "dir");
+  const { files } = findTranscripts(proj, [], { CLAUDE_CONFIG_DIR: cfg });
+  assert.equal(files.length, 3, "main log, its superseded copy and the subagent log, without --transcripts");
+  assert.ok(files.some((f) => /[\\/]subagents[\\/]/.test(f)));
+});
+
+test("findTranscripts: subagents of a session opened in a parent folder are found when their brief names the project", () => {
+  const cfg = join(work, "parent config");
+  const workspace = join(work, "workspace");
+  const proj = join(workspace, "films", "pilot");
+  const sib = join(workspace, "films", "pilot-2");
+  const logDir = join(cfg, "projects", encodeProject(workspace), "lead-session", "subagents");
+  mkdirSync(logDir, { recursive: true });
+  writeFileSync(join(cfg, "projects", encodeProject(workspace), "lead-session.jsonl"), jsonl(main));
+  const brief = (p) => [user("10:05:00", `Build the film in ${p}${sep}ice now.`), sub[1]];
+  writeFileSync(join(logDir, "agent-a.jsonl"), jsonl(brief(proj)));
+  writeFileSync(join(logDir, "agent-b.jsonl"), jsonl(brief(sib)));
+  writeFileSync(join(logDir, "agent-c.jsonl"), jsonl(brief(join(work, "unrelated"))));
+  const { files } = findTranscripts(proj, [], { CLAUDE_CONFIG_DIR: cfg });
+  assert.deepEqual(files.map((f) => basename(f)), ["agent-a.jsonl"], "only the subagent whose brief names this project; not pilot-2, not the lead's own log");
+  const withFlag = findTranscripts(proj, [join(cfg, "projects", encodeProject(workspace), "lead-session.jsonl")], { CLAUDE_CONFIG_DIR: cfg }).files;
+  assert.ok(withFlag.length >= 3, "--transcripts still adds the lead's log and its subagents");
+});
+
+test("export-case-study.mjs: full-film rounds count under both names, critic-<n>.md and the stage 09 film-r<n>.md", () => {
+  const dir = project("critic names", false);
+  mkdirSync(join(dir, "ice", "review", "clarity"), { recursive: true });
+  writeFileSync(join(dir, "ice", "review", "film-r1.md"), "Verdict: REVISE\n\n## Findings\n- logo too small\n");
+  writeFileSync(join(dir, "ice", "review", "film-r2.md"), "Verdict: PASS\n");
+  writeFileSync(join(dir, "ice", "review", "critic-2.md"), "Verdict: PASS\n");
+  writeFileSync(join(dir, "ice", "review", "critic-round-3.md"), "Verdict: PASS\n");
+  writeFileSync(join(dir, "ice", "review", "clarity", "read-3-r1.md"), "not a full-film round\n");
+  const r = exporter(dir, emptyConfig);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /, 3 critic rounds,/, "rounds 1, 2 and 3; round 2 written under both names counts once");
+  const cs = JSON.parse(readFileSync(join(dir, "ice", "case-study", "case-study.json"), "utf8"));
+  const critic = cs.stages.find((s) => s.id === "09").critic;
+  assert.deepEqual(critic.map((c) => [c.round, c.verdict]), [[1, "REVISE"], [2, "PASS"], [3, "PASS"]]);
 });

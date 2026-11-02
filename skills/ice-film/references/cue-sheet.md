@@ -18,7 +18,7 @@ Film-side addition: a text-led film without voice or a steady beat runs on readi
 
 ## 2. Cue sheet format
 
-Cue sheet schema and required fields (`fps`, `duration`, `mode`, `music`, `voice`, `events`, `quiet`): the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 2.
+Cue sheet schema and required fields (`fps`, `duration`, `mode`, `music`, `voice`, `events`, `audio_quiet`, `visual_hold`): the `ice-audio` skill, `references/cue-map-and-beat-sync.md` section 2.
 
 Film-side fields, added to every row of `events`:
 

@@ -2,7 +2,7 @@
 
 > Merged from: Omar-Tnzxo/video-production-studio (owner, verbatim allowed), digitalsamba/claude-code-video-toolkit (MIT), nateherkai/herk-edit-kit (MIT), AbubakrChan/product-launch-motion and echris6/motion-video-kit (MIT), heygen-com/hyperframes (Apache-2.0), majedphotos/video-ad-editor (MIT), alchaincyf/huashu-art-motion (MIT), Barty-Bart/motion-graphics (MIT), plus ideas rewritten from hypit-ai/hypit, Tejashmakwana/motionmaxxing and imMamdouhaboammar/motion-graphics-skills. Dash characters replaced.
 
-Contents: 1 Policy. 2 What may be generated. 3 Before generating. 4 Prompting. 5 Inspection. 6 Video clips. 7 Disclosure and records. 8 Provider notes. 9 Faces and voices of real people.
+Contents: 1 Policy. 2 What may be generated. 3 Before generating. 4 Prompting. 5 Inspection. 6 Video clips. 7 Disclosure and records. 8 Provider notes. 9 Faces and voices of real people. 10 Generation in the agent's own browser.
 
 ## 1. Policy (product rule, overrides any source)
 
@@ -33,11 +33,12 @@ A generated plate must perform in the film (revealed, travelled through, lit, ma
 
 - Use only generation tools actually exposed in this session; check which connectors or API clients exist before planning. A skill mentioning a tool does not install it; never infer a tool from a host name.
 - Never switch providers to get around a refusal or a ban; relay the refusal as written and stop.
-- Provider order: a provider the user named; a local gateway or local model the user set up; an available image tool or API key; a local Stable Diffusion or Flux model. Video models only for ambient clips.
+- Provider order: a provider the user named; a local gateway or local model the user set up; an available image tool or API key; a provider website the user signs into in the agent's own browser (section 10); a local Stable Diffusion or Flux model. Video models only for ambient clips.
 - A connected paid generator is not proof of credit: read the balance (read only) before planning, and keep an offline route (licensed stock, code) ready.
 - Print the cost before any paid generation and ask once, inside the router's allowed stops (the stage 01 message, or a review card in step mode); tell the total before generating more than one paid item. Not approved there: no paid generation; use the offline route and say so in the delivery note. Generate only what is missing; stop to diagnose a failure instead of retrying blindly.
 - Never write API keys into files, scripts, commands in logs, or commits; let the user set them; suggest rotating any key pasted into chat.
 - Reuse successful jobs (keep task ids) rather than resubmitting.
+- The agent uploads references and downloads results itself (section 10 for a browser route); it hands the user only sign-in, account choice, plan, payment and terms pages.
 
 ## 4. Prompting
 
@@ -82,6 +83,8 @@ No text, no letters, no logos, no watermark.
 | Chains | Per-scene prompts, a negative prompt against style drift, watermarks and text, and strong style anchors in every scene; long chains drift within 5 to 10 scenes |
 | Phone screens | Models write fake chats and UI on any visible screen: hide the screen (glare, tilt, face down) and composite the real captured content |
 | Faces | When a person must stay anonymous, check the whole take frame by frame, including mirrors and reflections, and cut before the first frame that shows a face |
+| Devices and physics | Watch the whole take for impossible behaviour: a locked or dark phone being used, an object that floats or flies off a table, a hand that passes through a thing, a screen whose content changes by itself. Cut before it or regenerate |
+| Scale and reactions | People and objects keep a believable size to each other (a person is never larger than the doorway they stand in); reactions stay small and natural unless the script asks for more |
 | Local detail | Real-world details match the setting in the brief (for example vehicles carry the country's real plate style, never blank or blurred); logos are composited, never drawn by the model |
 | Grade | Generated clips match the real footage they sit beside: they take the grade of the source class they stand in for (one grade per source class: the `ice-direction` skill, `references/color.md` section 5; render side: the ice-engines skill) |
 | Inspection | Download the real file and inspect full-size corners through the whole selected interval for text, logos and malformed objects |
@@ -103,6 +106,7 @@ Disclosure:
 | Image editing models | Prompt as action, details, constraints; always add preservation constraints (keep the face, keep the product shape); do not use for single-image background replacement (halos), face swap or outpainting; dark scenes lose identity |
 | LTX-style video models | Frame counts where (n minus 1) is divisible by 8; width and height divisible by 64; 24 fps; prompts under about 200 words layered as camera, lighting, motion, style; avoid text and UI |
 | Image-to-video | Generate the key frame first, then animate it; expect about 720p at 24 fps from many services |
+| Google Flow (labs.google/flow) | Images in Nano Banana Pro (0 credits on a Google AI Pro plan, measured 2026-10-17); video in Veo 3.1: Quality about 100 credits per 8 s clip, Fast about 20; a free 1080p upscale; Pro gave 1,000 monthly credits per account. Prices and labels change: read them on screen. Access only through section 10 and `google-flow-browser.md` |
 
 ## 9. Faces and voices of real people
 
@@ -117,3 +121,15 @@ This section is the single owner of the rule for every skill. Content creators e
 2. Content whose own wording shows it is meant to make viewers believe a real person said or did something they did not: a fabricated news clip, a fake statement passed off as real, impersonation to scam. A clearly labelled parody or illustration is fine.
 
 **Editorial use** of real, unaltered public material (press photos, official images, public footage, agency and broadcaster clips, quotes): find the best real, official, recent source (news agencies, official channels, press conferences, official accounts, archives, the user's material; `sourcing-and-licenses.md` section 1a), licensed or not; record its source, owner and license status (`sourcing-and-licenses.md` section 0); credit it on screen or in the credits; keep its meaning (no misleading crops, cuts, captions or translations); quote exactly.
+
+## 10. Generation in the agent's own browser
+
+When the user allowed AI media (section 1), has an image or video plan on a provider website and no API key, the agent may drive that website in its own browser (Claude's in-app browser, Claude in Chrome, or another agent's browser). The user's own yes to this route comes first (an answer or the user's own words; never a waived question).
+- **The user signs in.** The agent never types a password, a key or a code, never picks an account or switches accounts, never creates an account, never accepts terms, consent or cookies beyond the most private choice, and never buys credits or a plan. A sign-in, account picker, plan, payment, consent or terms page stops the route and goes to the user.
+- **Stills first.** Start frames and references are made as stills (free or cheapest model first) and inspected (section 5) before any video is made from them.
+- **Paid credits only per round, with a yes.** Before each video round the agent reads the credit cost the site shows for that click, tells the user the round's total and the balance left, and waits for the user's yes (router stop C, `ice-motion-director/SKILL.md` section 5, "Stops"). No one can answer now: stills only, no video, and the delivery note says what a video round would cost.
+- **One at a time, paced.** One generation or upscale in flight at a time, a pause between clicks, no loops of retries.
+- **Stop on any warning.** An unusual activity flag (Flow returns `PUBLIC_ERROR_UNUSUAL_ACTIVITY`), a rate or quota warning, or a captcha stops all automation on that account at once: tell the user, never work around it (no second account, no other provider to get past it, section 3), and fall back to the next rung (stills, licensed stock, capture, code).
+- **Ledger.** Everything generated goes into the ledger (section 7) with provider, model, prompt, credits spent and the file and window it became.
+
+The procedure for Google Flow: `google-flow-browser.md`.

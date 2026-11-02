@@ -24,9 +24,11 @@ Usage:
                       [--template nearest_template_render.mp4] [--allow-blue-purple "reason"]
                       [--type "film type"] [--events film.events.json]
 
-  python film_gate.py fingerprint check|write --record record.json [--file fingerprints.jsonl]
+  python film_gate.py fingerprint check|write --record record.json [--project <folder with ice/>] [--file fingerprints.jsonl]
       the fingerprint check and write of ice-qa references/anti-sameness-gates.md section 3 (no numpy needed):
       check exits 2 when the film repeats an earlier one; write appends an approved film's record.
+      Store: --file, else $ICE_FINGERPRINTS, else <project>/ice/fingerprints.jsonl. The check also reads sibling
+      projects' stores and the old ~/.ice-motion-director/fingerprints.jsonl (read only) unless --file is given.
 
 Exit codes: red 2; yellow or green 0; file unreadable 1.
 Needs only ffmpeg/ffprobe, numpy and opencv; it does not depend on any engine, so a film from any source can be measured.
@@ -81,7 +83,7 @@ frame_fill, empty_half, in_shot_motion, longest_still) are defined by the ice-mo
 (references/composition-and-staging.md section 7.2); the floor numbers are read at run time from the ice-film type file's
 "Richness floor" table for the film type (--type, else ice/state.json "subtype", else the film_type row of ice/BRIEF.md);
 how each is measured: references/motion-density.md section 6.1. Under the lenient number of the owner cell is red,
-under the strict one yellow. Declared holds (the cue sheet's quiet list, hold events) and a declared CTA start are read
+under the strict one yellow. Declared holds (the cue sheet's visual_hold list, else its old quiet list, hold events) and a declared CTA start are read
 from ice/plan/cue-sheet.json and the events file. Cuts: when the events file or the cue sheet declares cuts they are the
 cuts; detection also needs the luma correlation of the pair to drop under 0.7, so a fast move inside one shot (a door
 sliding past) is not a cut. A page flip (a cut with nothing moving in the 0.5 s on either side) is reported apart
@@ -1498,7 +1500,57 @@ def richness_lines(sc, cuts_from):
 
 
 # ---------------------------------------------------------------- fingerprint (anti-sameness.md sections 2 to 4a)
-FP_FILE = os.path.join(os.path.expanduser("~"), ".ice-motion-director", "fingerprints.jsonl")
+# Where the records live. Old builds wrote one file in the user's home folder (drive C on Windows); a run's files stay
+# in its own folder now: the store is --file, else the ICE_FINGERPRINTS environment variable (a file path, for one
+# store shared by every project), else <project>/ice/fingerprints.jsonl (the project found from --project or the
+# current folder). The check reads that store, the stores of sibling projects (<parent>/<other>/ice/fingerprints.jsonl,
+# so films made side by side in one workspace are still compared) and the old home file, read only, as a fallback.
+FP_FILE = os.path.join(os.path.expanduser("~"), ".ice-motion-director", "fingerprints.jsonl")   # legacy, read only
+FP_ENV = "ICE_FINGERPRINTS"
+FP_NAME = "fingerprints.jsonl"
+
+
+def _fp_project_ice(start):
+    """The project's ice/ folder found by walking up from start, or None."""
+    p = os.path.abspath(start or os.getcwd())
+    while True:
+        if os.path.basename(p) == "ice" and os.path.isdir(p):
+            return p
+        if os.path.isdir(os.path.join(p, "ice")):
+            return os.path.join(p, "ice")
+        up = os.path.dirname(p)
+        if up == p:
+            return None
+        p = up
+
+
+def fp_store(file=None, project=None, env=None):
+    """(store path or None, read paths in order) for the fingerprint check and write."""
+    env = os.environ if env is None else env
+    ice = _fp_project_ice(project)
+    store = file or env.get(FP_ENV) or (os.path.join(ice, FP_NAME) if ice else None)
+    reads = [store] if store else []
+    if not file:
+        if ice:
+            root = os.path.dirname(ice)
+            parent = os.path.dirname(root)
+            try:
+                siblings = sorted(os.listdir(parent))
+            except OSError:
+                siblings = []
+            for name in siblings:
+                other = os.path.join(parent, name, "ice", FP_NAME)
+                if os.path.normcase(os.path.abspath(os.path.join(parent, name))) != os.path.normcase(root) and os.path.isfile(other):
+                    reads.append(other)
+        reads.append(FP_FILE)
+    seen, out = set(), []
+    for r in reads:
+        k = os.path.normcase(os.path.abspath(r))
+        if k not in seen:
+            seen.add(k); out.append(r)
+    return store, out
+
+
 FP_AXES = ("palette", "type", "layout", "motion", "structure", "sound")
 
 
@@ -1568,7 +1620,10 @@ def fingerprint_main(argv):
                                  description="Fingerprint check and write (ice-qa references/anti-sameness-gates.md section 3).")
     ap.add_argument("action", choices=["check", "write"])
     ap.add_argument("--record", required=True, help="the candidate record, one JSON object (anti-sameness.md section 2)")
-    ap.add_argument("--file", default=FP_FILE, help=f"fingerprints file (default {FP_FILE})")
+    ap.add_argument("--file", default=None,
+                    help=f"fingerprints file to read and write (default: ${FP_ENV}, else <project>/ice/{FP_NAME}; "
+                         f"without --file the check also reads sibling projects' stores and the old {FP_FILE})")
+    ap.add_argument("--project", default=None, help="the folder that holds ice/ (default: found from the current folder)")
     ap.add_argument("--recent", type=int, default=30)
     ap.add_argument("--hue", type=float, default=45, help="accent hue distance in OKLCH degrees")
     a = ap.parse_args(argv)
@@ -1579,23 +1634,36 @@ def fingerprint_main(argv):
     missing = [k for k in ("v", "date", "project", "brand") + FP_AXES if k not in rec]
     if missing:
         print("record is missing: " + ", ".join(missing), file=sys.stderr); return 1
-    records = []
-    if os.path.exists(a.file):
-        for line in open(a.file, encoding="utf-8"):
+    store, reads = fp_store(a.file, a.project)
+    records, seen, used = [], set(), []
+    for path in reads:
+        if not os.path.exists(path):
+            continue
+        used.append(path)
+        for line in open(path, encoding="utf-8"):
             if line.strip():
-                try: records.append(json.loads(line))
-                except ValueError: pass
+                try: r = json.loads(line)
+                except ValueError: continue
+                key = json.dumps(r, sort_keys=True)
+                if key not in seen:
+                    seen.add(key); records.append(r)
     ok, lines = fingerprint_check(rec, records, a.recent, a.hue)
+    print("read: " + (", ".join(used) if used else "no fingerprint file yet"))
+    if any(os.path.normcase(os.path.abspath(p)) == os.path.normcase(os.path.abspath(FP_FILE)) for p in used) and not a.file:
+        print(f"note: read the old home store {FP_FILE} as a fallback; new records go to the project (or ${FP_ENV})")
     print("\n".join(lines))
     if a.action == "check":
         print("Fingerprint: " + ("pass" if ok else "FAIL"))
         return 0 if ok else 2
     if not ok and not rec.get("user_chosen"):
         print("not written: an approved film passes the check first", file=sys.stderr); return 2
-    os.makedirs(os.path.dirname(os.path.abspath(a.file)), exist_ok=True)
-    with open(a.file, "a", encoding="utf-8") as f:
+    if not store:
+        print(f"not written: no ice/ folder found from {a.project or os.getcwd()}; pass --project <folder that holds ice/>, "
+              f"--file <path> or set {FP_ENV}", file=sys.stderr); return 1
+    os.makedirs(os.path.dirname(os.path.abspath(store)), exist_ok=True)
+    with open(store, "a", encoding="utf-8") as f:
         f.write(json.dumps(rec, ensure_ascii=False, separators=(",", ":")) + "\n")
-    print(f"written to {a.file}")
+    print(f"written to {store}")
     return 0
 
 

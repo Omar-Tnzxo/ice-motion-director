@@ -362,11 +362,16 @@ if (sfx) push("08", addText("08", sfx, "Sound effects list"));
 const master = readJsonFile(join(ICE, "renders", "master.json")) || readJsonFile(join(ICE, "review", "master-final.json"));
 
 // Critic rounds.
-const criticFiles = under("review/").filter((f) => /^critic[-_](round[-_])?\d+\.md$/i.test(basename(f)) && posix(relative(ICE, f)).split("/").length === 2)
-  .sort((a, b) => Number(basename(a).match(/(\d+)/)[1]) - Number(basename(b).match(/(\d+)/)[1]));
+// Two names exist for the same full-film round report: `critic-<n>.md` (or `critic-round-<n>.md`) and the
+// stage 09 run's `film-r<n>.md` (or `film-round-<n>.md`). Both count; a round with both files counts once.
+const CRITIC_ROUND_RE = /^(?:critic[-_](?:round[-_])?|film[-_](?:r|round[-_]?))(\d+)\.md$/i;
+const roundOf = (f) => Number(basename(f).match(CRITIC_ROUND_RE)[1]);
+const criticFiles = under("review/").filter((f) => CRITIC_ROUND_RE.test(basename(f)) && posix(relative(ICE, f)).split("/").length === 2)
+  .sort((a, b) => roundOf(a) - roundOf(b) || basename(a).localeCompare(basename(b)))
+  .filter((f, i, all) => i === 0 || roundOf(all[i - 1]) !== roundOf(f));
 for (const f of criticFiles) {
   const md = read(f);
-  const round = Number(basename(f).match(/(\d+)/)[1]);
+  const round = roundOf(f);
   const vHead = md.match(/^(?:##\s*)?Verdict:?\s*(.*)$/im);
   let verdict = clean(vHead?.[1] || "").split(/\s*[.(]/)[0];
   if (!verdict && vHead) verdict = clean((section(md, "Verdict").split(/\r?\n/).find((l) => l.trim()) || "").split(/[.(]/)[0]);
@@ -376,7 +381,7 @@ for (const f of criticFiles) {
   stages["09"].critic.push({ round, verdict, score, notes: noteLines.slice(0, 12), fixes: fixes.slice(0, 12) });
   push("09", addText("09", f, `Critic round ${round}`));
 }
-if (criticFiles.length) addRole("09", "critic"); else note("stages[09].critic", "no critic round files in ice/review/");
+if (criticFiles.length) addRole("09", "critic"); else note("stages[09].critic", "no critic round files (critic-<n>.md or film-r<n>.md) in ice/review/");
 const fixesJson = files.find((f) => posix(relative(ICE, f)) === "review/fixes.json");
 if (fixesJson) push("09", addText("09", fixesJson, "Fix ledger with before and after evidence"));
 if (noteMd) push("10", addText("10", join(ICE, "review", "NOTE.md"), "Delivery report with measured numbers"));

@@ -26,7 +26,7 @@ Films must never converge on one look, palette, structure or workflow. This file
 
 ## 2. Fingerprint record format
 
-One JSON object per line in `~/.ice-motion-director/fingerprints.jsonl`. Local only, disclosed in the README, can be turned off by the user (then only the template distance applies, and the hand-off says so). The example is wrapped for reading; each record is stored on a single line.
+One JSON object per line in `ice/fingerprints.jsonl` inside the project (or the file the user sets in `ICE_FINGERPRINTS`); the check also reads the sibling projects' stores beside it and, read only, an older `~/.ice-motion-director/fingerprints.jsonl`. Local only, disclosed in the README, can be turned off by the user (then only the template distance applies, and the hand-off says so). The example is wrapped for reading; each record is stored on a single line.
 
 ```json
 {"v":1,"date":"YYYY-MM-DD","project":"<slug>","brand":"<name or none>","film_type":"<type>","variant_of":null,

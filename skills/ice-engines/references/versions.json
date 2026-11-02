@@ -1,7 +1,7 @@
 {
   "about": "Single source of truth for every pinned tool version that Ice Motion Director skills and scripts use. Skills and scripts read this file instead of repeating numbers. tests/metadata.test.mjs keeps requirements.txt files, script pins and exact pins written in skill text (name@x.y.z, name==x.y.z) in sync with it. .github/workflows/freshness.yml (scripts/freshness.mjs) compares it with the npm registry and PyPI every week, opens a pull request with the bump (never merged automatically) and opens an issue for any platform spec not verified within max_age_days. An entry with a hold field is never bumped.",
   "last_verified": "2026-10-19",
-  "last_checked": "2026-11-01",
+  "last_checked": "2026-11-02",
   "runtimes": {
     "node": {
       "minimum": "22.20.0",

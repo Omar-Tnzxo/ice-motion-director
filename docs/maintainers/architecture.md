@@ -248,7 +248,7 @@ All run files live in an `ice/` folder inside the user's project.
 | `ice/plan/craft-plan.json` | `ice-direction` (drafted at 02, the remake at 01; locked at 05), mapped by the workflow at 04 | One row per craft dimension (use, not used or scoped, with its reason, source and check) and the exemption rows; schema, precedence and rules: `skills/ice-direction/references/treatment.md` section "Craft plan"; read by `craft_gate.py` and the gate readers of `ice-qa` |
 | `ice/assets/` | `ice-assets` | Truth sheet, facts, manifest, credits, `BRAND-MATERIAL.md` and the one brand sheet path, `ice/assets/brand-sheet.json` |
 | `ice/review/` | `ice-qa` | Critic notes, gate outputs, the delivery report with measured numbers |
-| `~/.ice-motion-director/fingerprints.jsonl` | `ice-qa` | One line per finished film: palette, type, layout, motion language, structure, sound. Local only, disclosed in README, can be turned off |
+| `ice/fingerprints.jsonl` per project (`ICE_FINGERPRINTS` overrides; sibling stores and an older home file are read) | `ice-qa` | One line per finished film: palette, type, layout, motion language, structure, sound. Local only, disclosed in README, can be turned off |
 
 ## 4. Film types and scoped rules
 

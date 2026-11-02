@@ -40,7 +40,7 @@ Supporting rules:
 
 ## 3. Fingerprint check and write
 
-The fingerprint file is `~/.ice-motion-director/fingerprints.jsonl`. It is local only, disclosed in the README, and the user can turn it off (then skip this section, rely on the template distance alone and say so in the report). The record format, the axis tests and the thresholds are owned by the ice-direction skill, `references/anti-sameness.md` sections 2 to 4; read them before checking or writing. The approved defaults, quoted so the check is exact:
+The fingerprint file is `ice/fingerprints.jsonl` inside the project (or the file the user sets in `ICE_FINGERPRINTS`); the check also reads the sibling projects' stores beside it and, read only, an older `~/.ice-motion-director/fingerprints.jsonl`. It is local only, disclosed in the README, and the user can turn it off (then skip this section, rely on the template distance alone and say so in the report). The record format, the axis tests and the thresholds are owned by the ice-direction skill, `references/anti-sameness.md` sections 2 to 4; read them before checking or writing. The approved defaults, quoted so the check is exact:
 
 | Compare against | Pass when |
 |---|---|
@@ -52,7 +52,7 @@ An axis differs by the owner's section 3 tests (for palette: polarity differs, t
 
 A look the user chose (owner section 4a): the film is not compared, and its record is written with `user_chosen` filled; records with `user_chosen` filled are left out of every comparison set below.
 
-Script: `python scripts/film_gate.py fingerprint check --record <record.json>` and, at delivery, `fingerprint write --record <record.json>` (no numpy needed; exit 2 on a repeat, with the closest record and its matching axes). The record follows the owner's section 2 format; a record with `user_chosen` filled is never compared.
+Script: `python scripts/film_gate.py fingerprint check --record <record.json>` and, at delivery, `fingerprint write --record <record.json>` (`--project <folder>` or `--file <path>` to point elsewhere; no numpy needed; exit 2 on a repeat, with the closest record and its matching axes). The record follows the owner's section 2 format; a record with `user_chosen` filled is never compared.
 
 Check (before render approval, after the direction is locked):
 1. Build the candidate record for this film in the owner's record format from `ice/DIRECTION.md` and the contact sheet.

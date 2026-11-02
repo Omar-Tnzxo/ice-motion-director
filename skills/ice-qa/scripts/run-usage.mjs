@@ -3,7 +3,9 @@
 // Original to Ice Motion Director (Apache-2.0). A module used by export-case-study.mjs, and a CLI.
 //
 // Source: the Claude Code session logs on this machine (<config>/projects/<encoded project path>/*.jsonl, their
-// `.superseded-*` copies and every <session>/subagents/*.jsonl). Only numbers leave them: the usage counters, the
+// `.superseded-*` copies and every <session>/subagents/*.jsonl, log folders kept as junctions or symlinks included;
+// for a project made by subagents of a session opened in a parent folder, those subagents' logs found by default
+// in the parent's log folder; --transcripts adds more). Only numbers leave them: the usage counters, the
 // model, the timestamps and the Claude Code version. No message text is stored or returned; a user entry's text is
 // looked at only to tell a person's message (a wait for them) from a tool result or a machine note.
 // Rules (measured by hand on six runs, 2026-10-31):
@@ -39,6 +41,13 @@ export const loadPrices = (file = PRICES_FILE) => JSON.parse(readFileSync(file, 
 export const encodeProject = (dir) => resolve(dir).replace(/[^A-Za-z0-9]/g, "-");
 
 const LOG_FILE = /\.jsonl(\.superseded-[^/\\]*)?$/;
+// A folder entry's kind, following links: Claude Code's projects folder may hold a project's log folder as a
+// junction or symlink (moved to another drive), and the entry of a link reports neither isDirectory nor isFile,
+// so without this the main logs and every <session>/subagents/*.jsonl beside them were missed.
+function kind(dir, e) {
+  if (!e.isSymbolicLink()) return e.isDirectory() ? "dir" : e.isFile() ? "file" : "";
+  try { const st = statSync(join(dir, e.name)); return st.isDirectory() ? "dir" : st.isFile() ? "file" : ""; } catch { return ""; }
+}
 function logsIn(path) {
   if (!existsSync(path)) return [];
   if (statSync(path).isFile()) {
@@ -48,8 +57,9 @@ function logsIn(path) {
   const out = [];
   for (const e of readdirSync(path, { withFileTypes: true })) {
     const p = join(path, e.name);
-    if (e.isFile() && LOG_FILE.test(e.name)) out.push(p);
-    else if (e.isDirectory() && existsSync(join(p, "subagents"))) {
+    const k = kind(path, e);
+    if (k === "file" && LOG_FILE.test(e.name)) out.push(p);
+    else if (k === "dir" && existsSync(join(p, "subagents"))) {
       for (const f of readdirSync(join(p, "subagents"))) if (f.endsWith(".jsonl")) out.push(join(p, "subagents", f));
     }
   }
@@ -57,15 +67,55 @@ function logsIn(path) {
 }
 
 // The session log files of a project: its own Claude Code folder plus any folder or file passed in `extra`.
+// A project made by subagents of a session opened in a parent folder (the workspace) has no log folder of its own:
+// its work sits in <parent's log folder>/<session-id>/subagents/*.jsonl. Such a subagent log is taken when the start
+// of its own log (the brief it was given, first 64 KiB) names the project's absolute path. The path is only tested
+// for, never kept.
+const HEAD_BYTES = 64 * 1024;
+function namesProject(file, needle) {
+  let fd;
+  try {
+    fd = openSync(file, "r");
+    const buf = Buffer.alloc(HEAD_BYTES);
+    const n = readSync(fd, buf, 0, HEAD_BYTES, 0);
+    const head = buf.toString("utf8", 0, n).toLowerCase().replace(/\\\\/g, "/").replace(/\\/g, "/");
+    for (let i = head.indexOf(needle); i >= 0; i = head.indexOf(needle, i + 1)) {
+      if (!/[a-z0-9_.-]/.test(head[i + needle.length] || "")) return true;
+    }
+    return false;
+  } catch { return false; } finally { if (fd !== undefined) closeSync(fd); }
+}
+function ancestorSubagentLogs(project, root, folderFor) {
+  const needle = resolve(project).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+  const out = [];
+  for (let dir = dirname(resolve(project)); ; dir = dirname(dir)) {
+    for (const logDir of folderFor(dir)) {
+      for (const e of readdirSync(logDir, { withFileTypes: true })) {
+        const sub = join(logDir, e.name, "subagents");
+        if (kind(logDir, e) !== "dir" || !existsSync(sub)) continue;
+        for (const f of readdirSync(sub)) if (f.endsWith(".jsonl") && namesProject(join(sub, f), needle)) out.push(join(sub, f));
+      }
+    }
+    if (dirname(dir) === dir) break;
+  }
+  return out;
+}
+
+// The session log files of a project: its own Claude Code folder (main logs and their subagent logs), the subagent
+// logs of a parent folder's sessions that worked on it, plus any folder or file passed in `extra`.
 export function findTranscripts(project, extra = [], env = process.env) {
   const root = join(env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude"), "projects");
-  const want = encodeProject(project).toLowerCase();
-  const dirs = existsSync(root)
-    ? readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory() && (e.name.toLowerCase() === want || (want.length > 200 && e.name.toLowerCase().startsWith(want.slice(0, 200))))).map((e) => join(root, e.name))
-    : [];
+  const entries = existsSync(root) ? readdirSync(root, { withFileTypes: true }).filter((e) => kind(root, e) === "dir") : [];
+  const folderFor = (path) => {
+    const want = encodeProject(path).toLowerCase();
+    return entries.filter((e) => e.name.toLowerCase() === want || (want.length > 200 && e.name.toLowerCase().startsWith(want.slice(0, 200)))).map((e) => join(root, e.name));
+  };
+  const dirs = folderFor(project);
   const sources = [...dirs, ...extra.map((p) => resolve(p))];
-  const files = [...new Set(sources.flatMap(logsIn))].sort();
-  return { sources, files };
+  const own = sources.flatMap(logsIn);
+  const parent = ancestorSubagentLogs(project, root, folderFor);
+  const files = [...new Set([...own, ...parent])].sort();
+  return { sources: parent.length ? [...sources, ...new Set(parent.map((f) => dirname(dirname(f))))] : sources, files };
 }
 
 // Lines of a file read in 1 MiB chunks, so a log of any size never sits in memory whole.

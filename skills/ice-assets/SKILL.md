@@ -4,7 +4,7 @@ description: "Internal part of Ice Motion Director, not a command: start with /i
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.20
+  version: 0.2.21
 ---
 
 # ice-assets
@@ -53,6 +53,7 @@ Required at stage 01: this file down to the end of this section; `references/tru
 | `references/fonts.md` | Getting, licensing, embedding or verifying a font file; matching a reference typeface |
 | `references/screen-capture.md` | Recording an app, site or desktop; fixing frame rate, dropped frames or a phone-recording crop; capture vs rebuild; product photos and cutouts; probing user footage |
 | `references/ai-media-policy.md` | The user asks for AI images, video or voice, or an asset is missing and generation might be offered |
+| `references/google-flow-browser.md` | The user chose Google Flow in the agent's own browser (they sign in): connecting, stills, paid video rounds, downloads, upscale, uploads, stops |
 | `references/project-folders.md` | Creating the asset folders (overlays, LUTs, inbox included), naming files, writing `manifest.json`, download sidecars, `CREDITS.md`, `FETCH-LIST.md`, delivery notes |
 | `assets/truth-sheet.template.md` | Copy to `ice/assets/TRUTH.md` at step 2 |
 | `assets/asset-manifest.example.json` | Starting `ice/assets/manifest.json` at step 3 (slots only, replace every one) |

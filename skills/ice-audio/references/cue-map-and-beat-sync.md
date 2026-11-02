@@ -22,7 +22,7 @@ Required fields:
 - `music`: source (file path of a real or licensed track), license status, `bpm`, `beats_per_bar`, `first_downbeat` (seconds in the film), `offset_in_track` (seconds), `drop`, `outro`, sections.
 - `voice`: one entry per line with text, file, start, end and word timings (from voiceover.md).
 - `events`: one row per moment with `t` (film seconds, from the picture's own export when the engine can export it), `frame` = round(t x fps), `kind`, `what` (the visible cause), `word` (the word it lands on, voice-led films), `sound` (SFX name or none and why), `gain`, `pan` (screen x mapped to about +/-0.6), `phase` (anticipation, travel, contact, recovery).
-- Declared silences (`quiet`: start, end, reason).
+- Declared silences (`audio_quiet`: start, end, reason) and declared picture holds (`visual_hold`: start, end, reason). An older sheet's `quiet` list is still read as silences by `qc.py` and as holds by `motion_check.py`, each with a deprecation note.
 
 Prefer exporting event times from the composition itself (the engine writes events with time, kind, pan, strength) over retyping times. Write in-shot landings as beat numbers or word references and convert to frames only right before render. If the voice changes and the frames no longer match, refuse to render rather than drifting silently.
 
@@ -102,7 +102,7 @@ The flashes per 1 s window are counted on the render by `craft_gate.py build` (t
 2. Back-time: offset = end_card_cut_time minus final_hit_time_in_track. Start the track at that offset so the film opens mid-track and the final hit lands on the end-card cut to the frame.
 3. Then snap the picture's other cuts to that grid. If the final hit is an off-beat push, put it on the cut anyway; other cuts then sit on off-beats, still on the 8th-note grid.
 4. For a drop on the product's big moment with a fixed song start: start = drop_in_song minus drop_in_film, starting about 3 ms before a bar's kick onset. If both the drop and the ending must land, prefer moving picture; otherwise use one bar-line splice (music-choice-and-licensing.md section 4).
-5. If you cannot retime the animation, move where the music starts: search offsets and pick the one with the smallest cut-to-beat error. Report the error per cut in ms.
+5. If you cannot retime the animation, move where the music starts: search offsets and pick the one with the smallest cut-to-beat error. Report the error per cut in ms. This search edits a track already chosen by ear; a close beat fit never decides which track wins (music-choice-and-licensing.md section 3 item 8).
 6. The final chord or tail rings to the last frame; the last voice line ends before the end card's final second.
 7. With a library track, back-time it so its own ending lands on the end card (music-choice-and-licensing.md section 4; `scripts/preview_options.py --align end` lays the options that way).
 
@@ -113,3 +113,7 @@ The flashes per 1 s window are counted on the render by `craft_gate.py build` (t
 - Text and logos stay subtle (3 to 6 % scale, at most about 30 % glow); backgrounds can swing 10 to 30 %. Skip audio reactivity for calm and tutorial pacing.
 - Banned decoration: equalizer bars, spectrum analyzers, waveform displays, musical-note clip art, rainbow cycling, strobing white on beats, pulsing orbs (ice-qa slop scan).
 - Engine-specific hooks (per-frame sampling calls, beat commands) live in the ice-engines skill.
+
+## 9. The story's turn leads the music
+
+When a reference's loudness is carried by a voice the new film does not have, the bed follows the story beats, not the reference's full-mix contour. At a turn (a beat the template or treatment marks `warm_turn`, or a picture that slows, warms or darkens) the music changes state on the turn's first frame: a muffled low-pass and echo memory, a break, or a softer section of the same track. The contour target there is the reference's music-and-effects stem, never its full mix. Verify by ear and by numbers (spectral centroid clearly down, level a few dB under the main bed) and log both in `ice/DIRECTION.md`.

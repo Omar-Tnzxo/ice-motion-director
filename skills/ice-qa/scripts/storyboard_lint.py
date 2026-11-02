@@ -518,8 +518,10 @@ def project_ice(*starts):
 
 
 def declared_times(ice, events_path=None):
-    """Declared holds and the CTA start, from ice/plan/cue-sheet.json (the `quiet` list; an event whose kind is "cta" or
-    whose text names the CTA) and from an events file (type or kind "hold" with t and end; "show" or "cta" labelled cta).
+    """Declared holds and the CTA start, from ice/plan/cue-sheet.json (the `visual_hold` list; an event whose kind is
+    "cta" or whose text names the CTA) and from an events file (type or kind "hold" with t and end; "show" or "cta"
+    labelled cta). A cue sheet with no `visual_hold` key falls back to its old `quiet` list (deprecated for picture holds:
+    `quiet` is the audio silence list of qc.py, written `audio_quiet` now); the source line then says so.
     -> (holds [(start, end, reason)], cta_start or None, sources [])."""
     holds, cta, src = [], None, []
     def cta_ev(e):
@@ -529,12 +531,14 @@ def declared_times(ice, events_path=None):
     if cs and cs.is_file():
         try:
             c = json.loads(cs.read_text(encoding="utf-8"))
-            for q in c.get("quiet") or []:
+            key = "visual_hold" if "visual_hold" in c else "quiet"
+            for q in c.get(key) or []:
                 if isinstance(q, dict) and isinstance(q.get("start"), (int, float)) and isinstance(q.get("end"), (int, float)):
-                    holds.append((float(q["start"]), float(q["end"]), str(q.get("reason", "quiet"))))
+                    holds.append((float(q["start"]), float(q["end"]), str(q.get("reason", "hold"))))
             ts = [float(e["t"]) for e in c.get("events") or [] if isinstance(e, dict) and isinstance(e.get("t"), (int, float)) and cta_ev(e)]
             if ts: cta = min(ts)
-            src.append(str(cs))
+            src.append(str(cs) + (" (deprecated: its `quiet` list read as picture holds; write them as `visual_hold`)"
+                                  if key == "quiet" and c.get("quiet") else ""))
         except (OSError, ValueError):
             pass
     if events_path and Path(events_path).is_file():

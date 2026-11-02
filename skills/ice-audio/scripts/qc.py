@@ -34,7 +34,10 @@ written to a new `<name>.loudnorm.mp4` with the video stream copied.
 
 Inputs (pick one source of voice lines, or none):
   --cue-sheet ice/plan/cue-sheet.json   voice entries {"text", "file", "start", "end"};
-                                         relative files resolve from the project folder
+                                         relative files resolve from the project folder; declared audio
+                                         silences {"start", "end", "reason"} in `audio_quiet` (the old `quiet`
+                                         key is still read, with a deprecation note; picture holds for the
+                                         ice-qa motion_check.py go in `visual_hold`)
   --lines DIR                            every .wav/.mp3/.m4a with a same-name .txt beside it
 
 Usage (Windows, macOS, Linux; needs ffmpeg and ffprobe on PATH):
@@ -617,9 +620,15 @@ def load_cue_events(sheet: Path | None) -> dict:
         out["events"].append({"t": float(t), "kind": str(e.get("kind", "")), "what": str(e.get("what", "")),
                               "word": str(e.get("word", "")), "hero": e.get("hero") is True,
                               "sound": "" if not sound or sound.lower().startswith("none") else sound})
-    for q in data.get("quiet") or []:
+    # Declared audio silences: `audio_quiet`. A sheet without it falls back to the old `quiet` list, which the ice-qa
+    # motion_check.py also read as picture holds (now `visual_hold`); the fallback is printed as deprecated.
+    key = "audio_quiet" if "audio_quiet" in data else "quiet"
+    for q in data.get(key) or []:
         if isinstance(q, dict) and q.get("start") is not None and q.get("end") is not None:
             out["quiet"].append((float(q["start"]), float(q["end"]), str(q.get("reason", ""))))
+    if key == "quiet" and out["quiet"]:
+        out["deprecated"] = ("cue sheet: the old `quiet` list was read as declared audio silences; write it as "
+                             "`audio_quiet` (picture holds go in `visual_hold`)")
     out["joins"] = [float(t) for t in data.get("joins") or [] if isinstance(t, (int, float))]
     return out
 
@@ -1994,6 +2003,8 @@ def run_audit(args) -> int:
 
     # stems or separation
     stems, work, notes = None, None, []
+    if cues.get("deprecated"):
+        notes.append(cues["deprecated"])
     voice = bed = sfx_track = None
     stem_tracks, dec = {}, {}
     if args.stems:
@@ -2132,6 +2143,8 @@ def run_audit(args) -> int:
                     "not run": "NOT RUN"}.get(v["status"], v["status"].upper())
             print(f"  {k} {v['name']}: {word}" + ("" if not v["findings"] else ": " + "; ".join(v["findings"]))
                   + "".join(f" (note: {x})" for x in v.get("notes") or []))
+        for n in notes:
+            print(f"  note: {n}")
         print("BLOCKING: " + (", ".join(blocking) if blocking else "none"))
         print()
         print(ear_block(ear_data["items"], ear_data["status"]))

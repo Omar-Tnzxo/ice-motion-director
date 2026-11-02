@@ -221,7 +221,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-VERSION = "0.2.20"
+VERSION = "0.2.21"
 LOCAL_CODES = ("camera", "depth", "composite", "light", "finish", "type", "transition", "data", "cutout", "sfx", "music",
                "ambience", "foley", "silence", "voice", "rhythm", "footage", "identity")
 try:   # the shared reader (storyboard_lint.py, standard library only); fall back to the internal one when absent
@@ -502,7 +502,7 @@ class PlanFiles:
         for e in data.get("events") or []:
             if isinstance(e, dict) and e.get("id") is not None and isinstance(e.get("t"), (int, float)):
                 self.add(e["id"], f"cue {e['id']}", str(path), (float(e["t"]) - 0.25, float(e["t"]) + 1.0))
-        for q in data.get("quiet") or []:
+        for q in (data.get("audio_quiet") or []) + (data.get("visual_hold") or []) + (data.get("quiet") or []):
             if isinstance(q, dict) and q.get("id") is not None and isinstance(q.get("start"), (int, float)) \
                     and isinstance(q.get("end"), (int, float)):
                 self.add(q["id"], f"quiet {q['id']}", str(path), (float(q["start"]), float(q["end"])))
@@ -2260,7 +2260,7 @@ def check_camera(m, rows, route, subtype, plan, changes=(), change_from=(), ref_
 
 CODE_KEYS = {"music": ("music", "bed"), "voice": ("voice", "vo", "dialogue", "speech"), "sfx": ("sfx", "effects"),
              "ambience": ("ambience", "room_tone", "roomtone", "ambient"), "foley": ("foley",),
-             "silence": ("silence", "silences", "quiet")}
+             "silence": ("silence", "silences", "quiet", "audio_quiet")}
 
 
 def truthy(v):
@@ -2340,8 +2340,9 @@ def sound_presence(ice, files):
         found["music"] = "cue sheet music source"
     if cue.get("voice"):
         found["voice"] = "cue sheet voice lines"
-    if cue.get("quiet"):
-        found["silence"] = f"{len(cue['quiet'])} declared silences in the cue sheet"
+    silences = cue.get("audio_quiet") or cue.get("quiet")
+    if silences:
+        found["silence"] = f"{len(silences)} declared silences in the cue sheet"
     for e in cue.get("events") or []:
         if not isinstance(e, dict):
             continue

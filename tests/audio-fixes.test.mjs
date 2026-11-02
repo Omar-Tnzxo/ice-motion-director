@@ -1130,3 +1130,67 @@ test("sfx.md: sharp hits sync on their arrival (peak kind only), and hero sounds
   assert.match(section(SKILL, 5), /preview_options\.py sfx/, "the options flow lays hero sounds blind too");
   assert.match(section(SKILL, 7), /`scripts\/preview_options\.py`[^\n]*sfx/, "SKILL.md section 7 names the sfx mode");
 });
+
+test("cue sheet keys: qc.py reads audio silences from audio_quiet, motion_check's holds come from visual_hold; the old quiet key still read with a deprecation note", { skip: !PYTHON }, () => {
+  const dir = mkdtempSync(join(tmpdir(), "ice-cue-keys-"));
+  try {
+    mkdirSync(join(dir, "ice", "plan"), { recursive: true });
+    const sheet = join(dir, "ice", "plan", "cue-sheet.json");
+    const run = (code) => {
+      const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", "-c", `import json, sys, pathlib
+sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
+import qc, storyboard_lint as sl
+${code}`, SCRIPT_DIR, abs("skills/ice-qa/scripts"), sheet, join(dir, "ice")], { encoding: "utf8" });
+      assert.equal(r.status, 0, r.stderr);
+      return JSON.parse(r.stdout);
+    };
+    const read = `c = qc.load_cue_events(pathlib.Path(sys.argv[3]))
+h, _, src = sl.declared_times(pathlib.Path(sys.argv[4]))
+print(json.dumps({"audio": c["quiet"], "dep": c.get("deprecated", ""), "holds": h, "src": src}))`;
+    writeFileSync(sheet, JSON.stringify({ fps: 30, audio_quiet: [{ start: 4, end: 5, reason: "before the turn" }], visual_hold: [{ start: 0, end: 0.7, reason: "first frame" }] }));
+    const split = run(read);
+    assert.deepEqual(split.audio, [[4, 5, "before the turn"]], "qc reads only audio_quiet");
+    assert.deepEqual(split.holds, [[0, 0.7, "first frame"]], "motion_check's holds read only visual_hold");
+    assert.equal(split.dep, "");
+    assert.doesNotMatch(split.src.join(" "), /deprecated/);
+    writeFileSync(sheet, JSON.stringify({ fps: 30, quiet: [{ start: 2, end: 3, reason: "old sheet" }] }));
+    const old = run(read);
+    assert.deepEqual(old.audio, [[2, 3, "old sheet"]], "an old sheet still declares its silences");
+    assert.deepEqual(old.holds, [[2, 3, "old sheet"]], "an old sheet still declares its holds");
+    assert.match(old.dep, /deprecated|old `quiet`/);
+    assert.match(old.src.join(" "), /deprecated: its `quiet` list read as picture holds; write them as `visual_hold`/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("match_music.py: runs under python -I (its sibling sound_map found from its own folder) and ranks against a written --target", { skip: !PYTHON }, () => {
+  const MM = abs("skills/ice-audio/scripts/match_music.py");
+  const help = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", MM, "music", "--help"], { encoding: "utf8" });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, /--target/);
+  const dir = mkdtempSync(join(tmpdir(), "ice-mm-target-"));
+  try {
+    const out = join(dir, "out");
+    const map = (bpm, key, mode, bright, lra) => ({ duration_s: 60, mix: { lra }, music: { tempo_bpm: bpm, tempo_confidence: 0.9, key, mode,
+      sections: [{}, {}], energy_curve: [0, 10, 20, 30, 40].map((t) => ({ t, rms_db: -20, brightness: bright })), genre_guess: [], instrumentation_guess: [] } });
+    const tracks = { slow: map(70, "D", "minor", 0.3, 9), fast: map(124, "A", "major", 0.62, 5), mid: map(100, "E", "major", 0.5, 7) };
+    for (const [name, m] of Object.entries(tracks)) {
+      writeFileSync(join(dir, name + ".wav"), "not audio: the cached sound map is read");
+      mkdirSync(join(out, "cand-" + name), { recursive: true });
+      writeFileSync(join(out, "cand-" + name, "sound_map.json"), JSON.stringify(m));
+    }
+    const target = join(dir, "target.json");
+    writeFileSync(target, JSON.stringify({ tempo_bpm: 122, key: "A", mode: "major", brightness: 0.6 }));
+    const r = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", MM, "music", "--target", target, "--out", out, ...Object.keys(tracks).map((n) => join(dir, n + ".wav"))], { encoding: "utf8" });
+    if (r.status === 3) return; // numpy, scipy or ffmpeg missing on this machine: sound_map.need_deps() stops first
+    assert.equal(r.status, 0, r.stderr);
+    const rank = JSON.parse(readFileSync(join(out, "ranking.json"), "utf8"));
+    assert.deepEqual(rank.ranking.map((x) => x.file), ["fast.wav", "mid.wav", "slow.wav"]);
+    assert.deepEqual(rank.reference.open_axes, ["dynamics", "genre", "instruments", "movement"], "fields the target leaves out are not scored");
+    assert.deepEqual(Object.keys(rank.ranking[0].parts).sort(), ["brightness", "key", "tempo"]);
+    assert.match(r.stdout, /^target: 122\.0 BPM/m);
+    writeFileSync(target, JSON.stringify({ note: "nothing to rank by" }));
+    const empty = spawnSync(PYTHON[0], [...PYTHON.slice(1), "-I", MM, "music", "--target", target, "--out", out, join(dir, "slow.wav")], { encoding: "utf8" });
+    assert.equal(empty.status, 2);
+    assert.match(empty.stderr, /sets no field/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

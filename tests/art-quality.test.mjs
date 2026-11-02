@@ -482,3 +482,37 @@ test("audio: style Sound lines name targets for real tracks and recorded effects
   }
   assert.match(readText("skills/ice-styles/SKILL.md"), /Sound is never made by code \(`ice-audio\/SKILL\.md` core rule 7\)/);
 });
+
+test("the art check measures canvas drawing from its pixels (it read a canvas hero as 0 tones and 0 shapes)", { skip: NO_CHROME }, () => {
+  const canvasPage = (name, draw) => {
+    const f = join(dir, name + ".html");
+    writeFileSync(f, `<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#e9e4d8}canvas{position:absolute;left:400px;top:200px}
+</style></head><body><canvas id="art" data-art-hero="robot" width="1000" height="700"></canvas><script>
+const c = document.getElementById("art").getContext("2d");
+${draw}
+</script></body></html>`);
+    return f;
+  };
+  const flat = check(canvasPage("canvas-flat", `c.fillStyle = "#d23b3b"; c.fillRect(200, 150, 600, 400);`));
+  const fo = flat.objects.find((o) => o.name === "robot");
+  assert.ok(fo, "the canvas hero is measured");
+  assert.ok(fo.tones >= 1 && fo.tones < 3, `flat canvas: its few tones are counted (got ${fo.tones})`);
+  assert.equal(fo.measures.shapes.status, "FAIL");
+  const rich = check(canvasPage("canvas-rich", `
+const g = c.createLinearGradient(0, 100, 0, 600); g.addColorStop(0, "#e8605a"); g.addColorStop(.55, "#c73a36"); g.addColorStop(1, "#8e2422");
+c.fillStyle = "#3b6ea8"; c.fillRect(0, 0, 1000, 700);
+c.fillStyle = g; c.fillRect(150, 100, 700, 500);
+const cols = ["#ffd27a", "#9fd0e8", "#2c2c2c", "#f7f1e3"];
+for (let i = 0; i < 24; i++) { c.fillStyle = cols[i % 4]; c.fillRect(180 + (i % 6) * 110, 140 + Math.floor(i / 6) * 110, 60, 50); }
+let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+const im = c.getImageData(0, 0, 1000, 700), d = im.data;
+for (let p = 0; p < d.length; p += 4) { const n = (rnd() - 0.5) * 30; d[p] += n; d[p + 1] += n; d[p + 2] += n; }
+c.putImageData(im, 0, 0);`));
+  const ro = rich.objects.find((o) => o.name === "robot");
+  assert.ok(ro.tones >= 3, `gradient and parts give several tones (got ${ro.tones})`);
+  assert.equal(ro.measures.shading.status, "PASS", ro.measures.shading.note);
+  assert.ok(ro.shapes >= 12, `regions of one tone count as shapes (got ${ro.shapes})`);
+  assert.match(ro.measures.shapes.note, /canvas\(es\) read as pixels/);
+  assert.equal(ro.measures.texture.status, "PASS", ro.measures.texture.note);
+});

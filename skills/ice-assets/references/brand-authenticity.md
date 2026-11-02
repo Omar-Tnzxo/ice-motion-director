@@ -56,6 +56,8 @@ Third-party and partner marks: nominative use only (to refer to the brand, never
 
 The closing frame (end card, CTA, sting resolve) shows the real logo file from section 3, at a size that survives the platform (cover and safe-zone sizes: see the ice-engines skill), on a ground with enough contrast for the published variant. No redrawn, approximated or generated logo ever closes a film. If the logo is unavailable at render time, the render does not start, unless section 10 step 6 recorded that the brand's official domain offers no logo file: then the closing frame sets the name as text (with the unofficial label when it applies) and the delivery note says why.
 
+A brand mascot comes only from the official art, animated by its parts (face parts cut from the art, pose to pose). Never one raised finger on any hand (it reads as an insult in several cultures; use an open palm or a thumbs up). Keep the art unmirrored so its marks stay where the brand puts them; mirror it for one shot only when the staging needs it to face the person it is with, and say so in the shot record.
+
 ## 6. Brand inventory and intake
 
 Collect what cannot be invented before choosing a style: the exact script, logo files, fonts with licenses (`fonts.md`), brand tokens, official names, verified numbers, supplied footage, client logos, platform and aspect, final audio, references located on disk.

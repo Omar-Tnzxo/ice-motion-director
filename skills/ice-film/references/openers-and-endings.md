@@ -75,7 +75,7 @@ Render study: <pending (07) | done, <A/B/C> confirmed or replaced | not used>
 
 Mandatory for social shorts, app ads and hype promos; recommended for every film. The opening is its own gated edit: the priority test and the hook rules of section 2 on the chosen opening, then the frame-by-frame check on the encoded opening (including the first spoken word surviving the opening hit): the `ice-qa` skill, `references/captions-and-sync.md` section 2.
 
-A calm opening that holds a finished first frame on purpose (at most about 0.7 s) lists that hold in the `quiet` list of `ice/plan/cue-sheet.json`, so the freeze checks of ice-qa read it as declared, not as dead air.
+A calm opening that holds a finished first frame on purpose (at most about 0.7 s) lists that hold in the `visual_hold` list of `ice/plan/cue-sheet.json`, so the freeze checks of ice-qa read it as declared, not as dead air.
 
 ## 5. Open loops (shorts)
 

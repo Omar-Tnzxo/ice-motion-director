@@ -17,6 +17,11 @@ candidate track, each measured with sound_map.py. Distance per axis, then a weig
 When the reference has a voice, its brightness is read in the voice-free blocks only. The genre and instrument
 guesses of a sound map are proposals: pass the ones the user confirmed with --genre and --instrument (the family
 names SOUND-MAP.md prints) and they replace the reference's guesses.
+With no reference, --target <target.json> ranks against a written target alone: one JSON object with any of
+tempo_bpm (or bpm), key (C to B with sharps, or "A minor"), mode (major or minor), brightness (0 dark to 1 bright,
+the sound map's scale), loudness_range_lu, sections_per_min, genre and instruments (lists of family names). An axis
+the target leaves out is not scored and its weight drops out of the sum; at least one field is needed. Shape only:
+{"tempo_bpm": <n>, "key": "<pitch>", "mode": "<major or minor>", "brightness": <0 to 1>}.
 Writes <out>/ranking.json (best first; each row names its candidate's sound map, which preview_options.py reads)
 and one cand-<name>/ folder per candidate with its sound map (kept as a cache: a second run measures nothing again).
 
@@ -46,6 +51,7 @@ them the stored value, marked not measured). Sounds banned in the taste file are
 
 Usage (Windows, macOS, Linux; needs ffmpeg on PATH, ffprobe too for sfx, and numpy plus scipy from requirements.txt):
     python match_music.py music --ref <sound_map.json or reference file> --out <folder> <track> <track> [...]
+    python match_music.py music --target <target.json> --out <folder> <track> <track> [...]
     python match_music.py sfx --kind whoosh|impact [--profile default|news-reel|under-speech] [--out <folder>] <file> [...]
     python match_music.py pack fetch [--force] [--yes]
     python match_music.py pack list --type <type> [--type <type>] [--profile default|news-reel|under-speech] [--max-dur <s>]
@@ -70,7 +76,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-import sound_map
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # python -I leaves the script's own folder off sys.path
+import sound_map  # noqa: E402  (sibling module of this folder)
 
 WEIGHTS = {"tempo": 0.30, "key": 0.10, "brightness": 0.20, "dynamics": 0.15, "movement": 0.10, "genre": 0.10,
            "instruments": 0.05}
@@ -142,8 +149,48 @@ def jaccard_distance(a: set, b: set) -> float:
     return 1.0 - len(a & b) / len(a | b)
 
 
+def target_features(t: dict, genre: list[str], instruments: list[str]) -> dict:
+    """A written target (--target): the features a sound map gives, None for an axis the target leaves open."""
+    def num(*keys):
+        for k in keys:
+            v = t.get(k)
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                return float(v)
+        return None
+    key, mode = str(t.get("key") or "").strip(), str(t.get("mode") or "").strip().lower()
+    if " " in key and not mode:
+        key, mode = key.split(None, 1)
+        mode = mode.strip().lower()
+    key = key[:1].upper() + key[1:] if key else ""
+    mode = mode if mode in ("major", "minor") else ("major" if key else "")
+    if key and key not in sound_map.PITCH:
+        raise ValueError(f"key {key!r} is not one of {' '.join(sound_map.PITCH)}")
+    bright = num("brightness")
+    if bright is not None and not 0.0 <= bright <= 1.0:
+        raise ValueError("brightness is 0 to 1 (the sound map's scale: 0 dark, 1 bright)")
+
+    def tags(field, given):
+        if given:
+            return set(given)
+        v = t.get(field)
+        return set(v) if isinstance(v, list) and v else None
+    return {"bpm": num("tempo_bpm", "bpm", "tempo") or 0.0, "bpm_conf": 1.0, "key": f"{key} {mode}".strip(),
+            "fifths": fifths_index(key, mode) if key else None, "brightness": bright,
+            "dyn_lu": num("loudness_range_lu", "lra", "dynamics_lu"), "sections_per_min": num("sections_per_min"),
+            "genre": tags("genre", genre), "instruments": tags("instruments", instruments)}
+
+
+def open_axes(ref: dict) -> list[str]:
+    """The axes a written target leaves open: they are not scored."""
+    vals = (("tempo", ref["bpm"] or None), ("key", ref["fifths"]), ("brightness", ref["brightness"]),
+            ("dynamics", ref["dyn_lu"]), ("movement", ref["sections_per_min"]), ("genre", ref["genre"]),
+            ("instruments", ref["instruments"]))
+    return sorted(k for k, v in vals if v is None)
+
+
 def distance(ref: dict, cand: dict) -> dict:
-    parts = {}
+    """Per-axis distances and their weighted sum. An axis a written target leaves open is left out of the sum."""
+    parts, skip = {}, set(ref.get("open_axes") or ())
     if ref["bpm"] and cand["bpm"]:
         parts["tempo"] = min(abs(math.log2(cand["bpm"] * f / ref["bpm"])) for f in (0.5, 1.0, 2.0)) / 0.25
     else:
@@ -153,15 +200,20 @@ def distance(ref: dict, cand: dict) -> dict:
     else:
         d = abs(ref["fifths"] - cand["fifths"]) % 12
         parts["key"] = min(d, 12 - d) / 6.0
-    parts["brightness"] = abs(ref["brightness"] - cand["brightness"]) / 0.15
-    parts["dynamics"] = abs(ref["dyn_lu"] - cand["dyn_lu"]) / 6.0
-    parts["movement"] = abs(ref["sections_per_min"] - cand["sections_per_min"]) / 6.0
-    parts["genre"] = jaccard_distance(ref["genre"], cand["genre"])
-    parts["instruments"] = jaccard_distance(ref["instruments"], cand["instruments"])
-    parts = {k: min(v, 2.0) for k, v in parts.items()}
+    if ref["brightness"] is not None:
+        parts["brightness"] = abs(ref["brightness"] - cand["brightness"]) / 0.15
+    if ref["dyn_lu"] is not None:
+        parts["dynamics"] = abs(ref["dyn_lu"] - cand["dyn_lu"]) / 6.0
+    if ref["sections_per_min"] is not None:
+        parts["movement"] = abs(ref["sections_per_min"] - cand["sections_per_min"]) / 6.0
+    if ref["genre"] is not None:
+        parts["genre"] = jaccard_distance(ref["genre"], cand["genre"])
+    if ref["instruments"] is not None:
+        parts["instruments"] = jaccard_distance(ref["instruments"], cand["instruments"])
+    parts = {k: min(v, 2.0) for k, v in parts.items() if k not in skip}
     # A tempo read with low confidence (speech over the bed, free time) counts less: 0.15 counts half.
     weights = dict(WEIGHTS, tempo=WEIGHTS["tempo"] * min(1.0, max(ref["bpm_conf"], 0.1) / 0.3))
-    total = sum(weights[k] * v for k, v in parts.items()) / sum(weights.values())
+    total = sum(weights[k] * v for k, v in parts.items()) / (sum(weights[k] for k in parts) or 1.0)
     return {"total": round(total, 3), "parts": {k: round(v, 2) for k, v in parts.items()}}
 
 
@@ -175,20 +227,35 @@ def folder_name(path: Path, used: set[str]) -> str:
 
 
 def run_music(args: argparse.Namespace) -> int:
-    missing = [p for p in [args.ref, *args.candidates] if not p.is_file()]
+    missing = [p for p in [args.ref or args.target, *args.candidates] if not p.is_file()]
     if missing:
         sys.stderr.write("error: not a file: " + ", ".join(str(p) for p in missing) + "\n")
         return 2
+    if args.target:
+        try:
+            raw = json.loads(args.target.read_text(encoding="utf-8-sig"))
+            if not isinstance(raw, dict):
+                raise ValueError("the target is one JSON object")
+            ref = target_features(raw, args.genre, args.instrument)
+        except (OSError, ValueError) as exc:
+            sys.stderr.write(f"error: the target could not be read: {exc}\n")
+            return 2
+        ref["open_axes"] = open_axes(ref)
+        if len(ref["open_axes"]) == len(WEIGHTS):
+            sys.stderr.write("error: the target sets no field to rank by (tempo_bpm, key, mode, brightness, "
+                             "loudness_range_lu, sections_per_min, genre, instruments; see --help)\n")
+            return 2
     sound_map.need_deps()
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
-    try:
-        ref_map = (json.loads(args.ref.read_text(encoding="utf-8")) if args.ref.suffix.lower() == ".json"
-                   else measure(args.ref, out / "reference"))
-    except (SystemExit, ValueError, KeyError) as exc:
-        sys.stderr.write(f"error: the reference could not be read or measured: {exc}\n")
-        return 2
-    ref = features(ref_map, True, args.genre, args.instrument)
+    if not args.target:
+        try:
+            ref_map = (json.loads(args.ref.read_text(encoding="utf-8")) if args.ref.suffix.lower() == ".json"
+                       else measure(args.ref, out / "reference"))
+        except (SystemExit, ValueError, KeyError) as exc:
+            sys.stderr.write(f"error: the reference could not be read or measured: {exc}\n")
+            return 2
+        ref = features(ref_map, True, args.genre, args.instrument)
     rows, skipped, used = [], [], {"reference"}
     for audio in args.candidates:
         folder = folder_name(audio, used)
@@ -206,10 +273,14 @@ def run_music(args: argparse.Namespace) -> int:
     rows.sort(key=lambda r: r["total"])
     ref_out = {k: (sorted(v) if isinstance(v, set) else v) for k, v in ref.items()}
     ref_out["confirmed_tags"] = bool(args.genre or args.instrument)
+    ref_out["source"] = f"target {args.target}" if args.target else f"reference {args.ref}"
     (out / "ranking.json").write_text(json.dumps({"version": 1, "reference": ref_out, "weights": WEIGHTS, "ranking": rows,
                                                   "skipped": skipped}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"reference: {ref['bpm']:.1f} BPM (confidence {ref['bpm_conf']:.2f}), key {ref['key'] or 'none'}, brightness "
-          f"{ref['brightness']:.3f}, loudness range {ref['dyn_lu']:.1f} LU, genre {sorted(ref['genre'])}")
+    def show(v, f):
+        return "open" if v is None else format(v, f)
+    print(f"{'target' if args.target else 'reference'}: {show(ref['bpm'] or None, '.1f')} BPM (confidence "
+          f"{ref['bpm_conf']:.2f}), key {ref['key'] or 'open'}, brightness {show(ref['brightness'], '.3f')}, loudness "
+          f"range {show(ref['dyn_lu'], '.1f')} LU, genre {'open' if ref['genre'] is None else sorted(ref['genre'])}")
     for i, r in enumerate(rows, 1):
         print(f"{i}. {r['total']:.3f}  {r['file']}  {r['bpm']:.1f} BPM  {r['key'] or 'no key'}  brightness {r['brightness']}  "
               f"range {r['dyn_lu']} LU  {r['parts']}")
@@ -557,8 +628,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Rank real music tracks against a reference, or recorded sound effects, by measurement; fetch and list Ice's CC0 SFX pack.",
                                  epilog="Then lay the best 2 or 3 tracks on the film with preview_options.py.")
     sub = ap.add_subparsers(dest="mode", required=True)
-    mu = sub.add_parser("music", help="rank candidate tracks against a reference sound map")
-    mu.add_argument("--ref", type=Path, required=True, help="the reference's sound_map.json, or the reference video or audio file")
+    mu = sub.add_parser("music", help="rank candidate tracks against a reference sound map or a written target")
+    src = mu.add_mutually_exclusive_group(required=True)
+    src.add_argument("--ref", type=Path, help="the reference's sound_map.json, or the reference video or audio file")
+    src.add_argument("--target", type=Path,
+                     help="a written target instead of a reference: one JSON object with any of tempo_bpm, key (C to "
+                          "B, sharps as C#), mode (major or minor; or key as 'A minor'), brightness (0 dark to 1 bright, "
+                          "the sound map's scale), loudness_range_lu, sections_per_min, genre and instruments (lists of "
+                          "the family names SOUND-MAP.md prints); a field left out is not scored")
     mu.add_argument("--out", type=Path, required=True, help="folder for ranking.json and the candidates' sound maps")
     mu.add_argument("--genre", action="append", default=[], help="a genre family the user confirmed (repeatable); replaces the reference's guesses")
     mu.add_argument("--instrument", action="append", default=[], help="an instrument family the user confirmed (repeatable)")

@@ -137,7 +137,7 @@ Runtime date: <YYYY-MM-DD from the system clock>
 
 ## 5. Must-include ledger
 
-One row per distinct instruction the user gave (not per sentence). Columns: ID, requirement in the user's words, source, status (`open`, `covered by D-NN`, `blocked`, `dropped by user`), evidence (the decision, frame or file that satisfies it). Never claim full coverage without the ledger. A later instruction that reverses an earlier one marks the earlier row `superseded by <ID>`; nothing earlier is dropped unless a later message reverses it.
+One row per distinct instruction the user gave (not per sentence). Columns: ID, requirement in the user's words, source, status (`open`, `covered by D-NN`, `blocked`, `dropped by user`), evidence (the decision, frame or file that satisfies it). Never claim full coverage without the ledger. A later instruction that reverses an earlier one marks the earlier row `superseded by <ID>` with its date and keeps it visible (struck out where the run's rules are shown); nothing earlier is dropped unless a later message reverses it. Every later builder or critic brief quotes the current row, never the superseded one.
 
 ## 6. Integration check and hand-off summary
 

@@ -11,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: Omar-Tnzxo
-  version: 0.2.20
+  version: 0.2.21
 ---
 
 # ice-direction
@@ -35,7 +35,7 @@ Points to the owner, never restates: routing, `ice/state.json` and the user stop
 | `ice/plan/concepts.md`, `ice/plan/script.md`, `ice/plan/storyboard.md` | Write only to normalize supplied material, with the lock header | `references/intake-and-brief.md` section 8 |
 | `ice/plan/TREATMENT.md` | Write once direction is approved; hand to the workflow | `references/treatment.md` |
 | `ice/plan/craft-plan.json` | Draft at 02 with the concept (the remake at 01), lock at 05 with the look; the workflow maps it at 04 | `references/treatment.md` section "Craft plan" |
-| `~/.ice-motion-director/fingerprints.jsonl` | Read only (written by `ice-qa` after delivery) | `references/anti-sameness.md` |
+| `ice/fingerprints.jsonl` (and the sibling projects' stores) | Read only (written by `ice-qa` after delivery) | `references/anti-sameness.md` |
 
 A decision that lives only in chat is lost on resume: write it to `BRIEF.md` or `DIRECTION.md` the moment it is made.
 

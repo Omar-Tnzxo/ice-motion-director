@@ -872,3 +872,46 @@ test("craft_gate.py depth: a push whose near plane grows 1.28x counts as near, n
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(JSON.parse(r.stdout), { near: [0, 1, 1], under: [0, 0, 0] });
 });
+
+test("film_gate.py fingerprint: writes inside the project (or ICE_FINGERPRINTS), never the home folder; still reads the old home store", { skip: !PYTHON }, () => {
+  const dir = mkdtempSync(join(tmpdir(), "ice-fp-"));
+  try {
+    const home = join(dir, "home");
+    mkdirSync(join(home, ".ice-motion-director"), { recursive: true });
+    const rec = (over = {}) => ({ v: 1, date: "2026-10-01", project: "a", brand: "x", film_type: "ad", variant_of: null, user_chosen: null,
+      palette: { polarity: "dark", accent_hue: 30, chroma: "duotone", hues: 2, values: [] },
+      type: { display: "Inter", body: "Inter", classes: "grotesk+grotesk", weights: "400/800" },
+      layout: { families: ["centered object", "grid"], density: "balanced", depth: "flat" },
+      motion: { family: "punch", core_moves: ["slam", "whip", "pop"], camera: "locked", clock: "smooth" },
+      structure: { concept: "c", scene_band: "5-8", main_objects: ["phone"], opening: "o", closing: "e", device: "d", arc: "a", turn_at: 0.4 },
+      sound: { lead: "score", genre: "house", bpm_band: "120", dramaturgy: "build" }, ...over });
+    const legacy = join(home, ".ice-motion-director", "fingerprints.jsonl");
+    writeFileSync(legacy, JSON.stringify(rec()) + "\n");
+    const proj = join(dir, "films", "b");
+    const sibling = join(dir, "films", "c");
+    mkdirSync(join(proj, "ice"), { recursive: true });
+    mkdirSync(join(sibling, "ice"), { recursive: true });
+    const env = { ...process.env, HOME: home, USERPROFILE: home, ICE_FINGERPRINTS: "" };
+    const run = (r, action, extra = [], e = env) => {
+      const f = join(dir, `${Math.random()}.json`); writeFileSync(f, JSON.stringify(r));
+      return spawnSync(PYTHON[0], [...PYTHON.slice(1), abs("skills/ice-qa/scripts/film_gate.py"), "fingerprint", action, "--record", f, ...extra], { encoding: "utf8", timeout: 60000, env: e, cwd: proj });
+    };
+    const repeat = run(rec({ project: "b", brand: "y" }), "check");
+    assert.equal(repeat.status, 2, "the old home record is still compared: " + repeat.stdout + repeat.stderr);
+    assert.match(repeat.stdout, /old home store/);
+    const other = rec({ project: "b", brand: "y", palette: { polarity: "light", accent_hue: 200, chroma: "full" }, type: { display: "Serif", classes: "serif+grotesk" },
+      motion: { family: "calm", core_moves: ["drift", "fade", "hold"], camera: "continuous" }, sound: { lead: "voice", genre: "none", dramaturgy: "quiet" } });
+    const w = run(other, "write");
+    assert.equal(w.status, 0, w.stdout + w.stderr);
+    assert.equal(readFileSync(legacy, "utf8").split("\n").filter(Boolean).length, 1, "the home file is never written");
+    assert.equal(readFileSync(join(proj, "ice", "fingerprints.jsonl"), "utf8").split("\n").filter(Boolean).length, 1, "written into <project>/ice/");
+    const fromSibling = spawnSync(PYTHON[0], [...PYTHON.slice(1), abs("skills/ice-qa/scripts/film_gate.py"), "fingerprint", "check", "--record",
+      (() => { const f = join(dir, "c.json"); writeFileSync(f, JSON.stringify({ ...other, project: "c", brand: "z" })); return f; })(), "--project", sibling], { encoding: "utf8", timeout: 60000, env });
+    assert.equal(fromSibling.status, 2, "a sibling project's store is read: " + fromSibling.stdout);
+    const shared = join(dir, "shared", "fp.jsonl");
+    assert.equal(run(rec({ project: "e", brand: "q", palette: { polarity: "light", accent_hue: 300, chroma: "mono" }, type: { display: "Mono", classes: "mono+mono" },
+      motion: { family: "glide", core_moves: ["x", "y", "z"], camera: "orbit" }, structure: { concept: "z", scene_band: "1-2", opening: "p", closing: "q", device: "r", arc: "s" },
+      sound: { lead: "sfx", genre: "jazz", dramaturgy: "drop" } }), "write", [], { ...env, ICE_FINGERPRINTS: shared }).status, 0);
+    assert.ok(existsSync(shared), "ICE_FINGERPRINTS sets the store");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

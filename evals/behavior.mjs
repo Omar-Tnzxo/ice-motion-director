@@ -100,6 +100,9 @@ const NOT_GRADED = {
   L73: "a frame template is installed and checked by template.py on a project and a render (stages 01, 07 and 09), after the cases stop",
   L74: "judged by the L1 graders (no code or AI sound in the trace or the decision log); the source gate is validate-assets.mjs --audio-only, tested on fixtures",
   L75: "the moving-pictures share and the parts measure need a rendered film and pages, tested on fixtures by craft_gate.py and art-check.mjs",
+  L77: "the browser route needs the user's own Google sign-in, a paid plan and spent credits; its stops and rules are tested as text in tests/ai-media-routes.test.mjs",
+  L78: "physics, scale and gesture faults appear only in real generated takes judged by eye; the review rows are tested as text in tests/ai-media-routes.test.mjs",
+  L79: "music feeling is judged by a listener on real library tracks; the rules are tested as text in tests/ai-media-routes.test.mjs",
   L76: "a voice needs the user's recording or provider account and real takes; the lines file, fit bands, Arabic numbers and source rows are tested on fixtures by voice_fit.py and spoken_numbers.py",
 };
 const GRADERS = [

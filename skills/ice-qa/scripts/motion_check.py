@@ -3,7 +3,7 @@
 # Changes: dash characters replaced; the pop note names this skill's strip method; this header; UTF-8 process I/O and
 # output on Windows; a clear error when numpy is missing. 2026-10-19 (pilot films): the analysis frame keeps the film's
 # aspect ratio; a freeze is a stretch where no region of the frame moves (the most-changed cell decides), not a low
-# whole-frame mean, so a small element moving steadily is not a freeze; declared holds (cue-sheet quiet list, hold
+# whole-frame mean, so a small element moving steadily is not a freeze; declared holds (cue-sheet visual_hold list, hold
 # events) are reported apart. 2026-10-29 (Obama trial, lessons L9 and L12): pacing against the reference (longest gap
 # between events and events per minute) and depth and camera against the reference, both blocking; --pacing-only runs
 # them with the standard library alone (numpy and ffmpeg load only on the video path). 2026-10-29 (0.2.5, craft plan):
@@ -32,9 +32,10 @@ Video path. Looks at every frame (downscaled to 192 px wide, aspect ratio kept) 
   freeze  a stretch longer than --freeze seconds (default 1.0) where NO region moves: every cell of a 12 px grid
           changes by less than --cell-eps (default 1.0 of 255) from frame to frame. One small element moving anywhere
           (a bar stretching, a cursor, water) means the frame is alive.
-          Declared holds are not freezes: the `quiet` list of ice/plan/cue-sheet.json (found by walking up from the
-          video) and {"type": "hold", "t": start, "end": end} entries (or "kind": "hold") in the events file (--events,
-          or <video>.events.json next to the render). A freeze inside a declared hold is listed as "declared".
+          Declared holds are not freezes: the `visual_hold` list of ice/plan/cue-sheet.json (found by walking up from
+          the video; a sheet without it falls back to its old `quiet` list, printed as deprecated: `quiet` is the
+          audio silence list of the ice-audio qc.py, `audio_quiet` now) and {"type": "hold", "t": start, "end": end}
+          entries (or "kind": "hold") in the events file (--events, or <video>.events.json next to the render). A freeze inside a declared hold is listed as "declared".
   black   frames that are (almost) black inside the film, and a hard cut to black at the end (no fade).
   flash   (almost) white frames: fine when designed, but they must not hide the moment they cover.
   Labels: a black run, a white flash or the end cut to black that an exemption row of ice/plan/craft-plan.json (found by

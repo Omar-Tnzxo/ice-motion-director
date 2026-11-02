@@ -37,6 +37,10 @@
 //              or resizes over 1 %, or its SVG matrix turns or scales. N/A when the group stays put     FAIL
 //              or with one sample. Never lifted: no exemption row or "none:" applies (2026-11-01,
 //              0.2.19; the ice-motion skill, references/picture-methods.md item 5)
+//   Canvas (2d or WebGL): a canvas inside a hero object is read from a screenshot of its box at each sample. Its
+//   colours of 0.5 % of its area or more are fill tones (shading by tone steps of one hue as above), each connected
+//   region of one tone of 0.05 % or more is a shape, and grain (20 % or more of its pixels departing 2 to 40 levels
+//   from their neighbours) is texture. Shadows inside the pixels are not read: mark them as a named layer or declare.
 //   data-art-tones, data-art-shading and data-art-shapes="none: <reason>" on the object turn those fails (and the shapes
 //   lead) into printed leads the same way (a flat-fill or few-shape style that declares it).
 //   Exemption rows: with ice/plan/craft-plan.json (found by walking up from the page, then the working folder), a measure
@@ -64,7 +68,7 @@ if (opt.times !== undefined) {
   if (!userTimes.length) fail2('--times needs numbers like 0.5,2');
 }
 
-const T = { tones: 3, shapesFail: 12, shapesWarn: 24, toneDist: 18, hueSame: 25, lightStep: 0.08, minShare: 0.01, autoShare: 0.02 };
+const T = { tones: 3, shapesFail: 12, shapesWarn: 24, toneDist: 18, hueSame: 25, lightStep: 0.08, minShare: 0.01, autoShare: 0.02, grainShare: 0.2 };
 
 // ---------------------------------------------------------------- page side
 const PAGE_LIB = String.raw`(() => {
@@ -116,8 +120,59 @@ const PAGE_LIB = String.raw`(() => {
         parts: parts.map((p, i) => ({ name: p.getAttribute('data-art-part') || p.id || p.tagName.toLowerCase() + '#' + (i + 1), ...rel(p, g) })) };
     });
   };
+  // canvas: a canvas's drawing is pixels, not nodes, so walking the DOM alone read a canvas hero as 0 tones and 0
+  // shapes. The node side screenshots each visible canvas (any context: 2d, webgl, bitmaprenderer; what is on screen)
+  // and hands it here; __artScan then counts its colour tones, its regions of one tone as shapes and its grain.
+  window.__artCanvasList = () => {
+    window.__artCanvasPix = new Map();
+    const W = innerWidth, H = innerHeight;
+    return [...document.querySelectorAll('canvas')].map((c, i) => {
+      const r = c.getBoundingClientRect(), x0 = Math.max(0, r.left), y0 = Math.max(0, r.top), x1 = Math.min(W, r.right), y1 = Math.min(H, r.bottom);
+      return { i, x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+    }).filter((c) => c.w >= 8 && c.h >= 8);
+  };
+  window.__artCanvasRead = async (i, b64) => {
+    const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+    const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0);
+    const src = cx.getImageData(0, 0, img.width, img.height).data;
+    // nearest-neighbour sample grid of at most about 65k pixels: keeps grain (smoothing would average it away)
+    const step = Math.max(1, Math.ceil(Math.sqrt((img.width * img.height) / 65536))), w = Math.floor(img.width / step), h = Math.floor(img.height / step), n = w * h;
+    if (n < 16) return 0;
+    const px = new Uint8Array(n * 3);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const o = ((y * step) * img.width + x * step) * 4, q = (y * w + x) * 3; px[q] = src[o]; px[q + 1] = src[o + 1]; px[q + 2] = src[o + 2]; }
+    // tones: quantized colours covering at least 0.5 % of the canvas, merged within the tone distance
+    const hist = new Map();
+    for (let p = 0; p < n; p++) { const q = p * 3, key = ((px[q] >> 3) << 10) | ((px[q + 1] >> 3) << 5) | (px[q + 2] >> 3); hist.set(key, (hist.get(key) || 0) + 1); }
+    const tones = [];
+    for (const [key, cnt] of [...hist].sort((a, b) => b[1] - a[1])) {
+      if (cnt < 0.005 * n) break;
+      const c = [((key >> 10) & 31) * 8 + 4, ((key >> 5) & 31) * 8 + 4, (key & 31) * 8 + 4];
+      if (!tones.some((t) => Math.hypot(t[0] - c[0], t[1] - c[1], t[2] - c[2]) <= T.toneDist)) tones.push(c);
+    }
+    // shapes: connected regions of one tone of at least 0.05 % of the canvas
+    const lab = new Int16Array(n).fill(-1), lim = (T.toneDist * 2) ** 2;
+    for (let p = 0; p < n; p++) { const q = p * 3; let best = -1, bd = lim + 1;
+      for (let t = 0; t < tones.length; t++) { const dd = (px[q] - tones[t][0]) ** 2 + (px[q + 1] - tones[t][1]) ** 2 + (px[q + 2] - tones[t][2]) ** 2; if (dd < bd) { bd = dd; best = t; } }
+      if (bd <= lim) lab[p] = best; }
+    const seen = new Uint8Array(n), minRegion = Math.max(4, 0.0005 * n); let regions = 0;
+    for (let p = 0; p < n; p++) {
+      if (seen[p] || lab[p] < 0) continue;
+      let size = 0; const stack = [p]; seen[p] = 1;
+      while (stack.length) { const c = stack.pop(); size++; const x = c % w;
+        for (const nb of [x > 0 ? c - 1 : -1, x < w - 1 ? c + 1 : -1, c - w, c + w]) if (nb >= 0 && nb < n && !seen[nb] && lab[nb] === lab[p]) { seen[nb] = 1; stack.push(nb); } }
+      if (size >= minRegion) regions++;
+    }
+    // grain: share of inner pixels whose lightness departs from the mean of their 4 neighbours by 2 to 40 levels
+    const L = (p) => 0.2126 * px[p * 3] + 0.7152 * px[p * 3 + 1] + 0.0722 * px[p * 3 + 2];
+    let grainy = 0, inner = 0;
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const p = y * w + x, dv = Math.abs(L(p) - (L(p - 1) + L(p + 1) + L(p - w) + L(p + w)) / 4); inner++; if (dv >= 2 && dv <= 40) grainy++; }
+    window.__artCanvasPix.set(i, { tones, regions, grain: inner ? grainy / inner : 0 });
+    return 1;
+  };
   window.__artScan = () => {
     const W = innerWidth, H = innerHeight, cs = (e) => getComputedStyle(e);
+    const allCanvases = [...document.querySelectorAll('canvas')], pix = window.__artCanvasPix || new Map();
     const rgba = (c) => {
       const m = /^rgba?\(([^)]+)\)/.exec(c || ''); if (!m) return null;
       const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(parseFloat); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
@@ -169,7 +224,7 @@ const PAGE_LIB = String.raw`(() => {
     const covers = (o, b) => { const ix = Math.max(0, Math.min(o.b.x1, b.x1) - Math.max(o.b.x0, b.x0)), iy = Math.max(0, Math.min(o.b.y1, b.y1) - Math.max(o.b.y0, b.y0)); return b.area > 0 && (ix * iy) / b.area >= 0.6; };
     const measure = (g, name, auto) => {
       const b = box(g), acc = { fills: [], shading: new Set(), texture: new Set(), shadow: new Set() };
-      let shapes = 0;
+      let shapes = 0, canvases = 0, unread = 0;
       const all = [g, ...g.querySelectorAll('*')];
       for (const e of all) {
         if (hidden(e)) continue;
@@ -188,6 +243,12 @@ const PAGE_LIB = String.raw`(() => {
         if (s.mixBlendMode && s.mixBlendMode !== 'normal') acc.shading.add('blend ' + s.mixBlendMode);
         if (/shadow|occlusion|\bao\b/.test(nm)) acc.shadow.add('shape named ' + nm.trim().split(/\s+/)[0]);
         if (/grain|noise|texture/.test(nm)) acc.texture.add('layer named ' + nm.trim().split(/\s+/)[0]);
+        if (tag === 'canvas') {
+          const st = pix.get(allCanvases.indexOf(e));
+          if (st) { canvases++; shapes += st.regions; for (const c of st.tones) acc.fills.push([...c, 1]);
+            if (st.grain >= T.grainShare) acc.texture.add('grain in the canvas pixels (' + Math.round(st.grain * 100) + ' %)'); }
+          else unread++;
+        }
       }
       // two fills of one hue with different lightness = a modelled shadow or highlight tone
       const hsl = (c) => { const r = c[0] / 255, gg = c[1] / 255, bb = c[2] / 255, mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb), l = (mx + mn) / 2, d = mx - mn;
@@ -212,7 +273,7 @@ const PAGE_LIB = String.raw`(() => {
         if (/shadow|occlusion|\bao\b/.test(nameOf(e)) || (c && lum(c) < 0.35 && a > 0.05 && a < 0.75) || (filterKinds(s.filter).has('shadow') && c && lum(c) < 0.35))
           { acc.shadow.add('cast shadow <' + e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + '> under the base'); break; }
       }
-      return { name, auto, area: b.area / (W * H), box: [b.x0 / W, b.y0 / H, b.x1 / W, b.y1 / H].map((v) => +v.toFixed(3)), shapes, tones: tones.length,
+      return { name, auto, area: b.area / (W * H), box: [b.x0 / W, b.y0 / H, b.x1 / W, b.y1 / H].map((v) => +v.toFixed(3)), shapes, tones: tones.length, canvases, unread,
         toneList: tones.slice(0, 8).map((c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')),
         shading: [...acc.shading].slice(0, 3), texture: [...acc.texture].slice(0, 3), shadow: [...acc.shadow].slice(0, 3),
         textureNone: g.getAttribute('data-art-texture') || '', shadowNone: g.getAttribute('data-art-shadow') || '',
@@ -259,7 +320,8 @@ function verdict(o) {
   const m = [];
   m.push(['tones', o.tones < T.tones ? 'FAIL' : 'PASS', `${o.tones} distinct fill tone(s)${o.toneList.length ? ' ' + o.toneList.join(' ') : ''}` + (o.tones < T.tones ? ` (needs base, shadow and highlight: ${T.tones} or more)` : ''), o.tonesNone, o.tones]);
   m.push(['shading', o.shading.length ? 'PASS' : 'FAIL', o.shading.length ? o.shading.join(', ') : 'none: no gradient, lighting filter, blend layer or tone steps of one hue', o.shadingNone, null]);
-  m.push(['shapes', o.shapes < T.shapesFail ? 'FAIL' : o.shapes < T.shapesWarn ? 'WARN' : 'PASS', `${o.shapes} shape(s)` + (o.shapes < T.shapesWarn ? ` (fail under ${T.shapesFail}, lead under ${T.shapesWarn}: primary, secondary and tertiary forms)` : ''), o.shapesNone, o.shapes]);
+  m.push(['shapes', o.shapes < T.shapesFail ? 'FAIL' : o.shapes < T.shapesWarn ? 'WARN' : 'PASS', `${o.shapes} shape(s)` +
+    (o.canvases ? ` (${o.canvases} canvas(es) read as pixels: tone regions count as shapes)` : '') + (o.unread ? ` (${o.unread} canvas(es) not read)` : '') + (o.shapes < T.shapesWarn ? ` (fail under ${T.shapesFail}, lead under ${T.shapesWarn}: primary, secondary and tertiary forms)` : ''), o.shapesNone, o.shapes]);
   const opt = (key, found, none, what) => found.length ? [key, 'PASS', found.join(', '), none, null] : [key, 'FAIL', `none: no ${what}`, none, null];
   m.push(opt('texture', o.texture, o.textureNone, 'pattern, noise filter or texture layer over the object'));
   m.push(opt('shadow', o.shadow, o.shadowNone, 'cast, contact or drop shadow'));
@@ -320,6 +382,10 @@ let br, exitCode = 0;
     for (const h of JSON.parse(await page.eval('JSON.stringify(window.__artParts())', { timeout: 30000 }))) {
       if (!partSamples.has(h.name)) partSamples.set(h.name, []);
       partSamples.get(h.name).push({ t, ...h });
+    }
+    for (const c of await page.eval('window.__artCanvasList()')) {
+      const png = await page.shot({ clip: { x: c.x, y: c.y, width: c.w, height: c.h, scale: 1 } });
+      await page.eval(`window.__artCanvasRead(${c.i}, ${JSON.stringify(png.toString('base64'))})`, { timeout: 60000 });
     }
     const A = JSON.parse(await page.eval('JSON.stringify(window.__artScan())', { timeout: 30000 }));
     drawn = Math.max(drawn, A.drawn); declared = declared || A.declared; A.skipped.forEach((n) => skipped.add(n));
