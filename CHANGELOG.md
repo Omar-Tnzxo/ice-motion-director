@@ -2,6 +2,33 @@
 
 Every notable change to Ice Motion Director is listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Installed plugins update only when this version number changes.
 
+## 0.2.21 - 2026-11-02
+
+The lessons of a real launch ad, and Google Flow as an option. Every correction the founder made on a delivery app's launch ad is now a default rule, so the next film does not repeat it; driving Google Flow in the agent's own browser (you sign in, the agent makes the stills and asks before every paid video round) is a supported route for AI imagery; music is chosen by direction and feeling first; and five tools found wrong in the style pilot are fixed.
+
+### Added
+
+- **Google Flow in the agent's browser (L77).** `ice-assets/references/ai-media-policy.md` section 10 and the new `ice-assets/references/google-flow-browser.md`: you sign in yourself; the agent never types a password, picks an account, buys credits or accepts terms; stills first (no credits on the tested plan); before each paid video round it shows the credits and the balance left and waits for your yes (router stop C); one generation at a time; any unusual activity, rate warning or captcha stops the route and falls back. Downloads, the free 1080p upscale, uploads and a full-take review are written out step by step.
+- **Generated takes are judged for physics, scale and gestures (L78).** The video review table adds devices and physics (a dark or locked phone in use, objects that fly) and scale and reactions; a brand mascot never raises one finger and stays unmirrored unless a shot needs it.
+- **Music lessons (L79).** With no music named, the first listen is 3 to 4 far-apart directions, one example each, then 2 to 3 tracks inside the chosen one; the platform's own feeling is a line of the music brief; beats on the cuts are an editing step, never the reason to pick a track; at the story's turn the bed changes state on the turn's first frame (`cue-map-and-beat-sync.md` section 9, `sound.music_spec.turn_treatment` in frame templates).
+
+### Changed
+
+- A library track starts on its own first sound or a section's first downbeat, never mid-phrase; a solo hand drum under a quiet opening is avoided.
+- Voice: every line cut from one take is measured over its whole length, so a fade on the wrong timeline cannot mute the lines after the first.
+- A reversed note stays visible as superseded, and every later brief quotes the current one.
+- The router's stops table gains stop C (a paid round on a provider site, before the click); its text was tightened to stay under the SKILL.md size cap.
+- API prices re-read on 2026-11-02 (unchanged); version freshness checked the same day (no pin bumped).
+
+### Fixed
+
+- `export-case-study.mjs` counts full-film review rounds named `film-r<n>.md` as well as `critic-<n>.md` (the pilot printed "0 critic rounds").
+- `run-usage.mjs` finds the session logs without `--transcripts`: log folders kept as junctions or symlinks are followed, and subagent logs of a session opened in a parent folder are taken when their brief names the project.
+- `film_gate.py fingerprint` writes inside the project (`ice/fingerprints.jsonl`, or `ICE_FINGERPRINTS`, or `--file`) instead of the home folder; the check reads sibling projects' stores and, read only, the old home file.
+- `art-check.mjs` measures canvas drawing (2d and WebGL) from its pixels: tones, connected shapes and grain, where it read all zeros before.
+- The cue sheet's `quiet` list had two meanings: silences are now `audio_quiet` (`qc.py`, `craft_gate.py`) and picture holds `visual_hold` (`motion_check.py`, `film_gate.py`); an older `quiet` list is still read, with a deprecation note.
+- `match_music.py` runs under `python -I`, and `music --target target.json` ranks tracks against a written target when there is no reference.
+
 ## 0.2.20 - 2026-11-01
 
 A film can now have a complete, professional narrator: your own recording, or a voice the agent generates with your own voice provider (ElevenLabs and others), directed line by line with emotion, taken more than once, fitted to each shot and recorded at its source. Music and sound effects stay real recordings only.
